@@ -15,7 +15,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);color:var(--ink);padding-bottom:110px}
-.hero{background:var(--navy);color:#fff;padding:20px 20px 14px}
+.hero{background:var(--navy);color:#fff;padding:20px 20px 14px;position:relative}
 .hero .brand{display:flex;align-items:center;gap:10px}
 .hero .star{color:var(--gold);font-size:18px}
 .hero h1{font-size:19px;font-weight:900;letter-spacing:.5px}
@@ -110,6 +110,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i></div>
   <div class="stepname" id="stepname">步驟 1／3：選擇課程</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v1.6</div>
 </header>
 
 <div id="view"></div>
@@ -188,11 +189,36 @@ async function initLiff(){
     }
   }catch(e){/* 外部瀏覽器或初始化失敗照常以訪客模式運作 */}
 }
+/* 各工作表的欄位順序（備援通道要靠標題對回欄位） */
+const SHEET_HEADERS={
+  "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序"],
+  "班表":["日期","排班老師","可開課老師數","備註"],
+  "加購":["課程名稱","加購名稱","加價","排序"]
+};
 async function gviz(sheet){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tqx=out:json`;
-  const t=await (await fetch(url)).text();
-  const j=JSON.parse(t.substring(t.indexOf("{"),t.lastIndexOf("}")+1));
-  return j.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
+  let lastErr;
+  /* 主通道：Google gviz */
+  try{
+    const res=await fetch(url);
+    if(!res.ok)throw new Error("Google 回應 HTTP "+res.status);
+    const t=await res.text();
+    const a=t.indexOf("{"),b=t.lastIndexOf("}");
+    if(a<0||b<0)throw new Error("回應不是資料格式");
+    const j=JSON.parse(t.substring(a,b+1));
+    if(!j.table)throw new Error("找不到工作表「"+sheet+"」");
+    return j.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
+  }catch(e){lastErr=e}
+  /* 備援通道：opensheet 代理（回傳以標題為鍵的物件陣列，轉回欄位順序） */
+  try{
+    const res2=await fetch(`https://opensheet.elte.hu/${SHEET_ID}/${encodeURIComponent(sheet)}`);
+    if(!res2.ok)throw new Error("備援回應 HTTP "+res2.status);
+    const arr=await res2.json();
+    const hs=SHEET_HEADERS[sheet]||[];
+    return arr.map(o=>hs.map(h=>o[h]??""));
+  }catch(e2){
+    throw new Error("主通道："+(lastErr?lastErr.message:"?")+"／備援："+e2.message);
+  }
 }
 function rowsToGroups(rows){
   const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99})).filter(c=>c.name&&c.on);
@@ -257,6 +283,16 @@ function teachersOn(d){
 }
 const capOf=d=>Math.min(teachersOn(d)*CAP_PER_TEACHER, SEAT_CAP);
 const leftOf=(d,s)=>capOf(d)-(bookedMap[d+"|"+s]||0);
+/* 時段是否已過：日期在今天之前，或就是今天且時段開始時間已過 */
+function slotPassed(d,slot){
+  const now=new Date();
+  const today=dstr(now.getFullYear(),now.getMonth()+1,now.getDate());
+  if(d<today)return true;
+  if(d>today)return false;
+  const m=slot.match(/^(\d{1,2}):(\d{2})/);
+  if(!m)return false;
+  return now.getHours()*60+now.getMinutes() >= (+m[1])*60+(+m[2]);
+}
 
 const totalPeople=()=>Object.values(picks).reduce((s,p)=>s+p.qty,0);
 function pickPrice(id){
@@ -354,8 +390,8 @@ function renderCalendar(){
   for(let i=0;i<startW;i++)cells+=`<div></div>`;
   for(let d=1;d<=days;d++){
     const ds=dstr(calY,calM,d);
-    const past=ds<today;
-    const anyLeft=SLOTS.some(s=>leftOf(ds,s)>=totalPeople());
+    const past=SLOTS.every(s=>slotPassed(ds,s));
+    const anyLeft=SLOTS.some(s=>!slotPassed(ds,s)&&leftOf(ds,s)>=totalPeople());
     const dis=past||teachersOn(ds)===0||!anyLeft;
     cells+=`<button class="day ${dis?'off':'avail'} ${ds===selDate?'on':''}" data-d="${ds}" ${dis?'disabled':''}>${d}</button>`;
   }
@@ -363,10 +399,13 @@ function renderCalendar(){
   if(selDate){
     slotHtml=`<div class="slots"><h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
       SLOTS.map(s=>{
-        const left=leftOf(selDate,s),dis=left<totalPeople();
+        const passed=slotPassed(selDate,s);
+        const left=leftOf(selDate,s),full=left<totalPeople();
+        const dis=passed||full;
+        const capText=passed?'已過時間':(full?'名額已滿・想同行加人請私訊小編':'剩 '+left+' 位');
         return `<button class="slot ${s===selSlot?'on':''}" data-s="${s}" ${dis?'disabled':''}>
           <span class="left">${s}</span>
-          <span class="cap ${left<=3?'low':''}">${dis?'名額已滿・想同行加人請私訊小編':'剩 '+left+' 位'}</span></button>`;
+          <span class="cap ${passed?'':(left<=3?'low':'')}">${capText}</span></button>`;
       }).join("")}</div></div>`;
   }
   const v=document.getElementById("view");
@@ -423,6 +462,9 @@ function renderDone(id){
     ${payHtml}</div>`;
 }
 async function submitBooking(){
+  if(slotPassed(selDate,selSlot)){
+    alert("這個時段已經開始了，請重新選擇時間。");setStep(2);selSlot="";return;
+  }
   await loadBookings();
   if(leftOf(selDate,selSlot)<totalPeople()){
     alert("這個時段名額剛被約走，請重新選時段。");setStep(2);return;
@@ -458,9 +500,16 @@ document.getElementById("btnNext").onclick=async()=>{
   else if(step===2)setStep(3);
   else if(step===3){document.getElementById("btnNext").disabled=true;await submitBooking()}
 };
-Promise.all([loadCourses(),initLiff()]).then(render).catch(()=>{
-  document.getElementById("view").innerHTML=`<div class="state">讀不到課程表格。<br>請確認試算表已開「知道連結的任何人：檢視者」。</div>`;
-});
+function boot(){
+  initLiff().catch(()=>{});   // 認人失敗不影響預約
+  loadCourses().then(render).catch(err=>{
+    document.getElementById("view").innerHTML=
+      `<div class="state">讀不到課程表格。<br><br>
+       <span style="font-size:12.5px;color:#C0392B;word-break:break-all">${err.message}</span><br><br>
+       <button onclick="boot()" style="padding:11px 26px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:10px;font-size:15px;font-family:inherit">重試</button></div>`;
+  });
+}
+boot();
 </script>
 </body>
 </html>
