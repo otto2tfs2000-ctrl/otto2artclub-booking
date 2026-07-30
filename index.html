@@ -6,6 +6,7 @@
 <title>Otto2 ARTCLUB 線上預約</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 :root{
   --navy:#1E2B4F; --gold:#E3B34C; --paper:#F7F5F0; --card:#FFF;
@@ -131,6 +132,7 @@ const FIREBASE_URL = "https://otto2-booking-f9ef7-default-rtdb.asia-southeast1.f
 const MAX_PEOPLE   = 6;          // 單筆預約人數上限
 const DEPOSIT_AMOUNT = 600;      // 訂金／點數預扣金額
 const LINEPAY_URL  = "https://reurl.cc/O5Qe23";
+const LIFF_ID      = "2010906803-FMDYktUN";
 const SEAT_CAP     = 13;         // 教室座位硬上限
 const CAP_PER_TEACHER = 6;       // 每位老師可帶人數
 /* 基準週班表：0=日,1=一...6=六（班表工作表填了例外日會覆蓋這裡） */
@@ -161,12 +163,31 @@ let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
 let customer={name:"",phone:"",note:""};
 let deposit="";   // "linepay" | "points"
+let lineUser=null; // {userId, displayName}
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
 const pLabel=r=>{const n=pNum(r);return n?"NT$"+n.toLocaleString():"現場報價"};
 const pad=n=>String(n).padStart(2,"0");
 const dstr=(y,m,d)=>`${y}/${pad(m)}/${pad(d)}`;
 
+async function initLiff(){
+  if(!window.liff||!LIFF_ID)return;
+  try{
+    await liff.init({liffId:LIFF_ID});
+    if(liff.isInClient()&&!liff.isLoggedIn()){liff.login();return}
+    if(liff.isLoggedIn()){
+      const p=await liff.getProfile();
+      lineUser={userId:p.userId,displayName:p.displayName};
+      if(FIREBASE_URL){
+        try{
+          const m=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+p.userId+".json")).json();
+          if(m){customer.name=customer.name||m.name||"";customer.phone=customer.phone||m.phone||""}
+        }catch(e){}
+      }
+      if(!customer.name)customer.name=p.displayName||"";
+    }
+  }catch(e){/* 外部瀏覽器或初始化失敗照常以訪客模式運作 */}
+}
 async function gviz(sheet){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tqx=out:json`;
   const t=await (await fetch(url)).text();
@@ -417,6 +438,7 @@ async function submitBooking(){
     people:totalPeople(), total:totalPrice(),
     customer:{...customer}, status:"new",
     deposit:{method:deposit, amount:DEPOSIT_AMOUNT, status:"pending"},
+    line:lineUser?{userId:lineUser.userId,displayName:lineUser.displayName}:null,
     source:"web", ts:new Date().toISOString()
   };
   let id="DEMO-"+Math.random().toString(36).slice(2,7).toUpperCase();
@@ -424,6 +446,9 @@ async function submitBooking(){
     const res=await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
     const j=await res.json(); id=j.name?j.name.slice(-6).toUpperCase():id;
   }else DEMO_BOOKINGS.push(rec);
+  if(FIREBASE_URL&&lineUser){
+    fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+lineUser.userId+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:customer.name,phone:customer.phone,displayName:lineUser.displayName,lastBooking:rec.ts})}).catch(()=>{});
+  }
   renderDone(id);
 }
 document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";render()};
@@ -433,7 +458,7 @@ document.getElementById("btnNext").onclick=async()=>{
   else if(step===2)setStep(3);
   else if(step===3){document.getElementById("btnNext").disabled=true;await submitBooking()}
 };
-loadCourses().then(render).catch(()=>{
+Promise.all([loadCourses(),initLiff()]).then(render).catch(()=>{
   document.getElementById("view").innerHTML=`<div class="state">讀不到課程表格。<br>請確認試算表已開「知道連結的任何人：檢視者」。</div>`;
 });
 </script>
