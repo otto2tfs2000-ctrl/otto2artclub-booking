@@ -82,6 +82,13 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .field input:focus,.field textarea:focus{outline:none;border-color:var(--navy)}
 .recap{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;font-size:14px;line-height:1.8}
 .recap b{color:var(--navy)}
+.dep{display:flex;flex-direction:column;gap:9px}
+.dopt{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font-family:inherit;font-size:14.5px;text-align:left}
+.dopt.on{border-color:var(--navy);background:var(--sel)}
+.dopt b{color:var(--navy)}
+.dopt .dsub{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.dopt .dtag{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--navy);margin-left:10px}
+.paybtn{display:block;margin:18px auto 0;padding:14px 26px;background:#06C755;color:#fff;border-radius:12px;font-size:16px;font-weight:700;text-decoration:none;max-width:280px}
 .done{padding:56px 26px;text-align:center}
 .done .big{font-size:44px}
 .done h2{font-size:19px;color:var(--navy);margin:12px 0 8px}
@@ -122,6 +129,8 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 const SHEET_ID     = "1QjiDwmPcwbmdhmNv9cz1A6veC_BbC75m1VJG85P3Q6M";
 const FIREBASE_URL = "https://otto2-booking-f9ef7-default-rtdb.asia-southeast1.firebasedatabase.app";
 const MAX_PEOPLE   = 6;          // 單筆預約人數上限
+const DEPOSIT_AMOUNT = 600;      // 訂金／點數預扣金額
+const LINEPAY_URL  = "https://reurl.cc/O5Qe23";
 const SEAT_CAP     = 13;         // 教室座位硬上限
 const CAP_PER_TEACHER = 6;       // 每位老師可帶人數
 /* 基準週班表：0=日,1=一...6=六（班表工作表填了例外日會覆蓋這裡） */
@@ -151,6 +160,7 @@ let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]
 let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
 let customer={name:"",phone:"",note:""};
+let deposit="";   // "linepay" | "points"
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
 const pLabel=r=>{const n=pNum(r);return n?"NT$"+n.toLocaleString():"現場報價"};
@@ -251,7 +261,7 @@ function updateBar(){
   const btn=document.getElementById("btnNext");
   if(step===1){btn.textContent="選擇日期和時間 →";btn.disabled=!Object.keys(picks).length}
   if(step===2){btn.textContent="填寫聯絡資料 →";btn.disabled=!(selDate&&selSlot)}
-  if(step===3){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim())}
+  if(step===3){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim()&&deposit)}
 }
 function render(){
   if(step===1)renderCourses();
@@ -362,7 +372,16 @@ function renderForm(){
     <div class="field"><label>姓名 *</label><input id="fName" value="${customer.name}" placeholder="請填寫聯絡人姓名"></div>
     <div class="field"><label>手機 *</label><input id="fPhone" value="${customer.phone}" inputmode="tel" placeholder="09xx-xxx-xxx"></div>
     <div class="field"><label>備註</label><textarea id="fNote" rows="3" placeholder="特殊需求、想做的圖案等">${customer.note}</textarea></div>
+    <div class="field"><label>訂金方式 *</label><div class="dep">
+      <button class="dopt ${deposit==='linepay'?'on':''}" data-dep="linepay">
+        <span><b>新客・LINE Pay 訂金</b><div class="dsub">送出後付款 NT$${DEPOSIT_AMOUNT}，完成截圖回傳 LINE</div></span>
+        <span class="dtag">NT$${DEPOSIT_AMOUNT}</span></button>
+      <button class="dopt ${deposit==='points'?'on':''}" data-dep="points">
+        <span><b>會員・點數折抵</b><div class="dsub">預扣 ${DEPOSIT_AMOUNT} 點，上課當日核銷</div></span>
+        <span class="dtag">${DEPOSIT_AMOUNT} 點</span></button>
+    </div></div>
   </div>`;
+  v.querySelectorAll(".dopt").forEach(b=>b.onclick=()=>{deposit=b.dataset.dep;render()});
   ["fName","fPhone","fNote"].forEach(id=>{
     v.querySelector("#"+id).oninput=()=>{
       customer={name:v.querySelector("#fName").value,phone:v.querySelector("#fPhone").value,note:v.querySelector("#fNote").value};
@@ -372,10 +391,15 @@ function renderForm(){
 }
 function renderDone(id){
   document.getElementById("bar").style.display="none";
+  const payHtml = deposit==="linepay"
+    ? `<a class="paybtn" href="${LINEPAY_URL}" target="_blank">前往 LINE Pay 付訂金 NT$${DEPOSIT_AMOUNT}</a>
+       <p style="margin-top:12px">付款完成後請<b>截圖回傳 LINE</b>，<br>小編確認訂金後預約才算保留成功。</p>`
+    : `<p style="margin-top:12px">我們將為你<b>預扣 ${DEPOSIT_AMOUNT} 點</b>作為訂金，<br>小編確認點數後會透過 LINE 回覆你。</p>`;
   document.getElementById("view").innerHTML=`<div class="done">
     <div class="big">★</div><h2>預約完成！</h2>
-    <p><b>${selDate}　${selSlot}</b><br>共 ${totalPeople()} 位・NT$${totalPrice().toLocaleString()}<br><br>
-    我們已收到你的預約${FIREBASE_URL?'':'（示範模式，未實際寫入）'}，<br>小編確認後會透過 LINE 與你聯繫。<br>編號：${id}</p></div>`;
+    <p><b>${selDate}　${selSlot}</b><br>共 ${totalPeople()} 位・NT$${totalPrice().toLocaleString()}<br>
+    ${FIREBASE_URL?'':'（示範模式，未實際寫入）'}編號：${id}</p>
+    ${payHtml}</div>`;
 }
 async function submitBooking(){
   await loadBookings();
@@ -392,6 +416,7 @@ async function submitBooking(){
     }),
     people:totalPeople(), total:totalPrice(),
     customer:{...customer}, status:"new",
+    deposit:{method:deposit, amount:DEPOSIT_AMOUNT, status:"pending"},
     source:"web", ts:new Date().toISOString()
   };
   let id="DEMO-"+Math.random().toString(36).slice(2,7).toUpperCase();
