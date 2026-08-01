@@ -84,6 +84,20 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .recap{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;font-size:14px;line-height:1.8}
 .recap b{color:var(--navy)}
 .dep{display:flex;flex-direction:column;gap:9px}
+.partywrap{padding:14px 14px 0}
+.ptitle{font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+.prow{display:flex;gap:8px}
+.pcard{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 10px;text-align:center;cursor:pointer;transition:.15s}
+.pcard.on{border-color:var(--navy);background:var(--sel)}
+.pcard b{display:block;font-size:13.5px;color:var(--navy)}
+.pcard small{display:block;font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.4}
+.kidsbar{display:none;align-items:center;gap:11px;margin-top:10px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px}
+.kidsbar.on{display:flex}
+.kidsbar .kl{flex:1;font-size:13.5px;color:var(--ink)}
+.kidsbar .kl small{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.needbar{margin-top:10px;background:#EEF1FA;border:1.5px solid #C9D2EA;border-radius:11px;padding:10px 13px;font-size:12.5px;color:var(--navy);line-height:1.6}
+.needbar b{font-weight:700}
+.needbar.warn{background:#FDF3DC;border-color:#E8D9A8;color:#6B5320}
 .notice{background:#FDF7E8;border:1.5px solid #E8D9A8;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#6B5320;line-height:1.65}
 .notice b{color:#4A3810}
 .notice .oa{display:inline-block;margin-top:9px;padding:9px 16px;background:#06C755;color:#fff;border-radius:9px;font-size:13.5px;font-weight:700;text-decoration:none}
@@ -117,7 +131,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i></div>
   <div class="stepname" id="stepname">步驟 1／3：選擇課程</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.2</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.3</div>
 </header>
 
 <div id="view"></div>
@@ -333,6 +347,12 @@ function slotPassed(d,slot){
 }
 
 const totalPeople=()=>Object.values(picks).reduce((s,p)=>s+p.qty,0);
+/* 同行組成應有人數 */
+function partyNeed(){
+  if(party==="solo")return 1;
+  if(party==="kids")return 1+kidsCount;
+  return Math.max(totalPeople(),2);
+}
 /* 從課程「時長」欄解析分鐘數，取該組合的最大值（同時進行，非累加） */
 function durMinutes(txt){
   const t=String(txt||"");
@@ -373,9 +393,15 @@ function updateBar(){
   document.getElementById("sumPeople").textContent=totalPeople();
   document.getElementById("sumPrice").textContent="NT$"+totalPrice().toLocaleString();
   const btn=document.getElementById("btnNext");
-  if(step===1){btn.textContent="選擇日期和時間 →";btn.disabled=!Object.keys(picks).length}
+  if(step===1){
+    const n=totalPeople();
+    if(!party){btn.textContent="請先選擇同行組成";btn.disabled=true}
+    else if(!n){btn.textContent="請選擇課程";btn.disabled=true}
+    else if(party!=="group"&&n!==partyNeed()){btn.textContent=`還需選 ${partyNeed()-n} 位的課程`;btn.disabled=n>partyNeed()?false:true;if(n>partyNeed()){btn.textContent="人數超過同行組成";btn.disabled=true}}
+    else{btn.textContent="選擇日期和時間 →";btn.disabled=false}
+  }
   if(step===2){btn.textContent="填寫聯絡資料 →";btn.disabled=!(selDate&&selSlot)}
-  if(step===3){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim()&&deposit&&party)}
+  if(step===3){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim()&&deposit)}
 }
 function render(){
   if(step===1)renderCourses();
@@ -393,7 +419,36 @@ function renderCourses(){
   cats=[...new Set(groups.map(g=>g.cat))];
   if(!cats.includes(activeCat))activeCat=cats[0]||"";
   const v=document.getElementById("view");
-  v.innerHTML=`<nav class="tabs" id="tabs">${cats.map(c=>`<button class="tab ${c===activeCat?'on':''}" data-cat="${c}">${c}</button>`).join("")}</nav><main class="list" id="list"></main>`;
+  const need=partyNeed();
+  const now=totalPeople();
+  v.innerHTML=`
+  <div class="partywrap">
+    <div class="ptitle">這次誰要一起來？</div>
+    <div class="prow">
+      <div class="pcard ${party==='solo'?'on':''}" data-party="solo"><b>獨自一人</b><small>給自己一段<br>放鬆的時間</small></div>
+      <div class="pcard ${party==='kids'?'on':''}" data-party="kids"><b>帶孩子一起</b><small>孩子需滿 6 歲<br>大人小孩都創作</small></div>
+      <div class="pcard ${party==='group'?'on':''}" data-party="group"><b>呼朋引伴</b><small>朋友同行<br>6 人以上請私訊</small></div>
+    </div>
+    <div class="kidsbar ${party==='kids'?'on':''}">
+      <span class="kl">帶幾位孩子？<small>大人 1 位 ＋ 孩子 ${kidsCount} 位</small></span>
+      <span class="stepper"><button data-kid="minus">−</button><b>${kidsCount}</b><button data-kid="plus">＋</button></span>
+    </div>
+    ${party?`<div class="needbar ${now&&now!==need?'warn':''}">
+      共 <b>${need} 位</b>，每人完成一件作品，請往下為每位選擇課程（可以選不同課程）。
+      ${now?`目前已選 <b>${now} 位</b>${now===need?' ✓':'，還差 '+(need-now)+' 位'}`:''}
+    </div>`:''}
+  </div>
+  <nav class="tabs" id="tabs">${cats.map(c=>`<button class="tab ${c===activeCat?'on':''}" data-cat="${c}">${c}</button>`).join("")}</nav><main class="list" id="list"></main>`;
+  v.querySelectorAll(".pcard").forEach(el=>el.onclick=()=>{
+    party=el.dataset.party;
+    if(party==="group")alert("6 人以上的團體，請直接私訊小編安排時段與教室。");
+    render();
+  });
+  v.querySelectorAll("[data-kid]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.kid==="plus"&&kidsCount<4)kidsCount++;
+    if(b.dataset.kid==="minus"&&kidsCount>1)kidsCount--;
+    render();
+  });
   v.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;render()});
   const list=v.querySelector("#list");
   const show=groups.filter(g=>g.cat===activeCat);
@@ -515,18 +570,6 @@ function renderForm(){
     <div class="field"><label>姓名 *</label><input id="fName" value="${customer.name}" placeholder="請填寫聯絡人姓名"></div>
     <div class="field"><label>手機 *</label><input id="fPhone" value="${customer.phone}" inputmode="tel" placeholder="09xx-xxx-xxx"></div>
     <div class="field"><label>備註</label><textarea id="fNote" rows="3" placeholder="特殊需求、想做的圖案等">${customer.note}</textarea></div>
-    <div class="field"><label>同行組成 *</label><div class="dep">
-      <button class="dopt ${party==='solo'?'on':''}" data-party="solo">
-        <span><b>獨自一人放鬆</b><div class="dsub">給自己兩小時，好好創作</div></span></button>
-      <button class="dopt ${party==='kids'?'on':''}" data-party="kids">
-        <span><b>帶著孩子一起</b><div class="dsub">孩子需滿 6 歲以上</div>
-          <div class="kidsrow ${party==='kids'?'on':''}">
-            <span>幾位孩子？</span>
-            <span class="stepper"><button data-kid="minus">−</button><b>${kidsCount}</b><button data-kid="plus">＋</button></span>
-          </div></span></button>
-      <button class="dopt ${party==='group'?'on':''}" data-party="group">
-        <span><b>呼朋引伴</b><div class="dsub">6 人以上請直接私訊小編安排</div></span></button>
-    </div></div>
     <div class="field"><label>訂金方式 *</label><div class="dep">
       <button class="dopt ${deposit==='linepay'?'on':''}" data-dep="linepay">
         <span><b>新客・LINE Pay 訂金</b><div class="dsub">送出後付款 NT$${DEPOSIT_AMOUNT}，完成截圖回傳 LINE</div></span>
@@ -609,7 +652,7 @@ async function submitBooking(){
   }
   renderDone(id);
 }
-document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";render()};
+document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";party="";kidsCount=1;render()};
 document.getElementById("btnBack").onclick=()=>setStep(step-1);
 document.getElementById("btnNext").onclick=async()=>{
   if(step===1){await loadSchedule();await loadBookings();setStep(2)}
