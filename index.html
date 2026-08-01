@@ -45,6 +45,8 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .vrow{display:flex;gap:8px;flex-wrap:wrap}
 .vopt{padding:7px 13px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;font-family:inherit}
 .vopt.on{border-color:var(--navy);background:var(--navy);color:#fff;font-weight:700}
+.vopt.blocked{opacity:.45;background:var(--paper)}
+.vnote{font-size:11.5px;color:#8A6400;background:#FDF7E8;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6}
 .aopt{display:flex;justify-content:space-between;align-items:center;width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;font-family:inherit;margin-bottom:7px;text-align:left}
 .aopt .ap{color:var(--ink-soft);font-size:12.5px;flex:0 0 auto;margin-left:8px}
 .aopt.on{border-color:var(--navy);background:var(--sel)}
@@ -54,6 +56,14 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .qty{display:none;margin-top:11px;align-items:center;gap:12px}
 .card.sel .qty{display:flex}
 .qty span{font-size:13px;color:var(--ink-soft)}
+.sess{display:none;margin-top:11px;padding-top:11px;border-top:1px dashed #C9CFDF}
+.card.sel .sess{display:block}
+.sess>span{font-size:13px;color:var(--ink-soft);display:block;margin-bottom:7px}
+.srow{display:flex;gap:8px}
+.sopt{flex:1;padding:9px 6px;border:1.5px solid var(--line);background:#fff;border-radius:9px;font-size:13.5px;font-weight:700;color:var(--navy);font-family:inherit}
+.sopt small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-soft);margin-top:2px}
+.sopt.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sopt.on small{color:rgba(255,255,255,.75)}
 .stepper{display:flex;border:1.5px solid var(--navy);border-radius:9px;overflow:hidden}
 .stepper button{width:34px;height:32px;border:none;background:#fff;font-size:18px;color:var(--navy);font-weight:700}
 .stepper b{width:36px;text-align:center;font-size:15px;background:#fff;line-height:32px}
@@ -93,6 +103,20 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .kanote{font-size:11.5px;color:var(--ink-soft);margin-top:11px;line-height:1.6}
 .totalbar{margin-top:16px;text-align:center;font-size:14px;color:var(--ink-soft)}
 .totalbar b{color:var(--navy);font-size:16px}
+.keynotes{margin-top:18px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:13px 15px}
+.kn{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink-soft);line-height:1.65}
+.kn+.kn{margin-top:9px;padding-top:9px;border-top:1px solid var(--paper)}
+.kn b{color:var(--navy)}
+.ki{flex:0 0 18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.notes{margin-top:10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.notes summary{padding:14px 16px;font-size:13.5px;color:var(--navy);font-weight:700;cursor:pointer;list-style:none;position:relative}
+.notes summary::-webkit-details-marker{display:none}
+.notes summary::after{content:"＋";position:absolute;right:16px;top:13px;font-size:16px;color:var(--ink-soft)}
+.notes[open] summary::after{content:"−"}
+.notes[open] summary{border-bottom:1px solid var(--line)}
+.ncontent{padding:14px 16px 16px;font-size:12.5px;color:var(--ink-soft);line-height:1.85}
+.ncontent b{display:block;color:var(--navy);font-size:13px;margin-bottom:3px;margin-top:2px}
+.ncontent b:not(:first-child){margin-top:0}
 .needwrap{padding:12px 14px 0}
 .partywrap{padding:14px 14px 0}
 .pbox{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px 14px}
@@ -149,7 +173,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.6</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.0</div>
 </header>
 
 <div id="view"></div>
@@ -210,6 +234,8 @@ let adults=1;     // 大人人數
 let kids=0;       // 兒童人數
 let kidAges=[];   // 每位兒童的年齡
 let lineUser=null; // {userId, displayName}
+let visitCount=0;  // 此 LINE 帳號在本系統的預約次數
+let hasPlan=false; // 是否為方案會員（第二期由會員系統寫入）
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
 const pLabel=r=>{const n=pNum(r);return n?"NT$"+n.toLocaleString():"現場報價"};
@@ -231,12 +257,21 @@ async function initLiff(){
         }catch(e){}
       }
       if(!customer.name)customer.name=p.displayName||"";
+      /* 查此帳號過往預約次數，用來判斷體驗價資格 */
+      if(FIREBASE_URL){
+        try{
+          const all=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json")).json();
+          if(all)visitCount=Object.values(all).filter(b=>b.line&&b.line.userId===p.userId&&b.status!=="cancelled").length;
+          const m2=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+p.userId+".json")).json();
+          if(m2&&(m2.plan||m2.credits>0))hasPlan=true;
+        }catch(e){}
+      }
     }
   }catch(e){/* 外部瀏覽器或初始化失敗照常以訪客模式運作 */}
 }
 /* 各工作表的欄位順序（備援通道要靠標題對回欄位） */
 const SHEET_HEADERS={
-  "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序","最小年齡"],
+  "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序","最小年齡","可加堂"],
   "班表":["日期","排班老師","可開課老師數","備註"],
   "加購":["課程名稱","加購名稱","加價","排序"]
 };
@@ -281,11 +316,11 @@ async function gviz(sheet){
 }
 
 function rowsToGroups(rows){
-  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0})).filter(c=>c.name&&c.on);
+  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y"})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
     const k=it.cat+"|"+it.name;
-    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,variants:[]});
+    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,multiSession:it.multi,variants:[]});
     map.get(k).variants.push({spec:it.spec,priceRaw:it.priceRaw});
   }
   return [...map.values()].sort((a,b)=>a.sort-b.sort);
@@ -367,6 +402,8 @@ function slotPassed(d,slot){
 
 const totalPeople=()=>Object.values(picks).reduce((s,p)=>s+p.qty,0);
 const partyNeed=()=>adults+kids;
+/* 本次預約需要幾個連續時段 */
+const needSlots=()=>Object.values(picks).some(p=>p.sessions===2)?2:1;
 /* 從課程「時長」欄解析分鐘數，取該組合的最大值（同時進行，非累加） */
 function durMinutes(txt){
   const t=String(txt||"");
@@ -388,7 +425,7 @@ function totalMinutes(){
 }
 function pickPrice(id){
   const g=groups.find(x=>x.id===id),p=picks[id];
-  let sum=pNum(g.variants[p.variantIdx].priceRaw)*p.qty;
+  let sum=pNum(g.variants[p.variantIdx].priceRaw)*p.qty*(p.sessions===2?2:1);
   const ads=addonsByCourse[g.name]||[];
   for(const i in p.addons) if(p.addons[i]&&ads[i]) sum+=ads[i].price;
   return sum;
@@ -472,6 +509,42 @@ function renderParty(){
     </div>`:''}
     ${total>=6?`<div class="agewarn">單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。</div>`:''}
     <div class="totalbar">本次共 <b>${total} 位</b>，需選擇 <b>${total} 份課程</b></div>
+    <div class="keynotes">
+      <div class="kn"><span class="ki">1</span><span><b>體驗價僅限首次</b>上課使用，之後為會員價或單次原價</span></div>
+      <div class="kn"><span class="ki">2</span><span><b>當日課程無法線上預約</b>，想確認今天是否有位置請私訊小編</span></div>
+      <div class="kn"><span class="ki">3</span><span>送出後請完成<b>訂金 NT$600</b>，確認收到才算保留位置</span></div>
+    </div>
+    <details class="notes">
+      <summary>其他注意事項（時間、年齡、當天準備）</summary>
+      <div class="ncontent">
+        <b>關於人數與課程</b>
+        每位（含孩子）都會完成一件自己的作品，因此有幾位就選幾份課程。<br>
+        同行的人可以做<b>不同課程</b>，也可以做<b>同一種課程</b>，在課程頁調整份數即可。<br><br>
+
+        <b>關於價格</b>
+        體驗價<b>僅限首次</b>上課使用；已購買方案的會員請選會員價，現場核對。<br>
+        部分課程有不同尺寸，價格會依尺寸調整。<br><br>
+
+        <b>關於時間</b>
+        週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。<br>
+        <b>當日課程無法線上預約</b>，想確認今天是否有位置請私訊小編。<br>
+        創作時間超過 2 小時的課程，建議連續預約兩個時段。<br><br>
+
+        <b>關於年齡</b>
+        每門課程的年齡限制不同，填寫孩子年齡後系統會自動標示適合的課程。<br>
+        孩子與大人一樣各自完成一件作品，並非陪同旁觀。<br><br>
+
+        <b>關於訂金</b>
+        新客請以 LINE Pay 支付訂金 NT$600，完成後截圖回傳 LINE。<br>
+        方案會員可選擇點數預扣，上課當日核銷。<br>
+        訂金確認後預約才算保留成功。<br><br>
+
+        <b>上課當天</b>
+        請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。<br>
+        流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。<br>
+        座位有限，每人低消一件作品，請勿攜伴出席。
+      </div>
+    </details>
   </div>`;
   v.querySelectorAll("[data-age]").forEach(inp=>inp.onchange=()=>{
     kidAges[+inp.dataset.age]=+inp.value||0; render();
@@ -516,9 +589,18 @@ function renderCourses(){
         ${locked?`<div class="desc" style="color:var(--warn)">最小的孩子 ${youngest} 歲，未達這門課的年齡限制</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
         <div class="meta">${g.dur?`<span class="chip">⏱ ${g.dur}</span>`:''}<span class="chip price">${priceChip(g)}</span></div>
-        ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>`<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`).join("")}</div></div>`:''}
+        ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
+          const isTrial=/體驗/.test(vv.spec), isMember=/會員/.test(vv.spec);
+          const blockTrial=isTrial&&visitCount>0;
+          const blockMember=isMember&&!hasPlan&&visitCount>0;
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''} ${blockTrial?'blocked':''}" data-v="${i}" ${blockTrial?'data-block="trial"':''}>${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}${blockTrial?' 🔒':''}</button>`;
+        }).join("")}</div>${visitCount>0?`<div class="vnote">你已在本工作室上過課，體驗價僅限首次。若已購買方案，選擇會員價即可，現場核對。</div>`:''}</div>`:''}
         ${ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:''}
         <div class="qty"><span>這門課幾位？</span><div class="stepper"><button data-act="minus">−</button><b>${p?p.qty:1}</b><button data-act="plus">＋</button></div></div>
+        ${g.multiSession?`<div class="sess"><span>要畫幾堂？</span><div class="srow">
+          <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">1 堂<small>單一時段</small></button>
+          <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">2 堂<small>連續兩個時段</small></button>
+        </div></div>`:''}
       </div><div class="tick">✓</div></div>`;
   }).join("")||`<div class="state">這個分類目前沒有上架課程。</div>`;
   list.querySelectorAll(".card").forEach(el=>{
@@ -528,11 +610,16 @@ function renderCourses(){
       let t=e.target;
       while(t&&t!==el&&!t.dataset.v&&!t.dataset.a&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
-        if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{}};
+        if(t.dataset.block==="trial"){alert("體驗價僅限首次上課。你已在本工作室上過課，請選擇會員價或單次原價。");return}
+        if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{},sessions:1};
         else picks[id].variantIdx=+t.dataset.v;
         render();return}
+      if(t&&t.dataset.s!==undefined){
+        if(!picks[id])picks[id]={variantIdx:0,qty:1,addons:{},sessions:+t.dataset.s};
+        else picks[id].sessions=+t.dataset.s;
+        selSlot=""; render(); return}
       if(t&&t.dataset.a!==undefined){
-        if(!picks[id])picks[id]={variantIdx:0,qty:1,addons:{}};
+        if(!picks[id])picks[id]={variantIdx:0,qty:1,addons:{},sessions:1};
         picks[id].addons=picks[id].addons||{};
         picks[id].addons[t.dataset.a]=!picks[id].addons[t.dataset.a];
         render();return}
@@ -542,7 +629,7 @@ function renderCourses(){
         if(t.dataset.act==="minus")p.qty>1?p.qty--:delete picks[id];
         render();return}
       if(picks[id])delete picks[id];
-      else if(totalPeople()<partyNeed())picks[id]={variantIdx:0,qty:1,addons:{}};
+      else if(totalPeople()<partyNeed())picks[id]={variantIdx:0,qty:1,addons:{},sessions:1};
       else alert(`你選的是 ${partyNeed()} 位，課程份數已經選滿了。要調整人數請回到最上方。`);
       render();
     };
@@ -592,15 +679,27 @@ function renderCalendar(){
         若只約一個時段，課程結束後我們會把位置讓給下一位學員。</div>`;
     }
 
-    slotHtml=`<div class="slots">${noticeHtml}${durHtml}<h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
-      SLOTS.map(s=>{
-        const passed=slotPassed(selDate,s);
-        const left=leftOf(selDate,s),full=left<totalPeople();
-        const dis=passed||full||isToday;
-        const capText=isToday?"當日請私訊小編":(passed?"已過時間":(full?"名額已滿・想同行加人請私訊小編":"剩 "+left+" 位"));
-        return `<button class="slot ${s===selSlot?'on':''}" data-s="${s}" ${dis?'disabled':''}>
-          <span class="left">${s}</span>
-          <span class="cap ${passed||isToday?'':(left<=3?'low':'')}">${capText}</span></button>`;
+    const ns=needSlots();
+    slotHtml=`<div class="slots">${noticeHtml}${durHtml}
+      ${ns===2?`<div class="dur">你選了 <b>2 堂課</b>，需要<b>連續兩個時段</b>（共 4 小時）。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`:''}
+      <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
+      SLOTS.map((sl,i)=>{
+        const pair = ns===2 ? SLOTS[i+1] : null;
+        const noPair = ns===2 && !pair;
+        const passed=slotPassed(selDate,sl)||(pair&&slotPassed(selDate,pair));
+        const left=leftOf(selDate,sl);
+        const left2=pair?leftOf(selDate,pair):99;
+        const full=left<totalPeople()||left2<totalPeople();
+        const dis=passed||full||isToday||noPair;
+        let capText;
+        if(isToday)capText="當日請私訊小編";
+        else if(noPair)capText="後面沒有可接續的時段";
+        else if(passed)capText="已過時間";
+        else if(full)capText="名額不足・想同行加人請私訊小編";
+        else capText=ns===2?`剩 ${Math.min(left,left2)} 位（兩時段皆可）`:`剩 ${left} 位`;
+        return `<button class="slot ${sl===selSlot?'on':''}" data-s="${sl}" ${dis?'disabled':''}>
+          <span class="left">${sl}${pair?` ＋ ${pair}`:''}</span>
+          <span class="cap ${passed||isToday||noPair?'':(Math.min(left,left2)<=3?'low':'')}">${capText}</span></button>`;
       }).join("")}</div></div>`;
   }
   const v=document.getElementById("view");
@@ -623,7 +722,7 @@ function renderForm(){
   const items=Object.keys(picks).map(pickSummary).join("<br>");
   const v=document.getElementById("view");
   v.innerHTML=`<div class="form">
-    <div class="recap"><b>${selDate}　${selSlot}</b><br>${items}<br>共 ${totalPeople()} 位・合計 <b>NT$${totalPrice().toLocaleString()}</b></div>
+    <div class="recap"><b>${selDate}　${selSlot}${needSlots()===2?" ＋ "+(SLOTS[SLOTS.indexOf(selSlot)+1]||""):""}</b><br>${items}<br>共 ${totalPeople()} 位・合計 <b>NT$${totalPrice().toLocaleString()}</b></div>
     <div class="field"><label>姓名 *</label><input id="fName" value="${customer.name}" placeholder="請填寫聯絡人姓名"></div>
     <div class="field"><label>手機 *</label><input id="fPhone" value="${customer.phone}" inputmode="tel" placeholder="09xx-xxx-xxx"></div>
     <div class="field"><label>備註</label><textarea id="fNote" rows="3" placeholder="特殊需求、想做的圖案等">${customer.note}</textarea></div>
@@ -667,20 +766,27 @@ function renderDone(id){
     : `<p style="margin-top:12px">我們將為你<b>預扣 ${DEPOSIT_AMOUNT} 點</b>作為訂金，<br>小編確認點數後會透過 LINE 回覆你。</p>`;
   document.getElementById("view").innerHTML=`<div class="done">
     <div class="big">★</div><h2>預約完成！</h2>
-    <p><b>${selDate}　${selSlot}</b><br>共 ${totalPeople()} 位・NT$${totalPrice().toLocaleString()}<br>
+    <p><b>${selDate}　${selSlot}${needSlots()===2?" ＋ "+(SLOTS[SLOTS.indexOf(selSlot)+1]||""):""}</b><br>共 ${totalPeople()} 位・NT$${totalPrice().toLocaleString()}<br>
     ${FIREBASE_URL?'':'（示範模式，未實際寫入）'}編號：${id}</p>
     ${payHtml}</div>`;
+}
+function pairSlot(){
+  if(needSlots()!==2)return null;
+  const i=SLOTS.indexOf(selSlot);
+  return i>=0?SLOTS[i+1]||null:null;
 }
 async function submitBooking(){
   if(slotPassed(selDate,selSlot)){
     alert("這個時段已經開始了，請重新選擇時間。");setStep(3);selSlot="";return;
   }
   await loadBookings();
-  if(leftOf(selDate,selSlot)<totalPeople()){
+  const p2=pairSlot();
+  if(leftOf(selDate,selSlot)<totalPeople()||(p2&&leftOf(selDate,p2)<totalPeople())){
     alert("這個時段名額剛被約走，請重新選時段。");setStep(3);return;
   }
   const rec={
-    date:selDate, slot:selSlot,
+    date:selDate, slot:selSlot, slot2:p2||null,
+    sessions:needSlots(),
     items:Object.keys(picks).map(id=>{
       const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
       const ads=addonsByCourse[g.name]||[];
@@ -691,6 +797,7 @@ async function submitBooking(){
     customer:{...customer}, status:"new",
     party:{adults, kids, kidAges:kidAges.slice(0,kids), label:`大人 ${adults} 位${kids?" ・ 兒童 "+kids+" 位（"+kidAges.slice(0,kids).filter(a=>a).join("、")+" 歲）":""}`},
     durationMin:totalMinutes(),
+    visitCount, hasPlan,
     deposit:{method:deposit, amount:DEPOSIT_AMOUNT, status:"pending"},
     line:lineUser?{userId:lineUser.userId,displayName:lineUser.displayName}:null,
     source:"web", ts:new Date().toISOString()

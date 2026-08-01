@@ -51,6 +51,12 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .dep{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;margin-top:4px;border:none;font-family:inherit}
 .dep.pending{background:#FDF3DC;color:#9A6B00}
 .dep.paid{background:#E8F3EC;color:var(--ok)}
+.flag{font-size:11.5px;color:var(--warn);background:var(--warnbg);border-radius:7px;padding:5px 8px;margin-top:5px;line-height:1.5}
+.atrow{display:flex;gap:6px;justify-content:flex-end;margin-top:7px}
+.at{font-size:11.5px;padding:5px 11px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);font-family:inherit}
+.at.on{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700}
+.at.no{background:var(--warnbg);border-color:var(--warn);color:var(--warn);font-weight:700}
+.newtag{display:inline-block;font-size:10.5px;padding:1px 8px;border-radius:99px;background:#E8F3EC;color:var(--ok);margin-top:4px}
 /* ── 班表月曆 ── */
 .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .mhead h2{font-size:17px;color:var(--navy)}
@@ -203,12 +209,12 @@ function renderToday(){
       <button class="tbtn" id="tM">−</button><div class="n">${tN}</div><button class="tbtn" id="tP">＋</button>
     </div><div class="l">可開課老師${schedule[ds]!==undefined?'・已指定':'・預設'}</div></div>
     <div class="kpi ${anyOver?'alert':''}"><div class="n">${ppl}</div><div class="l">今日總人次</div></div>
-    <div class="kpi"><div class="n">${dish.size}</div><div class="l">品項數</div></div>
+    <div class="kpi"><div class="n">${todays.filter(b=>b.attend==="in").reduce((x,b)=>x+(+b.people||0),0)}<span style="font-size:14px;color:var(--ink-soft)">/${ppl}</span></div><div class="l">已報到人次</div></div>
   </div>`;
 
   const extra=[...new Set(todays.map(b=>b.slot).filter(s=>!SLOTS.includes(s)))];
   for(const s of [...SLOTS,...extra]){
-    const list=todays.filter(b=>b.slot===s);
+    const list=todays.filter(b=>b.slot===s||b.slot2===s);
     const n=list.reduce((x,b)=>x+(+b.people||0),0);
     const over=n>cap,pct=Math.min(100,cap?n/cap*100:100);
     const ds2=[...new Set(list.flatMap(b=>(b.items||[]).map(i=>i.name+(i.spec?'('+i.spec+')':''))))];
@@ -217,12 +223,19 @@ function renderToday(){
       <div class="meter"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
       ${ds2.length?`<div class="dishes">品項：${ds2.join("、")}${ds2.length>2?'　⚠ 品項偏多，注意備料':''}</div>`:''}
       ${list.map(b=>`<div class="bk">
-        <div class="who"><b>${b.customer?.name||"—"}</b> ${b.people}位${b.source==="manual"?'<span class="src">現場登記</span>':''}
+        <div class="who"><b>${b.customer?.name||"—"}</b> ${b.people}位${b.slot2?'<span class="src">連堂 '+b.slot+'＋'+b.slot2+'</span>':''}${b.source==="manual"?'<span class="src">現場登記</span>':''}
           <div class="tel">${b.customer?.phone||""}${b.party?.label?'　·　'+b.party.label:''}</div>
           ${b.customer?.note?`<div class="note">備註：${b.customer.note}</div>`:''}
+          ${b.visitCount>0&&(b.items||[]).some(i=>/體驗/.test(i.spec||""))?'<div class="flag">⚠ 已來過 '+b.visitCount+' 次卻選體驗價，請現場核對</div>':''}
+          ${b.visitCount===0?'<span class="newtag">首次</span>':''}
           ${b.deposit?`<button class="dep ${b.deposit.status==='paid'?'paid':'pending'}" data-dep-id="${b.id||''}" data-dep-st="${b.deposit.status}">${b.deposit.method==='points'?'點數'+b.deposit.amount:'LINE Pay '+b.deposit.amount}・${b.deposit.status==='paid'?'已收 ✓':'待確認（點我標記）'}</button>`:''}
         </div>
-        <div class="items">${(b.items||[]).map(i=>`${i.name}${i.spec?'('+i.spec+')':''}<b>×${i.qty||''}</b>${(i.addons||[]).map(a=>'<br>＋'+a.name).join("")}`).join("<br>")}</div>
+        <div class="items">${(b.items||[]).map(i=>`${i.name}${i.spec?'('+i.spec+')':''}<b>×${i.qty||''}</b>${(i.addons||[]).map(a=>'<br>＋'+a.name).join("")}`).join("<br>")}
+          <div class="atrow">
+            <button class="at ${b.attend==='in'?'on':''}" data-at="${b.id}" data-v="in">已報到</button>
+            <button class="at ${b.attend==='no'?'no':''}" data-at="${b.id}" data-v="no">未到</button>
+          </div>
+        </div>
       </div>`).join("")||`<div style="font-size:13px;color:var(--ink-soft);padding-top:6px">尚無預約</div>`}
     </div>`;
   }
@@ -232,6 +245,15 @@ function renderToday(){
 
   document.getElementById("tM").onclick=()=>setTeachers(ds,Math.max(0,tN-1));
   document.getElementById("tP").onclick=()=>setTeachers(ds,Math.min(6,tN+1));
+  document.querySelectorAll("[data-at]").forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.at, v=btn.dataset.v;
+    if(!id||!FIREBASE_URL)return;
+    const bk=bookings.find(x=>x.id===id);
+    const next=(bk&&bk.attend===v)?null:v;   // 再點一次取消
+    await fetch(fb("/bookings/"+id+".json"),{method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({attend:next, attendAt:next?new Date().toISOString():null})});
+    refresh();
+  });
   document.querySelectorAll("[data-dep-id]").forEach(btn=>btn.onclick=async()=>{
     const id=btn.dataset.depId;if(!id||!FIREBASE_URL)return;
     const next=btn.dataset.depSt==="paid"?"pending":"paid";
