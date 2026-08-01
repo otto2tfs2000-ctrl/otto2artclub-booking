@@ -115,8 +115,9 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .notes[open] summary::after{content:"−"}
 .notes[open] summary{border-bottom:1px solid var(--line)}
 .ncontent{padding:14px 16px 16px;font-size:12.5px;color:var(--ink-soft);line-height:1.85}
-.ncontent b{display:block;color:var(--navy);font-size:13px;margin-bottom:3px;margin-top:2px}
-.ncontent b:not(:first-child){margin-top:0}
+.nsec+.nsec{margin-top:14px}
+.nsec h4{font-size:13px;color:var(--navy);font-weight:700;margin-bottom:4px}
+.nsec p{font-size:12.5px;color:var(--ink-soft);line-height:1.85;margin:0}
 .needwrap{padding:12px 14px 0}
 .partywrap{padding:14px 14px 0}
 .pbox{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px 14px}
@@ -173,7 +174,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.0</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.1</div>
 </header>
 
 <div id="view"></div>
@@ -225,6 +226,21 @@ let DEMO_BOOKINGS = [];
 
 let step=1, groups=[], cats=[], activeCat="", picks={};
 /* picks: gid -> {variantIdx, qty, addons:{addonIdx:true}} */
+let notices={
+  key:[
+    {title:"",body:"體驗價僅限首次上課使用，之後為會員價或單次原價"},
+    {title:"",body:"當日課程無法線上預約，想確認今天是否有位置請私訊小編"},
+    {title:"",body:"送出後請完成訂金 NT$600，確認收到才算保留位置"}
+  ],
+  detail:[
+    {title:"關於人數與課程",body:"每位（含孩子）都會完成一件自己的作品，因此有幾位就選幾份課程。同行的人可以做不同課程，也可以做同一種課程，在課程頁調整份數即可。"},
+    {title:"關於價格",body:"體驗價僅限首次上課使用；已購買方案的會員請選會員價，現場核對。部分課程有不同尺寸，價格會依尺寸調整。"},
+    {title:"關於時間",body:"週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。當日課程無法線上預約，想確認今天是否有位置請私訊小編。想畫兩堂課的學員，請在課程頁選「2 堂」，系統會保留連續兩個時段。"},
+    {title:"關於年齡",body:"每門課程的年齡限制不同，填寫孩子年齡後系統會自動標示適合的課程。孩子與大人一樣各自完成一件作品，並非陪同旁觀。"},
+    {title:"關於訂金",body:"新客請以 LINE Pay 支付訂金 NT$600，完成後截圖回傳 LINE。方案會員可選擇點數預扣，上課當日核銷。訂金確認後預約才算保留成功。"},
+    {title:"上課當天",body:"請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。座位有限，每人低消一件作品，請勿攜伴出席。"}
+  ]
+};
 let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]
 let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
@@ -273,6 +289,7 @@ async function initLiff(){
 const SHEET_HEADERS={
   "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序","最小年齡","可加堂"],
   "班表":["日期","排班老師","可開課老師數","備註"],
+  "說明":["類型","標題","內容","排序","顯示"],
   "加購":["課程名稱","加購名稱","加價","排序"]
 };
 async function gviz(sheet){
@@ -340,6 +357,22 @@ async function loadCourses(){
   let rows=await gviz("課程");
   if(rows.length&&String(rows[0][0]).trim()==="分類")rows.shift();
   groups=rowsToGroups(rows);
+  try{
+    let n=await gviz("說明");
+    if(n.length&&String(n[0][0]).trim()==="類型")n.shift();
+    const key=[],detail=[];
+    n.forEach(r=>{
+      const type=String(r[0]||"").trim();
+      const title=String(r[1]||"").trim();
+      const body=String(r[2]||"").trim();
+      const sort=+r[3]||99;
+      const on=String(r[4]||"Y").trim().toUpperCase()!=="N";
+      if(!on||!body)return;
+      (type.includes("重點")?key:detail).push({title,body,sort});
+    });
+    key.sort((a,b)=>a.sort-b.sort); detail.sort((a,b)=>a.sort-b.sort);
+    if(key.length||detail.length)notices={key,detail};
+  }catch(e){}
   try{
     let a=await gviz("加購");
     if(a.length&&String(a[0][0]).trim()==="課程名稱")a.shift();
@@ -510,39 +543,12 @@ function renderParty(){
     ${total>=6?`<div class="agewarn">單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。</div>`:''}
     <div class="totalbar">本次共 <b>${total} 位</b>，需選擇 <b>${total} 份課程</b></div>
     <div class="keynotes">
-      <div class="kn"><span class="ki">1</span><span><b>體驗價僅限首次</b>上課使用，之後為會員價或單次原價</span></div>
-      <div class="kn"><span class="ki">2</span><span><b>當日課程無法線上預約</b>，想確認今天是否有位置請私訊小編</span></div>
-      <div class="kn"><span class="ki">3</span><span>送出後請完成<b>訂金 NT$600</b>，確認收到才算保留位置</span></div>
+      ${notices.key.map((n,i)=>`<div class="kn"><span class="ki">${i+1}</span><span>${n.body}</span></div>`).join("")}
     </div>
     <details class="notes">
       <summary>其他注意事項（時間、年齡、當天準備）</summary>
       <div class="ncontent">
-        <b>關於人數與課程</b>
-        每位（含孩子）都會完成一件自己的作品，因此有幾位就選幾份課程。<br>
-        同行的人可以做<b>不同課程</b>，也可以做<b>同一種課程</b>，在課程頁調整份數即可。<br><br>
-
-        <b>關於價格</b>
-        體驗價<b>僅限首次</b>上課使用；已購買方案的會員請選會員價，現場核對。<br>
-        部分課程有不同尺寸，價格會依尺寸調整。<br><br>
-
-        <b>關於時間</b>
-        週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。<br>
-        <b>當日課程無法線上預約</b>，想確認今天是否有位置請私訊小編。<br>
-        創作時間超過 2 小時的課程，建議連續預約兩個時段。<br><br>
-
-        <b>關於年齡</b>
-        每門課程的年齡限制不同，填寫孩子年齡後系統會自動標示適合的課程。<br>
-        孩子與大人一樣各自完成一件作品，並非陪同旁觀。<br><br>
-
-        <b>關於訂金</b>
-        新客請以 LINE Pay 支付訂金 NT$600，完成後截圖回傳 LINE。<br>
-        方案會員可選擇點數預扣，上課當日核銷。<br>
-        訂金確認後預約才算保留成功。<br><br>
-
-        <b>上課當天</b>
-        請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。<br>
-        流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。<br>
-        座位有限，每人低消一件作品，請勿攜伴出席。
+        ${notices.detail.map(n=>`<div class="nsec">${n.title?`<h4>${n.title}</h4>`:''}<p>${n.body}</p></div>`).join("")}
       </div>
     </details>
   </div>`;
