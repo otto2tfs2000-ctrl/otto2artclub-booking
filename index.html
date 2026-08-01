@@ -85,19 +85,27 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .recap b{color:var(--navy)}
 .dep{display:flex;flex-direction:column;gap:9px}
 .partywrap{padding:14px 14px 0}
-.ptitle{font-size:13px;color:var(--ink-soft);margin-bottom:8px}
-.prow{display:flex;gap:8px}
-.pcard{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 10px;text-align:center;cursor:pointer;transition:.15s}
-.pcard.on{border-color:var(--navy);background:var(--sel)}
-.pcard b{display:block;font-size:13.5px;color:var(--navy)}
-.pcard small{display:block;font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.4}
-.kidsbar{display:none;align-items:center;gap:11px;margin-top:10px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px}
-.kidsbar.on{display:flex}
-.kidsbar .kl{flex:1;font-size:13.5px;color:var(--ink)}
-.kidsbar .kl small{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.pbox{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px 14px}
+.ptitle{font-size:13px;color:var(--ink-soft);margin:0 0 8px 2px}
+.prow2{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.prow2+.prow2{border-top:1px solid var(--line)}
+.plabel b{display:block;font-size:15px;color:var(--ink);font-weight:500}
+.plabel small{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.pstep{display:flex;align-items:center;gap:14px}
+.pbtn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-size:19px;font-weight:700;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center}
+.pbtn:disabled{border-color:#DDD;color:#CCC}
+.pnum{min-width:22px;text-align:center;font-size:16px;font-weight:700;color:var(--ink)}
+.agebox{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft)}
+.agebox input{width:56px;padding:7px 8px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;text-align:center;background:#fff}
+.agebox input:focus{outline:none;border-color:var(--navy)}
+.card.locked{opacity:.5}
+.agetag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:#FDF3DC;color:#8A6400;margin-left:6px;vertical-align:2px}
+.agewarn{margin-top:9px;background:#FDF7E8;border:1.5px solid #E8D9A8;border-radius:11px;padding:10px 13px;font-size:12.5px;color:#6B5320;line-height:1.6}
+.agewarn b{color:#4A3810}
 .needbar{margin-top:10px;background:#EEF1FA;border:1.5px solid #C9D2EA;border-radius:11px;padding:10px 13px;font-size:12.5px;color:var(--navy);line-height:1.6}
 .needbar b{font-weight:700}
 .needbar.warn{background:#FDF3DC;border-color:#E8D9A8;color:#6B5320}
+.needbar.ok{background:#E8F3EC;border-color:#B7DCC6;color:#1F5C3C}
 .notice{background:#FDF7E8;border:1.5px solid #E8D9A8;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#6B5320;line-height:1.65}
 .notice b{color:#4A3810}
 .notice .oa{display:inline-block;margin-top:9px;padding:9px 16px;background:#06C755;color:#fff;border-radius:9px;font-size:13.5px;font-weight:700;text-decoration:none}
@@ -131,7 +139,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i></div>
   <div class="stepname" id="stepname">步驟 1／3：選擇課程</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.3</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.5</div>
 </header>
 
 <div id="view"></div>
@@ -188,8 +196,9 @@ let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
 let customer={name:"",phone:"",note:""};
 let deposit="";   // "linepay" | "points"
-let party="";     // "solo" | "kids" | "group"
-let kidsCount=1;  // 帶孩子時的孩子人數
+let adults=1;     // 大人人數
+let kids=0;       // 兒童人數
+let kidAges=[];   // 每位兒童的年齡
 let lineUser=null; // {userId, displayName}
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
@@ -217,7 +226,7 @@ async function initLiff(){
 }
 /* 各工作表的欄位順序（備援通道要靠標題對回欄位） */
 const SHEET_HEADERS={
-  "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序"],
+  "課程":["分類","課程名稱","說明","規格","時長","價格","圖片網址","上架","排序","最小年齡"],
   "班表":["日期","排班老師","可開課老師數","備註"],
   "加購":["課程名稱","加購名稱","加價","排序"]
 };
@@ -262,11 +271,11 @@ async function gviz(sheet){
 }
 
 function rowsToGroups(rows){
-  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99})).filter(c=>c.name&&c.on);
+  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
     const k=it.cat+"|"+it.name;
-    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,variants:[]});
+    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,variants:[]});
     map.get(k).variants.push({spec:it.spec,priceRaw:it.priceRaw});
   }
   return [...map.values()].sort((a,b)=>a.sort-b.sort);
@@ -347,12 +356,7 @@ function slotPassed(d,slot){
 }
 
 const totalPeople=()=>Object.values(picks).reduce((s,p)=>s+p.qty,0);
-/* 同行組成應有人數 */
-function partyNeed(){
-  if(party==="solo")return 1;
-  if(party==="kids")return 1+kidsCount;
-  return Math.max(totalPeople(),2);
-}
+const partyNeed=()=>adults+kids;
 /* 從課程「時長」欄解析分鐘數，取該組合的最大值（同時進行，非累加） */
 function durMinutes(txt){
   const t=String(txt||"");
@@ -394,10 +398,10 @@ function updateBar(){
   document.getElementById("sumPrice").textContent="NT$"+totalPrice().toLocaleString();
   const btn=document.getElementById("btnNext");
   if(step===1){
-    const n=totalPeople();
-    if(!party){btn.textContent="請先選擇同行組成";btn.disabled=true}
-    else if(!n){btn.textContent="請選擇課程";btn.disabled=true}
-    else if(party!=="group"&&n!==partyNeed()){btn.textContent=`還需選 ${partyNeed()-n} 位的課程`;btn.disabled=n>partyNeed()?false:true;if(n>partyNeed()){btn.textContent="人數超過同行組成";btn.disabled=true}}
+    const n=totalPeople(),need=partyNeed();
+    if(!n){btn.textContent=`請為 ${need} 位選擇課程`;btn.disabled=true}
+    else if(n<need){btn.textContent=`還差 ${need-n} 位的課程`;btn.disabled=true}
+    else if(n>need){btn.textContent="課程份數超過人數";btn.disabled=true}
     else{btn.textContent="選擇日期和時間 →";btn.disabled=false}
   }
   if(step===2){btn.textContent="填寫聯絡資料 →";btn.disabled=!(selDate&&selSlot)}
@@ -423,30 +427,46 @@ function renderCourses(){
   const now=totalPeople();
   v.innerHTML=`
   <div class="partywrap">
-    <div class="ptitle">這次誰要一起來？</div>
-    <div class="prow">
-      <div class="pcard ${party==='solo'?'on':''}" data-party="solo"><b>獨自一人</b><small>給自己一段<br>放鬆的時間</small></div>
-      <div class="pcard ${party==='kids'?'on':''}" data-party="kids"><b>帶孩子一起</b><small>孩子需滿 6 歲<br>大人小孩都創作</small></div>
-      <div class="pcard ${party==='group'?'on':''}" data-party="group"><b>呼朋引伴</b><small>朋友同行<br>6 人以上請私訊</small></div>
+    <div class="ptitle">這次有幾位一起來？</div>
+    <div class="pbox">
+      <div class="prow2">
+        <span class="plabel"><b>大人</b><small>18 歲以上</small></span>
+        <span class="pstep">
+          <button class="pbtn" data-p="a-" ${adults<=1?'disabled':''}>−</button>
+          <span class="pnum">${adults}</span>
+          <button class="pbtn" data-p="a+" ${adults+kids>=6?'disabled':''}>＋</button>
+        </span>
+      </div>
+      <div class="prow2">
+        <span class="plabel"><b>兒童</b><small>未滿 18 歲，需填寫年齡</small></span>
+        <span class="pstep">
+          <button class="pbtn" data-p="k-" ${kids<=0?'disabled':''}>−</button>
+          <span class="pnum">${kids}</span>
+          <button class="pbtn" data-p="k+" ${adults+kids>=6?'disabled':''}>＋</button>
+        </span>
+      </div>
+      ${kids>0?`<div class="prow2" style="flex-wrap:wrap;gap:8px">
+        ${kidAges.slice(0,kids).map((a,i)=>`<span class="agebox">第 ${i+1} 位<input type="number" inputmode="numeric" data-age="${i}" value="${a||''}" placeholder="歲" min="3" max="17"></span>`).join("")}
+      </div>`:''}
     </div>
-    <div class="kidsbar ${party==='kids'?'on':''}">
-      <span class="kl">帶幾位孩子？<small>大人 1 位 ＋ 孩子 ${kidsCount} 位</small></span>
-      <span class="stepper"><button data-kid="minus">−</button><b>${kidsCount}</b><button data-kid="plus">＋</button></span>
+    ${kids>0?`<div class="agewarn"><b>提醒</b>：每門課程有不同的年齡限制，填寫年齡後系統會自動標示哪些課程適合。孩子與大人一樣<b>各自完成一件作品</b>，並非陪同旁觀。</div>`:''}
+    ${adults+kids>=6?`<div class="agewarn">單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。</div>`:''}
+    <div class="needbar ${now?(now===need?'ok':'warn'):''}">
+      共 <b>${need} 位</b>，每人完成一件作品，請往下為每位選擇課程（可選不同課程）。
+      ${now?(now===need?`已選滿 <b>${now} 位</b> ✓`:`目前已選 <b>${now} 位</b>，還差 ${need-now} 位`):''}
     </div>
-    ${party?`<div class="needbar ${now&&now!==need?'warn':''}">
-      共 <b>${need} 位</b>，每人完成一件作品，請往下為每位選擇課程（可以選不同課程）。
-      ${now?`目前已選 <b>${now} 位</b>${now===need?' ✓':'，還差 '+(need-now)+' 位'}`:''}
-    </div>`:''}
   </div>
   <nav class="tabs" id="tabs">${cats.map(c=>`<button class="tab ${c===activeCat?'on':''}" data-cat="${c}">${c}</button>`).join("")}</nav><main class="list" id="list"></main>`;
-  v.querySelectorAll(".pcard").forEach(el=>el.onclick=()=>{
-    party=el.dataset.party;
-    if(party==="group")alert("6 人以上的團體，請直接私訊小編安排時段與教室。");
+  v.querySelectorAll("[data-age]").forEach(inp=>inp.onchange=()=>{
+    kidAges[+inp.dataset.age]=+inp.value||0;
     render();
   });
-  v.querySelectorAll("[data-kid]").forEach(b=>b.onclick=()=>{
-    if(b.dataset.kid==="plus"&&kidsCount<4)kidsCount++;
-    if(b.dataset.kid==="minus"&&kidsCount>1)kidsCount--;
+  v.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.p;
+    if(k==="a+"&&adults+kids<6)adults++;
+    if(k==="a-"&&adults>1)adults--;
+    if(k==="k+"&&adults+kids<6)kids++;
+    if(k==="k-"&&kids>0)kids--;
     render();
   });
   v.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;render()});
@@ -454,10 +474,14 @@ function renderCourses(){
   const show=groups.filter(g=>g.cat===activeCat);
   list.innerHTML=show.map(g=>{
     const p=picks[g.id],multi=g.variants.length>1,ads=addonsByCourse[g.name]||[];
-    return `<div class="card ${p?'sel':''}" data-id="${g.id}">
+    const minAgeOK = !g.minAge || (kids===0) || kidAges.slice(0,kids).every(a=>!a||a>=g.minAge);
+    const youngest = kids?Math.min(...kidAges.slice(0,kids).filter(a=>a>0).concat([99])):99;
+    const locked = g.minAge && youngest<99 && youngest<g.minAge;
+    return `<div class="card ${p?'sel':''} ${locked?'locked':''}" data-id="${g.id}" data-locked="${locked?1:''}">
       <div class="pic" ${g.img?`style="background-image:url('${g.img}')"`:''}>${g.img?'':'★'}</div>
       <div class="body">
-        <h3>${g.name}</h3>
+        <h3>${g.name}${g.minAge?`<span class="agetag">${g.minAge>=12?g.minAge+"歲以上":g.minAge+"歲以上"}</span>`:''}</h3>
+        ${locked?`<div class="desc" style="color:var(--warn)">最小的孩子 ${youngest} 歲，未達這門課的年齡限制</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
         <div class="meta">${g.dur?`<span class="chip">⏱ ${g.dur}</span>`:''}<span class="chip price">${priceChip(g)}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>`<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`).join("")}</div></div>`:''}
@@ -468,6 +492,7 @@ function renderCourses(){
   list.querySelectorAll(".card").forEach(el=>{
     const id=el.dataset.id;
     el.onclick=e=>{
+      if(el.dataset.locked){alert("這門課程有年齡限制，孩子的年齡尚未達到。可以看看「兒童課程 5-8歲」分類。");return}
       let t=e.target;
       while(t&&t!==el&&!t.dataset.v&&!t.dataset.a&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
@@ -481,12 +506,12 @@ function renderCourses(){
         render();return}
       if(t&&t.dataset.act){
         const p=picks[id];if(!p)return;
-        if(t.dataset.act==="plus"&&totalPeople()<MAX_PEOPLE)p.qty++;
+        if(t.dataset.act==="plus"&&totalPeople()<partyNeed())p.qty++;
         if(t.dataset.act==="minus")p.qty>1?p.qty--:delete picks[id];
         render();return}
       if(picks[id])delete picks[id];
-      else if(totalPeople()<MAX_PEOPLE)picks[id]={variantIdx:0,qty:1,addons:{}};
-      else alert(`單筆預約最多 ${MAX_PEOPLE} 位，人數較多請分開預約或私訊小編安排。`);
+      else if(totalPeople()<partyNeed())picks[id]={variantIdx:0,qty:1,addons:{}};
+      else alert(`你選的是 ${partyNeed()} 位，課程份數已經選滿了。要調整人數請回到最上方。`);
       render();
     };
   });
@@ -632,8 +657,7 @@ async function submitBooking(){
     }),
     people:totalPeople(), total:totalPrice(),
     customer:{...customer}, status:"new",
-    party:{type:party, kids:party==="kids"?kidsCount:0,
-      label:party==="solo"?"獨自一人":(party==="kids"?"帶 "+kidsCount+" 位孩子":"呼朋引伴")},
+    party:{adults, kids, kidAges:kidAges.slice(0,kids), label:`大人 ${adults} 位${kids?" ・ 兒童 "+kids+" 位（"+kidAges.slice(0,kids).filter(a=>a).join("、")+" 歲）":""}`},
     durationMin:totalMinutes(),
     deposit:{method:deposit, amount:DEPOSIT_AMOUNT, status:"pending"},
     line:lineUser?{userId:lineUser.userId,displayName:lineUser.displayName}:null,
@@ -652,7 +676,7 @@ async function submitBooking(){
   }
   renderDone(id);
 }
-document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";party="";kidsCount=1;render()};
+document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";adults=1;kids=0;kidAges=[];render()};
 document.getElementById("btnBack").onclick=()=>setStep(step-1);
 document.getElementById("btnNext").onclick=async()=>{
   if(step===1){await loadSchedule();await loadBookings();setStep(2)}
