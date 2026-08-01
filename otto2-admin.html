@@ -233,6 +233,7 @@ function renderToday(){
           <div class="tel">${b.customer?.phone||""}${b.party?.label?'　·　'+b.party.label:''}</div>
           ${b.customer?.note?`<div class="note">備註：${b.customer.note}</div>`:''}
           ${b.visitCount>0&&(b.items||[]).some(i=>/體驗/.test(i.spec||""))?'<div class="flag">⚠ 已來過 '+b.visitCount+' 次卻選體驗價，請現場核對</div>':''}
+          ${b.visitCount===0&&b.deposit?.method==="points"?'<div class="flag">⚠ 首次來卻選儲值金扣點，請確認是否真有點數</div>':''}
           ${b.visitCount===0?'<span class="newtag">首次</span>':''}
           ${b.deposit?`<button class="dep ${b.deposit.status==='paid'?'paid':'pending'}" data-dep-id="${b.id||''}" data-dep-st="${b.deposit.status}">${b.deposit.method==='points'?'點數'+b.deposit.amount:'LINE Pay '+b.deposit.amount}・${b.deposit.status==='paid'?'已收 ✓':'待確認（點我標記）'}</button>`:''}
         </div>

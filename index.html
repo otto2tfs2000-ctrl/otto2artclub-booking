@@ -180,7 +180,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.0</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.1</div>
 </header>
 
 <div id="view"></div>
@@ -693,7 +693,7 @@ function renderCourses(){
           <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">1 堂<small>一件作品</small></button>
           <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">2 堂<small>費用 ×2</small></button>
         </div></div>`:''}
-        ${durMinutes(g.dur)>SLOT_MINUTES?`<div class="longnote">此課程創作時間約 ${Math.round(durMinutes(g.dur)/60*10)/10} 小時，選時段時系統會提示你<b>提早到館</b>，請預留完整時間。</div>`:''}
+        ${durMinutes(g.dur)>SLOT_MINUTES?`<div class="longnote">此課程創作時間約 ${Math.round(durMinutes(g.dur)/60*10)/10} 小時，選時段時會顯示實際上課時間，請預留完整時間。</div>`:''}
       </div><div class="tick">✓</div></div>`;
   }).join("")||`<div class="state">這個分類目前沒有上架課程。</div>`;
   list.querySelectorAll(".card").forEach(el=>{
@@ -768,7 +768,7 @@ function renderCalendar(){
 
     slotHtml=`<div class="slots">${noticeHtml}
       ${hasTwoSessions()?`<div class="dur">你選了 <b>2 堂課</b>，需要<b>連續兩個時段</b>。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`
-        :(totalMinutes()>SLOT_MINUTES?`<div class="dur">你選的課程創作時間約 <b>${Math.round(totalMinutes()/60*10)/10} 小時</b>。<br>部分時段需要<b>提早到館</b>才做得完，下方會標示。<br>超過結束時間仍未完成，需<b>另計加時費用</b>。</div>`:'')}
+        :(totalMinutes()>SLOT_MINUTES?`<div class="dur">你選的課程創作時間約 <b>${Math.round(totalMinutes()/60*10)/10} 小時</b>。<br>下方顯示的是<b>實際上課時間</b>，已為你安排足夠時段，請準時到館。<br>超過結束時間仍未完成，需<b>另計加時費用</b>。</div>`:'')}
       <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
       SLOTS.map((sl,i)=>{
         const plan=planFor(i);
@@ -782,10 +782,9 @@ function renderCalendar(){
         if(isToday)capText="當日請私訊小編";
         else if(noRoom)capText=hasTwoSessions()?"後面沒有可接續的時段":"時間不足，會超過打烊時間";
         else if(passed)capText="已過時間";
-        else if(full)capText="名額不足・想同行加人請私訊小編";
+        else if(full)capText=left<=0?"已額滿":`僅剩 ${left} 位・人數不足`;
         else{
           const bits=[`剩 ${left} 位`];
-          if(plan.early>0)bits.push(`請提早 ${plan.early} 分鐘到館`);
           if(occ.length>1)bits.push("含後續時段");
           capText=bits.join("・");
         }
