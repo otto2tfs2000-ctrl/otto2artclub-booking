@@ -117,7 +117,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i></div>
   <div class="stepname" id="stepname">步驟 1／3：選擇課程</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.0</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v2.2</div>
 </header>
 
 <div id="view"></div>
@@ -221,17 +221,32 @@ async function gviz(sheet){
     if(!j.table)throw new Error("找不到工作表「"+sheet+"」");
     return j.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
   }catch(e){lastErr=e}
-  /* 備援通道：opensheet 代理（回傳以標題為鍵的物件陣列，轉回欄位順序） */
+  /* 備援通道 A：opensheet 代理 */
   try{
     const res2=await fetch(`https://opensheet.elte.hu/${SHEET_ID}/${encodeURIComponent(sheet)}`);
-    if(!res2.ok)throw new Error("備援回應 HTTP "+res2.status);
-    const arr=await res2.json();
-    const hs=SHEET_HEADERS[sheet]||[];
-    return arr.map(o=>hs.map(h=>o[h]??""));
-  }catch(e2){
-    throw new Error("主通道："+(lastErr?lastErr.message:"?")+"／備援："+e2.message);
+    if(res2.ok){
+      const arr=await res2.json();
+      const hs=SHEET_HEADERS[sheet]||[];
+      if(Array.isArray(arr)&&arr.length)return arr.map(o=>hs.map(h=>o[h]??""));
+    }
+    lastErr=lastErr||new Error("備援A無資料");
+  }catch(e2){lastErr=lastErr||e2}
+  /* 備援通道 B：CORS 代理轉發 gviz */
+  try{
+    const prox="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
+    const res3=await fetch(prox);
+    if(!res3.ok)throw new Error("備援B HTTP "+res3.status);
+    const t3=await res3.text();
+    const a3=t3.indexOf("{"),b3=t3.lastIndexOf("}");
+    if(a3<0)throw new Error("備援B回應異常");
+    const j3=JSON.parse(t3.substring(a3,b3+1));
+    if(!j3.table)throw new Error("備援B找不到工作表");
+    return j3.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
+  }catch(e3){
+    throw new Error(`「${sheet}」讀取失敗｜主:${lastErr?lastErr.message:"?"}｜備B:${e3.message}`);
   }
 }
+
 function rowsToGroups(rows){
   const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99})).filter(c=>c.name&&c.on);
   const map=new Map();
@@ -251,6 +266,7 @@ function rowsToAddons(rows){
   });
   for(const k in addonsByCourse) addonsByCourse[k].sort((a,b)=>a.sort-b.sort);
 }
+
 async function loadCourses(){
   if(!SHEET_ID){groups=rowsToGroups(DEMO_COURSES);rowsToAddons(DEMO_ADDONS);return}
   let rows=await gviz("課程");
