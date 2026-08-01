@@ -176,7 +176,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.2</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.4</div>
 </header>
 
 <div id="view"></div>
@@ -334,10 +334,13 @@ async function gviz(sheet){
   }
 }
 
+let catOrder=[];
 function rowsToGroups(rows){
+  catOrder=[];
   const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y"})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
+    if(!catOrder.includes(it.cat))catOrder.push(it.cat);
     const k=it.cat+"|"+it.name;
     if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,multiSession:it.multi,variants:[]});
     map.get(k).variants.push({spec:it.spec,priceRaw:it.priceRaw});
@@ -569,7 +572,7 @@ function renderParty(){
 
 /* ══ 步驟2：選擇課程 ══ */
 function renderCourses(){
-  cats=[...new Set(groups.map(g=>g.cat))];
+  cats=catOrder.length?catOrder.filter(c=>groups.some(g=>g.cat===c)):[...new Set(groups.map(g=>g.cat))];
   if(!cats.includes(activeCat))activeCat=cats[0]||"";
   const v=document.getElementById("view");
   const need=partyNeed(), now=totalPeople();
@@ -616,7 +619,7 @@ function renderCourses(){
     el.onclick=e=>{
       if(el.dataset.locked){alert("這門課程有年齡限制，孩子的年齡尚未達到。可以看看「兒童課程 5-8歲」分類。");return}
       let t=e.target;
-      while(t&&t!==el&&!t.dataset.v&&!t.dataset.a&&!t.dataset.act)t=t.parentElement;
+      while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
         if(t.dataset.block==="trial"){alert("體驗價僅限首次上課。你已在本工作室上過課，請選擇會員價或單次原價。");return}
         if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{},sessions:1};
@@ -831,6 +834,14 @@ document.getElementById("btnNext").onclick=async()=>{
   else if(step===3)setStep(4);
   else if(step===4){document.getElementById("btnNext").disabled=true;await submitBooking()}
 };
+window.addEventListener("error",function(ev){
+  const v=document.getElementById("view");
+  if(v&&v.innerHTML.length<60){
+    v.innerHTML=`<div class="state">頁面載入時發生問題。<br><br>
+      <span style="font-size:12px;color:#C0392B;word-break:break-all">${ev.message||"未知錯誤"}</span><br><br>
+      <button onclick="location.reload()" style="padding:11px 26px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:10px;font-size:15px;font-family:inherit">重新載入</button></div>`;
+  }
+});
 function boot(){
   initLiff().catch(()=>{});   // 認人失敗不影響預約
   loadCourses().then(render).catch(err=>{
