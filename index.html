@@ -163,6 +163,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .done .big{font-size:44px}
 .done h2{font-size:19px;color:var(--navy);margin:12px 0 8px}
 .done p{font-size:14px;color:var(--ink-soft);line-height:1.7}
+.done .pendtag{display:inline-block;background:#FDF3DC;color:#8A6400;font-size:13px;font-weight:700;padding:6px 14px;border-radius:99px;margin-bottom:10px}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1.5px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
 .bar .sum{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px}
 .bar .sum b{color:var(--navy);font-size:15px}
@@ -179,7 +180,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v3.9.1</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.0</div>
 </header>
 
 <div id="view"></div>
@@ -442,9 +443,13 @@ async function loadBookings(){
     try{const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json")).json();if(j)all=Object.values(j)}catch(e){}
   }else all=DEMO_BOOKINGS;
   for(const b of all){
-    if(b.status==="cancelled")continue;
-    const k=b.date+"|"+b.slot;
-    bookedMap[k]=(bookedMap[k]||0)+(+b.people||0);
+    if(b.status==="cancelled"||b.status==="expired")continue;
+    /* 連堂／跨時段的第二格也要佔名額 */
+    for(const s of [b.slot,b.slot2]){
+      if(!s)continue;
+      const k=b.date+"|"+s;
+      bookedMap[k]=(bookedMap[k]||0)+(+b.people||0);
+    }
   }
 }
 /* 老師數：班表例外優先，否則用基準週 */
@@ -843,8 +848,12 @@ function renderDone(id){
     payHtml=`<p style="margin-top:12px">我們將為你<b>預扣 ${o.amount} 點</b>作為訂金，<br>小編確認點數後會透過 LINE 回覆你。</p>`;
   else
     payHtml=`<p style="margin-top:12px">${o.desc||"小編會透過 LINE 與你確認付款方式。"}</p>`;
+  const onSite=o.type==="card";
+  const head=onSite
+    ? `<h2>預約完成！</h2>`
+    : `<h2>預約已送出</h2><div class="pendtag">尚未完成訂金 · 位子暫留中</div>`;
   document.getElementById("view").innerHTML=`<div class="done">
-    <div class="big">★</div><h2>預約完成！</h2>
+    <div class="big">★</div>${head}
     <p><b>${selDate}　${timeLabel()}</b><br>共 ${totalPeople()} 位・NT$${totalPrice().toLocaleString()}<br>
     ${FIREBASE_URL?'':'（示範模式，未實際寫入）'}編號：${id}</p>
     ${payHtml}</div>`;
@@ -882,7 +891,9 @@ async function submitBooking(){
         addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
     }),
     people:totalPeople(), total:totalPrice(),
-    customer:{...customer}, status:"new",
+    customer:{...customer},
+    /* 現場刷卡不需預付；其餘一律 unpaid，收到訂金才轉 confirmed */
+    status:((payOptions[+deposit]||{}).type==="card")?"new":"unpaid",
     party:{adults, kids, kidAges:kidAges.slice(0,kids), label:`大人 ${adults} 位${kids?" ・ 兒童 "+kids+" 位（"+kidAges.slice(0,kids).filter(a=>a).join("、")+" 歲）":""}`},
     durationMin:totalMinutes(),
     visitCount, hasPlan,
