@@ -185,7 +185,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.3</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.4</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -489,29 +489,35 @@ async function fetchMember(phone){
   try{return await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+phone+".json")).json()||null}
   catch(e){return null}
 }
+const isPhoneKey=k=>/^0\d{8,10}$/.test(String(k||""));
 async function lookupMemberByLine(uid){
   if(!FIREBASE_URL||!uid)return;
   try{
-    const q="/members.json?orderBy="+encodeURIComponent('"lineUserId"')+"&equalTo="+encodeURIComponent('"'+uid+'"');
-    const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+q)).json();
-    const k=j&&Object.keys(j)[0];
-    if(k)setMember(k,j[k]);
+    /* 對照表：lineIndex/{userId} → 電話。不用 orderBy，免建索引 */
+    const phone=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/lineIndex/"+uid+".json")).json();
+    if(!isPhoneKey(phone))return;
+    const m=await fetchMember(phone);
+    if(m&&!m.error)setMember(phone,m);
   }catch(e){}
 }
 async function lookupMemberByPhone(raw){
   const phone=normTW(raw);
-  if(phone.length<9){return}
+  if(!isPhoneKey(phone)){myMember=null;renderBalance();return}
   if(myMember&&myMember.phone===phone)return;
   const m=await fetchMember(phone);
-  if(!m){myMember=null;renderBalance();return}
+  if(!m||m.error){myMember=null;renderBalance();return}
   setMember(phone,m);
-  if(lineUser&&!m.lineUserId){
-    fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+phone+".json",{method:"PATCH",
+  if(lineUser){
+    const base=FIREBASE_URL.replace(/\/$/,"");
+    fetch(base+"/lineIndex/"+lineUser.userId+".json",{method:"PUT",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(phone)}).catch(()=>{});
+    if(!m.lineUserId)fetch(base+"/members/"+phone+".json",{method:"PATCH",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({lineUserId:lineUser.userId})}).catch(()=>{});
   }
 }
 function setMember(phone,m){
+  if(!isPhoneKey(phone)||!m||m.error)return;      /* 防呆：絕不把錯誤訊息當成資料 */
   myMember={phone:phone,name:m.name||"",
     points:(m.cache&&m.cache.points)||0,
     sessions:(m.cache&&m.cache.sessions)||0,
