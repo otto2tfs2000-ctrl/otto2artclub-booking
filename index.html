@@ -163,6 +163,11 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .done .big{font-size:44px}
 .done h2{font-size:19px;color:var(--navy);margin:12px 0 8px}
 .done p{font-size:14px;color:var(--ink-soft);line-height:1.7}
+#balBar{padding:12px 18px 0}
+.balcard{background:#F4F7FD;border:1px solid #C9D6EE;border-radius:10px;padding:11px 14px;font-size:13.5px;color:var(--navy)}
+.balcard b{font-size:16px}
+.baltag{display:inline-block;background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;margin-right:8px;vertical-align:1px}
+.balnote{font-size:11.5px;color:var(--ink-soft);margin-top:4px}
 .done .pendtag{display:inline-block;background:#FDF3DC;color:#8A6400;font-size:13px;font-weight:700;padding:6px 14px;border-radius:99px;margin-bottom:10px}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1.5px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
 .bar .sum{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px}
@@ -180,9 +185,10 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.1</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.3</div>
 </header>
 
+<div id="balBar" style="display:none"></div>
 <div id="view"></div>
 
 <footer class="bar" id="bar">
@@ -257,8 +263,26 @@ let notices={
     {title:"上課當天",body:"請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。座位有限，每人低消一件作品，請勿攜伴出席。"}
   ]
 };
-let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]
-let schedule={}, bookedMap={};
+/* ══ 可在試算表「文案」分頁修改的文字 ══
+   分頁欄位：代號 | 內容 | 啟用(Y/N)
+   {n} 會自動代換成人數。留空或整列刪掉就用下面的預設值。 */
+let copyText={
+  "步驟1.標題"   : "這次有幾位一起來？",
+  "步驟1.說明"   : "每位（含孩子）都會完成一件自己的作品，\n下一步為每位選擇想做的課程。",
+  "步驟1.大人"   : "大人",
+  "步驟1.大人說明": "18 歲以上",
+  "步驟1.兒童"   : "兒童",
+  "步驟1.兒童說明": "未滿 18 歲",
+  "步驟1.年齡標題": "孩子的年齡",
+  "步驟1.年齡說明": "每門課程的年齡限制不同，填寫後系統會自動標示適合的課程。",
+  "步驟1.人數上限": "單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。",
+  "步驟1.合計"   : "本次共 <b>{n} 位</b>，需選擇 <b>{n} 份課程</b>",
+  "步驟1.按鈕"   : "下一步：選擇課程 →",
+  "步驟1.按鈕未填": "請填寫孩子年齡"
+};
+const T=(k,n)=>String(copyText[k]??"").replace(/\{n\}/g,n).replace(/\n/g,"<br>");
+
+let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
 let customer={name:"",phone:"",note:""};
 let deposit="";   // "linepay" | "points"
@@ -284,17 +308,19 @@ async function initLiff(){
       lineUser={userId:p.userId,displayName:p.displayName};
       if(FIREBASE_URL){
         try{
-          const m=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+p.userId+".json")).json();
+          const m=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+p.userId+".json")).json();
           if(m){customer.name=customer.name||m.name||"";customer.phone=customer.phone||m.phone||""}
         }catch(e){}
       }
       if(!customer.name)customer.name=p.displayName||"";
+      /* 認出會員：先用 LINE 身分找，找不到等填電話時再比對 */
+      lookupMemberByLine(p.userId);
       /* 查此帳號過往預約次數，用來判斷體驗價資格 */
       if(FIREBASE_URL){
         try{
           const all=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json")).json();
           if(all)visitCount=Object.values(all).filter(b=>b.line&&b.line.userId===p.userId&&b.status!=="cancelled").length;
-          const m2=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+p.userId+".json")).json();
+          const m2=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+p.userId+".json")).json();
           if(m2&&(m2.plan||m2.credits>0))hasPlan=true;
         }catch(e){}
       }
@@ -408,6 +434,16 @@ async function loadCourses(){
     if(key.length||detail.length)notices={key,detail};
   }catch(e){}
   try{
+    let c=await gviz("文案");
+    if(c.length&&String(c[0][0]).trim()==="代號")c.shift();
+    c.forEach(r=>{
+      const k=String(r[0]||"").trim();
+      const val=String(r[1]||"").trim();
+      const on=String(r[2]||"Y").trim().toUpperCase()!=="N";
+      if(k&&val&&on)copyText[k]=val;
+    });
+  }catch(e){}   // 沒有「文案」工作表也能正常跑，用預設文字
+  try{
     let a=await gviz("加購");
     if(a.length&&String(a[0][0]).trim()==="課程名稱")a.shift();
     rowsToAddons(a);
@@ -436,6 +472,69 @@ async function loadSchedule(){
     }catch(e){}
   }
 }
+/* ══ 會員餘額 ══
+   會員檔案以電話為主鍵。認人有兩條路：
+   1. 這支 LINE 之前綁過 → 一進來就認得
+   2. 沒綁過 → 客人填手機時比對，對上就順手綁定，下次免了      */
+let myMember=null;
+const digitsOnly=s=>String(s||"").replace(/\D/g,"");
+function normTW(s){
+  let d=digitsOnly(s);
+  if(d.indexOf("886")===0&&d.length>=12)d="0"+d.slice(3);
+  if(d.length===9&&d[0]==="9")d="0"+d;
+  return d;
+}
+async function fetchMember(phone){
+  if(!FIREBASE_URL||!phone)return null;
+  try{return await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+phone+".json")).json()||null}
+  catch(e){return null}
+}
+async function lookupMemberByLine(uid){
+  if(!FIREBASE_URL||!uid)return;
+  try{
+    const q="/members.json?orderBy="+encodeURIComponent('"lineUserId"')+"&equalTo="+encodeURIComponent('"'+uid+'"');
+    const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+q)).json();
+    const k=j&&Object.keys(j)[0];
+    if(k)setMember(k,j[k]);
+  }catch(e){}
+}
+async function lookupMemberByPhone(raw){
+  const phone=normTW(raw);
+  if(phone.length<9){return}
+  if(myMember&&myMember.phone===phone)return;
+  const m=await fetchMember(phone);
+  if(!m){myMember=null;renderBalance();return}
+  setMember(phone,m);
+  if(lineUser&&!m.lineUserId){
+    fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+phone+".json",{method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({lineUserId:lineUser.userId})}).catch(()=>{});
+  }
+}
+function setMember(phone,m){
+  myMember={phone:phone,name:m.name||"",
+    points:(m.cache&&m.cache.points)||0,
+    sessions:(m.cache&&m.cache.sessions)||0,
+    bonus:(m.cache&&m.cache.bonus)||0};
+  if(!customer.phone)customer.phone=phone;
+  if(!customer.name&&m.name)customer.name=m.name;
+  renderBalance();
+}
+function renderBalance(){
+  const el=document.getElementById("balBar");
+  if(!el)return;
+  if(!myMember||(myMember.points<=0&&myMember.sessions<=0&&myMember.bonus<=0)){
+    el.innerHTML="";el.style.display="none";return;
+  }
+  const bits=[];
+  if(myMember.points>0)bits.push('可用點數 <b>'+myMember.points.toLocaleString()+'</b>');
+  if(myMember.sessions>0)bits.push('剩餘堂數 <b>'+myMember.sessions+'</b>');
+  if(myMember.bonus>0)bits.push('紅利 <b>'+myMember.bonus+'</b>');
+  el.style.display="block";
+  el.innerHTML='<div class="balcard"><span class="baltag">會員</span>'+bits.join('　')+
+    '<div class="balnote">現場結帳可折抵，1 點 = 1 元</div></div>';
+}
+
 async function loadBookings(){
   bookedMap={};
   let all=[];
@@ -567,7 +666,7 @@ function updateBar(){
   const btn=document.getElementById("btnNext");
   if(step===1){
     const missing=kids>0&&kidAges.slice(0,kids).some(a=>!a||a<3);
-    btn.textContent=missing?"請填寫孩子年齡":"下一步：選擇課程 →";
+    btn.textContent=missing?copyText["步驟1.按鈕未填"]:copyText["步驟1.按鈕"];
     btn.disabled=missing;
   }
   if(step===2){
@@ -580,7 +679,7 @@ function updateBar(){
   if(step===3){btn.textContent="填寫聯絡資料 →";btn.disabled=!(selDate&&selSlot)}
   if(step===4){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim()&&deposit)}
 }
-function render(){
+function render(){ setTimeout(renderBalance,0);
   if(step===1)renderParty();
   if(step===2)renderCourses();
   if(step===3)renderCalendar();
@@ -600,11 +699,11 @@ function renderParty(){
   const missing=kids>0&&kidAges.slice(0,kids).some(a=>!a);
   v.innerHTML=`
   <div class="partypage">
-    <h2 class="pgtitle">這次有幾位一起來？</h2>
-    <p class="pgsub">每位（含孩子）都會完成一件自己的作品，<br>下一步為每位選擇想做的課程。</p>
+    <h2 class="pgtitle">${T("步驟1.標題",total)}</h2>
+    <p class="pgsub">${T("步驟1.說明",total)}</p>
     <div class="pbox">
       <div class="prow2">
-        <span class="plabel"><b>大人</b><small>18 歲以上</small></span>
+        <span class="plabel"><b>${T("步驟1.大人",total)}</b><small>${T("步驟1.大人說明",total)}</small></span>
         <span class="pstep">
           <button class="pbtn" data-p="a-" ${adults<=1?'disabled':''}>−</button>
           <span class="pnum">${adults}</span>
@@ -612,7 +711,7 @@ function renderParty(){
         </span>
       </div>
       <div class="prow2">
-        <span class="plabel"><b>兒童</b><small>未滿 18 歲</small></span>
+        <span class="plabel"><b>${T("步驟1.兒童",total)}</b><small>${T("步驟1.兒童說明",total)}</small></span>
         <span class="pstep">
           <button class="pbtn" data-p="k-" ${kids<=0?'disabled':''}>−</button>
           <span class="pnum">${kids}</span>
@@ -621,13 +720,13 @@ function renderParty(){
       </div>
     </div>
     ${kids>0?`<div class="kidage">
-      <div class="katitle">孩子的年齡</div>
+      <div class="katitle">${T("步驟1.年齡標題",total)}</div>
       <div class="karow">${kidAges.slice(0,kids).map((a,i)=>
         `<span class="agebox">第 ${i+1} 位<input type="number" inputmode="numeric" data-age="${i}" value="${a||''}" placeholder="歲" min="3" max="17"></span>`).join("")}</div>
-      <div class="kanote">每門課程的年齡限制不同，填寫後系統會自動標示適合的課程。</div>
+      <div class="kanote">${T("步驟1.年齡說明",total)}</div>
     </div>`:''}
-    ${total>=6?`<div class="agewarn">單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。</div>`:''}
-    <div class="totalbar">本次共 <b>${total} 位</b>，需選擇 <b>${total} 份課程</b></div>
+    ${total>=6?`<div class="agewarn">${T("步驟1.人數上限",total)}</div>`:''}
+    <div class="totalbar">${T("步驟1.合計",total)}</div>
     <div class="keynotes">
       ${notices.key.map((n,i)=>`<div class="kn"><span class="ki">${i+1}</span><span>${n.body}</span></div>`).join("")}
     </div>
@@ -830,6 +929,7 @@ function renderForm(){
     v.querySelector("#"+id).oninput=()=>{
       customer={name:v.querySelector("#fName").value,phone:v.querySelector("#fPhone").value,note:v.querySelector("#fNote").value};
       updateBar();
+      if(id==="fPhone")lookupMemberByPhone(customer.phone);
     };
   });
 }
@@ -909,7 +1009,7 @@ async function submitBooking(){
     fetch(NOTIFY_URL.replace(/\/$/,"")+"/notify/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)}).catch(()=>{});
   }
   if(FIREBASE_URL&&lineUser){
-    fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+lineUser.userId+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:customer.name,phone:customer.phone,displayName:lineUser.displayName,lastBooking:rec.ts})}).catch(()=>{});
+    fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+lineUser.userId+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:customer.name,phone:customer.phone,displayName:lineUser.displayName,lastBooking:rec.ts})}).catch(()=>{});
   }
   renderDone(id);
 }
