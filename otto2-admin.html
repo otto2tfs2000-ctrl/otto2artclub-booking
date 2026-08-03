@@ -100,6 +100,17 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .bk.unpaid{background:#FFFBF0;border-left:3px solid #E3B34C}
 .waittag{display:inline-block;background:#FDF3DC;color:#8A6400;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
 .at.cx{border-color:#C9453B;color:#C9453B}
+.mhit{padding:9px 11px;border:1px solid var(--line);border-radius:8px;margin-top:6px;cursor:pointer;background:#fff}
+.mhit:active{background:#F2F5FB}
+.mhit b{font-size:14px;color:var(--navy)}
+.mph{font-size:12.5px;color:var(--ink-soft);margin-left:6px}
+.mbal{font-size:12px;color:var(--ink-soft);margin-top:3px}
+.mbal b{color:var(--navy);font-size:13px}
+.mhint{font-size:12.5px;color:var(--ink-soft);padding:8px 2px}
+.mcard{background:#F4F7FD;border:1px solid #C9D6EE;border-radius:9px;padding:10px 12px;margin-top:8px;position:relative}
+.mcard b{color:var(--navy)}
+.mwarn{background:#FDF3DC;color:#8A6400;font-size:11.5px;padding:6px 9px;border-radius:6px;margin-top:7px}
+.mclear{position:absolute;top:8px;right:10px;font-size:12px;color:#C9453B;cursor:pointer}
 </style>
 </head>
 <body>
@@ -356,10 +367,42 @@ function openDayEditor(k){
   document.getElementById("cls").onclick=()=>document.getElementById("mask").classList.remove("on");
 }
 
+/* ══ 會員檔案 ══ */
+let members=null, memberLoading=false;
+async function loadMembers(){
+  if(members||memberLoading||!FIREBASE_URL)return;
+  memberLoading=true;
+  try{
+    /* 只取清單需要的欄位，不整包拉 ledger */
+    const j=await (await fetch(fb('/members.json?shallow=false'))).json();
+    members=Object.entries(j||{}).map(([phone,m])=>({
+      phone, name:m.name||'', note:m.note||'',
+      points:m.cache?.points||0, sessions:m.cache?.sessions||0, bonus:m.cache?.bonus||0
+    }));
+  }catch(e){ members=[]; console.error('會員載入失敗',e); }
+  memberLoading=false;
+}
+function searchMembers(q){
+  if(!members||!q)return[];
+  const s=q.trim();
+  if(s.length<2)return[];
+  const digits=s.replace(/\D/g,'');
+  return members.filter(m=>
+    (digits.length>=3 && m.phone.includes(digits)) ||
+    (m.name && m.name.includes(s))
+  ).slice(0,8);
+}
+const balLine=m=>`可用點數 <b>${m.points.toLocaleString()}</b>　堂數 <b>${m.sessions}</b>　紅利 <b>${m.bonus}</b>`;
+
 /* ══ 手動登記 ══ */
-document.getElementById("fabAdd").onclick=()=>{
+document.getElementById("fabAdd").onclick=async()=>{
   document.getElementById("sheetBody").innerHTML=`
     <h3>手動登記預約</h3><div class="sh">現場／電話／超收加開，不受 ${SEAT_CAP} 席上限限制</div>
+    <div class="f"><label>找會員（打電話或姓名，兩個字以上）</label>
+      <input id="mFind" placeholder="例：0965 或 曾亭" autocomplete="off">
+      <div id="mHits"></div>
+      <div id="mPicked"></div>
+    </div>
     <div class="frow">
       <div class="f"><label>日期</label><input id="mDate" value="${ds_(cur)}"></div>
       <div class="f"><label>時段</label><select id="mSlot">${SLOTS.map(s=>`<option>${s}</option>`).join("")}<option>其他（備註填時間）</option></select></div>
@@ -373,6 +416,36 @@ document.getElementById("fabAdd").onclick=()=>{
     <div class="f"><label>備註</label><textarea id="mNote" rows="2" placeholder="例：加開B教室，羊羊協助"></textarea></div>
     <div class="sbtns"><button class="cancel" id="mCancel">取消</button><button class="save" id="mSave">登記</button></div>`;
   document.getElementById("mask").classList.add("on");
+
+  let picked=null;
+  const hits=document.getElementById("mHits"), pick=document.getElementById("mPicked");
+  loadMembers().then(()=>{
+    if(members&&!members.length)hits.innerHTML='<div class="mhint">會員資料載入失敗，可直接手動填寫。</div>';
+  });
+  document.getElementById("mFind").oninput=function(){
+    picked=null; pick.innerHTML='';
+    if(!members){ hits.innerHTML='<div class="mhint">會員資料載入中…</div>'; return; }
+    const r=searchMembers(this.value);
+    if(!this.value.trim()||this.value.trim().length<2){ hits.innerHTML=''; return; }
+    if(!r.length){ hits.innerHTML='<div class="mhint">查無此人，可直接在下方手動填寫（不扣點）</div>'; return; }
+    hits.innerHTML=r.map((m,i)=>
+      `<div class="mhit" data-i="${i}"><b>${m.name||'（未填姓名）'}</b> <span class="mph">${m.phone}</span>
+       <div class="mbal">${balLine(m)}</div></div>`).join("");
+    hits.querySelectorAll(".mhit").forEach(el=>el.onclick=()=>{
+      picked=r[+el.dataset.i];
+      document.getElementById("mName").value=picked.name;
+      document.getElementById("mPhone").value=picked.phone;
+      document.getElementById("mFind").value='';
+      hits.innerHTML='';
+      pick.innerHTML=`<div class="mcard"><b>${picked.name||'（未填姓名）'}</b> ${picked.phone}
+        <div class="mbal">${balLine(picked)}</div>
+        ${picked.name?'':'<div class="mwarn">這位會員在夯客沒有姓名，請在下方補填，登記後會一併寫回會員檔案。</div>'}
+        <span class="mclear">✕ 取消選取</span></div>`;
+      pick.querySelector(".mclear").onclick=()=>{ picked=null; pick.innerHTML='';
+        document.getElementById("mName").value=''; document.getElementById("mPhone").value=''; };
+    });
+  };
+
   document.getElementById("mCancel").onclick=()=>document.getElementById("mask").classList.remove("on");
   document.getElementById("mSave").onclick=async()=>{
     const g=id=>document.getElementById(id).value.trim();
@@ -381,7 +454,16 @@ document.getElementById("fabAdd").onclick=()=>{
       items:g("mCourse")?[{name:g("mCourse"),spec:"",qty:+g("mPeople")}]:[],
       customer:{name:g("mName"),phone:g("mPhone"),note:g("mNote")},
       status:"new",source:"manual",ts:new Date().toISOString()};
-    if(FIREBASE_URL)await fetch(fb("/bookings.json"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
+    if(picked)rec.memberPhone=picked.phone;      /* 綁定會員，之後扣點靠這個 */
+    if(FIREBASE_URL){
+      await fetch(fb("/bookings.json"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
+      /* 順手補回會員姓名 */
+      if(picked&&!picked.name&&g("mName")){
+        await fetch(fb("/members/"+picked.phone+".json"),{method:"PATCH",
+          headers:{"Content-Type":"application/json"},body:JSON.stringify({name:g("mName")})}).catch(()=>{});
+        picked.name=g("mName");
+      }
+    }
     document.getElementById("mask").classList.remove("on");
     refresh();
   };
