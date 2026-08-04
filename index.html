@@ -271,9 +271,9 @@ let copyText={
   "步驟1.標題"   : "這次有幾位一起來？",
   "步驟1.說明"   : "每位（含孩子）都會完成一件自己的作品，\n下一步為每位選擇想做的課程。",
   "步驟1.大人"   : "大人",
-  "步驟1.大人說明": "15 歲以上",
+  "步驟1.大人說明": "16 歲以上",
   "步驟1.兒童"   : "兒童",
-  "步驟1.兒童說明": "5 至 14 歲",
+  "步驟1.兒童說明": "5 至 15 歲",
   "步驟1.年齡標題": "孩子的年齡",
   "步驟1.年齡說明": "年齡會決定能選哪些課程，請為每位孩子選擇。",
   "步驟1.人數上限": "單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。",
@@ -282,7 +282,7 @@ let copyText={
   "步驟1.按鈕未填": "請選擇孩子年齡"
 };
 /* 兒童年齡級距。value 會拿去和課程的最小年齡比對 */
-const AGE_BANDS=[{v:5,label:"5-11 歲"},{v:12,label:"12-14 歲"}];
+const AGE_BANDS=[{v:5,label:"5-7 歲"},{v:8,label:"8-12 歲"},{v:13,label:"13-15 歲"}];
 const bandLabel=v=>(AGE_BANDS.find(b=>b.v===+v)||{}).label||"";
 const T=(k,n)=>String(copyText[k]??"").replace(/\{n\}/g,n).replace(/\n/g,"<br>");
 
@@ -765,10 +765,10 @@ function renderParty(){
 }
 
 /* ══ 步驟2：選擇課程 ══ */
-/* 這門課有幾位可以上：大人一律視為 15 歲，孩子看級距 */
+/* 這門課有幾位可以上：大人一律視為 16 歲，孩子看級距下限 */
 function eligibleFor(minAge){
   const m=+minAge||0;
-  let n=adults;
+  let n=(m<=16)?adults:0;
   for(let i=0;i<kids;i++){ const a=+kidAges[i]||0; if(a&&a>=m)n++ }
   return n;
 }
@@ -797,7 +797,7 @@ function renderCourses(){
     return `<div class="card ${p?'sel':''} ${locked?'locked':''}" data-id="${g.id}" data-locked="${locked?1:''}" data-elig="${elig}">
       <div class="pic" ${g.img?`style="background-image:url('${g.img}')"`:''}>${g.img?'':'★'}</div>
       <div class="body">
-        <h3>${g.name}${g.minAge?`<span class="agetag">${g.minAge>=15?"15歲以上":g.minAge+"歲以上"}</span>`:''}</h3>
+        <h3>${g.name}${g.minAge?`<span class="agetag">${g.minAge>=16?"16歲以上":g.minAge+"歲以上"}</span>`:''}</h3>
         ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
