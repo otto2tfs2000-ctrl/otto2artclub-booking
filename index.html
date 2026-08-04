@@ -100,6 +100,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .pgtitle{font-size:21px;font-weight:900;color:var(--navy);margin-bottom:8px}
 .pgsub{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:20px}
 .kidage{margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px}
+.agebox select{margin-left:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink);min-width:118px}
 .katitle{font-size:13px;color:var(--ink-soft);margin-bottom:10px}
 .karow{display:flex;flex-wrap:wrap;gap:10px}
 .kanote{font-size:11.5px;color:var(--ink-soft);margin-top:11px;line-height:1.6}
@@ -270,16 +271,19 @@ let copyText={
   "步驟1.標題"   : "這次有幾位一起來？",
   "步驟1.說明"   : "每位（含孩子）都會完成一件自己的作品，\n下一步為每位選擇想做的課程。",
   "步驟1.大人"   : "大人",
-  "步驟1.大人說明": "18 歲以上",
+  "步驟1.大人說明": "15 歲以上",
   "步驟1.兒童"   : "兒童",
-  "步驟1.兒童說明": "未滿 18 歲",
+  "步驟1.兒童說明": "5 至 14 歲",
   "步驟1.年齡標題": "孩子的年齡",
-  "步驟1.年齡說明": "每門課程的年齡限制不同，填寫後系統會自動標示適合的課程。",
+  "步驟1.年齡說明": "年齡會決定能選哪些課程，請為每位孩子選擇。",
   "步驟1.人數上限": "單筆最多 6 位。<b>6 位以上請私訊小編</b>，我們會為你安排時段與教室。",
   "步驟1.合計"   : "本次共 <b>{n} 位</b>，需選擇 <b>{n} 份課程</b>",
   "步驟1.按鈕"   : "下一步：選擇課程 →",
-  "步驟1.按鈕未填": "請填寫孩子年齡"
+  "步驟1.按鈕未填": "請選擇孩子年齡"
 };
+/* 兒童年齡級距。value 會拿去和課程的最小年齡比對 */
+const AGE_BANDS=[{v:5,label:"5-11 歲"},{v:12,label:"12-14 歲"}];
+const bandLabel=v=>(AGE_BANDS.find(b=>b.v===+v)||{}).label||"";
 const T=(k,n)=>String(copyText[k]??"").replace(/\{n\}/g,n).replace(/\n/g,"<br>");
 
 let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]let schedule={}, bookedMap={};
@@ -671,9 +675,10 @@ function updateBar(){
   document.getElementById("sumPrice").textContent="NT$"+totalPrice().toLocaleString();
   const btn=document.getElementById("btnNext");
   if(step===1){
-    const missing=kids>0&&kidAges.slice(0,kids).some(a=>!a||a<3);
-    btn.textContent=missing?copyText["步驟1.按鈕未填"]:copyText["步驟1.按鈕"];
-    btn.disabled=missing;
+    const noOne=(adults+kids)===0;
+    const missing=kids>0&&kidAges.slice(0,kids).some(a=>!a);
+    btn.textContent=noOne?"請先選擇人數":(missing?copyText["步驟1.按鈕未填"]:copyText["步驟1.按鈕"]);
+    btn.disabled=noOne||missing;
   }
   if(step===2){
     const n=totalPeople(),need=partyNeed();
@@ -702,7 +707,6 @@ function priceChip(g){
 function renderParty(){
   const v=document.getElementById("view");
   const total=adults+kids;
-  const missing=kids>0&&kidAges.slice(0,kids).some(a=>!a);
   v.innerHTML=`
   <div class="partypage">
     <h2 class="pgtitle">${T("步驟1.標題",total)}</h2>
@@ -711,7 +715,7 @@ function renderParty(){
       <div class="prow2">
         <span class="plabel"><b>${T("步驟1.大人",total)}</b><small>${T("步驟1.大人說明",total)}</small></span>
         <span class="pstep">
-          <button class="pbtn" data-p="a-" ${adults<=1?'disabled':''}>−</button>
+          <button class="pbtn" data-p="a-" ${adults<=0?'disabled':''}>−</button>
           <span class="pnum">${adults}</span>
           <button class="pbtn" data-p="a+" ${total>=6?'disabled':''}>＋</button>
         </span>
@@ -728,9 +732,13 @@ function renderParty(){
     ${kids>0?`<div class="kidage">
       <div class="katitle">${T("步驟1.年齡標題",total)}</div>
       <div class="karow">${kidAges.slice(0,kids).map((a,i)=>
-        `<span class="agebox">第 ${i+1} 位<input type="number" inputmode="numeric" data-age="${i}" value="${a||''}" placeholder="歲" min="3" max="17"></span>`).join("")}</div>
+        `<span class="agebox">第 ${i+1} 位<select data-age="${i}">
+          <option value="" ${!a?'selected':''}>請選擇</option>
+          ${AGE_BANDS.map(b=>`<option value="${b.v}" ${+a===b.v?'selected':''}>${b.label}</option>`).join("")}
+        </select></span>`).join("")}</div>
       <div class="kanote">${T("步驟1.年齡說明",total)}</div>
     </div>`:''}
+    ${total===0?`<div class="agewarn">至少要有 1 位才能繼續。</div>`:''}
     ${total>=6?`<div class="agewarn">${T("步驟1.人數上限",total)}</div>`:''}
     <div class="totalbar">${T("步驟1.合計",total)}</div>
     <div class="keynotes">
@@ -743,26 +751,33 @@ function renderParty(){
       </div>
     </details>
   </div>`;
-  v.querySelectorAll("[data-age]").forEach(inp=>inp.onchange=()=>{
-    kidAges[+inp.dataset.age]=+inp.value||0; render();
+  v.querySelectorAll("[data-age]").forEach(sel=>sel.onchange=()=>{
+    kidAges[+sel.dataset.age]=+sel.value||0; picks={}; render();
   });
   v.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.p;
     if(k==="a+"&&total<6)adults++;
-    if(k==="a-"&&adults>1)adults--;
-    if(k==="k+"&&total<6)kids++;
+    if(k==="a-"&&adults>0)adults--;
+    if(k==="k+"&&total<6){kids++;kidAges[kids-1]=kidAges[kids-1]||0}
     if(k==="k-"&&kids>0)kids--;
-    render();
+    picks={}; render();
   });
 }
 
 /* ══ 步驟2：選擇課程 ══ */
+/* 這門課有幾位可以上：大人一律視為 15 歲，孩子看級距 */
+function eligibleFor(minAge){
+  const m=+minAge||0;
+  let n=adults;
+  for(let i=0;i<kids;i++){ const a=+kidAges[i]||0; if(a&&a>=m)n++ }
+  return n;
+}
 function renderCourses(){
   cats=catOrder.length?catOrder.filter(c=>groups.some(g=>g.cat===c)):[...new Set(groups.map(g=>g.cat))];
   if(!cats.includes(activeCat))activeCat=cats[0]||"";
   const v=document.getElementById("view");
   const need=partyNeed(), now=totalPeople();
-  const ageTxt=kids>0?`（含 ${kidAges.slice(0,kids).filter(a=>a).join("、")} 歲）`:"";
+  const ageTxt=kids>0?`（含兒童 ${kidAges.slice(0,kids).filter(a=>a).map(bandLabel).join("、")}）`:"";
   v.innerHTML=`
   <div class="needwrap">
     <div class="needbar ${now?(now===need?'ok':'warn'):''}">
@@ -776,14 +791,15 @@ function renderCourses(){
   const show=groups.filter(g=>g.cat===activeCat);
   list.innerHTML=show.map(g=>{
     const p=picks[g.id],multi=g.variants.length>1,ads=addonsByCourse[g.name]||[];
-    const minAgeOK = !g.minAge || (kids===0) || kidAges.slice(0,kids).every(a=>!a||a>=g.minAge);
-    const youngest = kids?Math.min(...kidAges.slice(0,kids).filter(a=>a>0).concat([99])):99;
-    const locked = g.minAge && youngest<99 && youngest<g.minAge;
-    return `<div class="card ${p?'sel':''} ${locked?'locked':''}" data-id="${g.id}" data-locked="${locked?1:''}">
+    const elig=eligibleFor(g.minAge);
+    const locked = !!g.minAge && elig===0;
+    const capped = !!g.minAge && elig>0 && elig<partyNeed();
+    return `<div class="card ${p?'sel':''} ${locked?'locked':''}" data-id="${g.id}" data-locked="${locked?1:''}" data-elig="${elig}">
       <div class="pic" ${g.img?`style="background-image:url('${g.img}')"`:''}>${g.img?'':'★'}</div>
       <div class="body">
-        <h3>${g.name}${g.minAge?`<span class="agetag">${g.minAge>=12?g.minAge+"歲以上":g.minAge+"歲以上"}</span>`:''}</h3>
-        ${locked?`<div class="desc" style="color:var(--warn)">最小的孩子 ${youngest} 歲，未達這門課的年齡限制</div>`:''}
+        <h3>${g.name}${g.minAge?`<span class="agetag">${g.minAge>=15?"15歲以上":g.minAge+"歲以上"}</span>`:''}</h3>
+        ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
+        ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
         <div class="meta">${g.dur?`<span class="chip">⏱ ${g.dur}</span>`:''}<span class="chip price">${priceChip(g)}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
@@ -803,8 +819,9 @@ function renderCourses(){
   }).join("")||`<div class="state">這個分類目前沒有上架課程。</div>`;
   list.querySelectorAll(".card").forEach(el=>{
     const id=el.dataset.id;
+    const elig=+el.dataset.elig||0;
     el.onclick=e=>{
-      if(el.dataset.locked){alert("這門課程有年齡限制，孩子的年齡尚未達到。可以看看「兒童課程 5-8歲」分類。");return}
+      if(el.dataset.locked){alert("這門課有年齡限制，這次同行的人都還沒達到。可以看看其他分類的課程。");return}
       let t=e.target;
       while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
@@ -823,7 +840,10 @@ function renderCourses(){
         render();return}
       if(t&&t.dataset.act){
         const p=picks[id];if(!p)return;
-        if(t.dataset.act==="plus"&&totalPeople()<partyNeed())p.qty++;
+        if(t.dataset.act==="plus"){
+          if(p.qty>=elig){alert("這門課這次只有 "+elig+" 位符合年齡。");return}
+          if(totalPeople()<partyNeed())p.qty++;
+        }
         if(t.dataset.act==="minus")p.qty>1?p.qty--:delete picks[id];
         render();return}
       if(picks[id])delete picks[id];
@@ -999,7 +1019,10 @@ async function submitBooking(){
     customer:{...customer},
     /* 現場刷卡不需預付；其餘一律 unpaid，收到訂金才轉 confirmed */
     status:((payOptions[+deposit]||{}).type==="card")?"new":"unpaid",
-    party:{adults, kids, kidAges:kidAges.slice(0,kids), label:`大人 ${adults} 位${kids?" ・ 兒童 "+kids+" 位（"+kidAges.slice(0,kids).filter(a=>a).join("、")+" 歲）":""}`},
+    party:{adults, kids, kidAges:kidAges.slice(0,kids),
+      kidBands:kidAges.slice(0,kids).map(bandLabel),
+      label:`大人 ${adults} 位${kids?" ・ 兒童 "+kids+" 位（"+kidAges.slice(0,kids).filter(a=>a).map(bandLabel).join("、")+"）":""}`},
+    adults:adults, kids:kids,
     durationMin:totalMinutes(),
     visitCount, hasPlan,
     deposit:(()=>{const o=payOptions[+deposit]||{};return{method:o.type||"other",name:o.name||"",amount:o.amount||0,status:"pending"}})(),
