@@ -549,10 +549,18 @@ async function bkManual(){
     var sl=slotSel.value, el=document.getElementById("mLeft");
     if(sl==="其他"){ el.innerHTML=""; return }
     var s=bkSlotInfo(d,sl), ppl=+document.getElementById("mPeople").value||1;
-    var line="目前 <b>"+s.used+"</b> 位 / 上限 "+s.cap+" 位";
-    if(s.left<=0)      line+='　<span class="bk-full">已額滿，仍可加開</span>';
-    else if(s.left<ppl)line+='　<span class="bk-full">剩 '+s.left+' 位，不足 '+ppl+' 位</span>';
-    else               line+='　<span class="bk-ok">剩 '+s.left+' 位</span>';
+    /* 實際人數永遠擺第一位。老師現場可能已自行超收，
+       行政若只記得表定數字會再加上去，容易一路加到爆。 */
+    var line='<span class="bk-cnt">目前已預約 <b>'+s.used+'</b> 位</span>';
+    if(s.cap>0){
+      line+='<span class="bk-cap">表定上限 '+s.cap+' 位</span>';
+      if(s.left<0)        line+='<span class="bk-full">已超過表定 '+Math.abs(s.left)+' 位</span>';
+      else if(s.left===0) line+='<span class="bk-full">已達表定上限，仍可加開</span>';
+      else if(s.left<ppl) line+='<span class="bk-full">表定剩 '+s.left+' 位，這筆要 '+ppl+' 位</span>';
+      else                line+='<span class="bk-ok">表定剩 '+s.left+' 位</span>';
+    }else{
+      line+='<span class="bk-cap">班表這天沒排老師，沒有表定上限</span>';
+    }
     if(s.names.length)line+='<div class="bk-names">已約：'+s.names.map(esc).join("、")+'</div>';
     el.innerHTML=line;
   }
@@ -628,8 +636,15 @@ async function bkManual(){
     var c=ci===""?null:bkCourses[+ci];
     var amt=+g("mAmt")||0;
     var d=g("mDate").replace(/-/g,"/"), sl=g("mSlot");
-    if(sl!=="其他"&&bkLeft(d,sl)<ppl&&
-       !confirm("這個時段名額不足，登記後會超收。確定嗎？"))return;
+    if(sl!=="其他"){
+      var si=bkSlotInfo(d,sl);
+      if(si.cap>0&&si.left<ppl&&
+         !confirm("這個時段目前已預約 "+si.used+" 位，表定上限 "+si.cap+" 位。\n"+
+                  "登記這筆 "+ppl+" 位之後會變成 "+(si.used+ppl)+" 位，超過表定。\n確定要登記嗎？"))return;
+      if(si.cap<=0&&si.used>0&&
+         !confirm("這個時段班表沒排老師，目前已預約 "+si.used+" 位。\n"+
+                  "登記這筆 "+ppl+" 位之後會變成 "+(si.used+ppl)+" 位。\n確定要登記嗎？"))return;
+    }
     var rec={date:d,slot:sl,people:ppl,adults:nA,kids:nK,
       items:c?[{name:c.name,spec:c.spec,qty:ppl,price:c.price}]
              :(g("mNote")?[]:[]),
@@ -763,6 +778,9 @@ css.textContent=
 ".bk-left{font-size:12.5px;color:#8A90A0;margin-top:5px;line-height:1.6}"+
 ".bk-names{font-size:12px;color:#A8AEBC;margin-top:4px}"+
 ".bk-ok{color:#12805C;font-weight:500}.bk-full{color:#C9453B;font-weight:600}"+
+".bk-cnt{display:inline-block;font-size:14px;color:#1E2B4F;font-weight:600;margin-right:9px}"+
+".bk-cnt b{font-size:19px;color:#1E2B4F;font-weight:700;vertical-align:-1px}"+
+".bk-cap{display:inline-block;font-size:12.5px;color:#8A90A0;margin-right:8px}"+
 ".bk-act{display:flex;gap:10px;margin-top:22px}"+
 ".bk-cancel{flex:1;padding:14px;background:#F2F3F6;border:0;border-radius:12px;"+
   "font-size:14.5px;cursor:pointer;color:#5B6272;font-family:inherit;transition:.15s}"+
