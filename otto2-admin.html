@@ -139,12 +139,74 @@ const BASE_WEEK = {0:0,1:2,2:2,3:2,4:2,5:2,6:3};
 const SLOTS = ["10:00-12:00","14:00-16:00","16:00-18:00"];
 const NOTIFY_URL   = "https://otto2-notify-production.up.railway.app";
 
+/* Firebase Web API Key（otto2-booking-f9ef7） */
+const FIREBASE_API_KEY = "AIzaSyDgPVrHEYScDfuIPyvsBNNEdSROKJBgHqY";
+
 let tab="today", cur=new Date(), calY, calM, schedule={}, bookings=[];
 const pad=n=>String(n).padStart(2,"0");
 const ds_=d=>`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
 const mk=(y,m,d)=>`${y}/${pad(m)}/${pad(d)}`;
 const wn=["日","一","二","三","四","五","六"];
-const fb=p=>FIREBASE_URL.replace(/\/$/,"")+p;
+const fb=p=>{
+  const u=FIREBASE_URL.replace(/\/$/,"")+p;
+  return ID_TOKEN ? u+(u.indexOf("?")>=0?"&":"?")+"auth="+ID_TOKEN : u;
+};
+
+/* ════════ 管理員登入 ════════ */
+let ID_TOKEN="";
+let REFRESH_TOKEN=localStorage.getItem("otto2_admin_rt")||"";
+
+async function authSignIn(email,pw){
+  const r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+FIREBASE_API_KEY,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email,password:pw,returnSecureToken:true})
+  });
+  const j=await r.json();
+  if(!r.ok)throw new Error((j.error&&j.error.message)||"LOGIN_FAILED");
+  ID_TOKEN=j.idToken; REFRESH_TOKEN=j.refreshToken;
+  localStorage.setItem("otto2_admin_rt",REFRESH_TOKEN);
+}
+async function authRefresh(){
+  if(!REFRESH_TOKEN)return false;
+  try{
+    const r=await fetch("https://securetoken.googleapis.com/v1/token?key="+FIREBASE_API_KEY,{
+      method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(REFRESH_TOKEN)
+    });
+    if(!r.ok){ID_TOKEN="";REFRESH_TOKEN="";localStorage.removeItem("otto2_admin_rt");return false;}
+    const j=await r.json();
+    ID_TOKEN=j.id_token; REFRESH_TOKEN=j.refresh_token;
+    localStorage.setItem("otto2_admin_rt",REFRESH_TOKEN);
+    return true;
+  }catch(e){return false;}
+}
+function showLogin(){
+  return new Promise(resolve=>{
+    const box=document.createElement("div");
+    box.style.cssText="position:fixed;inset:0;background:#fff;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px";
+    box.innerHTML='<div style="width:100%;max-width:320px">'+
+      '<div style="font-size:19px;font-weight:700;margin-bottom:4px">Otto2 後台</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:18px">請登入管理員帳號</div>'+
+      '<input id="lgEmail" type="email" placeholder="帳號" autocomplete="username" style="width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px">'+
+      '<input id="lgPw" type="password" placeholder="密碼" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px;margin-bottom:14px">'+
+      '<button id="lgBtn" style="width:100%;padding:13px;font-size:16px;border:0;border-radius:8px;background:#111;color:#fff">登入</button>'+
+      '<div id="lgErr" style="color:#c00;font-size:13px;margin-top:10px;min-height:18px"></div></div>';
+    document.body.appendChild(box);
+    const go=async()=>{
+      const btn=document.getElementById("lgBtn"), err=document.getElementById("lgErr");
+      btn.disabled=true; btn.textContent="登入中…"; err.textContent="";
+      try{
+        await authSignIn(document.getElementById("lgEmail").value.trim(),document.getElementById("lgPw").value);
+        box.remove(); resolve();
+      }catch(e){
+        err.textContent="帳號或密碼錯誤（"+e.message+"）";
+        btn.disabled=false; btn.textContent="登入";
+      }
+    };
+    document.getElementById("lgBtn").onclick=go;
+    document.getElementById("lgPw").onkeydown=e=>{if(e.key==="Enter")go()};
+  });
+}
 
 async function gviz(sheet){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tqx=out:json`;
@@ -477,8 +539,13 @@ document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("on",x===b));
   render();
 });
-refresh();
-setInterval(()=>{if(tab==="today")refresh()},60000);
+async function boot(){
+  if(!await authRefresh())await showLogin();
+  setInterval(authRefresh,45*60*1000);
+  await refresh();
+  setInterval(()=>{if(tab==="today")refresh()},60000);
+}
+boot();
 </script>
 </body>
 </html>
