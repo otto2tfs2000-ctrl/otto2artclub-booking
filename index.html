@@ -2,6 +2,9 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Otto2 ARTCLUB 線上預約</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -226,6 +229,10 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .mn-empty input{width:100%;padding:14px;border:1px solid #E3E6EC;border-radius:11px;
   font-size:16px;font-family:inherit;text-align:center;margin-bottom:12px;background:#FBFCFD}
 .mn-empty input:focus{outline:0;border-color:#9FB0CE;background:#fff}
+.mn-btn{width:100%;padding:15px;border:0;border-radius:12px;background:var(--navy);
+  color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
+.mn-btn:hover{background:#16223F}
+.mn-btn:active{transform:scale(.985)}
 .mn-err{margin-top:12px;font-size:13px;color:#C0392B;line-height:1.6}
 </style>
 </head>
@@ -798,7 +805,7 @@ function renderMine(){
           <b>還沒有對應到你的會員資料</b>
           <small>如果你是舊生，輸入當初留的手機號碼就能查到。<br>對應成功後，之後打開就會自動認得你。</small>
           <input id="mnPhone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" maxlength="12">
-          <button class="hm-card main" id="mnGo" style="justify-content:center"><b>查詢</b></button>
+          <button class="mn-btn" id="mnGo">查詢</button>
           <div id="mnErr" class="mn-err"></div>
         </div>
         <button class="lnk" id="mnBack">‹ 回上一頁</button>
