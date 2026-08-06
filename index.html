@@ -178,13 +178,62 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .back{flex:0 0 52px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:12px;font-size:18px}
 .next{flex:1;padding:14px;border:none;border-radius:12px;background:var(--navy);color:#fff;font-size:16.5px;font-weight:700;letter-spacing:2px;font-family:inherit}
 .next:disabled{background:#B8BCC7}
+
+/* ══ 分岔畫面 / 我的點數 ══ */
+.hm{padding:22px 18px 40px}
+.hm-hi{font-size:20px;font-weight:700;color:var(--navy);margin:4px 0 20px}
+.hm-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  padding:20px 18px;margin-bottom:13px;border:1.5px solid #E3E6EC;border-radius:16px;
+  background:#fff;cursor:pointer;font-family:inherit;transition:.15s}
+.hm-card:hover{border-color:#9FB0CE;background:#F8FAFD}
+.hm-card:active{transform:scale(.985)}
+.hm-card.main{background:var(--navy);border-color:var(--navy)}
+.hm-card.main .hm-tx b{color:#fff}
+.hm-card.main .hm-tx small{color:#C3CCDF}
+.hm-card.main .hm-ar{color:#8fa0c4}
+.hm-ic{font-size:26px;flex:0 0 auto;line-height:1}
+.hm-tx{flex:1;display:flex;flex-direction:column;gap:3px}
+.hm-tx b{font-size:16.5px;color:var(--navy);font-weight:700}
+.hm-tx small{font-size:12.5px;color:#8A90A0;line-height:1.5}
+.hm-ar{font-size:22px;color:#C3CCDF;flex:0 0 auto}
+.hm-note{margin-top:18px;font-size:12.5px;color:#A8AEBC;line-height:1.75}
+.lnk{display:block;width:100%;margin-top:20px;padding:12px;border:0;background:none;
+  color:#8A90A0;font-size:14px;font-family:inherit;cursor:pointer}
+.lnk:hover{color:var(--navy)}
+.mn-name{font-size:21px;font-weight:700;color:var(--navy);margin:4px 0 16px}
+.mn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.mn-box{background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:16px 10px;text-align:center}
+.mn-box b{display:block;font-size:26px;color:var(--navy);line-height:1.2}
+.mn-box span{display:block;font-size:13px;color:#5B6272;margin-top:4px}
+.mn-box small{display:block;font-size:10.5px;color:#A8AEBC;margin-top:2px}
+.mn-zero{background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:22px 16px;
+  text-align:center;font-size:14px;color:#5B6272;line-height:1.8}
+.mn-h{margin:26px 0 10px;font-size:13px;font-weight:600;color:#8A90A0}
+.mn-lg{background:#fff;border:1px solid #E3E6EC;border-radius:14px;overflow:hidden}
+.mn-lgload{padding:22px 16px;text-align:center;font-size:13.5px;color:#A8AEBC}
+.mn-lgrow{display:flex;align-items:center;gap:10px;padding:13px 15px;border-top:1px solid #F0F2F6;font-size:13.5px}
+.mn-lgrow:first-child{border-top:0}
+.mn-lgrow .dt{color:#A8AEBC;flex:0 0 44px;font-size:12.5px}
+.mn-lgrow .rs{flex:1;color:#232936}
+.mn-lgrow .dl{font-weight:600;white-space:nowrap}
+.mn-lgrow .dl i{font-style:normal;font-size:11px;font-weight:400;color:#A8AEBC;margin-left:3px}
+.mn-lgrow .minus{color:#C0392B}
+.mn-lgrow .plus{color:#12805C}
+.mn-empty{background:#fff;border:1px solid #E3E6EC;border-radius:16px;padding:28px 20px;text-align:center}
+.mn-eic{font-size:34px;margin-bottom:10px}
+.mn-empty b{display:block;font-size:16px;color:var(--navy);margin-bottom:8px}
+.mn-empty small{display:block;font-size:13px;color:#8A90A0;line-height:1.8;margin-bottom:18px}
+.mn-empty input{width:100%;padding:14px;border:1px solid #E3E6EC;border-radius:11px;
+  font-size:16px;font-family:inherit;text-align:center;margin-bottom:12px;background:#FBFCFD}
+.mn-empty input:focus{outline:0;border-color:#9FB0CE;background:#fff}
+.mn-err{margin-top:12px;font-size:13px;color:#C0392B;line-height:1.6}
 </style>
 </head>
 <body>
 
 <header class="hero">
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
-  <div class="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
+  <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
   <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.4</div>
 </header>
@@ -241,7 +290,7 @@ const DEMO_ADDONS = [
 ];
 let DEMO_BOOKINGS = [];
 
-let step=1, groups=[], cats=[], activeCat="", picks={};
+let step=0, groups=[], cats=[], activeCat="", picks={};   /* 0=分岔畫面  9=查詢點數 */
 /* picks: gid -> {variantIdx, qty, addons:{addonIdx:true}} */
 let payOptions=[
   {name:"LINE Pay 訂金",desc:"送出後線上付款，完成截圖回傳 LINE",amount:600,type:"linepay",info:"https://reurl.cc/O5Qe23"},
@@ -299,6 +348,8 @@ let hasPlan=false; // 是否為方案會員（第二期由會員系統寫入）
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
 const pLabel=r=>{const n=pNum(r);return n?"NT$"+n.toLocaleString():"現場報價"};
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad=n=>String(n).padStart(2,"0");
 const dstr=(y,m,d)=>`${y}/${pad(m)}/${pad(d)}`;
 
@@ -529,10 +580,12 @@ function setMember(phone,m){
   if(!customer.phone)customer.phone=phone;
   if(!customer.name&&m.name)customer.name=m.name;
   renderBalance();
+  if(step===0)renderHome();          /* 認人是非同步的，認到之後補上稱呼 */
 }
 function renderBalance(){
   const el=document.getElementById("balBar");
   if(!el)return;
+  if(step===0||step===9){el.innerHTML="";el.style.display="none";return}
   if(!myMember||(myMember.points<=0&&myMember.sessions<=0&&myMember.bonus<=0)){
     el.innerHTML="";el.style.display="none";return;
   }
@@ -662,9 +715,14 @@ const totalPrice=()=>Object.keys(picks).reduce((s,id)=>s+pickPrice(id),0);
 
 function setStep(n){
   step=n;
-  for(let i=1;i<=4;i++)document.getElementById("st"+i).className=i<=n?"on":"";
-  document.getElementById("stepname").textContent=["","步驟 1／4：上課人數","步驟 2／4：選擇課程","步驟 3／4：選擇日期時段","步驟 4／4：確認與聯絡資料"][n];
-  document.getElementById("btnBack").style.display=n>1?"block":"none";
+  const flow=(n>=1&&n<=4);                       /* 只有預約流程才顯示步驟條 */
+  for(let i=1;i<=4;i++)document.getElementById("st"+i).className=(flow&&i<=n)?"on":"";
+  document.getElementById("steps").style.visibility=flow?"visible":"hidden";
+  document.getElementById("stepname").textContent=
+    n===0?"想做什麼？":n===9?"我的點數":
+    ["","步驟 1／4：上課人數","步驟 2／4：選擇課程","步驟 3／4：選擇日期時段","步驟 4／4：確認與聯絡資料"][n];
+  document.getElementById("btnBack").style.display=(n>1&&n<=4)?"block":"none";
+  document.getElementById("bar").style.display=flow?"":"none";
   render();
 }
 function updateBar(){
@@ -691,6 +749,8 @@ function updateBar(){
   if(step===4){btn.textContent="完成預約";btn.disabled=!(customer.name.trim()&&customer.phone.trim()&&deposit)}
 }
 function render(){ setTimeout(renderBalance,0);
+  if(step===0)return renderHome();
+  if(step===9)return renderMine();
   if(step===1)renderParty();
   if(step===2)renderCourses();
   if(step===3)renderCalendar();
@@ -703,6 +763,112 @@ function priceChip(g){
   const mn=Math.min(...ns),mx=Math.max(...ns);
   return mn===mx?"NT$"+mn.toLocaleString():"NT$"+mn.toLocaleString()+"起";
 }
+/* ══ 分岔畫面：查詢點數 or 預約 ══════════════════════ */
+function renderHome(){
+  const hi = myMember&&myMember.name ? myMember.name+"，你好" :
+             (lineUser&&lineUser.displayName ? lineUser.displayName+"，你好" : "歡迎光臨");
+  document.getElementById("view").innerHTML=
+   `<div class="hm">
+      <div class="hm-hi">${esc(hi)}</div>
+      <button class="hm-card" id="hmMine">
+        <span class="hm-ic">💎</span>
+        <span class="hm-tx"><b>查詢我的點數</b><small>看剩餘點數、堂數、紅利與使用紀錄</small></span>
+        <span class="hm-ar">›</span>
+      </button>
+      <button class="hm-card main" id="hmBook">
+        <span class="hm-ic">🎨</span>
+        <span class="hm-tx"><b>我要預約課程</b><small>選人數、課程、日期，線上完成預約</small></span>
+        <span class="hm-ar">›</span>
+      </button>
+      <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
+    </div>`;
+  document.getElementById("hmMine").onclick=()=>setStep(9);
+  document.getElementById("hmBook").onclick=()=>setStep(1);
+}
+
+/* ══ 我的點數 ══════════════════════════════════════ */
+let mineLedger=null;
+function renderMine(){
+  const v=document.getElementById("view");
+  if(!myMember){
+    v.innerHTML=
+     `<div class="hm">
+        <div class="mn-empty">
+          <div class="mn-eic">🔍</div>
+          <b>還沒有對應到你的會員資料</b>
+          <small>如果你是舊生，輸入當初留的手機號碼就能查到。<br>對應成功後，之後打開就會自動認得你。</small>
+          <input id="mnPhone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" maxlength="12">
+          <button class="hm-card main" id="mnGo" style="justify-content:center"><b>查詢</b></button>
+          <div id="mnErr" class="mn-err"></div>
+        </div>
+        <button class="lnk" id="mnBack">‹ 回上一頁</button>
+      </div>`;
+    document.getElementById("mnBack").onclick=()=>setStep(0);
+    const go=async()=>{
+      const raw=document.getElementById("mnPhone").value.trim();
+      const err=document.getElementById("mnErr");
+      if(!isPhoneKey(normTW(raw))){err.textContent="手機號碼格式看起來不對，請再確認一次。";return}
+      err.textContent="查詢中…";
+      await lookupMemberByPhone(raw);
+      if(myMember){ mineLedger=null; renderMine() }
+      else err.textContent="查不到這支號碼的會員資料。如果確定有上過課，請私訊小編幫你查。";
+    };
+    document.getElementById("mnGo").onclick=go;
+    document.getElementById("mnPhone").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+    return;
+  }
+  const m=myMember;
+  const rows=[];
+  if(m.points>0)  rows.push(["可用點數", m.points.toLocaleString(), "1 點 = 1 元"]);
+  if(m.sessions>0)rows.push(["剩餘堂數", m.sessions, "固定堂數方案"]);
+  if(m.bonus>0)   rows.push(["紅利點數", m.bonus, "累積回饋"]);
+  v.innerHTML=
+   `<div class="hm">
+      <div class="mn-name">${esc(m.name||"會員")}</div>
+      ${rows.length
+        ? `<div class="mn-grid">${rows.map(r=>
+            `<div class="mn-box"><b>${r[1]}</b><span>${r[0]}</span><small>${r[2]}</small></div>`).join("")}</div>`
+        : `<div class="mn-zero">目前沒有可用的點數或堂數。<br>現場或私訊小編都可以加購。</div>`}
+      <div class="mn-h">最近使用紀錄</div>
+      <div id="mnLg" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
+      <button class="hm-card main" id="mnBook" style="margin-top:20px">
+        <span class="hm-ic">🎨</span>
+        <span class="hm-tx"><b>我要預約課程</b><small>用點數或堂數折抵</small></span>
+        <span class="hm-ar">›</span></button>
+      <button class="lnk" id="mnBack">‹ 回上一頁</button>
+    </div>`;
+  document.getElementById("mnBack").onclick=()=>setStep(0);
+  document.getElementById("mnBook").onclick=()=>setStep(1);
+  loadLedger();
+}
+
+async function loadLedger(){
+  const box=document.getElementById("mnLg"); if(!box)return;
+  if(mineLedger===null){
+    mineLedger=[];
+    try{
+      const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+
+        "/members/"+myMember.phone+"/ledger.json")).json();
+      if(j)mineLedger=Object.values(j);
+    }catch(e){}
+  }
+  const NAME={points:"點數",sessions:"堂數",bonus:"紅利"};
+  const list=mineLedger
+    .filter(e=>e&&e.at)
+    .sort((a,b)=>String(b.at).localeCompare(String(a.at)))
+    .slice(0,12);
+  if(!list.length){ box.innerHTML='<div class="mn-lgload">還沒有使用紀錄。</div>'; return }
+  box.innerHTML=list.map(e=>{
+    const d=String(e.at).slice(0,10).replace(/-/g,"/").slice(5);
+    const n=+e.delta||0;
+    return `<div class="mn-lgrow">
+      <span class="dt">${d}</span>
+      <span class="rs">${esc(e.reason||"異動")}</span>
+      <span class="dl ${n<0?"minus":"plus"}">${n>0?"+":""}${n.toLocaleString()}<i>${NAME[e.type]||""}</i></span>
+    </div>`;
+  }).join("");
+}
+
 /* ══ 步驟1：上課人數（獨立頁）══ */
 function renderParty(){
   const v=document.getElementById("view");
