@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.6</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.7</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -310,6 +310,19 @@ const CAP_PER_TEACHER = 5;       // 每位老師可帶人數
 /* 基準週班表：0=日,1=一...6=六（班表工作表填了例外日會覆蓋這裡） */
 const BASE_WEEK = {0:0, 1:2, 2:2, 3:2, 4:2, 5:2, 6:3};
 const SLOTS = ["10:00-12:00","14:00-16:00","16:00-18:00"];
+/* ══ 晚上時段（v4.7）══════════════════════════════════
+   晚上不是固定開，週一有、其他時候看排班。所以它不是第四個
+   固定時段，而是「班表那天有排才存在」——沒排的日子客人根本
+   看不到這一格。
+
+   班表的值因此有兩種：數字（只有白天，舊資料）或 {t,ev}
+   （白天 t 位、晚上 ev 位）。晚上的老師數獨立算容量，
+   白天排 3 位不代表晚上也有 3 位。
+
+   打烊時間也要跟著時段走。原本寫死 18:30，晚上這格若沿用，
+   會被判成「超過打烊時間」而整排不能選。 */
+const EVE_SLOT   = "18:30-21:00";
+const EVE_CLOSE  = "21:00";
 
 const DEMO_COURSES = [
  ["每月主打","本月主打-黑光煙火","夜空綻放的螢光煙火，完成後會發亮","","2小時",1600,"","Y",1],
@@ -345,7 +358,7 @@ let notices={
   detail:[
     {title:"關於人數與課程",body:"每位（含孩子）都會完成一件自己的作品，因此有幾位就選幾份課程。同行的人可以做不同課程，也可以做同一種課程，在課程頁調整份數即可。"},
     {title:"關於價格",body:"體驗價僅限首次上課使用；已購買方案的會員請選會員價，現場核對。部分課程有不同尺寸，價格會依尺寸調整。"},
-    {title:"關於時間",body:"週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。當日課程無法線上預約，想確認今天是否有位置請私訊小編。想畫兩堂課的學員，請在課程頁選「2 堂」，系統會保留連續兩個時段（費用 ×2）。創作時間較長的課程，選時段時會提示提早到館；若超過該時段結束時間仍未完成，需另計加時費用。"},
+    {title:"關於時間",body:"週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。部分日期加開晚上 18:30-21:00，日曆上點進去看得到的就是有開，沒顯示就是那天晚上沒排課。當日課程無法線上預約，想確認今天是否有位置請私訊小編。想畫兩堂課的學員，請在課程頁選「2 堂」，系統會保留連續兩個時段（費用 ×2）。創作時間較長的課程，選時段時會提示提早到館；若超過該時段結束時間仍未完成，需另計加時費用。"},
     {title:"關於年齡",body:"每門課程的年齡限制不同，填寫孩子年齡後系統會自動標示適合的課程。孩子與大人一樣各自完成一件作品，並非陪同旁觀。"},
     {title:"關於訂金",body:"新客請以 LINE Pay 支付訂金 NT$600，完成後截圖回傳 LINE。方案會員可選擇點數預扣，上課當日核銷。訂金確認後預約才算保留成功。"},
     {title:"上課當天",body:"請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。座位有限，每人低消一件作品，請勿攜伴出席。"}
@@ -600,7 +613,10 @@ async function loadSchedule(){
       const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/schedule.json")).json();
       if(j)for(const k in j){
         const v=j[k];
-        if(v!==null&&v!==undefined&&v!=="")schedule[k.replace(/-/g,"/")]=Math.max(0,+v||0);
+        if(v===null||v===undefined||v==="")continue;
+        schedule[k.replace(/-/g,"/")]=
+          (typeof v==="object")?{t:Math.max(0,+v.t||0),ev:Math.max(0,+v.ev||0)}
+                               :Math.max(0,+v||0);
       }
     }catch(e){}
   }
@@ -705,14 +721,36 @@ async function loadBookings(){
     }
   }
 }
-/* 老師數：班表例外優先，否則用基準週 */
+/* 老師數：班表例外優先，否則用基準週。
+   班表的值可能是數字（舊）或 {t,ev}（含晚上）。 */
 function teachersOn(d){
-  if(schedule[d]!==undefined)return schedule[d];
+  const v=schedule[d];
+  if(v!==undefined&&v!==null)
+    return (typeof v==="object")?Math.max(0,+v.t||0):Math.max(0,+v||0);
   const [y,m,dd]=d.split("/").map(Number);
   return BASE_WEEK[new Date(y,m-1,dd).getDay()]??1;
 }
+/* 晚上有幾位老師。0 或沒設就是那天晚上不開。 */
+function eveOn(d){
+  const v=schedule[d];
+  return (v&&typeof v==="object")?Math.max(0,+v.ev||0):0;
+}
 const capOf=d=>Math.min(teachersOn(d)*CAP_PER_TEACHER, SEAT_CAP);
-const leftOf=(d,s)=>capOf(d)-(bookedMap[d+"|"+s]||0);
+const eveCap=d=>Math.min(eveOn(d)*CAP_PER_TEACHER, SEAT_CAP);
+const capOfSlot=(d,s)=> s===EVE_SLOT?eveCap(d):capOf(d);
+const leftOf=(d,s)=>capOfSlot(d,s)-(bookedMap[d+"|"+s]||0);
+/* 這一天實際有哪些時段。
+   白天沒排老師就不列白天，晚上有排才多一格——
+   「白天休、只開晚上」的日子，客人不該看到三個已額滿的白天時段。 */
+function slotsOn(d){
+  const out = teachersOn(d)>0 ? SLOTS.slice() : [];
+  if(eveOn(d)>0) out.push(EVE_SLOT);
+  return out;
+}
+/* 目前正在看的那天的時段清單 */
+function curSlots(){ return selDate?slotsOn(selDate):SLOTS.slice() }
+/* 打烊時間跟著時段走 */
+const closeOf=sl=> sl===EVE_SLOT?EVE_CLOSE:CLOSE_TIME;
 /* 時段是否已過：日期在今天之前，或就是今天且時段開始時間已過 */
 function slotPassed(d,slot){
   const now=new Date();
@@ -734,23 +772,32 @@ const slotEnd=sl=>toMin((sl.split("-")[1]||"").trim());
 const pad2=n=>String(n).padStart(2,"0");
 const fmt=m=>`${pad2(Math.floor(m/60))}:${pad2(m%60)}`;
 /* 回傳 {slots:[...], start:分鐘, end:分鐘, early:是否提早} 或 null（排不下） */
-function planFor(startIdx){
-  const sl=SLOTS[startIdx];
+function planFor(startIdx,list){
+  list=list||curSlots();
+  const sl=list[startIdx];
+  if(!sl)return null;
+  const isEve=sl===EVE_SLOT;
+  /* 白天最後一格（16:00-18:00）到晚上（18:30）中間空 30 分鐘，
+     而且那半小時沒人排班。所以連堂不跨越這個斷點——
+     16:00 開始想上兩堂的人，第二堂不會被排到晚上。 */
+  const rawNext=list[startIdx+1];
+  const next=(rawNext===EVE_SLOT&&!isEve)?null:rawNext;
   if(hasTwoSessions()){
-    if(!SLOTS[startIdx+1])return null;
-    return {slots:[sl,SLOTS[startIdx+1]],start:slotStart(sl),end:slotEnd(SLOTS[startIdx+1]),early:0};
+    if(!next)return null;
+    return {slots:[sl,next],start:slotStart(sl),end:slotEnd(next),early:0};
   }
   const mins=totalMinutes()||SLOT_MINUTES;
   const base=slotStart(sl);
   const myEnd=slotEnd(sl);
-  const nextStart=SLOTS[startIdx+1]?slotStart(SLOTS[startIdx+1]):Infinity;
-  const prevEnd=startIdx>0?slotEnd(SLOTS[startIdx-1]):toMin(OPEN_TIME);
-  const limit=toMin(CLOSE_TIME);
+  const nextStart=next?slotStart(next):Infinity;
+  /* 晚上這格不提早開始——18:00 白天剛下課，沒有提早進場的空間 */
+  const prevEnd=isEve?base:(startIdx>0?slotEnd(list[startIdx-1]):toMin(OPEN_TIME));
+  const limit=toMin(closeOf(sl));
 
   /* 決定開始時間：能提早就提早（最多 MAX_EARLY 分鐘），
      但不能早於開館、也不能撞到前一個時段的課 */
   let start=base;
-  if(base+mins>myEnd&&EARLY_START){
+  if(!isEve&&base+mins>myEnd&&EARLY_START){
     const want=Math.min(MAX_EARLY,base+mins-myEnd);
     const early=Math.max(base-want,prevEnd,toMin(OPEN_TIME));
     if(early<base)start=early;
@@ -759,10 +806,10 @@ function planFor(startIdx){
   if(end>limit)return null;                       // 超過最晚結束時間
 
   /* 結束時間若壓到後面的時段，那些時段一併佔用名額 */
-  const list=[sl];
+  const occ=[sl];
   let i=startIdx+1;
-  while(SLOTS[i]&&end>slotStart(SLOTS[i])){list.push(SLOTS[i]);i++}
-  return {slots:list,start,end,early:base-start};
+  while(list[i]&&!(list[i]===EVE_SLOT&&!isEve)&&end>slotStart(list[i])){occ.push(list[i]);i++}
+  return {slots:occ,start,end,early:base-start};
 }
 function occupiedSlots(startIdx){const p=planFor(startIdx);return p?p.slots:null}
 function hasLongCourse(){
@@ -1120,9 +1167,11 @@ function renderCalendar(){
   for(let i=0;i<startW;i++)cells+=`<div></div>`;
   for(let d=1;d<=days;d++){
     const ds=dstr(calY,calM,d);
-    const past=SLOTS.every(s=>slotPassed(ds,s));
-    const anyLeft=SLOTS.some(s=>!slotPassed(ds,s)&&leftOf(ds,s)>=totalPeople());
-    const dis=past||teachersOn(ds)===0||!anyLeft;
+    const dayS=slotsOn(ds);
+    const past=dayS.every(s=>slotPassed(ds,s));
+    const anyLeft=dayS.some(s=>!slotPassed(ds,s)&&leftOf(ds,s)>=totalPeople());
+    /* 白天休息但晚上有排的日子照樣要能點進去 */
+    const dis=past||(teachersOn(ds)===0&&eveOn(ds)===0)||!anyLeft;
     cells+=`<button class="day ${dis?'off':'avail'} ${ds===selDate?'on':''}" data-d="${ds}" ${dis?'disabled':''}>${d}</button>`;
   }
   let slotHtml="";
@@ -1151,8 +1200,8 @@ function renderCalendar(){
       ${hasTwoSessions()?`<div class="dur">你選了 <b>2 堂課</b>，需要<b>連續兩個時段</b>。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`
         :(totalMinutes()>SLOT_MINUTES?`<div class="dur">你選的課程創作時間約 <b>${Math.round(totalMinutes()/60*10)/10} 小時</b>。<br>下方顯示的是<b>實際上課時間</b>，已為你安排足夠時段，請準時到館。<br>超過結束時間仍未完成，需<b>另計加時費用</b>。</div>`:'')}
       <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
-      SLOTS.map((sl,i)=>{
-        const plan=planFor(i);
+      curSlots().map((sl,i)=>{
+        const plan=planFor(i,curSlots());
         const noRoom=!plan;
         const occ=plan?plan.slots:[sl];
         const passed=!noRoom&&occ.some(x=>slotPassed(selDate,x));
@@ -1169,7 +1218,8 @@ function renderCalendar(){
           if(occ.length>1)bits.push("含後續時段");
           capText=bits.join("・");
         }
-        const label=noRoom?sl:`${fmt(plan.start)}-${fmt(plan.end)}`;
+        const label=(noRoom?sl:`${fmt(plan.start)}-${fmt(plan.end)}`)+
+          (sl===EVE_SLOT?" 🌙":"");
         return `<button class="slot ${sl===selSlot?'on':''}" data-s="${sl}" ${dis?'disabled':''}>
           <span class="left">${label}</span>
           <span class="cap ${passed||isToday||noRoom?'':(left<=3?'low':'')}">${capText}</span></button>`;
@@ -1240,8 +1290,9 @@ function renderDone(id){
     ${payHtml}</div>`;
 }
 function planNow(){
-  const i=SLOTS.indexOf(selSlot);
-  return i<0?null:planFor(i);
+  const list=curSlots();
+  const i=list.indexOf(selSlot);
+  return i<0?null:planFor(i,list);
 }
 function occupiedNow(){const p=planNow();return p?p.slots:[selSlot]}
 function timeLabel(){
