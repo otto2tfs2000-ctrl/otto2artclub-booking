@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.5</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.6</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -283,6 +283,28 @@ const OPEN_TIME    = "09:30";   // 最早可到館時間
 const MAX_EARLY    = 30;        // 最多提早幾分鐘到館
 const EARLY_START  = true;      // 長時數課程優先「提早開始」而非佔用下一時段   // 單一時段長度（分鐘），超過需約兩個時段
 const NOTIFY_URL   = "https://otto2-notify-production.up.railway.app";
+
+/* ══ 讀資料改走 Railway（v4.6）══════════════════════════
+   這頁以前直接從瀏覽器讀 Firebase，其中兩處讀的是整包
+   /bookings.json——一份含每位客人姓名、電話、備註的完整名單，
+   任何人知道資料庫網址就能整包下載，而網址就寫在這支公開的
+   原始碼裡。它要的其實只是「這個人來過幾次」和「這時段剩幾位」
+   兩個數字。
+
+   改成問 Railway，伺服器拿密鑰去讀，只回傳該回的：
+   時段只吐人數、餘額只吐數字、明細一概不給。
+   這樣 bookings 和 members 的 .read 就能關掉了。
+
+   寫入維持直寫——寫入不會外洩既有資料，那是 .write 規則的事。 */
+async function api(path, body){
+  const r = await fetch(NOTIFY_URL.replace(/\/$/,"")+path,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body||{})});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const j = await r.json();
+  if(!j || !j.ok) throw new Error((j&&j.error)||"回應異常");
+  return j;
+}
 const SEAT_CAP     = 13;         // 教室座位硬上限
 const CAP_PER_TEACHER = 5;       // 每位老師可帶人數
 /* 基準週班表：0=日,1=一...6=六（班表工作表填了例外日會覆蓋這裡） */
@@ -377,24 +399,17 @@ async function initLiff(){
     if(liff.isLoggedIn()){
       const p=await liff.getProfile();
       lineUser={userId:p.userId,displayName:p.displayName};
-      if(FIREBASE_URL){
-        try{
-          const m=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+p.userId+".json")).json();
-          if(m){customer.name=customer.name||m.name||"";customer.phone=customer.phone||m.phone||""}
-        }catch(e){}
-      }
+      /* 姓名、電話、來訪次數、有沒有方案，一次問完。
+         以前是三次直讀 Firebase，其中一次會把整包預約搬下來。 */
+      try{
+        const me=await api("/liff/me",{userId:p.userId});
+        customer.name  = customer.name  || me.name  || "";
+        customer.phone = customer.phone || me.phone || "";
+        visitCount = me.visits || 0;
+        if(me.hasPlan) hasPlan = true;
+        if(me.phone) lookupMemberByPhone(me.phone);
+      }catch(e){}
       if(!customer.name)customer.name=p.displayName||"";
-      /* 認出會員：先用 LINE 身分找，找不到等填電話時再比對 */
-      lookupMemberByLine(p.userId);
-      /* 查此帳號過往預約次數，用來判斷體驗價資格 */
-      if(FIREBASE_URL){
-        try{
-          const all=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json")).json();
-          if(all)visitCount=Object.values(all).filter(b=>b.line&&b.line.userId===p.userId&&b.status!=="cancelled").length;
-          const m2=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+p.userId+".json")).json();
-          if(m2&&(m2.plan||m2.credits>0))hasPlan=true;
-        }catch(e){}
-      }
     }
   }catch(e){/* 外部瀏覽器或初始化失敗照常以訪客模式運作 */}
 }
@@ -602,20 +617,28 @@ function normTW(s){
   if(d.length===9&&d[0]==="9")d="0"+d;
   return d;
 }
+/* 回傳的形狀刻意做得跟以前一樣（name + cache），
+   setMember 那邊就不用改。 */
 async function fetchMember(phone){
-  if(!FIREBASE_URL||!phone)return null;
-  try{return await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/members/"+phone+".json")).json()||null}
-  catch(e){return null}
+  if(!phone)return null;
+  try{
+    const j=await api("/liff/member",{phone:phone});
+    if(!j.found)return null;
+    return { name:j.name||"", lineUserId:j.lineUserId||"",
+      cache:{ points:j.points||0, sessions:j.sessions||0,
+              bonus:j.bonus||0, voucher:j.voucher||0 } };
+  }catch(e){return null}
 }
 const isPhoneKey=k=>/^0\d{8,10}$/.test(String(k||""));
+/* lineIndex 的查詢併進 /liff/me 了，這支留著給別處呼叫時不會壞 */
 async function lookupMemberByLine(uid){
-  if(!FIREBASE_URL||!uid)return;
+  if(!uid)return;
   try{
-    /* 對照表：lineIndex/{userId} → 電話。不用 orderBy，免建索引 */
-    const phone=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/lineIndex/"+uid+".json")).json();
-    if(!isPhoneKey(phone))return;
-    const m=await fetchMember(phone);
-    if(m&&!m.error)setMember(phone,m);
+    const me=await api("/liff/me",{userId:uid});
+    if(isPhoneKey(me.phone)){
+      const m=await fetchMember(me.phone);
+      if(m)setMember(me.phone,m);
+    }
   }catch(e){}
 }
 async function lookupMemberByPhone(raw){
@@ -663,17 +686,22 @@ function renderBalance(){
 
 async function loadBookings(){
   bookedMap={};
-  let all=[];
   if(FIREBASE_URL){
-    try{const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json")).json();if(j)all=Object.values(j)}catch(e){}
-  }else all=DEMO_BOOKINGS;
-  for(const b of all){
+    /* 伺服器已經算好每個時段幾位（連堂的第二格、取消與逾期都處理過），
+       這裡只是把它攤平成 "日期|時段" 的形狀。 */
+    try{
+      const j=await api("/liff/slots",{});
+      for(const d in (j.used||{}))
+        for(const s in j.used[d])
+          bookedMap[d+"|"+s]=j.used[d][s];
+    }catch(e){}
+    return;
+  }
+  for(const b of DEMO_BOOKINGS){
     if(b.status==="cancelled"||b.status==="expired")continue;
-    /* 連堂／跨時段的第二格也要佔名額 */
     for(const s of [b.slot,b.slot2]){
       if(!s)continue;
-      const k=b.date+"|"+s;
-      bookedMap[k]=(bookedMap[k]||0)+(+b.people||0);
+      bookedMap[b.date+"|"+s]=(bookedMap[b.date+"|"+s]||0)+(+b.people||0);
     }
   }
 }
@@ -910,9 +938,8 @@ async function loadLedger(){
   if(mineLedger===null){
     mineLedger=[];
     try{
-      const j=await (await fetch(FIREBASE_URL.replace(/\/$/,"")+
-        "/members/"+myMember.phone+"/ledger.json")).json();
-      if(j)mineLedger=Object.values(j);
+      const j=await api("/liff/ledger",{phone:myMember.phone,limit:20});
+      mineLedger=j.entries||[];
     }catch(e){}
   }
   const NAME={points:"點數",sessions:"堂數",bonus:"紅利"};
