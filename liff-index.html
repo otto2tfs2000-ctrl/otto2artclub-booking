@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.7</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.8a</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -322,6 +322,20 @@ const SLOTS = ["10:00-12:00","14:00-16:00","16:00-18:00"];
    打烊時間也要跟著時段走。原本寫死 18:30，晚上這格若沿用，
    會被判成「超過打烊時間」而整排不能選。 */
 const EVE_SLOT   = "18:30-21:00";
+/* ══ 佔位與計時課（v4.8）══════════════════════════════
+   地毯課要用到機台和桌面，一組客人不管幾個人都佔 3 個位子，
+   而且是按小時算錢、時數客人自己選。
+
+   佔位和人數是兩件事，分開存：
+     people ＝ 幾個人（業績、人次、通知上顯示的）
+     seats  ＝ 佔幾個位子（時段還能收幾組看這個）
+   一般課兩者相同，所以舊資料完全不受影響。
+
+   課程表最右邊加兩欄，用標題找、不看位置，
+   所以你要加在哪、順序怎麼排都行：
+     佔位 ← 填 3，代表一組佔 3 位。空白＝一人一位
+     計時 ← 填 700，代表每小時 700。空白＝照價格欄的固定價 */
+const HOUR_MIN = 2, HOUR_MAX = 4;   /* 計時課：2 小時起跳，最多 4 小時 */
 const EVE_CLOSE  = "21:00";
 
 const DEMO_COURSES = [
@@ -446,7 +460,12 @@ async function gviz(sheet){
     if(a<0||b<0)throw new Error("回應不是資料格式");
     const j=JSON.parse(t.substring(a,b+1));
     if(!j.table)throw new Error("找不到工作表「"+sheet+"」");
-    return j.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
+    const out=j.table.rows.map(r=>r.c.map(c=>c?(c.f??c.v):""));
+    /* Google 已經把標題列抽出去放在 cols 了，rows 裡第一筆就是資料。
+       新欄位是照標題找的，所以把標題另外掛上來——用不可列舉的屬性，
+       這樣其他地方 map/forEach 都不會受影響。 */
+    try{ Object.defineProperty(out,"__head",{value:(j.table.cols||[]).map(c=>String((c&&(c.label||c.id))||"").trim()),enumerable:false}) }catch(e){}
+    return out;
   }catch(e){lastErr=e}
   /* 備援通道 A：opensheet 代理 */
   try{
@@ -475,15 +494,38 @@ async function gviz(sheet){
 }
 
 let catOrder=[];
+/* 前十一欄是照位置讀的（沿用舊行為，不要動）。
+   之後新增的欄位一律照標題找——欄位順序改了也不會壞，
+   你想加在哪就加在哪。 */
+function headerIdx(rows,names){
+  const out={};
+  /* gviz 走 cols，備援通道（opensheet／csv）才會把標題放在第一列 */
+  const head=(rows&&rows.__head&&rows.__head.length)
+    ? rows.__head
+    : (rows&&rows[0]||[]).map(x=>String(x||"").trim());
+  names.forEach(n=>{
+    let i=head.indexOf(n);
+    if(i<0)i=head.findIndex(h=>String(h).replace(/\s/g,"")===n);   /* 標題有空白也認得 */
+    if(i>=0)out[n]=i;
+  });
+  return out;
+}
+let courseHead={};
 function rowsToGroups(rows){
   catOrder=[];
-  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y"})).filter(c=>c.name&&c.on);
+  const H=courseHead||{};
+  const gi=(r,n)=>H[n]!=null?String(r[H[n]]??"").trim():"";
+  const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y",
+    seats:Math.max(0,pNum(gi(r,"佔位"))),hourly:Math.max(0,pNum(gi(r,"計時")))})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
     if(!catOrder.includes(it.cat))catOrder.push(it.cat);
     const k=it.cat+"|"+it.name;
-    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,multiSession:it.multi,variants:[]});
-    map.get(k).variants.push({spec:it.spec,priceRaw:it.priceRaw});
+    if(!map.has(k)) map.set(k,{id:"g"+map.size,cat:it.cat,name:it.name,desc:it.desc,dur:it.dur,img:it.img,sort:it.sort,minAge:it.minAge,multiSession:it.multi,seats:it.seats,hourly:it.hourly,variants:[]});
+    const g=map.get(k);
+    if(it.seats>g.seats)g.seats=it.seats;
+    if(it.hourly>g.hourly)g.hourly=it.hourly;
+    g.variants.push({spec:it.spec,priceRaw:it.priceRaw});
   }
   return [...map.values()].sort((a,b)=>a.sort-b.sort);
 }
@@ -502,16 +544,21 @@ function rowsToAddons(rows){
    全部回來才畫畫面——客人就盯著一片空白等五次。
    存一份在手機裡，下次開直接用暫存畫出來，同時在背景跟試算表對，
    有變動再默默換掉。第二次之後幾乎不用等。 */
-const SHEET_CACHE_KEY="otto2_liff_sheets_v2";
+const SHEET_CACHE_KEY="otto2_liff_sheets_v3";   /* v3：暫存多存了標題列 */
 let sheetCache={};
 try{ sheetCache=JSON.parse(localStorage.getItem(SHEET_CACHE_KEY)||"{}")||{} }catch(e){ sheetCache={} }
 function cacheGet(sheet){
   const c=sheetCache[sheet];
-  return (c&&Array.isArray(c.rows))?c.rows:null;
+  if(!c||!Array.isArray(c.rows))return null;
+  /* 標題是不可列舉屬性，存進 localStorage 會掉，取出來要補回去 */
+  if(Array.isArray(c.head)&&c.head.length){
+    try{ Object.defineProperty(c.rows,"__head",{value:c.head,enumerable:false,configurable:true}) }catch(e){}
+  }
+  return c.rows;
 }
 function cachePut(sheet,rows){
   try{
-    sheetCache[sheet]={rows:rows,at:Date.now()};
+    sheetCache[sheet]={rows:rows,at:Date.now(),head:(rows&&rows.__head)||[]};
     localStorage.setItem(SHEET_CACHE_KEY,JSON.stringify(sheetCache));
   }catch(e){/* 空間滿了或隱私模式，沒暫存也能跑 */}
 }
@@ -566,6 +613,8 @@ function applyAddons(a){
 
 /* 有暫存就先套上，讓畫面立刻出得來。回傳有沒有拿到課程。 */
 function loadFromCache(){
+  const cr=cacheGet("課程");
+  if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時"]);
   const c=cacheGet("課程");
   if(!c)return false;
   try{ applyCourses(c) }catch(e){ return false }
@@ -579,6 +628,7 @@ async function loadCourses(){
   if(!SHEET_ID){groups=rowsToGroups(DEMO_COURSES);rowsToAddons(DEMO_ADDONS);return}
   const rows=await gviz("課程");
   cachePut("課程",rows);
+  courseHead=headerIdx(rows,["佔位","計時"]);
   applyCourses(rows);
 }
 
@@ -763,6 +813,23 @@ function slotPassed(d,slot){
 }
 
 const totalPeople=()=>Object.values(picks).reduce((s,p)=>s+p.qty,0);
+/* 佔幾個位子。有標「佔位」的課，一組不管幾個人都算那個數字——
+   地毯共用一台機器，兩個人做也還是佔 3 位。 */
+function totalSeats(){
+  let n=0;
+  for(const id in picks){
+    const g=groups.find(x=>x.id===id);
+    n += (g&&g.seats>0) ? g.seats : picks[id].qty;
+  }
+  return n||totalPeople();
+}
+/* 計時課選的時數 */
+function pickHours(id){
+  const p=picks[id];
+  return (p&&p.hours)?p.hours:HOUR_MIN;
+}
+const hasHourly=()=>Object.keys(picks).some(id=>{
+  const g=groups.find(x=>x.id===id); return g&&g.hourly>0 });
 const partyNeed=()=>adults+kids;
 /* 本次預約需要幾個連續時段 */
 /* 是否有課程本身時長超過一個時段（自動跨時段、不加價） */
@@ -815,7 +882,9 @@ function occupiedSlots(startIdx){const p=planFor(startIdx);return p?p.slots:null
 function hasLongCourse(){
   for(const id in picks){
     const g=groups.find(x=>x.id===id);
-    if(g&&durMinutes(g.dur)>SLOT_MINUTES)return true;
+    if(!g)continue;
+    if(g.hourly>0&&pickHours(id)*60>SLOT_MINUTES)return true;
+    if(durMinutes(g.dur)>SLOT_MINUTES)return true;
   }
   return false;
 }
@@ -838,13 +907,17 @@ function totalMinutes(){
   let max=0;
   for(const id in picks){
     const g=groups.find(x=>x.id===id);
-    if(g)max=Math.max(max,durMinutes(g.dur));
+    if(!g)continue;
+    /* 計時課的時數是客人選的，不看課表上的時長 */
+    max=Math.max(max, g.hourly>0 ? pickHours(id)*60 : durMinutes(g.dur));
   }
   return max;
 }
 function pickPrice(id){
   const g=groups.find(x=>x.id===id),p=picks[id];
-  let sum=pNum(g.variants[p.variantIdx].priceRaw)*p.qty*(p.sessions===2?2:1);
+  /* 計時課：每小時單價 × 時數 × 人數。價格欄留空也算得出來。 */
+  const unit = g.hourly>0 ? g.hourly*pickHours(id) : pNum(g.variants[p.variantIdx].priceRaw);
+  let sum=unit*p.qty*(p.sessions===2?2:1);
   const ads=addonsByCourse[g.name]||[];
   for(const i in p.addons) if(p.addons[i]&&ads[i]) sum+=ads[i].price;
   return sum;
@@ -1104,7 +1177,7 @@ function renderCourses(){
         ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
-        <div class="meta">${g.dur?`<span class="chip">⏱ ${g.dur}</span>`:''}<span class="chip price">${priceChip(g)}</span></div>
+        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
           const isTrial=/體驗/.test(vv.spec), isMember=/會員/.test(vv.spec);
           const blockTrial=isTrial&&visitCount>0;
@@ -1112,7 +1185,11 @@ function renderCourses(){
           return `<button class="vopt ${p&&p.variantIdx===i?'on':''} ${blockTrial?'blocked':''}" data-v="${i}" ${blockTrial?'data-block="trial"':''}>${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}${blockTrial?' 🔒':''}</button>`;
         }).join("")}</div>${visitCount>0?`<div class="vnote">你已在本工作室上過課，體驗價僅限首次。若已購買方案，選擇會員價即可，現場核對。</div>`:''}</div>`:''}
         ${ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:''}
+        ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
+          <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
+          <div class="longnote">${HOUR_MIN} 小時起跳，最多 ${HOUR_MAX} 小時。金額＝每小時 NT$${g.hourly.toLocaleString()} × 時數。</div>`:''}
         <div class="qty"><span>這門課幾位？</span><div class="stepper"><button data-act="minus">−</button><b>${p?p.qty:1}</b><button data-act="plus">＋</button></div></div>
+        ${g.seats>0?`<div class="longnote">這門課要用到專用設備，不管幾位都佔 ${g.seats} 個位子。</div>`:''}
         ${g.multiSession?`<div class="sess"><span>想上幾堂課？</span><div class="srow">
           <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">1 堂<small>一件作品</small></button>
           <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">2 堂<small>費用 ×2</small></button>
@@ -1148,9 +1225,21 @@ function renderCourses(){
           if(totalPeople()<partyNeed())p.qty++;
         }
         if(t.dataset.act==="minus")p.qty>1?p.qty--:delete picks[id];
+        /* 計時課的時數。改了時數等於改了實際上課時間，
+           已經選好的時段可能塞不下，所以一律清掉重選。 */
+        if(t.dataset.act==="hplus"){
+          p.hours=Math.min(HOUR_MAX,(p.hours||HOUR_MIN)+1); selSlot="";
+        }
+        if(t.dataset.act==="hminus"){
+          p.hours=Math.max(HOUR_MIN,(p.hours||HOUR_MIN)-1); selSlot="";
+        }
         render();return}
       if(picks[id])delete picks[id];
-      else if(totalPeople()<partyNeed())picks[id]={variantIdx:0,qty:1,addons:{},sessions:1};
+      else if(totalPeople()<partyNeed()){
+        const gg=groups.find(x=>x.id===id);
+        picks[id]={variantIdx:0,qty:1,addons:{},sessions:1,
+                   hours:(gg&&gg.hourly>0)?HOUR_MIN:0};
+      }
       else alert(`你選的是 ${partyNeed()} 位，課程份數已經選滿了。要調整人數請回到最上方。`);
       render();
     };
@@ -1169,7 +1258,7 @@ function renderCalendar(){
     const ds=dstr(calY,calM,d);
     const dayS=slotsOn(ds);
     const past=dayS.every(s=>slotPassed(ds,s));
-    const anyLeft=dayS.some(s=>!slotPassed(ds,s)&&leftOf(ds,s)>=totalPeople());
+    const anyLeft=dayS.some(s=>!slotPassed(ds,s)&&leftOf(ds,s)>=totalSeats());
     /* 白天休息但晚上有排的日子照樣要能點進去 */
     const dis=past||(teachersOn(ds)===0&&eveOn(ds)===0)||!anyLeft;
     cells+=`<button class="day ${dis?'off':'avail'} ${ds===selDate?'on':''}" data-d="${ds}" ${dis?'disabled':''}>${d}</button>`;
@@ -1199,14 +1288,15 @@ function renderCalendar(){
     slotHtml=`<div class="slots">${noticeHtml}
       ${hasTwoSessions()?`<div class="dur">你選了 <b>2 堂課</b>，需要<b>連續兩個時段</b>。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`
         :(totalMinutes()>SLOT_MINUTES?`<div class="dur">你選的課程創作時間約 <b>${Math.round(totalMinutes()/60*10)/10} 小時</b>。<br>下方顯示的是<b>實際上課時間</b>，已為你安排足夠時段，請準時到館。<br>超過結束時間仍未完成，需<b>另計加時費用</b>。</div>`:'')}
-      <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位）</h3><div class="slotrow">${
+      <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位${
+        totalSeats()!==totalPeople()?`・佔 ${totalSeats()} 個位子`:''})</h3><div class="slotrow">${
       curSlots().map((sl,i)=>{
         const plan=planFor(i,curSlots());
         const noRoom=!plan;
         const occ=plan?plan.slots:[sl];
         const passed=!noRoom&&occ.some(x=>slotPassed(selDate,x));
         const left=noRoom?0:Math.min(...occ.map(x=>leftOf(selDate,x)));
-        const full=!noRoom&&left<totalPeople();
+        const full=!noRoom&&left<totalSeats();
         const dis=noRoom||passed||full||isToday;
         let capText;
         if(isToday)capText="當日請私訊小編";
@@ -1306,7 +1396,7 @@ async function submitBooking(){
   }
   await loadBookings();
   const occ=occupiedNow(), p2=pairSlot();
-  if(occ.some(x=>leftOf(selDate,x)<totalPeople())){
+  if(occ.some(x=>leftOf(selDate,x)<totalSeats())){
     alert("這個時段名額剛被約走，請重新選時段。");setStep(3);return;
   }
   const rec={
@@ -1322,7 +1412,10 @@ async function submitBooking(){
       return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),
         addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
     }),
-    people:totalPeople(), total:totalPrice(),
+    people:totalPeople(), seats:totalSeats(), total:totalPrice(),
+    /* 計時課的時數；一般課沒有這個欄位 */
+    hours:hasHourly()?Math.max(...Object.keys(picks).map(id=>{
+      const g=groups.find(x=>x.id===id); return g&&g.hourly>0?pickHours(id):0 })):0,
     customer:{...customer},
     /* 現場刷卡不需預付；其餘一律 unpaid，收到訂金才轉 confirmed */
     status:((payOptions[+deposit]||{}).type==="card")?"new":"unpaid",
