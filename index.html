@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.8a</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.9</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -446,7 +446,7 @@ const SHEET_HEADERS={
   "班表":["日期","排班老師","可開課老師數","備註"],
   "說明":["類型","標題","內容","排序","顯示"],
   "訂金":["名稱","說明","金額","方式","連結或帳號","排序","顯示"],
-  "加購":["課程名稱","加購名稱","加價","排序"]
+  "加購":["課程名稱","規格","加購名稱","價格","排序"]
 };
 async function gviz(sheet){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tqx=out:json`;
@@ -531,12 +531,25 @@ function rowsToGroups(rows){
 }
 function rowsToAddons(rows){
   addonsByCourse={};
+  /* 舊格式（課程名稱／加購名稱／價格／排序）還沒改成新的（多一欄規格）也不會壞——
+     照標題判斷，沒有「規格」欄就當全部尺寸通用，等表格改好會自動變成新格式。 */
+  const hasSpec=!!(rows.__head&&rows.__head[1]==="規格");
+  const iSpec=hasSpec?1:-1, iName=hasSpec?2:1, iPrice=hasSpec?3:2, iSort=hasSpec?4:3;
   rows.forEach(r=>{
-    const cname=String(r[0]||"").trim(), aname=String(r[1]||"").trim();
+    const cname=String(r[0]||"").trim(), aname=String(r[iName]||"").trim();
+    const spec=iSpec>=0?String(r[iSpec]||"").trim():"";
     if(!cname||!aname)return;
-    (addonsByCourse[cname]=addonsByCourse[cname]||[]).push({name:aname,price:pNum(r[2]),sort:+r[3]||99});
+    (addonsByCourse[cname]=addonsByCourse[cname]||[]).push({name:aname,price:pNum(r[iPrice]),sort:+r[iSort]||99,spec});
   });
   for(const k in addonsByCourse) addonsByCourse[k].sort((a,b)=>a.sort-b.sort);
+}
+/* 同一門課不同規格，加購清單可能不一樣（例如小尺寸沒有雙層選項）。
+   picks[id].addons 是用「陣列索引」記哪個有勾選，所以這裡務必回傳
+   跟畫面渲染時同一份、順序一致的清單，索引才對得起來。 */
+function addonsFor(g,p){
+  const vv=g.variants[(p&&p.variantIdx)||0]||g.variants[0];
+  const spec=(vv&&vv.spec)||"";
+  return (addonsByCourse[g.name]||[]).filter(a=>!a.spec||a.spec===spec);
 }
 
 /* ── 試算表暫存 ──
@@ -544,7 +557,7 @@ function rowsToAddons(rows){
    全部回來才畫畫面——客人就盯著一片空白等五次。
    存一份在手機裡，下次開直接用暫存畫出來，同時在背景跟試算表對，
    有變動再默默換掉。第二次之後幾乎不用等。 */
-const SHEET_CACHE_KEY="otto2_liff_sheets_v3";   /* v3：暫存多存了標題列 */
+const SHEET_CACHE_KEY="otto2_liff_sheets_v4";   /* v4：加購多了規格欄，格式跟 v3 不一樣，要跳版本才不會讀到舊快取 */
 let sheetCache={};
 try{ sheetCache=JSON.parse(localStorage.getItem(SHEET_CACHE_KEY)||"{}")||{} }catch(e){ sheetCache={} }
 function cacheGet(sheet){
@@ -918,7 +931,7 @@ function pickPrice(id){
   /* 計時課：每小時單價 × 時數 × 人數。價格欄留空也算得出來。 */
   const unit = g.hourly>0 ? g.hourly*pickHours(id) : pNum(g.variants[p.variantIdx].priceRaw);
   let sum=unit*p.qty*(p.sessions===2?2:1);
-  const ads=addonsByCourse[g.name]||[];
+  const ads=addonsFor(g,p);
   for(const i in p.addons) if(p.addons[i]&&ads[i]) sum+=ads[i].price;
   return sum;
 }
@@ -1166,7 +1179,7 @@ function renderCourses(){
   const list=v.querySelector("#list");
   const show=groups.filter(g=>g.cat===activeCat);
   list.innerHTML=show.map(g=>{
-    const p=picks[g.id],multi=g.variants.length>1,ads=addonsByCourse[g.name]||[];
+    const p=picks[g.id],multi=g.variants.length>1,ads=addonsFor(g,p);
     const elig=eligibleFor(g.minAge);
     const locked = !!g.minAge && elig===0;
     const capped = !!g.minAge && elig>0 && elig<partyNeed();
@@ -1207,7 +1220,7 @@ function renderCourses(){
       if(t&&t.dataset.v!==undefined){
         if(t.dataset.block==="trial"){alert("體驗價僅限首次上課。你已在本工作室上過課，請選擇會員價或單次原價。");return}
         if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{},sessions:1};
-        else picks[id].variantIdx=+t.dataset.v;
+        else{picks[id].variantIdx=+t.dataset.v;picks[id].addons={}} /* 換規格，加購清單可能整個換了，索引對不起來，清掉重選 */
         render();return}
       if(t&&t.dataset.s!==undefined){
         if(!picks[id])picks[id]={variantIdx:0,qty:1,addons:{},sessions:+t.dataset.s};
@@ -1327,7 +1340,7 @@ function renderCalendar(){
 }
 function pickSummary(id){
   const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
-  const ads=addonsByCourse[g.name]||[];
+  const ads=addonsFor(g,p);
   const chosen=Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>ads[i].name);
   return `${g.name}${vv.spec?'（'+vv.spec+'）':''} × ${p.qty}位${chosen.length?'<br><span style="font-size:12.5px;color:var(--ink-soft)">加購：'+chosen.join("、")+'</span>':''}`;
 }
@@ -1408,7 +1421,7 @@ async function submitBooking(){
     spanReason:hasTwoSessions()?"兩堂課":(occ.length>1?"課程時長較長":""),
     items:Object.keys(picks).map(id=>{
       const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
-      const ads=addonsByCourse[g.name]||[];
+      const ads=addonsFor(g,p);
       return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),
         addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
     }),
