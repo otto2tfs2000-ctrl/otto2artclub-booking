@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.10</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.11</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -372,7 +372,7 @@ let notices={
   detail:[
     {title:"關於人數與課程",body:"每位（含孩子）都會完成一件自己的作品，因此有幾位就選幾份課程。同行的人可以做不同課程，也可以做同一種課程，在課程頁調整份數即可。"},
     {title:"關於價格",body:"體驗價僅限首次上課使用；已購買方案的會員請選會員價，現場核對。部分課程有不同尺寸，價格會依尺寸調整。"},
-    {title:"關於時間",body:"週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。部分日期加開晚上 18:30-21:00，日曆上點進去看得到的就是有開，沒顯示就是那天晚上沒排課。當日課程無法線上預約，想確認今天是否有位置請私訊小編。想畫兩堂課的學員，請在課程頁選「2 堂」，系統會保留連續兩個時段（費用 ×2）。創作時間較長的課程，選時段時會提示提早到館；若超過該時段結束時間仍未完成，需另計加時費用。"},
+    {title:"關於時間",body:"週一至週六 10:00-12:00、14:00-16:00、16:00-18:00，週日公休。部分日期加開晚上 18:30-21:00，日曆上點進去看得到的就是有開，沒顯示就是那天晚上沒排課。當日課程無法線上預約，想確認今天是否有位置請私訊小編。想加時多畫一輪的學員，請在課程頁選「加時延長」，系統會保留連續兩個時段（費用 ×2）。創作時間較長的課程，選時段時會提示提早到館；若超過該時段結束時間仍未完成，需另計加時費用。"},
     {title:"關於年齡",body:"每門課程的年齡限制不同，填寫孩子年齡後系統會自動標示適合的課程。孩子與大人一樣各自完成一件作品，並非陪同旁觀。"},
     {title:"關於訂金",body:"新客請以 LINE Pay 支付訂金 NT$600，完成後截圖回傳 LINE。方案會員可選擇點數預扣，上課當日核銷。訂金確認後預約才算保留成功。"},
     {title:"上課當天",body:"請提前 10-15 分鐘到櫃檯報到。工作室提供畫衣，建議不要穿寬袖衣物。流動系列的學員如留長髮請綁起來。部分作品需三天待乾，無法當天帶回。座位有限，每人低消一件作品，請勿攜伴出席。"}
@@ -732,6 +732,13 @@ async function lookupMemberByPhone(raw){
   if(!isPhoneKey(phone)){
     if(mySeq!==lookupMemberSeq)return;
     myMember=null;renderBalance();return}
+  /* 只要電話打完整、這次有透過 LINE 登入，就先把這支電話記到這個 LINE 帳號名下，
+     不用等到預約真的送出成功才記——以前只有完整送出那一刻才寫，中途放棄或
+     只是查餘額都不會記到，下次同一支手機登入電話欄還是空的，要重打一次。 */
+  if(lineUser){
+    fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+lineUser.userId+".json",{method:"PATCH",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:phone})}).catch(()=>{});
+  }
   if(myMember&&myMember.phone===phone)return;
   const m=await fetchMember(phone);
   if(mySeq!==lookupMemberSeq)return; /* 打字打到後面去了，這次結果已經過期 */
@@ -1202,20 +1209,17 @@ function renderCourses(){
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
         <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
-          const isTrial=/體驗/.test(vv.spec), isMember=/會員/.test(vv.spec);
-          const blockTrial=isTrial&&visitCount>0;
-          const blockMember=isMember&&!hasPlan&&visitCount>0;
-          return `<button class="vopt ${p&&p.variantIdx===i?'on':''} ${blockTrial?'blocked':''}" data-v="${i}" ${blockTrial?'data-block="trial"':''}>${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}${blockTrial?' 🔒':''}</button>`;
-        }).join("")}</div>${visitCount>0?`<div class="vnote">你已在本工作室上過課，體驗價僅限首次。若已購買方案，選擇會員價即可，現場核對。</div>`:''}</div>`:''}
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`;
+        }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次，現場會請老師確認；已買方案的選會員價即可。</div>`:''}</div>`:''}
         ${ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
           <div class="longnote">${HOUR_MIN} 小時起跳，最多 ${HOUR_MAX} 小時。金額＝每小時 NT$${g.hourly.toLocaleString()} × 時數。</div>`:''}
         <div class="qty"><span>這門課幾位？</span><div class="stepper"><button data-act="minus">−</button><b>${p?p.qty:1}</b><button data-act="plus">＋</button></div></div>
         ${g.seats>0?`<div class="longnote">這門課要用到專用設備，不管幾位都佔 ${g.seats} 個位子。</div>`:''}
-        ${g.multiSession?`<div class="sess"><span>想上幾堂課？</span><div class="srow">
-          <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">1 堂<small>一件作品</small></button>
-          <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">2 堂<small>費用 ×2</small></button>
+        ${g.multiSession?`<div class="sess"><span>這堂課要畫多久？</span><div class="srow">
+          <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">一般時段<small>約 2 小時・一件作品</small></button>
+          <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">加時延長<small>約 4 小時，連續兩個時段・費用 ×2</small></button>
         </div></div>`:''}
         ${durMinutes(g.dur)>SLOT_MINUTES?`<div class="longnote">此課程創作時間約 ${Math.round(durMinutes(g.dur)/60*10)/10} 小時，選時段時會顯示實際上課時間，請預留完整時間。</div>`:''}
       </div><div class="tick">✓</div></div>`;
@@ -1228,7 +1232,6 @@ function renderCourses(){
       let t=e.target;
       while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
-        if(t.dataset.block==="trial"){alert("體驗價僅限首次上課。你已在本工作室上過課，請選擇會員價或單次原價。");return}
         if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{},sessions:1};
         else{picks[id].variantIdx=+t.dataset.v;picks[id].addons={}} /* 換規格，加購清單可能整個換了，索引對不起來，清掉重選 */
         render();return}
@@ -1309,7 +1312,7 @@ function renderCalendar(){
     let durHtml="";
 
     slotHtml=`<div class="slots">${noticeHtml}
-      ${hasTwoSessions()?`<div class="dur">你選了 <b>2 堂課</b>，需要<b>連續兩個時段</b>。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`
+      ${hasTwoSessions()?`<div class="dur">你選了 <b>加時延長</b>，需要<b>連續兩個時段</b>。<br>請選擇起始時段，系統會自動保留下一個時段。</div>`
         :(totalMinutes()>SLOT_MINUTES?`<div class="dur">你選的課程創作時間約 <b>${Math.round(totalMinutes()/60*10)/10} 小時</b>。<br>下方顯示的是<b>實際上課時間</b>，已為你安排足夠時段，請準時到館。<br>超過結束時間仍未完成，需<b>另計加時費用</b>。</div>`:'')}
       <h3>${selDate} 可預約時段（本組 ${totalPeople()} 位${
         totalSeats()!==totalPeople()?`・佔 ${totalSeats()} 個位子`:''})</h3><div class="slotrow">${
