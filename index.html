@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.9</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.10</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -720,11 +720,21 @@ async function lookupMemberByLine(uid){
     }
   }catch(e){}
 }
+/* 電話欄每打一個字就會查一次，是連續好幾個非同步請求。
+   以前沒有防呆，先送出的請求如果剛好比後送出的晚回來，
+   舊的（甚至是打到一半、號碼還不完整的）結果會蓋掉新的、正確的畫面，
+   導致明明查得到卻突然變成空白。這裡只認「最後一次呼叫」的結果，
+   不管網路怎麼亂序回來，舊的請求回來一律不採用。 */
+let lookupMemberSeq=0;
 async function lookupMemberByPhone(raw){
+  const mySeq=++lookupMemberSeq;
   const phone=normTW(raw);
-  if(!isPhoneKey(phone)){myMember=null;renderBalance();return}
+  if(!isPhoneKey(phone)){
+    if(mySeq!==lookupMemberSeq)return;
+    myMember=null;renderBalance();return}
   if(myMember&&myMember.phone===phone)return;
   const m=await fetchMember(phone);
+  if(mySeq!==lookupMemberSeq)return; /* 打字打到後面去了，這次結果已經過期 */
   if(!m||m.error){myMember=null;renderBalance();return}
   setMember(phone,m);
   if(lineUser){
