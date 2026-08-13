@@ -259,7 +259,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.14</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.15</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1215,9 +1215,9 @@ function renderCourses(){
         <div class="qty"><span>這門課幾位？</span><div class="stepper"><button data-act="minus">−</button><b>${p?p.qty:1}</b><button data-act="plus">＋</button></div></div>
         ${g.seats>0?`<div class="longnote">這門課要用到專用設備，不管幾位都佔 ${g.seats} 個位子。</div>`:''}
         ${durMinutes(g.dur)>SLOT_MINUTES?`<div class="longnote">此課程創作時間約 ${Math.round(durMinutes(g.dur)/60*10)/10} 小時，選時段時會顯示實際上課時間，請預留完整時間。</div>`:''}
-        ${(ads.length||g.multiSession)?(()=>{
-          const addonsChosen=p&&p.addons&&Object.values(p.addons).some(Boolean);
-          const sessionChosen=p&&p.sessions===2;
+        ${(p&&(ads.length||g.multiSession))?(()=>{
+          const addonsChosen=p.addons&&Object.values(p.addons).some(Boolean);
+          const sessionChosen=p.sessions===2;
           return `<details class="more" ${addonsChosen||sessionChosen?'open':''}><summary>更多選項（加時／加購）</summary><div class="morebox">`+
             (g.multiSession?`<div class="sess"><span>這堂課要畫多久？</span><div class="srow">
               <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">一般時段<small>約 2 小時・一件作品</small></button>
