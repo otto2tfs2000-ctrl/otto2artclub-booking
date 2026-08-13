@@ -220,6 +220,23 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .lnk{display:block;width:100%;margin-top:20px;padding:12px;border:0;background:none;
   color:#8A90A0;font-size:14px;font-family:inherit;cursor:pointer}
 .lnk:hover{color:var(--navy)}
+
+/* ══ AI 小幫手 ══ */
+.ai-wrap{display:flex;flex-direction:column;height:calc(100vh - 100px);padding:14px}
+.ai-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ai-back{border:0;background:none;color:var(--ink-soft);font-size:14px;font-family:inherit;cursor:pointer;padding:4px 0}
+.ai-title{font-size:15.5px;font-weight:700;color:var(--navy)}
+.ai-log{flex:1;overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.6;white-space:pre-wrap}
+.ai-msg.u{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.ai-msg.a{align-self:flex-start;background:var(--sel);color:var(--ink);border-bottom-left-radius:4px}
+.ai-msg.sys{align-self:center;background:none;color:var(--ink-soft);font-size:12.5px;text-align:center}
+.ai-typing{align-self:flex-start;color:var(--ink-soft);font-size:13px;padding:4px 13px}
+.ai-inrow{display:flex;gap:8px;padding-top:10px;border-top:1.5px solid var(--line)}
+.ai-in{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:15px;font-family:inherit;resize:none;max-height:90px}
+.ai-in:focus{outline:none;border-color:var(--navy)}
+.ai-send{border:0;background:var(--navy);color:#fff;border-radius:12px;padding:0 18px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.ai-send:disabled{background:#C3CCDF;cursor:default}
 .mn-name{font-size:21px;font-weight:700;color:var(--navy);margin:4px 0 16px}
 .mn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
 .mn-box{background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:16px 10px;text-align:center}
@@ -259,7 +276,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.16</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.17</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -363,7 +380,8 @@ const DEMO_ADDONS = [
 ];
 let DEMO_BOOKINGS = [];
 
-let step=0, groups=[], cats=[], activeCat="", picks={}, coursesLoaded=false;   /* 0=分岔畫面  9=查詢點數 */
+let step=0, groups=[], cats=[], activeCat="", picks={}, coursesLoaded=false;   /* 0=分岔畫面  8=AI小幫手  9=查詢點數 */
+let aiHistory=[], aiBusy=false, aiUnmatched=[];
 /* picks: gid -> {variantIdx, qty, addons:{addonIdx:true}} */
 let payOptions=[
   {name:"LINE Pay 訂金",desc:"送出後線上付款，完成截圖回傳 LINE",amount:600,type:"linepay",info:"https://reurl.cc/O5Qe23"},
@@ -960,7 +978,7 @@ function setStep(n){
   for(let i=1;i<=4;i++)document.getElementById("st"+i).className=(flow&&i<=n)?"on":"";
   document.getElementById("steps").style.visibility=flow?"visible":"hidden";
   document.getElementById("stepname").textContent=
-    n===0?"想做什麼？":n===9?"我的點數":
+    n===0?"想做什麼？":n===8?"AI 小幫手":n===9?"我的點數":
     ["","步驟 1／4：上課人數","步驟 2／4：選擇課程","步驟 3／4：選擇日期時段","步驟 4／4：確認與聯絡資料"][n];
   document.getElementById("btnBack").style.display=(n>1&&n<=4)?"block":"none";
   document.getElementById("bar").style.display=flow?"":"none";
@@ -991,6 +1009,7 @@ function updateBar(){
 }
 function render(){ setTimeout(renderBalance,0);
   if(step===0)return renderHome();
+  if(step===8)return renderAI();
   if(step===9)return renderMine();
   if(step===1)renderParty();
   if(step===2)renderCourses();
@@ -1021,10 +1040,16 @@ function renderHome(){
         <span class="hm-tx"><b>我要預約課程</b><small>選人數、課程、日期，線上完成預約</small></span>
         <span class="hm-ar">›</span>
       </button>
+      <button class="hm-card" id="hmAI">
+        <span class="hm-ic">🤖</span>
+        <span class="hm-tx"><b>不知道要選什麼？問 AI 小幫手</b><small>用聊的告訴它想上什麼課，它幫你選好</small></span>
+        <span class="hm-ar">›</span>
+      </button>
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
   document.getElementById("hmMine").onclick=()=>setStep(9);
   document.getElementById("hmBook").onclick=()=>setStep(1);
+  document.getElementById("hmAI").onclick=()=>setStep(8);
 }
 
 /* ══ 我的點數 ══════════════════════════════════════ */
@@ -1107,6 +1132,116 @@ async function loadLedger(){
       <span class="dl ${n<0?"minus":"plus"}">${n>0?"+":""}${n.toLocaleString()}<i>${NAME[e.type]||""}</i></span>
     </div>`;
   }).join("");
+}
+
+/* ══ AI 小幫手 ══════════════════════════════════════
+   跟客人聊天收集人數／課程／日期，湊齊了伺服器會回一段 booking 物件，
+   這裡負責把它對回真正的課程資料（groups），填好 picks／adults／kids／
+   selDate，然後跳頁——課程都對得到就跳去步驟3選時段（AI 沒有猜時段，
+   時段還是要客人自己點，多老師人數怎麼分這種細節交給原本就寫好、
+   也測過的選時段畫面去處理，不重寫一次容易出錯）；只要有一項課程
+   對不到，就退回步驟2讓客人自己確認補選，不要硬跳過去。 */
+function aiFindGroup(name){
+  const n=String(name||"").trim();
+  if(!n)return null;
+  let g=groups.find(x=>x.name===n);
+  if(g)return g;
+  g=groups.find(x=>x.name.includes(n)||n.includes(x.name));
+  return g||null;
+}
+function aiFindVariantIdx(g,spec){
+  if(!g.variants.length)return -1;
+  if(g.variants.length===1)return 0;
+  const s=String(spec||"").trim();
+  let i=g.variants.findIndex(v=>v.spec===s);
+  if(i>=0)return i;
+  i=g.variants.findIndex(v=>v.spec&&(v.spec.includes(s)||(s&&s.includes(v.spec))));
+  return i;
+}
+/* 回傳 true＝課程都對得到（可以跳去選時段），false＝有課程對不到（退回步驟2） */
+function aiApplyBooking(bk){
+  aiUnmatched=[];
+  const a=Math.max(0,Math.min(20,+bk.adults||0));
+  const k=Math.max(0,Math.min(20,+bk.kids||0));
+  if(!a&&!k)return false;
+  const items=Array.isArray(bk.items)?bk.items:[];
+  const newPicks={};
+  items.forEach(it=>{
+    const g=aiFindGroup(it&&it.courseName);
+    if(!g){ aiUnmatched.push((it&&it.courseName)||"（未命名課程）"); return }
+    const vi=aiFindVariantIdx(g,it.spec);
+    if(vi<0){ aiUnmatched.push(g.name+(it.spec?"（"+it.spec+"）":"")); return }
+    const qty=Math.max(1,Math.min(20,+it.qty||1));
+    const p={variantIdx:vi,qty,addons:{},sessions:1,hours:(g.hourly>0)?HOUR_MIN:0};
+    if(+it.sessions===2&&g.multiSession)p.sessions=2;
+    if(Array.isArray(it.addons)&&it.addons.length){
+      const ads=addonsFor(g,p);
+      it.addons.forEach(an=>{
+        const ai=ads.findIndex(x=>x.name===an||x.name.includes(an)||(an&&an.includes(x.name)));
+        if(ai>=0)p.addons[ai]=true;
+      });
+    }
+    newPicks[g.id]=p;
+  });
+  adults=a; kids=k; kidAges=new Array(k).fill("");
+  picks=newPicks;
+  if(aiUnmatched.length||!Object.keys(picks).length)return false;
+  const dm=String(bk.date||"").match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  const todayStr=dstr(new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate());
+  if(dm&&bk.date>=todayStr){
+    selDate=bk.date; selSlot="";
+    calY=+dm[1]; calM=+dm[2];
+  }
+  return true;
+}
+async function aiSend(){
+  const box=document.getElementById("aiIn");
+  const text=(box&&box.value||"").trim();
+  if(!text||aiBusy)return;
+  aiHistory.push({role:"user",text});
+  if(box)box.value="";
+  aiBusy=true; renderAI();
+  try{
+    const j=await api("/liff/assistant",{message:text,history:aiHistory.slice(-12)});
+    aiHistory.push({role:"assistant",text:j.reply||""});
+    if(j.booking){
+      const ok=aiApplyBooking(j.booking);
+      aiBusy=false;
+      /* 跳去步驟3之前要先把班表跟預約狀況讀回來，
+         不然選時段那頁要用的資料是空的，跟原本步驟2→3的流程一樣。 */
+      if(ok){ await loadSchedule(); await loadBookings(); setStep(3); return }
+      aiHistory.push({role:"sys",text:aiUnmatched.length
+        ?"有幾項我對不到正確的課程（"+aiUnmatched.join("、")+"），已經先幫你選好其他部分，跳到選課頁面請自己補選一下。"
+        :"資訊還不太夠，跳到選課頁面讓你自己確認一下。"});
+      setStep(2); return;
+    }
+  }catch(e){
+    aiHistory.push({role:"sys",text:"連不上 AI，請稍後再試一次。"});
+  }
+  aiBusy=false; renderAI();
+}
+function renderAI(){
+  const v=document.getElementById("view");
+  v.innerHTML=`<div class="ai-wrap">
+    <div class="ai-top"><button class="ai-back" id="aiBack">‹ 回上一頁</button>
+      <span class="ai-title">🤖 AI 小幫手</span></div>
+    <div class="ai-log" id="aiLog"></div>
+    <div class="ai-inrow">
+      <textarea class="ai-in" id="aiIn" rows="1" placeholder="跟它說你想上什麼課，或有什麼問題…"></textarea>
+      <button class="ai-send" id="aiSendBtn" ${aiBusy?"disabled":""}>送出</button>
+    </div>
+  </div>`;
+  document.getElementById("aiBack").onclick=()=>setStep(0);
+  const log=document.getElementById("aiLog");
+  const list=aiHistory.length?aiHistory:[{role:"assistant",
+    text:"哈囉！我可以幫你介紹課程、算價格，也可以直接幫你把預約選好。想上什麼課、想找幾位一起來，或是想約哪一天，都可以先跟我說說看～"}];
+  log.innerHTML=list.map(m=>`<div class="ai-msg ${m.role==="user"?"u":m.role==="sys"?"sys":"a"}">${esc(m.text)}</div>`).join("")
+    +(aiBusy?'<div class="ai-typing">AI 正在輸入…</div>':"");
+  log.scrollTop=log.scrollHeight;
+  const box=document.getElementById("aiIn");
+  document.getElementById("aiSendBtn").onclick=aiSend;
+  box.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); aiSend() } });
+  if(!aiBusy)box.focus();
 }
 
 /* ══ 步驟1：上課人數（獨立頁）══ */
