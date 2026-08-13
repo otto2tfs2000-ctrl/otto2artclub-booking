@@ -251,7 +251,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.11</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.12</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -701,7 +701,9 @@ function normTW(s){
 async function fetchMember(phone){
   if(!phone)return null;
   try{
-    const j=await api("/liff/member",{phone:phone});
+    /* userId 有帶，伺服器那邊就會順手把「這支電話對應這個 LINE 帳號」記起來，
+       下次同一支手機開頁面電話才會自動帶出來（細節見 server.js /liff/member）。 */
+    const j=await api("/liff/member",{phone:phone,userId:lineUser?lineUser.userId:undefined});
     if(!j.found)return null;
     return { name:j.name||"", lineUserId:j.lineUserId||"",
       cache:{ points:j.points||0, sessions:j.sessions||0,
@@ -732,26 +734,14 @@ async function lookupMemberByPhone(raw){
   if(!isPhoneKey(phone)){
     if(mySeq!==lookupMemberSeq)return;
     myMember=null;renderBalance();return}
-  /* 只要電話打完整、這次有透過 LINE 登入，就先把這支電話記到這個 LINE 帳號名下，
-     不用等到預約真的送出成功才記——以前只有完整送出那一刻才寫，中途放棄或
-     只是查餘額都不會記到，下次同一支手機登入電話欄還是空的，要重打一次。 */
-  if(lineUser){
-    fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+lineUser.userId+".json",{method:"PATCH",
-      headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:phone})}).catch(()=>{});
-  }
   if(myMember&&myMember.phone===phone)return;
+  /* 電話跟 LINE 帳號的對應，交給 fetchMember 裡帶的 userId 讓伺服器順手記住
+     （見 server.js /liff/member）——以前這裡自己直接寫 Firebase，
+     但 liffProfiles／lineIndex 的寫入規則鎖起來之後全部悄悄失敗，白寫。 */
   const m=await fetchMember(phone);
   if(mySeq!==lookupMemberSeq)return; /* 打字打到後面去了，這次結果已經過期 */
   if(!m||m.error){myMember=null;renderBalance();return}
   setMember(phone,m);
-  if(lineUser){
-    const base=FIREBASE_URL.replace(/\/$/,"");
-    fetch(base+"/lineIndex/"+lineUser.userId+".json",{method:"PUT",
-      headers:{"Content-Type":"application/json"},body:JSON.stringify(phone)}).catch(()=>{});
-    if(!m.lineUserId)fetch(base+"/members/"+phone+".json",{method:"PATCH",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({lineUserId:lineUser.userId})}).catch(()=>{});
-  }
 }
 function setMember(phone,m){
   if(!isPhoneKey(phone)||!m||m.error)return;      /* 防呆：絕不把錯誤訊息當成資料 */
@@ -1463,9 +1453,9 @@ async function submitBooking(){
   if(NOTIFY_URL&&lineUser){
     fetch(NOTIFY_URL.replace(/\/$/,"")+"/notify/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)}).catch(()=>{});
   }
-  if(FIREBASE_URL&&lineUser){
-    fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+lineUser.userId+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:customer.name,phone:customer.phone,displayName:lineUser.displayName,lastBooking:rec.ts})}).catch(()=>{});
-  }
+  /* 電話記不記得住，交給打電話當下 fetchMember 那次伺服器端的寫入處理
+     （見 server.js /liff/member），這裡不用再重複寫一次——而且這裡以前
+     直接寫 Firebase 的方式，liffProfiles 的寫入規則鎖起來之後本來就一直失敗。 */
   renderDone(id);
 }
 document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";adults=1;kids=0;kidAges=[];render()};
