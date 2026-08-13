@@ -259,7 +259,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.15</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.16</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -363,7 +363,7 @@ const DEMO_ADDONS = [
 ];
 let DEMO_BOOKINGS = [];
 
-let step=0, groups=[], cats=[], activeCat="", picks={};   /* 0=分岔畫面  9=查詢點數 */
+let step=0, groups=[], cats=[], activeCat="", picks={}, coursesLoaded=false;   /* 0=分岔畫面  9=查詢點數 */
 /* picks: gid -> {variantIdx, qty, addons:{addonIdx:true}} */
 let payOptions=[
   {name:"LINE Pay 訂金",desc:"送出後線上付款，完成截圖回傳 LINE",amount:600,type:"linepay",info:"https://reurl.cc/O5Qe23"},
@@ -646,11 +646,13 @@ function loadFromCache(){
 
 /* 只抓課程。第一步選人數其實不用等這個，但課程清單是主畫面，先讓它到位。 */
 async function loadCourses(){
-  if(!SHEET_ID){groups=rowsToGroups(DEMO_COURSES);rowsToAddons(DEMO_ADDONS);return}
-  const rows=await gviz("課程");
-  cachePut("課程",rows);
-  courseHead=headerIdx(rows,["佔位","計時"]);
-  applyCourses(rows);
+  if(!SHEET_ID){groups=rowsToGroups(DEMO_COURSES);rowsToAddons(DEMO_ADDONS);coursesLoaded=true;return}
+  try{
+    const rows=await gviz("課程");
+    cachePut("課程",rows);
+    courseHead=headerIdx(rows,["佔位","計時"]);
+    applyCourses(rows);
+  }finally{ coursesLoaded=true }
 }
 
 /* 其餘四份表同時去要，不要排隊。這些只有後面幾步用得到，
@@ -1177,9 +1179,19 @@ function eligibleFor(minAge){
   return n;
 }
 function renderCourses(){
+  const v=document.getElementById("view");
+  /* 課程表還沒抓回來時，groups 是空的，跟「這個分類真的沒有課程」長得一樣，
+     沒有這段會誤顯示「目前沒有上架課程」，客人以為真的沒課可選。 */
+  if(!groups.length&&!coursesLoaded){
+    v.innerHTML='<div style="padding:16px 14px">'+
+      Array.from({length:3}).map(()=>
+        '<div class="sk-card"><div class="sk-line w60"></div><div class="sk-line w90"></div>'+
+        '<div class="sk-line w40"></div></div>').join("")+
+      '</div>';
+    return;
+  }
   cats=catOrder.length?catOrder.filter(c=>groups.some(g=>g.cat===c)):[...new Set(groups.map(g=>g.cat))];
   if(!cats.includes(activeCat))activeCat=cats[0]||"";
-  const v=document.getElementById("view");
   const need=partyNeed(), now=totalPeople();
   const ageTxt=kids>0?`（含兒童 ${kidAges.slice(0,kids).filter(a=>a).map(bandLabel).join("、")}）`:"";
   v.innerHTML=`
