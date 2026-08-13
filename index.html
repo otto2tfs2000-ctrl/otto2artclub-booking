@@ -276,7 +276,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.18</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.19</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -972,8 +972,10 @@ function pickPrice(id){
 }
 const totalPrice=()=>Object.keys(picks).reduce((s,id)=>s+pickPrice(id),0);
 
-function setStep(n){
-  step=n;
+/* 頁首步驟條、步驟文字、返回鈕、底部欄的顯示狀態，只跟 n 有關。
+   拆出來是因為 boot() 第一次畫面也要對一次，不然畫面一開始會停在
+   HTML 寫死的預設值（步驟1的樣子），跟這時候其實顯示的首頁對不起來。 */
+function syncChrome(n){
   const flow=(n>=1&&n<=4);                       /* 只有預約流程才顯示步驟條 */
   for(let i=1;i<=4;i++)document.getElementById("st"+i).className=(flow&&i<=n)?"on":"";
   document.getElementById("steps").style.visibility=flow?"visible":"hidden";
@@ -982,6 +984,10 @@ function setStep(n){
     ["","步驟 1／4：上課人數","步驟 2／4：選擇課程","步驟 3／4：選擇日期時段","步驟 4／4：確認與聯絡資料"][n];
   document.getElementById("btnBack").style.display=(n>1&&n<=4)?"block":"none";
   document.getElementById("bar").style.display=flow?"":"none";
+}
+function setStep(n){
+  step=n;
+  syncChrome(n);
   render();
 }
 function updateBar(){
@@ -1650,6 +1656,7 @@ function showSkeleton(){
 }
 
 function boot(){
+  syncChrome(step);   // 一開始就是 step=0，把頁首同步成「想做什麼？」，不要停在 HTML 寫死的步驟1樣子
   initLiff().catch(()=>{});   // 認人失敗不影響預約
 
   /* 有暫存就先畫出來，客人立刻看得到東西。
