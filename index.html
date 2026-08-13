@@ -130,6 +130,14 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .notes[open] summary::after{content:"−"}
 .notes[open] summary{border-bottom:1px solid var(--line)}
 .ncontent{padding:14px 16px 16px;font-size:12.5px;color:var(--ink-soft);line-height:1.85}
+.more{margin-top:10px;border:1.5px solid var(--line);border-radius:11px;overflow:hidden}
+.more summary{padding:10px 13px;font-size:13px;color:var(--navy);font-weight:600;cursor:pointer;list-style:none;position:relative}
+.more summary::-webkit-details-marker{display:none}
+.more summary::after{content:"＋";position:absolute;right:13px;top:9px;font-size:15px;color:var(--ink-soft)}
+.more[open] summary::after{content:"−"}
+.more[open] summary{border-bottom:1px solid var(--line)}
+.morebox{padding:12px 13px}
+.morebox>*+*{margin-top:10px}
 .nsec+.nsec{margin-top:14px}
 .nsec h4{font-size:13px;color:var(--navy);font-weight:700;margin-bottom:4px}
 .nsec p{font-size:12.5px;color:var(--ink-soft);line-height:1.85;margin:0}
@@ -251,7 +259,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.13</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.14</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1201,23 +1209,30 @@ function renderCourses(){
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
           return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
-        ${ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
           <div class="longnote">${HOUR_MIN} 小時起跳，最多 ${HOUR_MAX} 小時。金額＝每小時 NT$${g.hourly.toLocaleString()} × 時數。</div>`:''}
         <div class="qty"><span>這門課幾位？</span><div class="stepper"><button data-act="minus">−</button><b>${p?p.qty:1}</b><button data-act="plus">＋</button></div></div>
         ${g.seats>0?`<div class="longnote">這門課要用到專用設備，不管幾位都佔 ${g.seats} 個位子。</div>`:''}
-        ${g.multiSession?`<div class="sess"><span>這堂課要畫多久？</span><div class="srow">
-          <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">一般時段<small>約 2 小時・一件作品</small></button>
-          <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">加時延長<small>約 4 小時，連續兩個時段・費用 ×2</small></button>
-        </div></div>`:''}
         ${durMinutes(g.dur)>SLOT_MINUTES?`<div class="longnote">此課程創作時間約 ${Math.round(durMinutes(g.dur)/60*10)/10} 小時，選時段時會顯示實際上課時間，請預留完整時間。</div>`:''}
+        ${(ads.length||g.multiSession)?(()=>{
+          const addonsChosen=p&&p.addons&&Object.values(p.addons).some(Boolean);
+          const sessionChosen=p&&p.sessions===2;
+          return `<details class="more" ${addonsChosen||sessionChosen?'open':''}><summary>更多選項（加時／加購）</summary><div class="morebox">`+
+            (g.multiSession?`<div class="sess"><span>這堂課要畫多久？</span><div class="srow">
+              <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">一般時段<small>約 2 小時・一件作品</small></button>
+              <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">加時延長<small>約 4 小時，連續兩個時段・費用 ×2</small></button>
+            </div></div>`:'')+
+            (ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:'')+
+            `</div></details>`;
+        })():''}
       </div><div class="tick">✓</div></div>`;
   }).join("")||`<div class="state">這個分類目前沒有上架課程。</div>`;
   list.querySelectorAll(".card").forEach(el=>{
     const id=el.dataset.id;
     const elig=+el.dataset.elig||0;
     el.onclick=e=>{
+      if(e.target.closest("summary"))return; /* 「更多選項」展開/收合交給原生 <details>，不要連帶切換課程選取 */
       if(el.dataset.locked){alert("這門課有年齡限制，這次同行的人都還沒達到。可以看看其他分類的課程。");return}
       let t=e.target;
       while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
