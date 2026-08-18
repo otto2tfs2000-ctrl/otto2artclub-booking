@@ -265,6 +265,15 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .mn-lgrow .dl i{font-style:normal;font-size:11px;font-weight:400;color:#A8AEBC;margin-left:3px}
 .mn-lgrow .minus{color:#C0392B}
 .mn-lgrow .plus{color:#12805C}
+.mn-bkrow{padding:13px 15px;border-top:1px solid #F0F2F6;font-size:13.5px}
+.mn-bkrow:first-child{border-top:0}
+.mn-bkrow.off{opacity:.55}
+.mn-bkhead{display:flex;align-items:center;justify-content:space-between;font-weight:600;color:var(--navy)}
+.mn-bktag{font-size:11px;font-weight:500;color:#8A90A0;background:#F0F2F6;padding:2px 8px;border-radius:99px}
+.mn-bkitems{color:#5B6272;margin-top:3px}
+.mn-bkx{margin-top:8px;background:#FBEAE8;color:#C9453B;border:1px solid #F3D2CE;border-radius:8px;
+  padding:6px 14px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer}
+.mn-bkx:disabled{opacity:.5}
 .mn-empty{background:#fff;border:1px solid #E3E6EC;border-radius:16px;padding:28px 20px;text-align:center}
 .mn-eic{font-size:34px;margin-bottom:10px}
 .mn-empty b{display:block;font-size:16px;color:var(--navy);margin-bottom:8px}
@@ -285,7 +294,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.23</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.24</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1093,6 +1102,7 @@ function renderHome(){
 
 /* ══ 我的點數 ══════════════════════════════════════ */
 let mineLedger=null;
+let myBookings=null; // 客人自己的預約清單，查過一次先快取，換分頁不用重查
 function renderMine(){
   const v=document.getElementById("view");
   if(!myMember){
@@ -1115,7 +1125,7 @@ function renderMine(){
       if(!isPhoneKey(normTW(raw))){err.textContent="手機號碼格式看起來不對，請再確認一次。";return}
       err.textContent="查詢中…";
       await lookupMemberByPhone(raw);
-      if(myMember){ mineLedger=null; renderMine() }
+      if(myMember){ mineLedger=null; myBookings=null; renderMine() }
       else err.textContent="查不到這支號碼的會員資料。如果確定有上過課，請私訊小編幫你查。";
     };
     document.getElementById("mnGo").onclick=go;
@@ -1134,6 +1144,8 @@ function renderMine(){
         ? `<div class="mn-grid">${rows.map(r=>
             `<div class="mn-box"><b>${r[1]}</b><span>${r[0]}</span><small>${r[2]}</small></div>`).join("")}</div>`
         : `<div class="mn-zero">目前沒有可用的點數或堂數。<br>現場或私訊小編都可以加購。</div>`}
+      <div class="mn-h">我的預約</div>
+      <div id="mnBk" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
       <div class="mn-h">最近使用紀錄</div>
       <div id="mnLg" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
       <button class="hm-card main" id="mnBook" style="margin-top:20px">
@@ -1145,6 +1157,48 @@ function renderMine(){
   document.getElementById("mnBack").onclick=()=>setStep(0);
   document.getElementById("mnBook").onclick=()=>setStep(1);
   loadLedger();
+  loadMyBookings();
+}
+
+/* 客人自己的預約清單。想改時段的引導去取消＋重新走預約精靈，
+   不做另一套「重新選時段」——名額檢查、佔位這些邏輯已經在精靈裡做過一次，
+   不要複製第二份，容易顧此失彼。 */
+async function loadMyBookings(){
+  const box=document.getElementById("mnBk"); if(!box)return;
+  if(myBookings===null){
+    myBookings=[];
+    try{
+      const j=await api("/liff/mybookings",{phone:myMember.phone,userId:lineUser&&lineUser.userId});
+      myBookings=j.bookings||[];
+    }catch(e){}
+  }
+  if(!myBookings.length){ box.innerHTML='<div class="mn-lgload">目前沒有即將上課的預約。</div>'; return }
+  box.innerHTML=myBookings.map(b=>{
+    const cancelled=b.status==="cancelled";
+    return `<div class="mn-bkrow${cancelled?" off":""}">
+      <div class="mn-bkhead">
+        <span>${esc(b.dateLabel)}　${esc(b.slot)}</span>
+        ${cancelled?'<span class="mn-bktag">已取消</span>':""}
+      </div>
+      <div class="mn-bkitems">${esc((b.items||[]).join("、"))}${b.people?"　"+b.people+" 位":""}</div>
+      ${b.canCancel?`<button class="mn-bkx" data-bkid="${esc(b.id)}">取消這筆預約</button>`:""}
+    </div>`;
+  }).join("")+
+  `<div class="mn-lgload" style="margin-top:10px">想改時段？先取消這筆，再點下面「我要預約課程」重新選一次。當天的課無法線上取消，請直接私訊小編。</div>`;
+  box.querySelectorAll("[data-bkid]").forEach(el=>{
+    el.onclick=async()=>{
+      if(!confirm("確定要取消這筆預約嗎？取消後名額會立刻釋出，需要的話要再重新約一次。"))return;
+      el.disabled=true; el.textContent="取消中…";
+      try{
+        await api("/liff/cancelBooking",{phone:myMember.phone,userId:lineUser&&lineUser.userId,bookingId:el.dataset.bkid});
+        myBookings=null;
+        await loadMyBookings();
+      }catch(e){
+        alert("取消失敗："+(e.message||"請稍後再試一次，或直接私訊小編。"));
+        el.disabled=false; el.textContent="取消這筆預約";
+      }
+    };
+  });
 }
 
 async function loadLedger(){
