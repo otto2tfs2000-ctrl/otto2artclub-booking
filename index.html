@@ -294,7 +294,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.24</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.25</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1080,7 +1080,7 @@ function renderHome(){
       <div class="hm-hi">${esc(hi)}</div>
       <button class="hm-card" id="hmMine">
         <span class="hm-ic">💎</span>
-        <span class="hm-tx"><b>查詢我的點數</b><small>看剩餘點數、堂數、紅利與使用紀錄</small></span>
+        <span class="hm-tx"><b>查詢我的預約／點數</b><small>看我約了哪些時段、可取消，還有點數堂數紅利</small></span>
         <span class="hm-ar">›</span>
       </button>
       <button class="hm-card main" id="hmBook">
@@ -1140,12 +1140,12 @@ function renderMine(){
   v.innerHTML=
    `<div class="hm">
       <div class="mn-name">${esc(m.name||"會員")}</div>
+      <div class="mn-h" style="margin-top:0">我的預約</div>
+      <div id="mnBk" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
       ${rows.length
         ? `<div class="mn-grid">${rows.map(r=>
             `<div class="mn-box"><b>${r[1]}</b><span>${r[0]}</span><small>${r[2]}</small></div>`).join("")}</div>`
         : `<div class="mn-zero">目前沒有可用的點數或堂數。<br>現場或私訊小編都可以加購。</div>`}
-      <div class="mn-h">我的預約</div>
-      <div id="mnBk" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
       <div class="mn-h">最近使用紀錄</div>
       <div id="mnLg" class="mn-lg"><div class="mn-lgload">載入中…</div></div>
       <button class="hm-card main" id="mnBook" style="margin-top:20px">
