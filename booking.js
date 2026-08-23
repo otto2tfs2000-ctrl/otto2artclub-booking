@@ -612,7 +612,7 @@ async function bkManual(){
       document.getElementById("mPick").innerHTML='<div class="bk-info"><b>'+esc(picked.name||"（未填姓名）")+
         '</b> '+picked.phone+'<div>可用點數 <b>'+picked.points.toLocaleString()+'</b>　堂數 <b>'+picked.sessions+
         '</b>　紅利 <b>'+picked.bonus+'</b></div>'+
-        (picked.name?"":'<div class="bk-warn">這位會員沒有姓名，請在下方補填，登記後會寫回會員檔案。</div>')+'</div>';
+        '<div class="bk-warn">'+(picked.name?"姓名如果不對，可在下方直接修改，登記後會更新回會員檔案。":"這位會員沒有姓名，請在下方補填，登記後會寫回會員檔案。")+'</div></div>';
       showNotify();
     } });
   };
@@ -666,7 +666,7 @@ async function bkManual(){
             deposit:{method:"other",name:"由小編為你登記",amount:0}
           }))}).catch(function(){});
       }
-      if(picked&&!picked.name&&g("mName"))
+      if(picked&&g("mName")&&g("mName")!==picked.name)
         bkPatch("/members/"+picked.phone+".json",{name:g("mName")}).catch(function(){});
       bkClose();
       bkDate=new Date(d.replace(/\//g,"-")+"T00:00:00");
