@@ -452,7 +452,7 @@ const T=(k,n)=>String(copyText[k]??"").replace(/\{n\}/g,n).replace(/\n/g,"<br>")
 
 let addonsByCourse={};           // 課程名稱 -> [{name,price,sort}]let schedule={}, bookedMap={};
 let calY, calM, selDate="", selSlot="";
-let customer={name:"",phone:"",note:""};
+let customer={name:"",phone:"",note:"",childName:""};
 let deposit="";   // "linepay" | "points"
 let adults=1;     // 大人人數
 let kids=0;       // 兒童人數
@@ -1609,6 +1609,7 @@ function renderForm(){
     <div class="recap"><b>${selDate}　${timeLabel()}</b><br>${items}<br>共 ${totalPeople()} 位・合計 <b>NT$${totalPrice().toLocaleString()}</b></div>
     <div class="field"><label>姓名 *</label><input id="fName" value="${customer.name}" placeholder="請填寫聯絡人姓名"></div>
     <div class="field"><label>手機 *</label><input id="fPhone" value="${customer.phone}" inputmode="tel" placeholder="09xx-xxx-xxx"></div>
+    ${kids>0?`<div class="field"><label>小朋友姓名（選填）</label><input id="fChildName" value="${customer.childName||""}" placeholder="方便老師點名、稱呼小朋友"></div>`:''}
     <div class="field"><label>備註</label><textarea id="fNote" rows="3" placeholder="特殊需求、想做的圖案等">${customer.note}</textarea></div>
     <div class="field"><label>訂金方式 *</label><div class="dep">
       ${payOptions.map((o,i)=>`
@@ -1618,9 +1619,12 @@ function renderForm(){
     </div></div>
   </div>`;
   v.querySelectorAll(".dopt").forEach(b=>b.onclick=()=>{deposit=b.dataset.dep;render()});
-  ["fName","fPhone","fNote"].forEach(id=>{
-    v.querySelector("#"+id).oninput=()=>{
-      customer={name:v.querySelector("#fName").value,phone:v.querySelector("#fPhone").value,note:v.querySelector("#fNote").value};
+  ["fName","fPhone","fNote","fChildName"].forEach(id=>{
+    const el=v.querySelector("#"+id); if(!el)return;
+    el.oninput=()=>{
+      customer={name:v.querySelector("#fName").value,phone:v.querySelector("#fPhone").value,
+        note:v.querySelector("#fNote").value,
+        childName:(v.querySelector("#fChildName")||{}).value||""};
       updateBar();
       if(id==="fPhone")lookupMemberByPhone(customer.phone);
     };
