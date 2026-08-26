@@ -732,7 +732,10 @@ async function loadSchedule(){
         schedule[k.replace(/-/g,"/")]=
           (typeof v==="object")?{t:Math.max(0,+v.t||0),
             tPM:(v.tPM==null?Math.max(0,+v.t||0):Math.max(0,+v.tPM||0)),
-            ev:Math.max(0,+v.ev||0)}
+            ev:Math.max(0,+v.ev||0),
+            capAM:v.capAM!=null?Math.max(0,+v.capAM||0):null,
+            capPM:v.capPM!=null?Math.max(0,+v.capPM||0):null,
+            capEve:v.capEve!=null?Math.max(0,+v.capEve||0):null}
                                :Math.max(0,+v||0);
       }
     }catch(e){}
@@ -870,9 +873,14 @@ function eveOn(d){
   const v=schedule[d];
   return (v&&typeof v==="object")?Math.max(0,+v.ev||0):0;
 }
-const capOf=d=>Math.min(teachersOn(d)*CAP_PER_TEACHER, SEAT_CAP);
-const capOfPM=d=>Math.min(teachersOnPM(d)*CAP_PER_TEACHER, SEAT_CAP);
-const eveCap=d=>Math.min(eveOn(d)*CAP_PER_TEACHER, SEAT_CAP);
+/* 後台可以幫某個時段手動降上限（位子還夠，但那個時段先不排更多人進來），
+   跟老師排班算出來的上限取較小值——跟 booking.js 的 bkCapOf 系列一字不差 */
+const capOf=d=>{const v=schedule[d],b=Math.min(teachersOn(d)*CAP_PER_TEACHER,SEAT_CAP);
+  return(v&&typeof v==="object"&&v.capAM!=null)?Math.min(b,v.capAM):b};
+const capOfPM=d=>{const v=schedule[d],b=Math.min(teachersOnPM(d)*CAP_PER_TEACHER,SEAT_CAP);
+  return(v&&typeof v==="object"&&v.capPM!=null)?Math.min(b,v.capPM):b};
+const eveCap=d=>{const v=schedule[d],b=Math.min(eveOn(d)*CAP_PER_TEACHER,SEAT_CAP);
+  return(v&&typeof v==="object"&&v.capEve!=null)?Math.min(b,v.capEve):b};
 const capOfSlot=(d,s)=> s===EVE_SLOT?eveCap(d):(s==="10:00-12:00"?capOf(d):capOfPM(d));
 const leftOf=(d,s)=>capOfSlot(d,s)-(bookedMap[d+"|"+s]||0);
 /* 這一天實際有哪些時段。
