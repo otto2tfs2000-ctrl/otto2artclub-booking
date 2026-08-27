@@ -294,7 +294,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.25</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.26</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -735,6 +735,7 @@ async function loadSchedule(){
             ev:Math.max(0,+v.ev||0),
             capAM:v.capAM!=null?Math.max(0,+v.capAM||0):null,
             capPM:v.capPM!=null?Math.max(0,+v.capPM||0):null,
+            capPM2:v.capPM2!=null?Math.max(0,+v.capPM2||0):null,
             capEve:v.capEve!=null?Math.max(0,+v.capEve||0):null}
                                :Math.max(0,+v||0);
       }
@@ -879,9 +880,14 @@ const capOf=d=>{const v=schedule[d],b=Math.min(teachersOn(d)*CAP_PER_TEACHER,SEA
   return(v&&typeof v==="object"&&v.capAM!=null)?Math.min(b,v.capAM):b};
 const capOfPM=d=>{const v=schedule[d],b=Math.min(teachersOnPM(d)*CAP_PER_TEACHER,SEAT_CAP);
   return(v&&typeof v==="object"&&v.capPM!=null)?Math.min(b,v.capPM):b};
+/* 16:00-18:00 專用的手動上限，跟 14:00-16:00 的 capOfPM 各自獨立
+   （老師排班的天花板還是共用同一批下午老師算出來的），跟 booking.js 的
+   bkCapOfPM2 一字不差。 */
+const capOfPM2=d=>{const v=schedule[d],b=Math.min(teachersOnPM(d)*CAP_PER_TEACHER,SEAT_CAP);
+  return(v&&typeof v==="object"&&v.capPM2!=null)?Math.min(b,v.capPM2):b};
 const eveCap=d=>{const v=schedule[d],b=Math.min(eveOn(d)*CAP_PER_TEACHER,SEAT_CAP);
   return(v&&typeof v==="object"&&v.capEve!=null)?Math.min(b,v.capEve):b};
-const capOfSlot=(d,s)=> s===EVE_SLOT?eveCap(d):(s==="10:00-12:00"?capOf(d):capOfPM(d));
+const capOfSlot=(d,s)=> s===EVE_SLOT?eveCap(d):(s==="10:00-12:00"?capOf(d):(s==="16:00-18:00"?capOfPM2(d):capOfPM(d)));
 const leftOf=(d,s)=>capOfSlot(d,s)-(bookedMap[d+"|"+s]||0);
 /* 這一天實際有哪些時段。
    上午下午只要有一邊排了老師，白天就列出來，個別時段真正剩幾位
