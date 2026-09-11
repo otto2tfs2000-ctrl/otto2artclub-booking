@@ -347,7 +347,7 @@ async function bkCheckout(id){
     course.amt=+document.getElementById("ckAmt").value||0;
     var addTotal=addons.reduce(function(s,a){return s+(+a.amt||0)},0);
     var total=course.amt+addTotal;
-    var bonus=bonusOf(course.amt);          /* 加價項目不算紅利 */
+    var bonus=course.way==="sessions"?0:bonusOf(course.amt);          /* 加價項目不算紅利，堂數扣抵不算紅利 */
     var h="課程 <b>$"+course.amt.toLocaleString()+"</b>";
     if(addTotal)h+="　加價 <b>$"+addTotal.toLocaleString()+"</b>";
     h+="　合計 <b>$"+total.toLocaleString()+"</b><br>";
@@ -361,7 +361,8 @@ async function bkCheckout(id){
       if(useSe){ var l2=(payer.cache&&payer.cache.sessions||0)-1;
         h+="扣堂數 <b>1</b>，剩 <b>"+l2+"</b><br>";
         if(l2<0)h+='<div class="bk-err">堂數不足</div>'; }
-      h+="紅利回饋 <b>+"+bonus+"</b> 點（課程 "+course.amt.toLocaleString()+" ÷ 500，加價不計）";
+      if(useSe) h+="堂數扣抵不累積紅利";
+      else h+="紅利回饋 <b>+"+bonus+"</b> 點（課程 "+course.amt.toLocaleString()+" ÷ 500，加價不計）";
     } else h+="未綁會員，不累積紅利";
     document.getElementById("ckCalc").innerHTML=h;
   }
@@ -450,7 +451,7 @@ async function bkCheckout(id){
       }
       var proxy=payer&&b.memberPhone&&payer.phone!==b.memberPhone;
       var tail=proxy?"（代 "+(b.customer&&b.customer.name||"")+" 扣課）":"";
-      var useSe=(course.way==="sessions"?1:0), bonus=bonusOf(course.amt);
+      var useSe=(course.way==="sessions"?1:0), bonus=useSe?0:bonusOf(course.amt);
       if(payer){
         if(usePt){ await bkLedger(payer.phone,{type:"points",delta:-usePt,
           reason:"扣課"+tail,bookingId:id,by:"admin",at:now}); await bkCache(payer.phone,"points",-usePt); }

@@ -33,7 +33,11 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .list{padding:16px 14px 8px;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;position:relative;transition:.15s}
 .card.sel{border-color:var(--navy);background:var(--sel)}
-.card .pic{flex:0 0 76px;height:76px;border-radius:10px;background:var(--navy) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px}
+.card .pic{flex:0 0 76px;height:76px;border-radius:10px;background:linear-gradient(150deg,#2B3A66,var(--navy) 70%) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px;box-shadow:inset 0 0 0 1px rgba(227,179,76,.25)}
+.cardfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed #C9CFDF;font-size:12px}
+.cardfoot .cf-dur{color:var(--ink-soft)}
+.cardfoot .cf-cta{color:var(--navy);font-weight:700}
+.card.sel .cardfoot .cf-cta{color:var(--ok)}
 .card .body{flex:1;min-width:0}
 .card h3{font-size:15.5px;font-weight:700;color:var(--navy);line-height:1.35;padding-right:20px}
 .card .desc{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -210,21 +214,27 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 
 /* ══ 分岔畫面 / 我的點數 ══ */
 .hm{padding:22px 18px 40px}
-.hm-hi{font-size:20px;font-weight:700;color:var(--navy);margin:4px 0 20px}
+.hm-hi{font-size:21px;font-weight:900;color:var(--navy);margin:4px 0 6px}
+.hm-tagline{font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:22px}
 .hm-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
-  padding:20px 18px;margin-bottom:13px;border:1.5px solid #E3E6EC;border-radius:16px;
-  background:#fff;cursor:pointer;font-family:inherit;transition:.15s}
-.hm-card:hover{border-color:#9FB0CE;background:#F8FAFD}
+  padding:18px;margin-bottom:12px;border:1.5px solid #E3E6EC;border-radius:18px;
+  background:#fff;cursor:pointer;font-family:inherit;transition:.18s;
+  box-shadow:0 1px 2px rgba(30,43,79,.04)}
+.hm-card:hover{border-color:#9FB0CE;background:#F8FAFD;box-shadow:0 6px 16px rgba(30,43,79,.08);transform:translateY(-1px)}
 .hm-card:active{transform:scale(.985)}
-.hm-card.main{background:var(--navy);border-color:var(--navy)}
-.hm-card.main .hm-tx b{color:#fff}
+.hm-card.main{background:linear-gradient(135deg,#243869,var(--navy) 60%);border-color:var(--navy);
+  padding:22px 20px;box-shadow:0 10px 24px rgba(30,43,79,.22)}
+.hm-card.main:hover{box-shadow:0 14px 28px rgba(30,43,79,.28);transform:translateY(-2px)}
+.hm-card.main .hm-ic{background:rgba(227,179,76,.18);color:var(--gold)}
+.hm-card.main .hm-tx b{color:#fff;font-size:17.5px}
 .hm-card.main .hm-tx small{color:#C3CCDF}
-.hm-card.main .hm-ar{color:#8fa0c4}
-.hm-ic{font-size:26px;flex:0 0 auto;line-height:1}
+.hm-card.main .hm-ar{color:var(--gold);font-weight:700}
+.hm-ic{font-size:20px;flex:0 0 auto;line-height:1;width:44px;height:44px;border-radius:50%;
+  background:var(--sel);color:var(--navy);display:flex;align-items:center;justify-content:center}
 .hm-tx{flex:1;display:flex;flex-direction:column;gap:3px}
-.hm-tx b{font-size:16.5px;color:var(--navy);font-weight:700}
+.hm-tx b{font-size:16px;color:var(--navy);font-weight:700}
 .hm-tx small{font-size:12.5px;color:#8A90A0;line-height:1.5}
-.hm-ar{font-size:22px;color:#C3CCDF;flex:0 0 auto}
+.hm-ar{font-size:20px;color:#C3CCDF;flex:0 0 auto}
 .hm-note{margin-top:18px;font-size:12.5px;color:#A8AEBC;line-height:1.75}
 .lnk{display:block;width:100%;margin-top:20px;padding:12px;border:0;background:none;
   color:#8A90A0;font-size:14px;font-family:inherit;cursor:pointer}
@@ -1092,6 +1102,7 @@ function renderHome(){
   document.getElementById("view").innerHTML=
    `<div class="hm">
       <div class="hm-hi">${esc(hi)}</div>
+      <div class="hm-tagline">選人數、選課程、挑喜歡的時段，線上就能完成預約。</div>
       <button class="hm-card" id="hmMine">
         <span class="hm-ic">💎</span>
         <span class="hm-tx"><b>查詢我的預約／點數</b><small>看我約了哪些時段、可取消，還有點數堂數紅利</small></span>
@@ -1460,6 +1471,7 @@ function renderCourses(){
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
         <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
+        <div class="cardfoot"><span class="cf-dur">${g.hourly>0?`${HOUR_MIN}-${HOUR_MAX} 小時`:(g.dur||'')}</span><span class="cf-cta">${p?'已加入清單 ✓':'點選加入 →'}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
           return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
