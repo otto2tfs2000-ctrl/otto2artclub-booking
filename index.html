@@ -1745,18 +1745,11 @@ async function submitBooking(){
   /* 電話記不記得住，交給打電話當下 fetchMember 那次伺服器端的寫入處理
      （見 server.js /liff/member），這裡不用再重複寫一次——而且這裡以前
      直接寫 Firebase 的方式，liffProfiles 的寫入規則鎖起來之後本來就一直失敗。 */
-  /* LINE Pay 訂金：跟後台要這筆預約專屬的付款連結，讓「送出後的頁面」直接連
-     到會自動比對訂單的連結，不要再讓客人點通用收款碼、事後截圖核對。
-     連結要不到（後端掛了、還沒設金鑰）就退回舊的通用連結，不擋預約流程。 */
-  let payUrl=null;
-  if(NOTIFY_URL&&rec.deposit&&rec.deposit.method==="linepay"&&rec.id){
-    try{
-      const pr=await fetch(NOTIFY_URL.replace(/\/$/,"")+"/payment/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bookingId:rec.id})});
-      const pj=await pr.json();
-      if(pj.ok&&pj.paymentUrl)payUrl=pj.paymentUrl;
-    }catch(e){}
-  }
-  renderDone(id,payUrl);
+  /* LINE Pay 這個商家的線上服務通路 Confirm 那步一直卡 LINE Pay 1169，
+     還沒確認開通前先退回舊的通用收款碼＋截圖核對流程，不要讓客人卡在
+     打不開/付不出去的付款連結上。/payment/create 那支後端還留著，
+     LINE Pay 那邊確認開通後，把上面呼叫它的那段邏輯放回來就好。 */
+  renderDone(id);
 }
 document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";adults=1;kids=0;kidAges=[];render()};
 document.getElementById("btnBack").onclick=()=>setStep(step-1);
