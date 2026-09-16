@@ -1432,7 +1432,8 @@ async function submitBooking(){
   let id="DEMO-"+Math.random().toString(36).slice(2,7).toUpperCase();
   if(FIREBASE_URL){
     const res=await fetch(FIREBASE_URL.replace(/\/$/,"")+"/bookings.json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
-    const j=await res.json(); id=j.name?j.name.slice(-6).toUpperCase():id;
+    const j=await res.json();
+    if(j.name){ rec.id=j.name; id=j.name.slice(-6).toUpperCase() } /* 完整 key 才能讓後端查到這筆預約、產生付款連結 */
   }else DEMO_BOOKINGS.push(rec);
   if(NOTIFY_URL&&lineUser){
     fetch(NOTIFY_URL.replace(/\/$/,"")+"/notify/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)}).catch(()=>{});
