@@ -1355,11 +1355,14 @@ function renderForm(){
     };
   });
 }
-function renderDone(id){
+function renderDone(id,payUrl){
   document.getElementById("bar").style.display="none";
   const o=payOptions[+deposit]||{};
   let payHtml="";
-  if(o.type==="linepay"&&o.info)
+  if(o.type==="linepay"&&payUrl)
+    payHtml=`<a class="paybtn" href="${payUrl}" target="_blank">前往 LINE Pay 付訂金 NT$${o.amount}</a>
+      <p style="margin-top:12px">付款完成後系統會<b>自動確認</b>，<br>位子就正式保留成功，不用再截圖回傳。</p>`;
+  else if(o.type==="linepay"&&o.info)
     payHtml=`<a class="paybtn" href="${o.info}" target="_blank">前往 LINE Pay 付訂金 NT$${o.amount}</a>
       <p style="margin-top:12px">付款完成後請<b>截圖回傳 LINE</b>，<br>小編確認訂金後預約才算保留成功。</p>`;
   else if(o.type==="transfer")
@@ -1441,7 +1444,18 @@ async function submitBooking(){
   if(FIREBASE_URL&&lineUser){
     fetch(FIREBASE_URL.replace(/\/$/,"")+"/liffProfiles/"+lineUser.userId+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:customer.name,phone:customer.phone,displayName:lineUser.displayName,lastBooking:rec.ts})}).catch(()=>{});
   }
-  renderDone(id);
+  /* LINE Pay 訂金：跟後台要這筆預約專屬的付款連結，讓「送出後的頁面」直接連
+     到會自動比對訂單的連結，不要再讓客人點通用收款碼、事後截圖核對。
+     連結要不到（後端掛了、還沒設金鑰）就退回舊的通用連結，不擋預約流程。 */
+  let payUrl=null;
+  if(NOTIFY_URL&&rec.deposit&&rec.deposit.method==="linepay"&&rec.id){
+    try{
+      const pr=await fetch(NOTIFY_URL.replace(/\/$/,"")+"/payment/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bookingId:rec.id})});
+      const pj=await pr.json();
+      if(pj.ok&&pj.paymentUrl)payUrl=pj.paymentUrl;
+    }catch(e){}
+  }
+  renderDone(id,payUrl);
 }
 document.getElementById("btnClear").onclick=()=>{picks={};selDate="";selSlot="";adults=1;kids=0;kidAges=[];render()};
 document.getElementById("btnBack").onclick=()=>setStep(step-1);
