@@ -304,7 +304,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.26</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.27</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1698,7 +1698,13 @@ async function submitBooking(){
   if(slotPassed(selDate,selSlot)){
     alert("這個時段已經開始了，請重新選擇時間。");setStep(3);selSlot="";return;
   }
-  await loadBookings();
+  /* 這裡本來只重抓 bookedMap（loadBookings），沒有重抓 schedule
+     （loadSchedule）——客人從選時段填到這裡送出常常要好幾分鐘，
+     這段時間如果行政剛好把這天標成臨時公休或調低老師數，畫面上
+     還是舊的、還沒關閉那份 schedule，這一關就攔不住，等於白做了
+     這個「最後再確認一次」的檢查。兩個都要重抓，才會用到當下
+     真正的班表跟容量，不是客人打開頁面那一刻的舊資料。 */
+  await Promise.all([loadSchedule(),loadBookings()]);
   const occ=occupiedNow(), p2=pairSlot();
   if(occ.some(x=>leftOf(selDate,x)<totalSeats())){
     alert("這個時段名額剛被約走，請重新選時段。");setStep(3);return;
