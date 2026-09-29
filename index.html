@@ -211,6 +211,21 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .ai-fab-pulse{position:absolute;inset:-2px;border-radius:50%;border:1.5px solid var(--gold);
   opacity:0;animation:aiPulse 2.6s ease-out infinite}
 @keyframes aiPulse{0%{transform:scale(.9);opacity:.6}75%{transform:scale(1.35);opacity:0}100%{opacity:0}}
+/* 十月扭蛋：首頁最上面那張卡片，點了才載入 gacha.js */
+.hm-card.gc{background:linear-gradient(135deg,#E0322F,#B81E25);border-color:var(--gold);position:relative;overflow:hidden;
+  box-shadow:0 8px 20px rgba(184,30,37,.25)}
+.hm-card.gc::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,255,255,.14) 0 10deg,transparent 10deg 24deg);animation:gcCardRays 18s linear infinite}
+@keyframes gcCardRays{to{transform:rotate(360deg)}}
+.hm-card.gc:hover{background:linear-gradient(135deg,#E8413E,#C4232B);border-color:var(--gold)}
+.hm-card.gc .hm-ic{background:#FFF6E3;width:48px;height:48px;animation:gcCardHop 3.2s ease-in-out infinite}
+.hm-card.gc .hm-ic svg{width:36px;height:36px}
+.hm-card.gc .hm-tx b{color:#fff}
+.hm-card.gc .hm-tx small{color:#FFE3C9}
+.hm-card.gc .hm-ar{color:var(--gold);font-weight:700;position:relative;z-index:1}
+.gc-new{display:inline-block;margin-left:6px;background:var(--gold);color:var(--navy);font-size:10.5px;font-weight:900;
+  padding:1px 7px;border-radius:9px;vertical-align:2px;letter-spacing:1px}
+@keyframes gcCardHop{0%,82%,100%{translate:0 0}88%{translate:0 -5px}94%{translate:0 0}}
 
 /* ══ 分岔畫面 / 我的點數 ══ */
 .hm{padding:22px 18px 40px}
@@ -304,7 +319,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.27</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.28</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -315,6 +330,8 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
   </svg>
 </button>
+
+
 
 <footer class="bar" id="bar">
   <div class="sum">
@@ -1051,6 +1068,15 @@ function syncChrome(n){
      不用先退回首頁才找得到；填聯絡資料（步驟4）跟其他頁面就不用再冒出來了。 */
   document.getElementById("aiFab").style.display=(n>=1&&n<=3)?"flex":"none";
 }
+/* 扭蛋活動的程式很大，點首頁的扭蛋卡片才去載，平常開預約頁不用多等 */
+function openGacha(){
+  if(window.Gacha)return Gacha.open();
+  const s=document.createElement("script");
+  s.src="gacha.js?v=20260930a";
+  s.onload=()=>window.Gacha&&Gacha.open();
+  s.onerror=()=>alert("扭蛋載入失敗，請檢查網路後再試一次");
+  document.head.appendChild(s);
+}
 function setStep(n){
   step=n;
   syncChrome(n);
@@ -1103,6 +1129,15 @@ function renderHome(){
    `<div class="hm">
       <div class="hm-hi">${esc(hi)}</div>
       <div class="hm-tagline">選人數、選課程、挑喜歡的時段，線上就能完成預約。</div>
+      <button class="hm-card gc" id="hmGacha">
+        <span class="hm-ic"><svg viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="15" r="11" fill="#fff" stroke="#1A1A1A" stroke-width="2"/>
+          <circle cx="15.5" cy="14" r="3.2" fill="#E0322F"/><circle cx="23" cy="11" r="3.2" fill="#F2C94C"/><circle cx="24" cy="18.5" r="3.2" fill="#4FA3C7"/><circle cx="17" cy="20" r="3.2" fill="#7BBF3F"/>
+          <path d="M12 26 L28 26 L30 36 L10 36 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round"/>
+          <rect x="16" y="29" width="8" height="4" rx="2" fill="#ddd" stroke="#1A1A1A" stroke-width="1.2"/></svg></span>
+        <span class="hm-tx"><b>十月黑熊扭蛋<span class="gc-new">小遊戲</span></b><small>每天轉一次，紅利、課程券等你拿</small></span>
+        <span class="hm-ar">›</span>
+      </button>
       <button class="hm-card" id="hmMine">
         <span class="hm-ic">💎</span>
         <span class="hm-tx"><b>查詢我的預約／點數</b><small>看我約了哪些時段、可取消，還有點數堂數紅利</small></span>
@@ -1120,6 +1155,7 @@ function renderHome(){
       </button>
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
+  document.getElementById("hmGacha").onclick=openGacha;
   document.getElementById("hmMine").onclick=()=>setStep(9);
   document.getElementById("hmBook").onclick=()=>setStep(1);
   document.getElementById("hmAI").onclick=()=>setStep(8);

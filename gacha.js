@@ -1,0 +1,570 @@
+/* ══ 十月黑熊扭蛋（2026-09-30）══════════════════════════════
+   預約頁首頁最上面的「十月黑熊扭蛋」卡片點下去才會載入這支，平常不佔頁面載入時間。
+
+   這支只負責畫面跟動畫：要不要中、中什麼，全部是伺服器
+   （otto2-notify 的 /gacha/spin）抽完告訴我們的，網頁改不了結果。
+   身分用 LIFF 的 access token 證明，伺服器會拿去跟 LINE 確認。
+
+   需要 index.html 提供的全域變數：NOTIFY_URL、liff、lineUser、customer、setStep
+   所有 class 都用 gc- 開頭，避免跟預約頁原本的樣式（.bar、.top、.next…）撞名。
+   ══════════════════════════════════════════════════════════ */
+(function(){
+"use strict";
+
+var CSS = `
+#gcOv{position:fixed;inset:0;z-index:60;background:#F6F4EF;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  font-family:'Noto Sans TC',system-ui,sans-serif;color:#2A2E38;opacity:0;transition:opacity .3s}
+#gcOv.show{opacity:1}
+#gcOv *{box-sizing:border-box}
+#gcOv button{font-family:inherit}
+.gc-top{background:#1E2B4F;color:#fff;padding:14px 18px 50px;position:relative;overflow:hidden}
+.gc-top::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(227,179,76,.18)}
+.gc-ttl{font-size:11.5px;letter-spacing:2px;color:#E3B34C;font-weight:700}
+.gc-top h1{font-size:21px;font-weight:900;margin:4px 0 0}
+.gc-top p{font-size:12.5px;opacity:.8;margin:4px 0 0}
+.gc-x{position:absolute;right:10px;top:10px;z-index:2;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:18px;cursor:pointer}
+.gc-me{margin:-38px 14px 0;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 4px 14px rgba(30,43,79,.10);position:relative;z-index:2}
+.gc-me-row{display:flex;justify-content:space-between;align-items:center}
+.gc-name{font-weight:700;font-size:15px}
+.gc-tag{font-size:11.5px;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:6px;background:#E7ECF7;color:#1E2B4F}
+.gc-tag.mem{background:#E3B34C}
+.gc-bal{display:grid;grid-template-columns:repeat(3,1fr);margin-top:11px;text-align:center;border-top:1px dashed #E4E1D9;padding-top:9px}
+.gc-bal b{display:block;font-size:19px;color:#1E2B4F;font-weight:900;font-variant-numeric:tabular-nums}
+.gc-bal .hl b{color:#E8836B}
+.gc-bal b.bump{animation:gcBump .6s cubic-bezier(.22,1,.36,1)}
+@keyframes gcBump{40%{transform:scale(1.35);color:#E8836B}}
+.gc-bal span{font-size:11.5px;color:#6B7180}
+.gc-sec{margin:16px 14px 0}
+.gc-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.gc-sh h2{font-size:15px;font-weight:900;color:#1E2B4F;margin:0}
+.gc-sh small{font-size:12px;color:#6B7180}
+.gc-banner{border-radius:12px;padding:9px 12px;font-size:12.5px;margin-bottom:10px;line-height:1.6;background:linear-gradient(90deg,#FFE9C2,#FFF6E3);border:1.5px solid #E3B34C}
+.gc-banner b{color:#E8836B}
+.gc-banner.test{background:#EEF1FA;border-color:#8FA6D9}
+.gc-ticker{overflow:hidden;white-space:nowrap;background:#1E2B4F;color:#fff;border-radius:10px;font-size:12px;padding:6px 0;margin-bottom:10px}
+.gc-ticker span{display:inline-block;padding-left:100%;animation:gcTick var(--t,30s) linear infinite}
+.gc-ticker em{font-style:normal;color:#E3B34C;margin:0 4px}
+@keyframes gcTick{to{transform:translateX(-100%)}}
+
+/* ── 紅色扭蛋機 ── */
+.gc-g{position:relative;width:280px;height:424px;margin:0 auto}
+.gc-sun{position:absolute;left:0;top:6px;width:280px;height:350px;border-radius:30px;overflow:hidden;
+  background:radial-gradient(circle at 50% 44%,#FFFBEF 0,#FCEBC2 50%,#F5D38A 100%)}
+.gc-sun::before{content:"";position:absolute;left:50%;top:44%;width:720px;height:720px;margin:-360px 0 0 -360px;
+  background:repeating-conic-gradient(rgba(255,255,255,.55) 0 7deg,transparent 7deg 18deg);animation:gcRays 60s linear infinite}
+.gc-sun i{position:absolute;font-style:normal;line-height:1;animation:gcTw 2.8s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes gcTw{50%{transform:scale(.7);opacity:.55}}
+@keyframes gcRays{to{transform:rotate(360deg)}}
+.gc-floor{position:absolute;left:10px;right:10px;top:392px;height:26px;border-radius:50%;background:rgba(120,80,20,.12)}
+.gc-mach{position:absolute;inset:0;transform-origin:50% 90%;animation:gcBreathe 3.4s ease-in-out infinite;z-index:1}
+.gc-mach.wobble{animation:gcWob 1.4s cubic-bezier(.45,0,.25,1)}
+@keyframes gcBreathe{50%{transform:scale(1.014,.99)}}
+@keyframes gcWob{0%,100%{transform:rotate(0)}18%{transform:rotate(-3deg)}38%{transform:rotate(2.6deg)}58%{transform:rotate(-1.8deg)}78%{transform:rotate(1deg)}}
+.gc-svg{position:absolute;left:0;top:0;width:280px;height:424px;overflow:visible}
+.gc-svg.up{z-index:3;pointer-events:none}
+.gc-globe{position:absolute;left:28px;top:44px;width:216px;height:216px;border-radius:50%;overflow:hidden;z-index:2;
+  background:radial-gradient(circle at 45% 40%,#fff 0,#F4F7FB 60%,#E1E9F3 100%);border:4px solid #1A1A1A}
+.gc-gl{position:absolute;inset:10px;border-radius:50%;border:7px solid transparent;border-top-color:rgba(255,255,255,.75);transform:rotate(-38deg);z-index:4}
+.gc-peek{position:absolute;top:26px;width:86px;height:86px}
+.gc-peek.l{left:16px;transform:rotate(-8deg)}.gc-peek.r{right:16px;transform:rotate(8deg)}
+.gc-swirl{position:absolute;inset:0;z-index:2;will-change:transform}
+.gc-swirl.spin{animation:gcSwirl 1.4s cubic-bezier(.45,0,.25,1)}
+@keyframes gcSwirl{to{transform:rotate(360deg)}}
+.gc-ball{position:absolute;width:36px;height:36px;border-radius:50%;border:2.5px solid #1A1A1A;background:var(--c);animation:gcFloat 3.2s ease-in-out infinite;animation-delay:var(--d)}
+.gc-ball.bh{background:none;border:none;width:40px;height:40px}
+.gc-ball svg{width:100%;height:100%}
+@keyframes gcFloat{50%{translate:0 -4px}}
+.gc-love{position:absolute;left:156px;top:40px;width:26px;height:46px;background:#F1DDB5;border:2px solid #1A1A1A;border-radius:4px;z-index:5;
+  display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:10px;font-weight:900;letter-spacing:1px;color:#1A1A1A;
+  transform-origin:50% 0;transform:rotate(12deg);animation:gcSwing 3s ease-in-out infinite}
+@keyframes gcSwing{50%{transform:rotate(4deg)}}
+.gc-luck{position:absolute;left:70px;top:344px;background:#1A1A1A;color:#fff;font-size:9px;font-weight:900;letter-spacing:2px;padding:3px 7px;transform:rotate(-5deg);z-index:4}
+.gc-knob{position:absolute;left:92px;top:292px;width:96px;height:38px;border-radius:19px;border:3px solid #1A1A1A;cursor:pointer;z-index:4;padding:0;
+  background:linear-gradient(180deg,#D5D5D5,#8E8E8E);color:#fff;font-size:14px;font-weight:900;letter-spacing:3px;text-shadow:0 1px 0 #333;will-change:transform}
+.gc-knob.turn{animation:gcTurn 1.4s cubic-bezier(.45,0,.25,1)}
+@keyframes gcTurn{to{transform:rotate(720deg)}}
+.gc-exit{position:absolute;left:116px;top:342px;width:48px;height:42px;background:#9A9A9A;border:3px solid #1A1A1A;border-radius:6px;z-index:4}
+.gc-exit::after{content:"";position:absolute;inset:6px;background:#2A2A2A;border-radius:3px}
+.gc-crowd{position:absolute;inset:0;z-index:5;pointer-events:none}
+.gc-bb{position:absolute;width:38px;height:58px;transform-origin:50% 100%;animation:gcHop 2.6s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes gcHop{0%,100%{transform:scale(var(--s,1))}50%{transform:translateY(-3px) scale(var(--s,1))}}
+.gc-bb svg{width:100%;height:100%;overflow:visible}
+.gc-bal2{transform-origin:50% 100%;animation:gcBob 2.6s ease-in-out infinite;animation-delay:var(--d)}
+.gc-g.party .gc-bb{animation-duration:.6s}
+.gc-g.party .gc-bal2{animation-duration:.9s}
+@keyframes gcBob{0%,100%{transform:rotate(-5deg)}50%{transform:translateY(-7px) rotate(5deg)}}
+
+/* 掉出來的扭蛋 */
+.gc-cap{position:absolute;left:95px;top:318px;width:90px;height:90px;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity}
+.gc-cap.go{animation:gcCapOut 1.3s cubic-bezier(.22,1,.36,1) forwards;pointer-events:auto;cursor:pointer}
+@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-186px) scale(1);opacity:1}}
+.gc-capin{position:relative;width:100%;height:100%}
+.gc-cap.ready:not(.held) .gc-capin{animation:gcBob 1.8s ease-in-out infinite}
+.gc-capin i{position:absolute;left:0;width:100%;height:50%;border:2.5px solid rgba(30,43,79,.18)}
+.gc-capin .t{top:0;border-radius:90px 90px 0 0;border-bottom:none;background:var(--c);
+  background-image:radial-gradient(circle at 30% 35%,rgba(255,255,255,.6) 0 12%,transparent 13%);
+  transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .5s .25s ease}
+.gc-capin .b{bottom:0;border-radius:0 0 90px 90px;border-top:none;background:#fff}
+.gc-cap.open .t{transform:translate(-22px,-56px) rotate(-40deg);opacity:0}
+.gc-burst{position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0,rgba(255,236,190,.9) 35%,rgba(227,179,76,0) 70%);opacity:0;pointer-events:none}
+.gc-cap.open .gc-burst{animation:gcBurst .9s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes gcBurst{0%{opacity:1;transform:scale(0)}60%{opacity:.9}100%{opacity:0;transform:scale(26)}}
+
+/* 趴在 OTTO2 牌子上的小黑熊 */
+.gc-pg{position:absolute;left:117px;top:258px;width:46px;height:42px;z-index:9;pointer-events:none;transform-origin:50% 60%}
+.gc-pb{position:absolute;left:0;top:0;width:46px;height:34px;overflow:hidden;animation:gcPeek 3.6s ease-in-out infinite;transform-origin:50% 100%}
+.gc-pb svg{width:46px;height:46px;display:block}
+@keyframes gcPeek{0%,70%,100%{rotate:0deg}78%{rotate:-8deg}86%{rotate:6deg}}
+.gc-paw{position:absolute;top:28px;width:15px;height:12px;border-radius:50% 50% 45% 45%;background:#231F20}
+.gc-paw::after{content:"";position:absolute;left:3px;right:3px;bottom:2px;height:2px;border-top:2px dotted rgba(255,255,255,.7)}
+.gc-paw.l{left:5px}.gc-paw.r{left:26px}
+.gc-pg.fling .gc-pb,.gc-pg.land .gc-pb,.gc-pg.lift .gc-pb{height:46px;animation:none}
+.gc-pg.fling,.gc-pg.land,.gc-pg.lift{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.gc-pg.fling{animation:gcFling 1s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes gcFling{0%{transform:none}12%{transform:translate(6px,-14px) rotate(40deg)}45%{transform:translate(70px,-150px) rotate(360deg)}100%{transform:translate(160px,-330px) rotate(900deg) scale(.5);opacity:0}}
+.gc-pg.wait{opacity:0}
+.gc-pg.land{animation:gcLand .75s cubic-bezier(.3,0,.4,1) forwards}
+@keyframes gcLand{0%{transform:translate(-30px,-420px) rotate(-200deg);opacity:1}62%{transform:translate(0,-144px) rotate(0) scale(1.18,.8)}80%{transform:translate(0,-158px) scale(.94,1.08)}100%{transform:translate(0,-150px)}}
+.gc-pg.land .gc-paw,.gc-pg.lift .gc-paw{top:30px}
+.gc-pg.land .gc-paw.l,.gc-pg.lift .gc-paw.l{left:-2px;rotate:-25deg}
+.gc-pg.land .gc-paw.r,.gc-pg.lift .gc-paw.r{left:33px;rotate:25deg}
+.gc-pg.lift{animation:gcLift .9s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes gcLift{0%{transform:translate(0,-150px)}35%{transform:translate(-6px,-174px) rotate(-12deg)}100%{transform:translate(-40px,-228px) rotate(-40deg);opacity:0}}
+.gc-pg.back{animation:gcBack .6s cubic-bezier(.22,1.5,.36,1)}
+@keyframes gcBack{from{transform:translateY(24px) scale(.3);opacity:0}to{transform:none;opacity:1}}
+
+.gc-go{display:block;margin:6px auto 0;width:200px;padding:13px;border-radius:14px;border:none;background:#E3B34C;color:#1E2B4F;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #B8892E}
+.gc-go:active{transform:translateY(3px);box-shadow:0 1px 0 #B8892E}
+.gc-go:disabled{opacity:.45;cursor:default;transform:none;box-shadow:0 4px 0 #B8892E}
+.gc-hint{text-align:center;font-size:12.5px;color:#6B7180;margin-top:10px;min-height:18px;line-height:1.6}
+.gc-hint.done{color:#2E7D4F;font-weight:700}
+.gc-why{text-align:center;font-size:11.5px;color:#8A90A0;margin-top:4px;line-height:1.6}
+.gc-why a{color:#1E2B4F;font-weight:700;text-decoration:underline;cursor:pointer}
+
+/* 集章 */
+.gc-card{background:#fff;border-radius:14px;padding:12px;border:1px solid #E4E1D9}
+.gc-wk,.gc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.gc-wk{margin-bottom:5px}
+.gc-wk span{text-align:center;font-size:10.5px;color:#6B7180}
+.gc-d{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#B3B0A8;border:1.5px dashed #DDD9CF;font-variant-numeric:tabular-nums}
+.gc-d.blank{border:none}
+.gc-d.off{border:none;color:#D8D5CD}
+.gc-d.on{background:#1E2B4F;color:#E3B34C;border:none;font-size:13px}
+.gc-d.today{border:2px solid #E3B34C;color:#1E2B4F;font-weight:900}
+.gc-d.new{animation:gcStamp .6s cubic-bezier(.22,1.4,.36,1)}
+@keyframes gcStamp{0%{transform:scale(1.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.gc-barw{height:8px;border-radius:8px;background:#EEEBE4;overflow:hidden;margin-top:12px}
+.gc-barw i{display:block;height:100%;background:linear-gradient(90deg,#E3B34C,#E8836B);border-radius:8px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+.gc-miles{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10.5px;color:#6B7180;margin-top:6px;text-align:center;line-height:1.4}
+.gc-miles span.got{color:#2E7D4F;font-weight:700}
+.gc-pool{background:#fff;border-radius:14px;border:1px solid #E4E1D9;overflow:hidden}
+.gc-pr{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid #E4E1D9;font-size:13px}
+.gc-pr:first-child{border-top:none}
+.gc-pr .ic{font-size:20px;width:26px;text-align:center}
+.gc-pr .nm{flex:1}
+.gc-pr .nm small{display:block;font-size:11px;color:#6B7180}
+.gc-pr .left{font-size:11px;color:#E8836B;font-weight:700;white-space:nowrap}
+.gc-pr.out{opacity:.4}
+.gc-lock{font-size:11px;background:#F3F1EC;color:#6B7180;padding:8px 12px;text-align:center;line-height:1.6}
+.gc-rules{font-size:11.5px;color:#8A90A0;line-height:1.8;margin:14px 16px 0;padding:0 0 0 16px}
+.gc-cta{margin:16px 14px 28px;display:grid;gap:8px}
+.gc-btn{display:block;width:100%;padding:13px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.gc-btn.pri{background:#E3B34C;color:#1E2B4F}
+.gc-btn.sec{background:#fff;color:#1E2B4F;border:1.5px solid #E4E1D9}
+
+/* 綁電話 */
+.gc-form{background:#fff;border-radius:16px;padding:18px;margin:14px;box-shadow:0 4px 14px rgba(30,43,79,.08)}
+.gc-form h3{font-size:16px;color:#1E2B4F;margin:0 0 6px}
+.gc-form p{font-size:12.5px;color:#6B7180;line-height:1.7;margin:0 0 12px}
+.gc-form label{display:block;font-size:12.5px;color:#6B7180;margin:10px 0 4px}
+.gc-form input{width:100%;padding:11px 12px;border:1.5px solid #E4E1D9;border-radius:10px;font-size:16px;font-family:inherit}
+.gc-err{color:#C0392B;font-size:12.5px;min-height:18px;margin-top:8px;line-height:1.6}
+.gc-msg{text-align:center;padding:40px 24px;font-size:14px;color:#6B7180;line-height:1.8}
+
+/* 中獎視窗 */
+.gc-modal{position:fixed;inset:0;background:rgba(20,26,45,.55);display:flex;align-items:center;justify-content:center;z-index:70;padding:24px;
+  opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s}
+.gc-modal.show{opacity:1;visibility:visible}
+.gc-mbox{background:#fff;border-radius:22px;padding:22px 20px 18px;text-align:center;width:100%;max-width:340px;
+  transform:translateY(20px) scale(.94);transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.gc-modal.show .gc-mbox{transform:none}
+.gc-prize{position:relative;height:110px;display:flex;align-items:center;justify-content:center}
+.gc-rays{position:absolute;left:50%;top:50%;width:190px;height:190px;margin:-95px;border-radius:50%;
+  background:repeating-conic-gradient(rgba(227,179,76,.32) 0 10deg,transparent 10deg 30deg);
+  -webkit-mask:radial-gradient(circle,#000 25%,transparent 68%);mask:radial-gradient(circle,#000 25%,transparent 68%);animation:gcRays 14s linear infinite}
+.gc-modal.nowin .gc-rays{display:none}
+.gc-big{position:relative;font-size:62px;line-height:1}
+.gc-modal.show .gc-big{animation:gcPop .7s .15s cubic-bezier(.22,1.3,.36,1) both}
+@keyframes gcPop{from{transform:scale(.2) rotate(-20deg);opacity:0}to{transform:none;opacity:1}}
+.gc-mbox h3{font-size:20px;color:#1E2B4F;margin:6px 0 0;font-weight:900}
+.gc-mbox p{font-size:13.5px;color:#6B7180;margin:6px 0 0;line-height:1.6}
+.gc-mbal{background:#FBF3DF;border-radius:12px;padding:10px;margin:14px 0 12px;font-size:13px;line-height:1.7}
+.gc-mbal b{color:#1E2B4F;font-size:15px}
+.gc-mbal .next{font-size:12px;color:#E8836B;margin-top:4px;font-weight:700}
+.gc-conf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
+.gc-conf i{position:absolute;top:-16px;width:9px;height:13px;border-radius:2px;will-change:transform,opacity;animation:gcFall var(--t) cubic-bezier(.25,.46,.45,.94) var(--dl) forwards}
+.gc-conf i.o{border-radius:50%}
+.gc-conf i.s{width:4px!important;height:18px}
+.gc-conf i.k{top:auto;bottom:-16px;animation:gcShoot var(--t) cubic-bezier(.2,.7,.4,1) var(--dl) forwards}
+@keyframes gcFall{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate3d(var(--dx),105vh,0) rotate(var(--r));opacity:0}}
+@keyframes gcShoot{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}38%{transform:translate3d(var(--px),var(--py),0) rotate(calc(var(--r) * .4))}88%{opacity:1}100%{transform:translate3d(calc(var(--px) * 1.35),30vh,0) rotate(var(--r));opacity:0}}
+.gc-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2A2E38;color:#fff;font-size:13px;padding:10px 16px;border-radius:12px;z-index:90;max-width:88%;line-height:1.6;text-align:center}
+@media (prefers-reduced-motion:reduce){#gcOv *,.gc-modal *,.gc-conf *{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+`;
+
+var SYMBOLS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
+  '<symbol id="gcBh" viewBox="0 0 40 40">' +
+  '<circle cx="8" cy="9" r="7" fill="#231F20"/><circle cx="32" cy="9" r="7" fill="#231F20"/>' +
+  '<path d="M6 8 Q7 4 11 3" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M34 8 Q33 4 29 3" stroke="#fff" stroke-width="1.6" fill="none"/>' +
+  '<ellipse cx="20" cy="22" rx="17" ry="16" fill="#231F20"/>' +
+  '<circle cx="13" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/><circle cx="27" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/>' +
+  '<rect x="15" y="20" width="10" height="10" rx="4" fill="#fff"/><ellipse cx="20" cy="22.5" rx="3" ry="2" fill="#231F20"/></symbol>' +
+  '<symbol id="gcBody" viewBox="0 0 38 58">' +
+  '<ellipse cx="8" cy="20" rx="6" ry="5" fill="#231F20"/><ellipse cx="30" cy="20" rx="6" ry="5" fill="#231F20"/>' +
+  '<path d="M6 30 C6 20 12 17 19 17 C26 17 32 20 32 30 L33 52 Q33 57 28 57 L10 57 Q5 57 5 52 Z" fill="#231F20"/>' +
+  '<circle cx="14" cy="26" r="2.2" fill="#231F20" stroke="#fff" stroke-width="1.4"/><circle cx="24" cy="26" r="2.2" fill="#231F20" stroke="#fff" stroke-width="1.4"/>' +
+  '<rect x="15.5" y="26" width="7" height="7" rx="3" fill="#fff"/><ellipse cx="19" cy="27.6" rx="2" ry="1.4" fill="#231F20"/>' +
+  '<path d="M13 38 L18 42 L25 37 L24 36 L18 40 L14 37 Z" fill="#fff"/></symbol></svg>';
+
+/* 紅利兌換表（跟店裡的「紅利點數兌換」海報一致），中獎時提示下一個目標 */
+var TIERS = [[15,"一塊 6 號畫布"],[35,"23cm 流動熊"],[55,"33cm 流動熊"],[85,"30cm 流動畫"],[105,"40cm 水晶掛畫"],[150,"60x60cm 地毯作品"],[170,"3500 儲值點"]];
+var CAPC = ["#E8836B","#E3B34C","#7FB2A0","#8FA6D9","#D98FB8","#F2C14E"];
+var BALLC = ["#E0322F","#F2C94C","#7BBF3F","#6E3FA3","#F08A3C","#4FA3C7","#E88BB0","#3E7BC4"];
+
+var ov = null, st = null, busy = false, pending = null, spun = null;
+var $ = function(id){ return document.getElementById(id) };
+var esc = function(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] }) };
+var md = function(d){ return String(d || "").slice(5).replace("-", "/") };
+
+function token(){
+  try { return (window.liff && liff.isLoggedIn && liff.isLoggedIn()) ? liff.getAccessToken() : "" } catch(e){ return "" }
+}
+async function call(path, body){
+  var r = await fetch(NOTIFY_URL.replace(/\/$/, "") + path, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.assign({ accessToken: token() }, body || {})) });
+  var j = null;
+  try { j = await r.json() } catch(e){}
+  if (!j) throw new Error("連線不穩，請稍後再試");
+  if (!j.ok) { var e = new Error(j.error || "發生錯誤"); e.code = j.code; throw e }
+  return j;
+}
+function toast(msg){
+  var t = document.createElement("div"); t.className = "gc-toast"; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(function(){ t.remove() }, 3600);
+}
+
+/* ── 開啟／關閉 ── */
+function open(){
+  if (!document.getElementById("gcCss")) {
+    var s = document.createElement("style"); s.id = "gcCss"; s.textContent = CSS; document.head.appendChild(s);
+  }
+  if (!ov) {
+    ov = document.createElement("div"); ov.id = "gcOv";
+    ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "扭蛋活動");
+    document.body.appendChild(ov);
+    var m = document.createElement("div"); m.className = "gc-modal"; m.id = "gcModal";
+    m.innerHTML = '<div class="gc-mbox"><div class="gc-prize"><div class="gc-rays"></div><div class="gc-big" id="gcMIc"></div></div>' +
+      '<h3 id="gcMT"></h3><p id="gcMP"></p><div class="gc-mbal" id="gcMBal"></div>' +
+      '<button class="gc-btn pri" id="gcMBook">📅 順便預約下一堂</button>' +
+      '<button class="gc-btn sec" id="gcMClose" style="margin-top:8px">知道了</button></div>';
+    document.body.appendChild(m);
+    var c = document.createElement("div"); c.className = "gc-conf"; c.id = "gcConf"; document.body.appendChild(c);
+    $("gcMClose").onclick = closeModal;
+    $("gcMBook").onclick = function(){ closeModal(); close(); if (window.setStep) setStep(1) };
+  }
+  ov.style.display = "block";
+  requestAnimationFrame(function(){ ov.classList.add("show") });
+  document.body.style.overflow = "hidden";
+  ov.innerHTML = shell('<div class="gc-msg">載入中…</div>');
+  bindShell();
+  load();
+}
+function close(){
+  if (!ov) return;
+  ov.classList.remove("show");
+  setTimeout(function(){ ov.style.display = "none" }, 300);
+  document.body.style.overflow = "";
+}
+function shell(inner){
+  var t = (st && st.title) || "十月黑熊扭蛋";
+  return SYMBOLS + '<div class="gc-top"><button class="gc-x" id="gcX" aria-label="關閉">✕</button>' +
+    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>🐻 ' + esc(t) + '</h1>' +
+    '<p>每天轉一次，紅利、課程券等你拿</p></div>' + inner;
+}
+function bindShell(){ var x = $("gcX"); if (x) x.onclick = close }
+
+async function load(extra){
+  if (!token()) return renderNoLine();
+  try {
+    var j = await call("/gacha/state", extra);
+    if (j.needPhone) { st = j; return renderPhone(j.guess) }
+    st = j; render(false);
+  } catch(e) {
+    if (e.code === "PHONE_TAKEN" || e.code === "BAD_PHONE") { renderPhone(extra && extra.phone, e.message); return }
+    ov.innerHTML = shell('<div class="gc-msg">' + esc(e.message) + '<br><br><button class="gc-btn sec" id="gcRe" style="max-width:200px;margin:0 auto">再試一次</button></div>');
+    bindShell(); $("gcRe").onclick = function(){ load() };
+  }
+}
+function renderNoLine(){
+  var canLogin = window.liff && liff.login && !(liff.isLoggedIn && liff.isLoggedIn());
+  ov.innerHTML = shell('<div class="gc-msg">扭蛋活動要從 Otto2 的 LINE 官方帳號打開預約頁才能玩，<br>我們才知道獎品要送給誰。' +
+    (canLogin ? '<br><br><button class="gc-btn pri" id="gcLogin" style="max-width:220px;margin:0 auto">用 LINE 登入</button>' : '') + '</div>');
+  bindShell();
+  if (canLogin) $("gcLogin").onclick = function(){ try { liff.login({ redirectUri: location.href }) } catch(e){} };
+}
+function renderPhone(guess, err){
+  var c = window.customer || {};
+  ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🐻</h3>' +
+    '<p>輸入上課留的手機號碼，抽到的紅利和票券會直接存進這支電話的帳戶，順便幫你查點數還剩多少。</p>' +
+    '<label for="gcName">姓名</label><input id="gcName" autocomplete="name" value="' + esc(c.name || (st && st.lineName) || "") + '">' +
+    '<label for="gcPhone">手機號碼</label><input id="gcPhone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxx" value="' + esc(guess || c.phone || "") + '">' +
+    '<div class="gc-err" id="gcErr">' + esc(err || "") + '</div>' +
+    '<button class="gc-btn pri" id="gcBind" style="margin-top:6px">開始玩</button>' +
+    '<p style="margin:12px 0 0;font-size:11.5px">一個 LINE 帳號只能綁一支電話，綁好之後就不能自己更改，打錯請私訊小編。</p></div>');
+  bindShell();
+  $("gcBind").onclick = function(){
+    var ph = $("gcPhone").value.replace(/\D/g, "").replace(/^886/, "0");
+    var nm = $("gcName").value.trim();
+    if (!/^09\d{8}$/.test(ph)) { $("gcErr").textContent = "手機號碼格式不對，請輸入 09 開頭的 10 碼"; return }
+    if (!nm) { $("gcErr").textContent = "請填姓名，小編才知道是誰中獎"; return }
+    $("gcBind").disabled = true; $("gcBind").textContent = "確認中…";
+    load({ phone: ph, name: nm });
+  };
+}
+
+/* ── 主畫面 ── */
+function left(){ return st ? Math.max(0, st.chances.total - st.chances.used) : 0 }
+function render(anim){
+  var me = st.me, s = st.status;
+  var banner = "";
+  if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
+  else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
+  else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，這支電話是測試名單，可以先玩。<b>抽到的紅利和票券是真的會入帳。</b></div>';
+  if (s !== "soon" && s !== "ended") {
+    var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
+    if (st.doubleToday) banner += '<div class="gc-banner">🎃 今天是加碼日：多一次機會，而且每一次都一定中！</div>';
+    else if (extras.length) banner += '<div class="gc-banner">🎉 ' + esc(extras.join("、")) + '，今天<b>多送 ' + extras.length + ' 次</b>！</div>';
+  }
+  var tk = (st.ticker || []);
+  var ticker = tk.length ? '<div class="gc-ticker"><span style="--t:' + Math.max(18, tk.length * 6) + 's">' +
+    tk.map(function(t){ return esc(t.who) + ' 抽到<em>' + esc(t.ic + " " + t.nm) + '</em>' }).join("　·　") + '</span></div>' : "";
+
+  ov.innerHTML = shell(
+    '<div class="gc-me"><div class="gc-me-row"><div><span class="gc-name">' + esc(me.name || "你好") + '</span>' +
+    '<span class="gc-tag' + (me.member ? " mem" : "") + '">' + (me.member ? "會員" : "新朋友") + '</span></div>' +
+    '<small style="color:#6B7180;font-size:11.5px">' + esc(me.phone) + '</small></div>' +
+    '<div class="gc-bal"><div><b>' + me.points.toLocaleString() + '</b><span>儲值點數</span></div>' +
+    '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
+    '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
+    '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
+    '<button class="gc-go" id="gcGo">轉一下 🐻</button><div class="gc-hint" id="gcHint"></div>' +
+    '<div class="gc-why">用線上預約系統約課，當天多一次扭蛋 · <a id="gcBookLink">去預約</a></div></div>' +
+    '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
+    '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
+    '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、當天用線上預約系統約課，各多一次。</li>' +
+    '<li>每日扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底另外送，不算在裡面。</li>' +
+    '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
+    '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
+  bindShell();
+  fillMachine();
+  $("gcGo").onclick = spin; $("gcKnob").onclick = spin; $("gcCap").onclick = openCap;
+  $("gcBook").onclick = $("gcBookLink").onclick = function(){ close(); if (window.setStep) setStep(1) };
+  $("gcBack").onclick = close;
+  updChance();
+}
+function updChance(){
+  var n = left(), s = st.status;
+  var can = (s === "on" || s === "test") && n > 0;
+  $("gcChance").textContent = s === "soon" ? md(st.start) + " 開始" : s === "ended" ? "活動已結束" : (n > 0 ? "剩 " + n + " 次機會" : "今天玩完囉");
+  $("gcGo").disabled = busy || !can;
+  $("gcGo").textContent = s === "soon" ? md(st.start) + " 開始 🐻" : "轉一下 🐻";
+  if (busy) return;
+  var h = $("gcHint");
+  h.className = "gc-hint" + (can ? "" : (s === "on" || s === "test" ? " done" : ""));
+  h.textContent = can ? "按「轉一下」，或直接轉 OTTO2 旋鈕 👆" : (s === "on" || s === "test") ? "✅ 今天已簽到，明天再來轉！" : "";
+}
+function machine(){
+  return '<div class="gc-g" id="gcG">' +
+    '<div class="gc-sun"><i style="left:22px;top:30px;color:#E0322F;font-size:16px;--d:0s">❤</i><i style="left:238px;top:62px;color:#E3B34C;font-size:18px;--d:.7s">✦</i><i style="left:30px;top:210px;color:#E3B34C;font-size:14px;--d:1.3s">✦</i><i style="left:244px;top:226px;color:#E0322F;font-size:14px;--d:.4s">❤</i><i style="left:252px;top:150px;color:#E3B34C;font-size:11px;--d:1.9s">✦</i><i style="left:12px;top:120px;color:#E3B34C;font-size:11px;--d:2.2s">✦</i></div>' +
+    '<div class="gc-floor"></div>' +
+    '<div class="gc-mach" id="gcMach">' +
+      '<div class="gc-globe"><svg class="gc-peek l"><use href="#gcBh"/></svg><svg class="gc-peek r"><use href="#gcBh"/></svg><div class="gc-swirl" id="gcSwirl"></div><div class="gc-gl"></div></div>' +
+      '<svg class="gc-svg up" viewBox="0 0 280 424" aria-hidden="true">' +
+        '<rect x="122" y="6" width="36" height="16" rx="7" fill="#D7262E" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<path d="M86 52 Q88 20 140 18 Q192 20 194 52 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
+        '<path d="M104 30 Q116 24 132 23" stroke="#fff" stroke-opacity=".45" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+        '<rect x="76" y="46" width="128" height="16" rx="8" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<path d="M80 250 C70 264 66 290 62 318 L54 386 Q52 398 68 398 L212 398 Q228 398 226 386 L218 318 C214 290 210 264 200 250 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
+        '<path d="M200 284 C204 310 208 340 211 376" stroke="#fff" stroke-opacity=".28" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+        '<rect x="68" y="236" width="144" height="20" rx="10" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<path d="M84 243 L140 243" stroke="#fff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round"/>' +
+      '</svg>' +
+      '<div class="gc-love">LOVE</div><div class="gc-luck">LUCK</div>' +
+      '<button class="gc-knob" id="gcKnob" aria-label="轉一下">OTTO2</button><div class="gc-exit"></div>' +
+    '</div>' +
+    '<div class="gc-crowd" id="gcCrowd"></div>' +
+    '<div class="gc-cap" id="gcCap"><div class="gc-capin"><i class="t"></i><i class="b"></i><div class="gc-burst"></div></div></div>' +
+    '<div class="gc-pg" id="gcPg"><div class="gc-pb"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
+  '</div>';
+}
+function fillMachine(){
+  var rows = [[176,6],[146,6],[116,5],[90,4]], h = "", k = 0;
+  rows.forEach(function(r, ri){
+    var w = 208 / r[1];
+    for (var i = 0; i < r[1]; i++) {
+      var x = Math.round(i * w + (w - 36) / 2 + (ri % 2 ? 6 : -4)), d = (k * .29).toFixed(2);
+      h += (k % 4 === 1)
+        ? '<div class="gc-ball bh" style="left:' + (x - 2) + 'px;top:' + (r[0] - 4) + 'px;--d:' + d + 's"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div>'
+        : '<div class="gc-ball" style="left:' + x + 'px;top:' + r[0] + 'px;--c:' + BALLC[k % BALLC.length] + ';--d:' + d + 's"></div>';
+      k++;
+    }
+  });
+  $("gcSwirl").innerHTML = h;
+  var C = [[4,330,.8,1],[238,330,.8,1],[36,346,.72,0],[206,346,.72,0],[-6,362,1,0],[26,370,1,1],[60,376,.95,0],[184,376,.95,1],[216,370,1,0],[248,362,1,1]];
+  $("gcCrowd").innerHTML = C.map(function(c, i){
+    var bx = i % 2 ? 14 : 24;
+    var bal = c[3] ? '<g class="gc-bal2"><path d="M' + bx + ' -2 L' + (bx - 2) + ' 30" stroke="#555" stroke-width="1"/><ellipse cx="' + bx + '" cy="-14" rx="11" ry="13" fill="#E0322F" stroke="#1A1A1A" stroke-width="1.5"/><ellipse cx="' + (bx - 4) + '" cy="-19" rx="3" ry="4" fill="#fff" opacity=".5"/></g>' : "";
+    return '<div class="gc-bb" style="left:' + c[0] + 'px;top:' + c[1] + 'px;--s:' + c[2] + ';--d:' + (i * .27).toFixed(2) + 's"><svg viewBox="0 0 38 58">' + bal + '<use href="#gcBody"/></svg></div>';
+  }).join("");
+}
+function stamps(anim){
+  var y = +st.start.slice(0, 4), m = +st.start.slice(5, 7);
+  var first = new Date(y, m - 1, 1).getDay(), dim = new Date(y, m, 0).getDate();
+  var played = {}; st.days.forEach(function(d){ played[d] = 1 });
+  var h = '<div class="gc-card"><div class="gc-wk"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="gc-grid">';
+  for (var i = 0; i < first; i++) h += '<div class="gc-d blank"></div>';
+  for (var d = 1; d <= dim; d++) {
+    var key = st.start.slice(0, 8) + String(d).padStart(2, "0");
+    var c = "gc-d", t = d;
+    if (key < st.start || key > st.end) c += " off";
+    else if (played[key]) { c += " on"; t = "★"; if (anim && key === st.today) c += " new" }
+    else if (key === st.today) c += " today";
+    h += '<div class="' + c + '">' + t + '</div>';
+  }
+  var ms = st.milestones || [], top = ms.length ? ms[ms.length - 1].d : 28;
+  h += '</div><div class="gc-barw"><i style="width:' + Math.min(100, st.days.length / top * 100) + '%"></i></div><div class="gc-miles">' +
+    ms.map(function(x){ return '<span class="' + (x.got ? "got" : "") + '">' + (x.got ? "✓ " : "") + x.d + ' 天<br>' + esc(x.nm) + '</span>' }).join("") +
+    '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🐻</div></div>';
+  return h;
+}
+function pool(){
+  var mem = st.me.member;
+  var row = function(p){
+    return '<div class="gc-pr' + (p.left === 0 ? " out" : "") + '"><span class="ic">' + esc(p.ic) + '</span><span class="nm">' + esc(p.nm) +
+      '<small>' + esc(p.sub || "") + '</small></span>' + (p.left != null ? '<span class="left">' + (p.left === 0 ? "已抽完" : "剩 " + p.left + " 份") + '</span>' : "") + '</div>';
+  };
+  var list = st.prizes.filter(function(p){ return p.type !== "none" && (p.who === "all" || p.who === (mem ? "mem" : "new")) });
+  var h = list.map(row).join("");
+  if (!mem) {
+    var lk = st.prizes.filter(function(p){ return p.who === "mem" && p.type !== "none" }).map(function(p){ return esc(p.nm) });
+    if (lk.length) h += '<div class="gc-lock">🔒 會員限定：' + lk.join("、") + '<br>購買任一方案就能解鎖</div>';
+  }
+  return '<div class="gc-pool">' + h + '</div>';
+}
+
+/* ── 轉扭蛋 ── */
+function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls) }
+function spin(){
+  if (busy || left() <= 0 || !(st.status === "on" || st.status === "test")) return;
+  busy = true; spun = null; updChance();
+  var cap = $("gcCap"), pg = $("gcPg");
+  cap.className = "gc-cap"; cap.style.setProperty("--c", CAPC[Math.floor(Math.random() * CAPC.length)]);
+  restart($("gcKnob"), "turn"); restart($("gcSwirl"), "spin"); restart($("gcMach"), "wobble");
+  $("gcG").classList.add("party");
+  setTimeout(function(){ pg.className = "gc-pg fling" }, 180);
+  $("gcHint").className = "gc-hint"; $("gcHint").textContent = "轉轉轉…";
+  pending = call("/gacha/spin").then(function(j){ spun = j; return j });
+  var animDone = new Promise(function(r){ setTimeout(r, 1250) });
+  Promise.all([pending, animDone]).then(function(){
+    cap.classList.add("go");
+    setTimeout(function(){
+      cap.classList.add("held"); pg.className = "gc-pg land";
+      setTimeout(function(){ cap.classList.add("ready"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
+    }, 1300);
+  }).catch(function(e){
+    busy = false;
+    $("gcG").classList.remove("party");
+    pg.className = "gc-pg back";
+    toast(e.message || "扭蛋卡住了，請再試一次");
+    if (e.code === "NO_CHANCE" || e.code === "SOON" || e.code === "ENDED") load(); else updChance();
+  });
+}
+function openCap(){
+  var cap = $("gcCap");
+  if (!cap.classList.contains("ready") || cap.classList.contains("open") || !spun) return;
+  cap.classList.add("open");
+  $("gcPg").className = "gc-pg lift";
+  var p = spun.prize;
+  if (p.type === "bonus") { $("gcBB").textContent = spun.state.me.bonus; restart($("gcBB"), "bump") }
+  setTimeout(function(){ showModal(p) }, 650);
+}
+var afterModal = null;
+function showModal(p){
+  var me = spun.state.me, none = p.type === "none";
+  $("gcMIc").textContent = p.ic;
+  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : "恭喜獲得！";
+  $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
+    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
+    : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
+    : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
+  var next = TIERS.filter(function(t){ return t[0] > me.bonus })[0];
+  $("gcMBal").innerHTML = (me.member
+    ? '你目前有：儲值點數 <b>' + me.points.toLocaleString() + '</b>　堂數 <b>' + me.sessions + '</b>　紅利 <b>' + me.bonus + '</b>'
+    : '你目前有：紅利 <b>' + me.bonus + '</b> 點') +
+    (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
+  $("gcModal").classList.toggle("nowin", none);
+  $("gcModal").classList.add("show");
+  if (!none) confetti(p.type === "ticket" || (p.v || 0) >= 10);
+  afterModal = function(){
+    if (spun.milestone) {
+      var ms = spun.milestone; spun.milestone = null;
+      setTimeout(function(){
+        showModal2("🏅", "集滿 " + ms.d + " 天！", '集章保底送你 <b style="color:#1E2B4F">' + esc(ms.nm) + '</b>' +
+          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" : "<br>已存進你的帳戶"));
+      }, 400);
+      return;
+    }
+    finish();
+  };
+}
+function showModal2(ic, title, html){
+  $("gcMIc").textContent = ic; $("gcMT").textContent = title; $("gcMP").innerHTML = html;
+  $("gcModal").classList.remove("nowin"); $("gcModal").classList.add("show"); confetti(true);
+  afterModal = finish;
+}
+function closeModal(){
+  $("gcModal").classList.remove("show");
+  var f = afterModal; afterModal = null;
+  if (f) f();
+}
+function finish(){
+  if (spun && spun.state) st = spun.state;
+  busy = false; spun = null;
+  render(true);
+}
+function confetti(big){
+  var cs = ["#E3B34C","#E8836B","#1E2B4F","#7FB2A0","#8FA6D9","#E0322F","#F2C94C","#fff"];
+  var shape = function(i){ return ["", "o", "s"][i % 3] };
+  var W = window.innerWidth, H = window.innerHeight, h = "", fallN = big ? 200 : 120, shotN = big ? 60 : 32;
+  for (var i = 0; i < fallN; i++) {
+    h += '<i class="' + shape(i) + '" style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cs[i % cs.length] +
+      ';--t:' + (2.4 + Math.random() * 1.8).toFixed(2) + 's;--dl:' + (Math.random() * .9).toFixed(2) + 's;--dx:' + Math.round((Math.random() - .5) * 180) +
+      'px;--r:' + Math.round((Math.random() - .5) * 1260) + 'deg;width:' + (6 + Math.round(Math.random() * 5)) + 'px"></i>';
+  }
+  [0, 1].forEach(function(side){
+    for (var i = 0; i < shotN; i++) {
+      var px = Math.round((side ? -1 : 1) * (W * .15 + Math.random() * W * .55)), py = -Math.round(H * .45 + Math.random() * H * .45);
+      h += '<i class="k ' + shape(i) + '" style="' + (side ? "right" : "left") + ':' + Math.round(Math.random() * 20) + 'px;background:' + cs[(i + side) % cs.length] +
+        ';--t:' + (1.8 + Math.random() * 1.2).toFixed(2) + 's;--dl:' + (Math.random() * .25).toFixed(2) + 's;--px:' + px + 'px;--py:' + py +
+        'px;--r:' + Math.round((Math.random() - .5) * 1440) + 'deg;width:' + (6 + Math.round(Math.random() * 5)) + 'px"></i>';
+    }
+  });
+  var c = $("gcConf"); c.innerHTML = h;
+  clearTimeout(confetti._t); confetti._t = setTimeout(function(){ c.innerHTML = "" }, 5600);
+}
+
+window.Gacha = { open: open, close: close };
+})();
