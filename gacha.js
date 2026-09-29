@@ -101,7 +101,7 @@ var CSS = `
 .gc-cap.ready::before{animation:gcRing 1.4s ease-out infinite}
 @keyframes gcRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.35);opacity:0}}
 .gc-cap.ready{filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
-.gc-tapme{position:absolute;left:50%;top:262px;transform:translateX(-50%);z-index:10;pointer-events:none;
+.gc-tapme{position:absolute;left:50%;top:274px;transform:translateX(-50%);z-index:10;pointer-events:none;
   background:#1E2B4F;color:#fff;font-size:14px;font-weight:900;padding:8px 16px;border-radius:20px;white-space:nowrap;
   box-shadow:0 6px 16px rgba(30,43,79,.35);opacity:0;transition:opacity .4s}
 .gc-tapme::before{content:"";position:absolute;left:50%;top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#1E2B4F}
@@ -111,7 +111,7 @@ var CSS = `
 /* 掉出來的扭蛋 */
 .gc-cap{position:absolute;left:95px;top:318px;width:90px;height:90px;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity}
 .gc-cap.go{animation:gcCapOut 1.3s cubic-bezier(.22,1,.36,1) forwards;pointer-events:auto;cursor:pointer}
-@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-186px) scale(1.4);opacity:1}}
+@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-180px) scale(1.8);opacity:1}}
 .gc-capin{position:relative;width:100%;height:100%}
 .gc-cap.ready:not(.held) .gc-capin{animation:gcBob 1.8s ease-in-out infinite}
 .gc-capin i{position:absolute;left:0;width:100%;height:50%;border:2.5px solid rgba(30,43,79,.18)}
@@ -139,12 +139,12 @@ var CSS = `
 @keyframes gcFling{0%{transform:none}12%{transform:translate(6px,-14px) rotate(40deg)}45%{transform:translate(70px,-150px) rotate(360deg)}100%{transform:translate(160px,-330px) rotate(900deg) scale(.5);opacity:0}}
 .gc-pg.wait{opacity:0}
 .gc-pg.land{animation:gcLand .75s cubic-bezier(.3,0,.4,1) forwards}
-@keyframes gcLand{0%{transform:translate(-30px,-440px) rotate(-200deg);opacity:1}62%{transform:translate(0,-162px) rotate(0) scale(1.18,.8)}80%{transform:translate(0,-176px) scale(.94,1.08)}100%{transform:translate(0,-168px)}}
+@keyframes gcLand{0%{transform:translate(-30px,-440px) rotate(-200deg);opacity:1}62%{transform:translate(0,-172px) rotate(0) scale(1.18,.8)}80%{transform:translate(0,-186px) scale(.94,1.08)}100%{transform:translate(0,-178px)}}
 .gc-pg.land .gc-paw,.gc-pg.lift .gc-paw{top:30px}
 .gc-pg.land .gc-paw.l,.gc-pg.lift .gc-paw.l{left:-2px;rotate:-25deg}
 .gc-pg.land .gc-paw.r,.gc-pg.lift .gc-paw.r{left:33px;rotate:25deg}
 .gc-pg.lift{animation:gcLift .9s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes gcLift{0%{transform:translate(0,-168px)}35%{transform:translate(-6px,-192px) rotate(-12deg)}100%{transform:translate(-40px,-246px) rotate(-40deg);opacity:0}}
+@keyframes gcLift{0%{transform:translate(0,-178px)}35%{transform:translate(-6px,-202px) rotate(-12deg)}100%{transform:translate(-40px,-256px) rotate(-40deg);opacity:0}}
 .gc-pg.back{animation:gcBack .6s cubic-bezier(.22,1.5,.36,1)}
 @keyframes gcBack{from{transform:translateY(24px) scale(.3);opacity:0}to{transform:none;opacity:1}}
 
