@@ -224,7 +224,8 @@ var CSS = `
 @keyframes gcFall{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate3d(var(--dx),105vh,0) rotate(var(--r));opacity:0}}
 @keyframes gcShoot{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}38%{transform:translate3d(var(--px),var(--py),0) rotate(calc(var(--r) * .4))}88%{opacity:1}100%{transform:translate3d(calc(var(--px) * 1.35),30vh,0) rotate(var(--r));opacity:0}}
 .gc-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2A2E38;color:#fff;font-size:13px;padding:10px 16px;border-radius:12px;z-index:90;max-width:88%;line-height:1.6;text-align:center}
-@media (prefers-reduced-motion:reduce){#gcOv *,.gc-modal *,.gc-conf *{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+/* 不做「減少動態效果」的縮短：扭蛋遊戲本身就是動畫，縮成一瞬間的話
+   扭蛋不會繞、方向盤不會轉、小黑熊看起來像直接消失（2026-09-30 大熊實機回報）。 */
 `;
 
 var SYMBOLS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
