@@ -94,10 +94,24 @@ var CSS = `
 .gc-g.party .gc-bal2{animation-duration:.9s}
 @keyframes gcBob{0%,100%{transform:rotate(-5deg)}50%{transform:translateY(-7px) rotate(5deg)}}
 
+/* 扭蛋掉出來之後，後面的機台淡掉、模糊，讓人一眼看到扭蛋 */
+.gc-mach,.gc-crowd,.gc-sun,.gc-floor{transition:filter .6s ease,opacity .6s ease}
+.gc-g.focus .gc-mach,.gc-g.focus .gc-crowd,.gc-g.focus .gc-sun,.gc-g.focus .gc-floor{filter:blur(3px) saturate(.55) brightness(.9);opacity:.75}
+.gc-cap::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:3px solid #E3B34C;opacity:0;pointer-events:none}
+.gc-cap.ready::before{animation:gcRing 1.4s ease-out infinite}
+@keyframes gcRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+.gc-cap.ready{filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.gc-tapme{position:absolute;left:50%;top:262px;transform:translateX(-50%);z-index:10;pointer-events:none;
+  background:#1E2B4F;color:#fff;font-size:14px;font-weight:900;padding:8px 16px;border-radius:20px;white-space:nowrap;
+  box-shadow:0 6px 16px rgba(30,43,79,.35);opacity:0;transition:opacity .4s}
+.gc-tapme::before{content:"";position:absolute;left:50%;top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#1E2B4F}
+.gc-g.tap .gc-tapme{opacity:1;animation:gcTap 1.2s ease-in-out infinite}
+@keyframes gcTap{50%{transform:translateX(-50%) translateY(-5px)}}
+
 /* 掉出來的扭蛋 */
 .gc-cap{position:absolute;left:95px;top:318px;width:90px;height:90px;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity}
 .gc-cap.go{animation:gcCapOut 1.3s cubic-bezier(.22,1,.36,1) forwards;pointer-events:auto;cursor:pointer}
-@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-186px) scale(1);opacity:1}}
+@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-186px) scale(1.4);opacity:1}}
 .gc-capin{position:relative;width:100%;height:100%}
 .gc-cap.ready:not(.held) .gc-capin{animation:gcBob 1.8s ease-in-out infinite}
 .gc-capin i{position:absolute;left:0;width:100%;height:50%;border:2.5px solid rgba(30,43,79,.18)}
@@ -125,12 +139,12 @@ var CSS = `
 @keyframes gcFling{0%{transform:none}12%{transform:translate(6px,-14px) rotate(40deg)}45%{transform:translate(70px,-150px) rotate(360deg)}100%{transform:translate(160px,-330px) rotate(900deg) scale(.5);opacity:0}}
 .gc-pg.wait{opacity:0}
 .gc-pg.land{animation:gcLand .75s cubic-bezier(.3,0,.4,1) forwards}
-@keyframes gcLand{0%{transform:translate(-30px,-420px) rotate(-200deg);opacity:1}62%{transform:translate(0,-144px) rotate(0) scale(1.18,.8)}80%{transform:translate(0,-158px) scale(.94,1.08)}100%{transform:translate(0,-150px)}}
+@keyframes gcLand{0%{transform:translate(-30px,-440px) rotate(-200deg);opacity:1}62%{transform:translate(0,-162px) rotate(0) scale(1.18,.8)}80%{transform:translate(0,-176px) scale(.94,1.08)}100%{transform:translate(0,-168px)}}
 .gc-pg.land .gc-paw,.gc-pg.lift .gc-paw{top:30px}
 .gc-pg.land .gc-paw.l,.gc-pg.lift .gc-paw.l{left:-2px;rotate:-25deg}
 .gc-pg.land .gc-paw.r,.gc-pg.lift .gc-paw.r{left:33px;rotate:25deg}
 .gc-pg.lift{animation:gcLift .9s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes gcLift{0%{transform:translate(0,-150px)}35%{transform:translate(-6px,-174px) rotate(-12deg)}100%{transform:translate(-40px,-228px) rotate(-40deg);opacity:0}}
+@keyframes gcLift{0%{transform:translate(0,-168px)}35%{transform:translate(-6px,-192px) rotate(-12deg)}100%{transform:translate(-40px,-246px) rotate(-40deg);opacity:0}}
 .gc-pg.back{animation:gcBack .6s cubic-bezier(.22,1.5,.36,1)}
 @keyframes gcBack{from{transform:translateY(24px) scale(.3);opacity:0}to{transform:none;opacity:1}}
 
@@ -407,6 +421,7 @@ function machine(){
     '</div>' +
     '<div class="gc-crowd" id="gcCrowd"></div>' +
     '<div class="gc-cap" id="gcCap"><div class="gc-capin"><i class="t"></i><i class="b"></i><div class="gc-burst"></div></div></div>' +
+    '<div class="gc-tapme">👆 點扭蛋打開！</div>' +
     '<div class="gc-pg" id="gcPg"><div class="gc-pb"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
   '</div>';
 }
@@ -454,7 +469,7 @@ function pool(){
   var mem = st.me.member;
   var row = function(p){
     return '<div class="gc-pr' + (p.left === 0 ? " out" : "") + '"><span class="ic">' + esc(p.ic) + '</span><span class="nm">' + esc(p.nm) +
-      '<small>' + esc(p.sub || "") + '</small></span>' + (p.left != null ? '<span class="left">' + (p.left === 0 ? "已抽完" : "剩 " + p.left + " 份") + '</span>' : "") + '</div>';
+      '<small>' + esc(p.sub || "") + '</small></span>' + (p.left === 0 ? '<span class="left">已抽完</span>' : "") + '</div>';
   };
   var list = st.prizes.filter(function(p){ return p.type !== "none" && (p.who === "all" || p.who === (mem ? "mem" : "new")) });
   var h = list.map(row).join("");
@@ -474,19 +489,21 @@ function spin(){
   cap.className = "gc-cap"; cap.style.setProperty("--c", CAPC[Math.floor(Math.random() * CAPC.length)]);
   restart($("gcKnob"), "turn"); restart($("gcSwirl"), "spin"); restart($("gcMach"), "wobble");
   $("gcG").classList.add("party");
+  try { $("gcG").scrollIntoView({ behavior:"smooth", block:"center" }) } catch(e){}
   setTimeout(function(){ pg.className = "gc-pg fling" }, 180);
   $("gcHint").className = "gc-hint"; $("gcHint").textContent = "轉轉轉…";
   pending = call("/gacha/spin").then(function(j){ spun = j; return j });
   var animDone = new Promise(function(r){ setTimeout(r, 1250) });
   Promise.all([pending, animDone]).then(function(){
     cap.classList.add("go");
+    $("gcG").classList.add("focus");
     setTimeout(function(){
       cap.classList.add("held"); pg.className = "gc-pg land";
-      setTimeout(function(){ cap.classList.add("ready"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
+      setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
     }, 1300);
   }).catch(function(e){
     busy = false;
-    $("gcG").classList.remove("party");
+    $("gcG").classList.remove("party", "focus", "tap");
     pg.className = "gc-pg back";
     toast(e.message || "扭蛋卡住了，請再試一次");
     if (e.code === "NO_CHANCE" || e.code === "SOON" || e.code === "ENDED") load(); else updChance();
@@ -496,6 +513,7 @@ function openCap(){
   var cap = $("gcCap");
   if (!cap.classList.contains("ready") || cap.classList.contains("open") || !spun) return;
   cap.classList.add("open");
+  $("gcG").classList.remove("tap");
   $("gcPg").className = "gc-pg lift";
   var p = spun.prize;
   if (p.type === "bonus") { $("gcBB").textContent = spun.state.me.bonus; restart($("gcBB"), "bump") }
