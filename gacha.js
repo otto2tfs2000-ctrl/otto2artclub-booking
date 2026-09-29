@@ -356,8 +356,8 @@ function render(anim){
   var banner = "";
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
-  else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，這支電話是測試名單，可以先玩。<b>抽到的紅利和票券是真的會入帳。</b></div>';
-  if (s !== "soon" && s !== "ended") {
+  else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
+  if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
     if (st.doubleToday) banner += '<div class="gc-banner">🎃 今天是加碼日：多一次機會，而且每一次都一定中！</div>';
     else if (extras.length) banner += '<div class="gc-banner">🎉 ' + esc(extras.join("、")) + '，今天<b>多送 ' + extras.length + ' 次</b>！</div>';
@@ -533,6 +533,7 @@ function showModal(p){
     ? '你目前有：儲值點數 <b>' + me.points.toLocaleString() + '</b>　堂數 <b>' + me.sessions + '</b>　紅利 <b>' + me.bonus + '</b>'
     : '你目前有：紅利 <b>' + me.bonus + '</b> 點') +
     (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
+  if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
   $("gcModal").classList.toggle("nowin", none);
   $("gcModal").classList.add("show");
   if (!none) confetti(p.type === "ticket" || (p.v || 0) >= 10);
@@ -549,7 +550,8 @@ function showModal(p){
   };
 }
 function showModal2(ic, title, html){
-  $("gcMIc").textContent = ic; $("gcMT").textContent = title; $("gcMP").innerHTML = html;
+  $("gcMIc").textContent = ic; $("gcMT").textContent = title;
+  $("gcMP").innerHTML = html + (st && st.sim ? '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>' : '');
   $("gcModal").classList.remove("nowin"); $("gcModal").classList.add("show"); confetti(true);
   afterModal = finish;
 }
