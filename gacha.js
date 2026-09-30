@@ -175,8 +175,15 @@ var CSS = `
 
 /* 掉出來的扭蛋 */
 .gc-cap{position:absolute;left:95px;top:318px;width:90px;height:90px;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity}
-.gc-cap.go{animation:gcCapOut 1.3s cubic-bezier(.22,1,.36,1) forwards;pointer-events:auto;cursor:pointer}
-@keyframes gcCapOut{0%{transform:translate(0,0) scale(.22);opacity:0}10%{opacity:1}28%{transform:translate(0,18px) scale(.42)}100%{transform:translate(0,-180px) scale(1.8);opacity:1}}
+.gc-cap.go{animation:gcCapOut 1.8s cubic-bezier(.3,.7,.3,1) forwards;pointer-events:auto;cursor:pointer}
+/* 扭蛋從出口滾出來：先在出口轉一圈，再一邊轉一邊變大飛到中間，最後轉正停住 */
+@keyframes gcCapOut{
+  0%{transform:translate(0,0) rotate(0) scale(.22);opacity:0}
+  8%{opacity:1}
+  25%{transform:translate(0,18px) rotate(-360deg) scale(.42)}
+  75%{transform:translate(0,-150px) rotate(-900deg) scale(1.65)}
+  90%{transform:translate(0,-184px) rotate(-1070deg) scale(1.85)}
+  100%{transform:translate(0,-180px) rotate(-1080deg) scale(1.8);opacity:1}}
 .gc-capin{position:relative;width:100%;height:100%}
 .gc-cap.ready:not(.held) .gc-capin{animation:gcBob 1.8s ease-in-out infinite}
 .gc-capin i{position:absolute;left:0;width:100%;height:50%;border:2.5px solid rgba(30,43,79,.18)}
@@ -739,7 +746,7 @@ function spin(){
     setTimeout(function(){
       cap.classList.add("held"); pg.className = "gc-pg land";
       setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
-    }, 1300);
+    }, 1800);
   }).catch(function(e){
     busy = false;
     $("gcG").classList.remove("party", "focus", "tap");
