@@ -453,7 +453,8 @@ function render(anim){
     gamesHtml() + bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
-    '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次。</li>' +
+    '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
+    '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送造型小黑熊，收進黑熊圖鑑。</li>' +
     '<li>每日扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底另外送，不算在裡面。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
@@ -722,7 +723,8 @@ function bearsHtml(){
         '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.rare ? '<i>稀有</i>' : '') + '</div>';
     }).join("") + '</div>' +
     '<div class="gc-dex-note">' + (b.done ? '✅ 已集滿！' + esc(b.reward) + ' 已送出' :
-      '每轉一次扭蛋，就會多一隻造型小黑熊。集滿 ' + b.list.length + ' 款送 <b>' + esc(b.reward) + '</b>') + '</div></div></div>';
+      '每轉一次扭蛋，就會多一隻造型小黑熊。集滿 ' + b.list.length + ' 款送 <b>' + esc(b.reward) + '</b>' +
+      (b.limit ? (b.left > 0 ? '（限量 ' + b.limit + ' 名，搶先集滿的人才有）' : '（' + b.limit + ' 名已經送完囉）') : '')) + '</div></div></div>';
 }
 
 /* ── 轉扭蛋 ── */
@@ -769,9 +771,10 @@ var afterModal = null;
 function showModal(p){
   var me = spun.state.me, none = p.type === "none";
   $("gcMIc").textContent = p.ic;
-  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : "恭喜獲得！";
+  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "送你一隻造型小黑熊！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
     : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
+    : p.type === "bear" ? '今天的紅利已經中滿 ' + (spun.state.bonusDaily || 2) + ' 次囉<br>這次送你一隻造型小黑熊，收進你的黑熊圖鑑'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
   var next = TIERS.filter(function(t){ return t[0] > me.bonus })[0];
@@ -800,8 +803,7 @@ function showModal(p){
     if (spun.collect) {
       var co = spun.collect; spun.collect = null;
       setTimeout(function(){
-        showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
-          (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
+        showCollect(co);
       }, 400);
       return;
     }
@@ -819,11 +821,13 @@ function showModal2(ic, title, html){
 function showModalNext(){
   if (spun.collect) {
     var co = spun.collect; spun.collect = null;
-    setTimeout(function(){
-      showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
-        (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
-    }, 400);
+    setTimeout(function(){ showCollect(co) }, 400);
   } else finish();
+}
+function showCollect(co){
+  if (co.soldOut) showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊 🎉<br>可惜 <b style="color:#1E2B4F">' + esc(co.nm) + '</b> 限量名額已經送完了<br>謝謝你這麼認真收集！');
+  else showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
+    (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
 }
 function closeModal(){
   $("gcModal").classList.remove("show");
