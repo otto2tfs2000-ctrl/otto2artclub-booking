@@ -115,6 +115,8 @@ var CSS = `
 .gc-gh{font-size:14px;font-weight:900;color:#1E2B4F}
 .gc-gh span{display:block;font-size:11.5px;font-weight:500;color:#8A90A0;margin-top:2px}
 .gc-q{font-size:15px;font-weight:700;margin:10px 0 8px;line-height:1.6}
+.gc-lv{display:inline-block;font-size:11px;font-weight:900;padding:1px 8px;border-radius:9px;margin-right:6px;vertical-align:2px;background:#E3F4EA;color:#2E7D4F}
+.gc-lv.l2{background:#FFF3C4;color:#8A6400}.gc-lv.l3{background:#FCE3DC;color:#A5452F}.gc-lv.l4{background:#1E2B4F;color:#E3B34C}
 .gc-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .gc-opt{padding:10px 8px;border-radius:10px;border:1.5px solid #E4E1D9;background:#FAF8F3;font-size:13.5px;text-align:left;cursor:pointer;color:#2A2E38;line-height:1.4}
 .gc-opt:active{transform:scale(.97)}
@@ -455,7 +457,7 @@ function render(anim){
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
     '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送造型小黑熊，收進黑熊圖鑑。</li>' +
-    '<li>每日扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底另外送，不算在裡面。</li>' +
+    '<li>整個活動期間，扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底送的紅利是額外的，不算在 ' + st.cap + ' 點裡。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
   ov.classList.toggle("hw", !!st.halloween);
@@ -610,7 +612,7 @@ function gamesHtml(){
   var q = st.quiz;
   if (q) {
     h += '<div class="gc-game"><div class="gc-gh">🎨 今日藝術小問答<span>答對多一次扭蛋</span></div>' +
-      '<div class="gc-q">' + esc(q.q) + '</div><div class="gc-opts">' +
+      '<div class="gc-q">' + (q.lv ? '<span class="gc-lv l' + q.lv + '">' + ["", "簡單", "中等", "有難度", "超難"][q.lv] + '</span>' : '') + esc(q.q) + '</div><div class="gc-opts">' +
       q.o.map(function(o, i){
         var c = "";
         if (q.answered) c = i === q.a ? " right" : (i === q.c ? " wrong" : " dim");
