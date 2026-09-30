@@ -319,7 +319,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.36</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.37</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -793,7 +793,11 @@ async function fetchMember(phone){
     return { name:j.name||"", lineUserId:j.lineUserId||"",
       cache:{ points:j.points||0, sessions:j.sessions||0,
               bonus:j.bonus||0, voucher:j.voucher||0 } };
-  }catch(e){return null}
+  }catch(e){
+    /* 連線失敗、伺服器 500 跟「真的查無此人」要分開——以前一律回 null，
+       客人網路一抖就看到「查不到這支號碼」，以為自己不是會員。 */
+    return {error:"network"};
+  }
 }
 const isPhoneKey=k=>/^0\d{8,10}$/.test(String(k||""));
 /* lineIndex 的查詢併進 /liff/me 了，這支留著給別處呼叫時不會壞 */
@@ -817,16 +821,18 @@ async function lookupMemberByPhone(raw){
   const mySeq=++lookupMemberSeq;
   const phone=normTW(raw);
   if(!isPhoneKey(phone)){
-    if(mySeq!==lookupMemberSeq)return;
-    myMember=null;renderBalance();return}
-  if(myMember&&myMember.phone===phone)return;
+    if(mySeq!==lookupMemberSeq)return "stale";
+    myMember=null;renderBalance();return "notfound"}
+  if(myMember&&myMember.phone===phone)return "found";
   /* 電話跟 LINE 帳號的對應，交給 fetchMember 裡帶的 userId 讓伺服器順手記住
      （見 server.js /liff/member）——以前這裡自己直接寫 Firebase，
      但 liffProfiles／lineIndex 的寫入規則鎖起來之後全部悄悄失敗，白寫。 */
   const m=await fetchMember(phone);
-  if(mySeq!==lookupMemberSeq)return; /* 打字打到後面去了，這次結果已經過期 */
-  if(!m||m.error){myMember=null;renderBalance();return}
+  if(mySeq!==lookupMemberSeq)return "stale"; /* 打字打到後面去了，這次結果已經過期 */
+  if(m&&m.error)return "error";      /* 連線失敗不代表不是會員，已認到的別清掉 */
+  if(!m){myMember=null;renderBalance();return "notfound"}
   setMember(phone,m);
+  return "found";
 }
 function setMember(phone,m){
   if(!isPhoneKey(phone)||!m||m.error)return;      /* 防呆：絕不把錯誤訊息當成資料 */
@@ -1185,8 +1191,18 @@ function renderMine(){
       const err=document.getElementById("mnErr");
       if(!isPhoneKey(normTW(raw))){err.textContent="手機號碼格式看起來不對，請再確認一次。";return}
       err.textContent="查詢中…";
-      await lookupMemberByPhone(raw);
-      if(myMember){ mineLedger=null; myBookings=null; renderMine() }
+      /* 2026-09-30 老會員輸入正確電話卻看到「查不到」：
+         1. 連線一抖（或伺服器慢）以前也顯示成查不到 → 現在自動重試一次，還是不行就講清楚是連線問題
+         2. 打開頁面時背景的自動認人（/liff/me 要翻全部預約，常要 2～3 秒）
+            如果比客人按查詢晚回來，客人這次的結果會被當成「過期」丟掉 → 過期就重查一次 */
+      const want=normTW(raw);
+      let r=await lookupMemberByPhone(raw);
+      if(r==="error"||(r==="stale"&&!(myMember&&myMember.phone===want))){
+        await new Promise(ok=>setTimeout(ok,800));
+        r=await lookupMemberByPhone(raw);
+      }
+      if(myMember&&myMember.phone===want){ mineLedger=null; myBookings=null; renderMine() }
+      else if(r==="error"||r==="stale") err.textContent="網路好像不太穩，查詢沒有成功，請稍等一下再按一次「查詢」。";
       else err.textContent="查不到這支號碼的會員資料。如果確定有上過課，請私訊小編幫你查。";
     };
     document.getElementById("mnGo").onclick=go;
