@@ -108,6 +108,71 @@ var CSS = `
 .gc-g.tap .gc-tapme{opacity:1;animation:gcTap 1.2s ease-in-out infinite}
 @keyframes gcTap{50%{transform:translateX(-50%) translateY(-5px)}}
 
+
+/* ── 多拿扭蛋機會 ── */
+.gc-game{background:#fff;border:1px solid #E4E1D9;border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.gc-game.row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.gc-gh{font-size:14px;font-weight:900;color:#1E2B4F}
+.gc-gh span{display:block;font-size:11.5px;font-weight:500;color:#8A90A0;margin-top:2px}
+.gc-q{font-size:15px;font-weight:700;margin:10px 0 8px;line-height:1.6}
+.gc-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gc-opt{padding:10px 8px;border-radius:10px;border:1.5px solid #E4E1D9;background:#FAF8F3;font-size:13.5px;text-align:left;cursor:pointer;color:#2A2E38;line-height:1.4}
+.gc-opt:active{transform:scale(.97)}
+.gc-opt.picked{border-color:#1E2B4F}
+.gc-opt.right{background:#E3F4EA;border-color:#2E7D4F;color:#1F5C39;font-weight:700}
+.gc-opt.wrong{background:#FCE3DC;border-color:#C0392B;color:#8A2A1F}
+.gc-opt.dim{opacity:.5}
+.gc-qres{margin-top:10px;font-size:13.5px;font-weight:700;line-height:1.6}
+.gc-qres.ok{color:#2E7D4F}.gc-qres.no{color:#B85F10}
+.gc-qres small{display:block;font-weight:400;color:#6B7180;font-size:12.5px;margin-top:4px}
+.gc-mini{flex:0 0 auto;padding:8px 14px;border-radius:10px;border:none;background:#1E2B4F;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-left:8px}
+.gc-mini.done{background:#E3F4EA;color:#2E7D4F}
+
+/* ── 翻牌配對 ── */
+.gc-mem{position:fixed;inset:0;z-index:75;background:rgba(20,26,45,.72);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .3s}
+.gc-mem.show{opacity:1}
+.gc-mem-in{background:#F6F4EF;border-radius:20px;padding:14px;width:100%;max-width:380px}
+.gc-mem-top{display:flex;align-items:center;gap:10px;font-size:16px;color:#1E2B4F;position:relative;padding-right:40px}
+.gc-mem-top span{margin-left:auto;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;color:#E8836B}
+.gc-mem-top .gc-x{top:-4px;right:0;background:#E4E1D9;color:#1E2B4F}
+.gc-mem-bar{height:6px;border-radius:6px;background:#E4E1D9;margin:10px 0 12px;overflow:hidden}
+.gc-mem-bar i{display:block;height:100%;width:100%;background:#E3B34C;transition:width 1s linear}
+.gc-mem-bar i.hurry{background:#E0322F}
+.gc-mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gc-card2{aspect-ratio:3/4;border:none;padding:0;background:none;perspective:600px;cursor:pointer}
+.gc-card2 .in{position:relative;display:block;width:100%;height:100%;transition:transform .45s cubic-bezier(.3,1.3,.5,1);transform-style:preserve-3d}
+.gc-card2.flip .in{transform:rotateY(180deg)}
+.gc-card2 .bk,.gc-card2 .fr{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}
+.gc-card2 .bk{background:#D7262E;border:2.5px solid #1A1A1A;color:#fff;font-size:11px;font-weight:900;letter-spacing:1px}
+.gc-card2 .fr{background:#fff;border:2.5px solid #E4E1D9;transform:rotateY(180deg)}
+.gc-card2 .fr svg{width:78%;height:78%}
+.gc-card2.got .fr{border-color:#2E7D4F;background:#E3F4EA;animation:gcGot .5s ease}
+@keyframes gcGot{50%{transform:rotateY(180deg) scale(1.1)}}
+.gc-mem-msg{text-align:center;font-size:13.5px;color:#1E2B4F;font-weight:700;margin-top:12px;min-height:34px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+
+/* ── 黑熊圖鑑 ── */
+.gc-dex{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gc-dx{position:relative;text-align:center;background:#F3F1EC;border-radius:12px;padding:8px 4px 6px}
+.gc-dx svg{width:52px;height:56px;display:block;margin:0 auto}
+.gc-dx span{display:block;font-size:11.5px;color:#B3B0A8;margin-top:2px}
+.gc-dx.got{background:#FFF6E3}
+.gc-dx.got span{color:#1E2B4F;font-weight:700}
+.gc-dx em{position:absolute;right:5px;top:4px;font-style:normal;font-size:10.5px;color:#8A90A0}
+.gc-dx i{position:absolute;left:4px;top:4px;font-style:normal;font-size:9.5px;background:#E3B34C;color:#1E2B4F;padding:0 5px;border-radius:6px;font-weight:900}
+.gc-dex-note{font-size:12px;color:#6B7180;margin-top:10px;line-height:1.7}
+.gc-mbear{display:flex;align-items:center;gap:10px;background:#F3F1EC;border-radius:12px;padding:8px 12px;margin-top:12px;text-align:left;font-size:13px;line-height:1.5}
+.gc-mbear svg{width:46px;height:50px;flex:0 0 auto}
+.gc-mbear b{color:#1E2B4F}
+.gc-mbear .nw{display:inline-block;background:#E0322F;color:#fff;font-size:10px;font-weight:900;padding:0 6px;border-radius:6px;margin-left:4px}
+
+/* ── 萬聖節造型 ── */
+#gcOv.hw .gc-sun{background:radial-gradient(circle at 50% 44%,#FFE9C9 0,#F6B26B 50%,#7D4CA8 100%)}
+#gcOv.hw .gc-red{fill:#F08A24}
+#gcOv.hw .gc-red2{fill:#6E3FA3}
+#gcOv.hw .gc-love{background:#F08A24;color:#fff}
+#gcOv.hw .gc-luck{background:#6E3FA3}
+#gcOv.hw .gc-top{background:linear-gradient(135deg,#3B2459,#1E2B4F)}
+
 /* 掉出來的扭蛋 */
 .gc-cap{position:absolute;left:95px;top:318px;width:90px;height:90px;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity}
 .gc-cap.go{animation:gcCapOut 1.3s cubic-bezier(.22,1,.36,1) forwards;pointer-events:auto;cursor:pointer}
@@ -282,7 +347,7 @@ function open(){
     document.body.appendChild(ov);
     var m = document.createElement("div"); m.className = "gc-modal"; m.id = "gcModal";
     m.innerHTML = '<div class="gc-mbox"><div class="gc-prize"><div class="gc-rays"></div><div class="gc-big" id="gcMIc"></div></div>' +
-      '<h3 id="gcMT"></h3><p id="gcMP"></p><div class="gc-mbal" id="gcMBal"></div>' +
+      '<h3 id="gcMT"></h3><p id="gcMP"></p><div id="gcMBear"></div><div class="gc-mbal" id="gcMBal"></div>' +
       '<button class="gc-btn pri" id="gcMBook">📅 順便預約下一堂</button>' +
       '<button class="gc-btn sec" id="gcMClose" style="margin-top:8px">知道了</button></div>';
     document.body.appendChild(m);
@@ -306,7 +371,7 @@ function close(){
 function shell(inner){
   var t = (st && st.title) || "十月黑熊扭蛋";
   return SYMBOLS + '<div class="gc-top"><button class="gc-x" id="gcX" aria-label="關閉">✕</button>' +
-    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>🐻 ' + esc(t) + '</h1>' +
+    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🐻 ') + esc(t) + '</h1>' +
     '<p>每天轉一次，紅利、課程券等你拿</p></div>' + inner;
 }
 function bindShell(){ var x = $("gcX"); if (x) x.onclick = close }
@@ -358,6 +423,8 @@ function render(anim){
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
+  if (s === "test") banner += '<div style="text-align:right;margin:-4px 0 10px"><a class="gc-hwlink" id="gcHwPrev" style="font-size:12px;color:#6E3FA3;text-decoration:underline;cursor:pointer">' +
+    (st.halloween ? "看平常的造型" : "🎃 預覽萬聖節造型") + '</a></div>';
   if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
     if (st.doubleToday) banner += '<div class="gc-banner">🎃 今天是加碼日：多一次機會，而且每一次都一定中！</div>';
@@ -375,18 +442,23 @@ function render(anim){
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
-    '<button class="gc-go" id="gcGo">轉一下 🐻</button><div class="gc-hint" id="gcHint"></div>' +
-    '<div class="gc-why">用線上預約系統約課，當天多一次扭蛋 · <a id="gcBookLink">去預約</a></div></div>' +
+    '<button class="gc-go" id="gcGo">轉一下 🐻</button><div class="gc-hint" id="gcHint"></div></div>' +
+    gamesHtml() + bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
-    '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、當天用線上預約系統約課，各多一次。</li>' +
+    '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次。</li>' +
     '<li>每日扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底另外送，不算在裡面。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
+  ov.classList.toggle("hw", !!st.halloween);
   bindShell();
   fillMachine();
+  bindGames();
   $("gcGo").onclick = spin; $("gcKnob").onclick = spin; $("gcCap").onclick = openCap;
-  $("gcBook").onclick = $("gcBookLink").onclick = function(){ close(); if (window.setStep) setStep(1) };
+  var goBook = function(){ close(); if (window.setStep) setStep(1) };
+  $("gcBook").onclick = goBook;
+  if ($("gcBookLink")) $("gcBookLink").onclick = goBook;
+  if ($("gcHwPrev")) $("gcHwPrev").onclick = function(){ st.halloween = !st.halloween; render(false) };
   $("gcBack").onclick = close;
   updChance();
 }
@@ -403,30 +475,34 @@ function updChance(){
 }
 function machine(){
   return '<div class="gc-g" id="gcG">' +
-    '<div class="gc-sun"><i style="left:22px;top:30px;color:#E0322F;font-size:16px;--d:0s">❤</i><i style="left:238px;top:62px;color:#E3B34C;font-size:18px;--d:.7s">✦</i><i style="left:30px;top:210px;color:#E3B34C;font-size:14px;--d:1.3s">✦</i><i style="left:244px;top:226px;color:#E0322F;font-size:14px;--d:.4s">❤</i><i style="left:252px;top:150px;color:#E3B34C;font-size:11px;--d:1.9s">✦</i><i style="left:12px;top:120px;color:#E3B34C;font-size:11px;--d:2.2s">✦</i></div>' +
+    (st && st.halloween
+      ? '<div class="gc-sun"><i style="left:16px;top:24px;font-size:22px;--d:0s">🎃</i><i style="left:232px;top:56px;font-size:20px;--d:.7s">🦇</i><i style="left:24px;top:206px;font-size:18px;--d:1.3s">🦇</i><i style="left:238px;top:220px;font-size:20px;--d:.4s">🎃</i><i style="left:248px;top:146px;font-size:14px;--d:1.9s">🕸️</i><i style="left:8px;top:116px;font-size:14px;--d:2.2s">🍬</i></div>'
+      : '<div class="gc-sun"><i style="left:22px;top:30px;color:#E0322F;font-size:16px;--d:0s">❤</i><i style="left:238px;top:62px;color:#E3B34C;font-size:18px;--d:.7s">✦</i><i style="left:30px;top:210px;color:#E3B34C;font-size:14px;--d:1.3s">✦</i><i style="left:244px;top:226px;color:#E0322F;font-size:14px;--d:.4s">❤</i><i style="left:252px;top:150px;color:#E3B34C;font-size:11px;--d:1.9s">✦</i><i style="left:12px;top:120px;color:#E3B34C;font-size:11px;--d:2.2s">✦</i></div>') +
     '<div class="gc-floor"></div>' +
     '<div class="gc-mach" id="gcMach">' +
       '<div class="gc-globe"><svg class="gc-peek l"><use href="#gcBh"/></svg><svg class="gc-peek r"><use href="#gcBh"/></svg><div class="gc-swirl" id="gcSwirl"></div><div class="gc-gl"></div></div>' +
       '<svg class="gc-svg up" viewBox="0 0 280 424" aria-hidden="true">' +
-        '<rect x="122" y="6" width="36" height="16" rx="7" fill="#D7262E" stroke="#1A1A1A" stroke-width="3"/>' +
-        '<path d="M86 52 Q88 20 140 18 Q192 20 194 52 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
+        '<rect class="gc-red" x="122" y="6" width="36" height="16" rx="7" fill="#D7262E" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<path class="gc-red" d="M86 52 Q88 20 140 18 Q192 20 194 52 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
         '<path d="M104 30 Q116 24 132 23" stroke="#fff" stroke-opacity=".45" stroke-width="5" fill="none" stroke-linecap="round"/>' +
-        '<rect x="76" y="46" width="128" height="16" rx="8" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
-        '<path d="M80 250 C70 264 66 290 62 318 L54 386 Q52 398 68 398 L212 398 Q228 398 226 386 L218 318 C214 290 210 264 200 250 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
+        '<rect class="gc-red2" x="76" y="46" width="128" height="16" rx="8" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<path class="gc-red" d="M80 250 C70 264 66 290 62 318 L54 386 Q52 398 68 398 L212 398 Q228 398 226 386 L218 318 C214 290 210 264 200 250 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
         '<path d="M200 284 C204 310 208 340 211 376" stroke="#fff" stroke-opacity=".28" stroke-width="7" fill="none" stroke-linecap="round"/>' +
-        '<rect x="68" y="236" width="144" height="20" rx="10" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
+        '<rect class="gc-red2" x="68" y="236" width="144" height="20" rx="10" fill="#B81E25" stroke="#1A1A1A" stroke-width="3"/>' +
         '<path d="M84 243 L140 243" stroke="#fff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round"/>' +
       '</svg>' +
-      '<div class="gc-love">LOVE</div><div class="gc-luck">LUCK</div>' +
+      '<div class="gc-love">' + (st && st.halloween ? "BOO" : "LOVE") + '</div><div class="gc-luck">' + (st && st.halloween ? "TRICK" : "LUCK") + '</div>' +
       '<button class="gc-knob" id="gcKnob" aria-label="轉一下">OTTO2</button><div class="gc-exit"></div>' +
     '</div>' +
     '<div class="gc-crowd" id="gcCrowd"></div>' +
     '<div class="gc-cap" id="gcCap"><div class="gc-capin"><i class="t"></i><i class="b"></i><div class="gc-burst"></div></div></div>' +
     '<div class="gc-tapme">👆 點扭蛋打開！</div>' +
-    '<div class="gc-pg" id="gcPg"><div class="gc-pb"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
+    '<div class="gc-pg" id="gcPg"><div class="gc-pb">' + (st && st.halloween ? bearSvg("pumpkin") : '<svg viewBox="0 0 40 40"><use href="#gcBh"/></svg>') + '</div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
   '</div>';
 }
+var BALLC_HW = ["#F08A24","#6E3FA3","#231F20","#7BBF3F","#F2C94C","#F08A24","#6E3FA3","#E88BB0"];
 function fillMachine(){
+  var hw = st && st.halloween, pal = hw ? BALLC_HW : BALLC;
   var rows = [[176,6],[146,6],[116,5],[90,4]], h = "", k = 0;
   rows.forEach(function(r, ri){
     var w = 208 / r[1];
@@ -434,7 +510,7 @@ function fillMachine(){
       var x = Math.round(i * w + (w - 36) / 2 + (ri % 2 ? 6 : -4)), d = (k * .29).toFixed(2);
       h += (k % 4 === 1)
         ? '<div class="gc-ball bh" style="left:' + (x - 2) + 'px;top:' + (r[0] - 4) + 'px;--d:' + d + 's"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div>'
-        : '<div class="gc-ball" style="left:' + x + 'px;top:' + r[0] + 'px;--c:' + BALLC[k % BALLC.length] + ';--d:' + d + 's"></div>';
+        : '<div class="gc-ball" style="left:' + x + 'px;top:' + r[0] + 'px;--c:' + pal[k % pal.length] + ';--d:' + d + 's"></div>';
       k++;
     }
   });
@@ -442,7 +518,7 @@ function fillMachine(){
   var C = [[4,330,.8,1],[238,330,.8,1],[36,346,.72,0],[206,346,.72,0],[-6,362,1,0],[26,370,1,1],[60,376,.95,0],[184,376,.95,1],[216,370,1,0],[248,362,1,1]];
   $("gcCrowd").innerHTML = C.map(function(c, i){
     var bx = i % 2 ? 14 : 24;
-    var bal = c[3] ? '<g class="gc-bal2"><path d="M' + bx + ' -2 L' + (bx - 2) + ' 30" stroke="#555" stroke-width="1"/><ellipse cx="' + bx + '" cy="-14" rx="11" ry="13" fill="#E0322F" stroke="#1A1A1A" stroke-width="1.5"/><ellipse cx="' + (bx - 4) + '" cy="-19" rx="3" ry="4" fill="#fff" opacity=".5"/></g>' : "";
+    var bal = c[3] ? '<g class="gc-bal2"><path d="M' + bx + ' -2 L' + (bx - 2) + ' 30" stroke="#555" stroke-width="1"/><ellipse cx="' + bx + '" cy="-14" rx="11" ry="13" fill="' + (hw ? (i % 3 ? "#F08A24" : "#6E3FA3") : "#E0322F") + '" stroke="#1A1A1A" stroke-width="1.5"/><ellipse cx="' + (bx - 4) + '" cy="-19" rx="3" ry="4" fill="#fff" opacity=".5"/></g>' : "";
     return '<div class="gc-bb" style="left:' + c[0] + 'px;top:' + c[1] + 'px;--s:' + c[2] + ';--d:' + (i * .27).toFixed(2) + 's"><svg viewBox="0 0 38 58">' + bal + '<use href="#gcBody"/></svg></div>';
   }).join("");
 }
@@ -481,13 +557,175 @@ function pool(){
   return '<div class="gc-pool">' + h + '</div>';
 }
 
+
+/* ══ 第二波小遊戲（2026-09-30）══════════════════════════════
+   藝術小問答、翻牌配對、黑熊圖鑑、萬聖節造型。
+   一樣只負責畫面：答對了沒、過關了沒、抽到哪隻熊，都是伺服器說了算。 */
+
+/* 造型小黑熊：同一顆黑熊頭，加上不同的配件 */
+function bearSvg(id, ghost){
+  var k = ghost ? "#D8D5CD" : id === "gold" ? "#E3B34C" : "#231F20";
+  var ln = ghost ? "#EEEBE4" : "#fff";
+  var head =
+    '<circle cx="8" cy="9" r="7" fill="' + k + '"/><circle cx="32" cy="9" r="7" fill="' + k + '"/>' +
+    '<path d="M6 8 Q7 4 11 3" stroke="' + ln + '" stroke-width="1.6" fill="none"/><path d="M34 8 Q33 4 29 3" stroke="' + ln + '" stroke-width="1.6" fill="none"/>' +
+    '<ellipse cx="20" cy="22" rx="17" ry="16" fill="' + k + '"/>' +
+    (ghost ? '<text x="20" y="28" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">?</text>' :
+    '<circle cx="13" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/><circle cx="27" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/>' +
+    '<rect x="15" y="20" width="10" height="10" rx="4" fill="#fff"/><ellipse cx="20" cy="22.5" rx="3" ry="2" fill="#231F20"/>');
+  var acc = "";
+  if (!ghost) {
+    if (id === "paint") acc = '<ellipse cx="22" cy="4" rx="12" ry="5" fill="#E0322F"/><circle cx="23" cy="-1" r="1.8" fill="#E0322F"/>' +
+      '<ellipse cx="34" cy="36" rx="6.5" ry="4.8" fill="#F1DDB5" stroke="#8A6A3A" stroke-width=".8"/><circle cx="32" cy="35" r="1.2" fill="#E0322F"/><circle cx="35" cy="34" r="1.2" fill="#4FA3C7"/><circle cx="36.5" cy="37" r="1.2" fill="#F2C94C"/>';
+    else if (id === "sketch") acc = '<g transform="rotate(35 32 6)"><rect x="30" y="-7" width="4.5" height="18" fill="#F2C94C" stroke="#8A6A1A" stroke-width=".6"/>' +
+      '<path d="M30 11 L34.5 11 L32.25 15.5 Z" fill="#F1DDB5"/><path d="M31.5 13.6 L33 13.6 L32.25 15.5 Z" fill="#333"/><rect x="30" y="-7" width="4.5" height="2.6" fill="#E88BB0"/></g>';
+    else if (id === "pour") acc = '<path d="M5 14 Q8 5 20 5 Q32 5 35 14 L35 16 Q33 20 32 15 Q30 12 28.5 18 Q27 22 25.5 15 Q24 12 22 19 Q20.5 23 19 15 Q17.5 12 16 18 Q14.5 21 13 15 Q11.5 12 10 17 Q8 20 7 15 Z" fill="#E88BB0"/>' +
+      '<path d="M8 11 Q11 7 20 7 Q29 7 32 11 Q30 14 28 11 Q25 9 23 13 Q21 10 18 13 Q15 9 13 12 Q10 14 8 11 Z" fill="#4FA3C7"/><path d="M13 8 Q20 5.5 27 8 Q24 10 20 8.5 Q16 10 13 8 Z" fill="#F2C94C"/>';
+    else if (id === "yarn") acc = '<circle cx="33" cy="35" r="6.5" fill="#E88BB0"/><path d="M27.5 33 Q33 29.5 38.5 34 M27.5 37 Q33 33.5 38.5 38 M30 29.5 Q35.5 35 33 41.5" stroke="#fff" stroke-width=".9" fill="none"/>' +
+      '<path d="M27 38 Q20 43 11 40" stroke="#E88BB0" stroke-width="1.1" fill="none"/>';
+    else if (id === "crystal") acc = '<path d="M29 -3 L36 -3 L39.5 1.5 L32.5 9.5 L25.5 1.5 Z" fill="#9FE3F0" stroke="#2F8FB0" stroke-width=".8"/>' +
+      '<path d="M25.5 1.5 L39.5 1.5 M29 -3 L32.5 9.5 L36 -3" stroke="#2F8FB0" stroke-width=".5" fill="none"/><path d="M6 1 L7 3.5 L9.5 4 L7 5 L6 7.5 L5 5 L2.5 4 L5 3.5 Z" fill="#9FE3F0"/>';
+    else if (id === "aroma") acc = '<ellipse cx="33" cy="37.5" rx="7" ry="4.5" fill="#D8D2C4" stroke="#9A9384" stroke-width=".8"/>' +
+      '<circle cx="31.5" cy="32" r="1.8" fill="#E88BB0"/><circle cx="34.5" cy="32" r="1.8" fill="#E88BB0"/><circle cx="33" cy="29.6" r="1.8" fill="#E88BB0"/><circle cx="33" cy="34.2" r="1.8" fill="#E88BB0"/><circle cx="33" cy="32" r="1.3" fill="#F2C94C"/>';
+    else if (id === "pumpkin") acc = '<ellipse cx="20" cy="4" rx="11.5" ry="6.5" fill="#F08A24" stroke="#B85F10" stroke-width=".8"/>' +
+      '<path d="M14 4 Q20 -2 26 4 M20 -2.5 L20 10.5" stroke="#B85F10" stroke-width=".7" fill="none"/><rect x="19" y="-6" width="2.6" height="4.5" rx="1" fill="#4E8A2E"/>';
+    else if (id === "gold") acc = '<path d="M34 -3 L35.2 1 L39 2 L35.2 3 L34 7 L32.8 3 L29 2 L32.8 1 Z" fill="#FFF3C4"/><path d="M5 0 L5.8 2.4 L8 3 L5.8 3.6 L5 6 L4.2 3.6 L2 3 L4.2 2.4 Z" fill="#FFF3C4"/>';
+  }
+  return '<svg viewBox="-2 -7 44 50" aria-hidden="true">' + head + acc + '</svg>';
+}
+
+/* ── 多拿扭蛋機會：小問答＋翻牌＋線上預約 ── */
+function gamesHtml(){
+  var s = st.status;
+  if (!(s === "on" || s === "test")) return "";
+  var h = '<div class="gc-sec"><div class="gc-sh"><h2>多拿扭蛋機會</h2><small>每天都能挑戰</small></div>';
+  var q = st.quiz;
+  if (q) {
+    h += '<div class="gc-game"><div class="gc-gh">🎨 今日藝術小問答<span>答對多一次扭蛋</span></div>' +
+      '<div class="gc-q">' + esc(q.q) + '</div><div class="gc-opts">' +
+      q.o.map(function(o, i){
+        var c = "";
+        if (q.answered) c = i === q.a ? " right" : (i === q.c ? " wrong" : " dim");
+        return '<button class="gc-opt' + c + '" data-i="' + i + '"' + (q.answered ? " disabled" : "") + '>' + "ABCD"[i] + '. ' + esc(o) + '</button>';
+      }).join("") + '</div>';
+    if (q.answered) h += '<div class="gc-qres ' + (q.ok ? "ok" : "no") + '">' + (q.ok ? "🎉 答對了！今天多送你一次扭蛋" : "差一點點！明天再來挑戰") +
+      (q.t ? '<small>💡 ' + esc(q.t) + '</small>' : '') + '</div>';
+    h += '</div>';
+  }
+  if (st.memory) {
+    h += '<div class="gc-game row"><div><div class="gc-gh">🃏 翻牌配對<span>60 秒內配完 6 對，多一次扭蛋</span></div></div>' +
+      (st.memory.done ? '<button class="gc-mini done" id="gcMem">✅ 已過關・再玩</button>' : '<button class="gc-mini" id="gcMem">開始挑戰</button>') + '</div>';
+  }
+  h += '<div class="gc-game row"><div><div class="gc-gh">📅 線上預約<span>今天用預約系統約課，多一次扭蛋</span></div></div>' +
+    '<button class="gc-mini" id="gcBookLink">去預約</button></div>';
+  return h + '</div>';
+}
+function bindGames(){
+  document.querySelectorAll(".gc-opt:not([disabled])").forEach(function(b){ b.onclick = function(){ answer(+b.dataset.i, b) } });
+  var m = $("gcMem"); if (m) m.onclick = memoryGame;
+}
+async function answer(i, btn){
+  if (busy) return toast("扭蛋轉完再來答題喔");
+  document.querySelectorAll(".gc-opt").forEach(function(b){ b.disabled = true });
+  btn.classList.add("picked");
+  try {
+    var j = await call("/gacha/quiz", { choice: i });
+    var sim = st.sim;
+    st = j.state;
+    if (sim) {
+      /* 測試模式每答一題就換下一題，先把這一題的結果秀出來 */
+      document.querySelectorAll(".gc-opt").forEach(function(b){
+        var k = +b.dataset.i; b.classList.add(k === j.a ? "right" : (k === i ? "wrong" : "dim")) });
+      btn.parentNode.insertAdjacentHTML("afterend", '<div class="gc-qres ' + (j.correct ? "ok" : "no") + '">' +
+        (j.correct ? "🎉 答對了！" : "答錯了") + (j.t ? '<small>💡 ' + esc(j.t) + '</small>' : '') +
+        '<small style="color:#8FA6D9">（測試模式可以一直答，3 秒後換下一題）</small></div>');
+      setTimeout(function(){ render(false) }, 3000);
+      return;
+    }
+    render(false);
+    if (j.correct) { confetti(false); toast("答對了！多送你一次扭蛋 🎉") }
+  } catch(e) { toast(e.message); load() }
+}
+
+/* ── 翻牌配對 ── */
+var MEM_BEARS = ["paint","sketch","pour","yarn","crystal","aroma"];
+function memoryGame(){
+  if (busy) return toast("扭蛋轉完再來玩喔");
+  var deck = MEM_BEARS.concat(MEM_BEARS).map(function(id){ return { id:id, r:Math.random() } })
+    .sort(function(a, b){ return a.r - b.r });
+  var box = document.createElement("div"); box.className = "gc-mem"; box.id = "gcMemBox";
+  box.innerHTML = '<div class="gc-mem-in"><div class="gc-mem-top"><b>🃏 翻牌配對</b><span id="gcMemT">60</span><button class="gc-x" id="gcMemX" aria-label="關閉">✕</button></div>' +
+    '<div class="gc-mem-bar"><i id="gcMemBar"></i></div>' +
+    '<div class="gc-mem-grid">' + deck.map(function(c, i){
+      return '<button class="gc-card2" data-i="' + i + '" aria-label="翻牌"><span class="in"><span class="bk">OTTO2</span><span class="fr">' + bearSvg(c.id) + '</span></span></button>' }).join("") +
+    '</div><div class="gc-mem-msg" id="gcMemMsg">翻開兩張一樣的小黑熊就會消掉</div></div>';
+  document.body.appendChild(box);
+  requestAnimationFrame(function(){ box.classList.add("show") });
+  var open1 = null, lock = false, done = 0, left = 60, over = false;
+  var tick = setInterval(function(){
+    left--; $("gcMemT").textContent = left; $("gcMemBar").style.width = (left / 60 * 100) + "%";
+    if (left <= 10) $("gcMemBar").classList.add("hurry");
+    if (left <= 0) { clearInterval(tick); over = true; lose() }
+  }, 1000);
+  function shut(){ clearInterval(tick); box.classList.remove("show"); setTimeout(function(){ box.remove() }, 300) }
+  $("gcMemX").onclick = shut;
+  box.querySelectorAll(".gc-card2").forEach(function(el){
+    el.onclick = function(){
+      if (lock || over || el.classList.contains("flip")) return;
+      el.classList.add("flip");
+      if (!open1) { open1 = el; return }
+      var a = open1, b = el; open1 = null;
+      if (deck[+a.dataset.i].id === deck[+b.dataset.i].id) {
+        setTimeout(function(){ a.classList.add("got"); b.classList.add("got") }, 250);
+        if (++done === MEM_BEARS.length) { clearInterval(tick); over = true; setTimeout(win, 500) }
+      } else {
+        lock = true;
+        setTimeout(function(){ a.classList.remove("flip"); b.classList.remove("flip"); lock = false }, 750);
+      }
+    };
+  });
+  function lose(){
+    $("gcMemMsg").innerHTML = '⏰ 時間到了！<button class="gc-mini" id="gcMemRe">再試一次</button>';
+    $("gcMemRe").onclick = function(){ shut(); setTimeout(memoryGame, 320) };
+  }
+  async function win(){
+    $("gcMemMsg").textContent = "全部配對完成！確認中…";
+    try {
+      var j = await call("/gacha/memory");
+      st = j.state;
+      confetti(false);
+      $("gcMemMsg").innerHTML = (st.sim ? "🎉 過關！（測試模式，可以一直玩）" : j.first ? "🎉 過關！今天多送你一次扭蛋" : "🎉 過關！今天的加碼已經領過囉") +
+        '<button class="gc-mini" id="gcMemOk">回去轉扭蛋</button>';
+      $("gcMemOk").onclick = function(){ shut(); render(false) };
+    } catch(e) {
+      $("gcMemMsg").innerHTML = esc(e.message) + '<button class="gc-mini" id="gcMemOk">關閉</button>';
+      $("gcMemOk").onclick = shut;
+    }
+  }
+}
+
+/* ── 黑熊圖鑑 ── */
+function bearsHtml(){
+  var b = st.bears; if (!b) return "";
+  var have = b.have || {}, n = b.list.filter(function(x){ return have[x.id] > 0 }).length;
+  return '<div class="gc-sec"><div class="gc-sh"><h2>黑熊圖鑑</h2><small>已收集 ' + n + '／' + b.list.length + '</small></div>' +
+    '<div class="gc-card"><div class="gc-dex">' + b.list.map(function(x){
+      var got = have[x.id] > 0;
+      return '<div class="gc-dx' + (got ? " got" : "") + (x.rare ? " rare" : "") + '">' + bearSvg(x.id, !got) +
+        '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.rare ? '<i>稀有</i>' : '') + '</div>';
+    }).join("") + '</div>' +
+    '<div class="gc-dex-note">' + (b.done ? '✅ 已集滿！' + esc(b.reward) + ' 已送出' :
+      '每轉一次扭蛋，就會多一隻造型小黑熊。集滿 ' + b.list.length + ' 款送 <b>' + esc(b.reward) + '</b>') + '</div></div></div>';
+}
+
 /* ── 轉扭蛋 ── */
 function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls) }
 function spin(){
   if (busy || left() <= 0 || !(st.status === "on" || st.status === "test")) return;
   busy = true; spun = null; updChance();
   var cap = $("gcCap"), pg = $("gcPg");
-  cap.className = "gc-cap"; cap.style.setProperty("--c", CAPC[Math.floor(Math.random() * CAPC.length)]);
+  var cp = st.halloween ? ["#F08A24","#6E3FA3","#7BBF3F"] : CAPC;
+  cap.className = "gc-cap"; cap.style.setProperty("--c", cp[Math.floor(Math.random() * cp.length)]);
   restart($("gcKnob"), "turn"); restart($("gcSwirl"), "spin"); restart($("gcMach"), "wobble");
   $("gcG").classList.add("party");
   try { $("gcG").scrollIntoView({ behavior:"smooth", block:"center" }) } catch(e){}
@@ -535,6 +773,11 @@ function showModal(p){
     : '你目前有：紅利 <b>' + me.bonus + '</b> 點') +
     (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
   if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
+  var bb = spun.bear;
+  $("gcMBear").innerHTML = bb ? '<div class="gc-mbear">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
+    (bb.isNew ? '<span class="nw">NEW</span>' : '') + (bb.rare ? '<span class="nw" style="background:#E3B34C;color:#1E2B4F">稀有</span>' : '') +
+    '<br><span style="color:#8A90A0;font-size:12px">黑熊圖鑑 ' + bb.count + '／' + bb.total + '</span></div></div>' : '';
+  $("gcMBal").style.display = "";
   $("gcModal").classList.toggle("nowin", none);
   $("gcModal").classList.add("show");
   if (!none) confetti(p.type === "ticket" || (p.v || 0) >= 10);
@@ -547,14 +790,33 @@ function showModal(p){
       }, 400);
       return;
     }
+    if (spun.collect) {
+      var co = spun.collect; spun.collect = null;
+      setTimeout(function(){
+        showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
+          (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
+      }, 400);
+      return;
+    }
     finish();
   };
 }
 function showModal2(ic, title, html){
+  $("gcMBear").innerHTML = "";
   $("gcMIc").textContent = ic; $("gcMT").textContent = title;
   $("gcMP").innerHTML = html + (st && st.sim ? '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>' : '');
   $("gcModal").classList.remove("nowin"); $("gcModal").classList.add("show"); confetti(true);
-  afterModal = finish;
+  afterModal = function(){ spun && spun.collect ? showModalNext() : finish() };
+}
+/* 集章保底之後如果圖鑑也剛好集滿，接著再跳一個 */
+function showModalNext(){
+  if (spun.collect) {
+    var co = spun.collect; spun.collect = null;
+    setTimeout(function(){
+      showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
+        (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
+    }, 400);
+  } else finish();
 }
 function closeModal(){
   $("gcModal").classList.remove("show");
