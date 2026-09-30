@@ -319,7 +319,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.37</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.38</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1840,7 +1840,15 @@ function showSkeleton(){
 
 function boot(){
   syncChrome(step);   // 一開始就是 step=0，把頁首同步成「想做什麼？」，不要停在 HTML 寫死的步驟1樣子
-  initLiff().catch(()=>{});   // 認人失敗不影響預約
+  const liffReady=initLiff().catch(()=>{});   // 認人失敗不影響預約
+  /* 直達扭蛋：https://liff.line.me/2010906803-FMDYktUN?go=gacha
+     圖文選單、群發訊息的按鈕用這個網址，打開就直接進扭蛋，不用再點首頁卡片。
+     LIFF 第一次轉進來時參數會包在 liff.state 裡，所以兩種都認。 */
+  let q=location.search+location.hash; try{ q=decodeURIComponent(q) }catch(e){}
+  if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
+    boot._gc=true;
+    liffReady.then(()=>openGacha());
+  }
 
   /* 有暫存就先畫出來，客人立刻看得到東西。
      背景再跟試算表對一次，有變動才重畫。 */
