@@ -561,8 +561,8 @@ function pool(){
   var list = st.prizes.filter(function(p){ return p.type !== "none" && (p.who === "all" || p.who === (mem ? "mem" : "new")) });
   var h = list.map(row).join("");
   if (!mem) {
-    var lk = st.prizes.filter(function(p){ return p.who === "mem" && p.type !== "none" }).map(function(p){ return esc(p.nm) });
-    if (lk.length) h += '<div class="gc-lock">🔒 會員限定：' + lk.join("、") + '<br>購買任一方案就能解鎖</div>';
+    var lk = st.prizes.filter(function(p){ return p.who === "mem" && p.type === "ticket" }).map(function(p){ return esc(p.nm) });
+    if (lk.length) h += '<div class="gc-lock">🔒 會員限定：' + lk.join("、") + '，還有最高 10 點的紅利<br>購買任一方案就能解鎖</div>';
   }
   return '<div class="gc-pool">' + h + '</div>';
 }
