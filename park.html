@@ -601,12 +601,22 @@ async function gSpin(){try{const j=await gcall('/gacha/spin');ST=j.state;return 
 async function gQuiz(b){const j=await gcall('/gacha/quiz',b);ST=j.state;return j}
 let _gNeed=false;
 async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「詳細資訊」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
-  if(typeof hud==='function'&&window.GA&&GA.bubs){renderFigs();showBubbles();hud()}
+  gPaint()
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
 window.onGachaClose=()=>gRefresh();
 function setStep(){location.href=BOOK_URL}
-fetch(NOTIFY_URL+'/gacha/info').then(r=>r.json()).then(j=>{if(j&&j.ok){INFO=j;if(typeof hud==='function'&&window.GA&&GA.bubs)hud()}}).catch(()=>{});
-(async()=>{try{if(window.liff){await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()&&!ssTok()){liff.login({redirectUri:location.href});return}}}catch(e){}gRefresh()})();
+/* 島還沒蓋好時資料先回來，就等島蓋好再重畫一次（不然會一直停在「連線中…」） */
+function gPaint(n){n=n||0;if(typeof hud==='function'&&window.GA&&GA.bubs){try{renderFigs();showBubbles();hud()}catch(e){}}else if(n<60)setTimeout(()=>gPaint(n+1),250)}
+function gInfo(n){fetch(NOTIFY_URL+'/gacha/info?t='+Date.now()).then(r=>r.json()).then(j=>{if(j&&j.ok){INFO=j;gPaint()}else throw 0}).catch(()=>{if((n||0)<3)setTimeout(()=>gInfo((n||0)+1),1500)})}
+gInfo();
+/* LINE 的 liff.init 在遊樂島頁有時候卡住不回來 → 最多等 4 秒；預約頁已經傳了登入身分就先直接用 */
+(async()=>{let done=false;const go=()=>{if(done)return;done=true;gRefresh()};
+  if(ssTok())go();
+  try{if(window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),new Promise(r=>setTimeout(r,4000))]);
+    if(!done&&liff.isLoggedIn&&!liff.isLoggedIn()&&!ssTok()&&liff.id){liff.login({redirectUri:location.href});return}}}catch(e){}
+  if(done&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn()&&!ST)gRefresh();
+  go()})();
+setTimeout(()=>{if(!ST&&!gErrMsg){gErrMsg='連線比較慢，請關掉頁面重新打開';gPaint()}},12000);
 
 /* ---------- 遊樂島: the October gacha plaza sits in front; the board behind stays dark until 11/1 ---------- */
 const PLAZA=new THREE.Vector3(-2.2,0,16.6),PLAZA_R=7.2,BRIDGE_X=-4.3;
@@ -1217,7 +1227,7 @@ function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
-  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&gState().status==='loading'?(ST||!gErrMsg?'連線中…':'重新整理'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
+  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct;playerStripes();if(scene){scene.background=oct?skyTex():null;scene.fog=oct?(scene.fog||new THREE.Fog('#d9eef9',40,85)):null}if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
