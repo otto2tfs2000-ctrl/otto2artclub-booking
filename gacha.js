@@ -458,7 +458,8 @@ function render(anim){
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🎨</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
-  if (s === "on") {
+  if (s === "on" && st.sim) banner = '<div class="gc-banner test">🔧 示範模式（老師／工作人員）：可以一直轉，<b>抽到的紅利和票券都不會入帳</b>，也不會扣限量獎品。</div>';
+  else if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
     if (st.doubleToday) banner += '<div class="gc-banner">🎨 今天是' + esc(st.doubleLabel || "加碼日") + '：多一次機會，而且每一次都一定中！</div>';
     else if (extras.length) banner += '<div class="gc-banner">🎉 ' + esc(extras.join("、")) + '，今天<b>多送 ' + extras.length + ' 次</b>！</div>';

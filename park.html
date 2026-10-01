@@ -1274,7 +1274,7 @@ function hud(){
   $('gifts').textContent=G.gifts;
   $('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?'第二層':LOCK_SVG+'第二層';
-  $('left').innerHTML=oct?(window.PROD?(gOpen()?`今天還可以轉 <b>${gl}</b> 次`:gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
+  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?'🔧 示範模式・可以一直轉（不入帳）':`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
   $('test').classList.toggle('on',G.test);$('test').textContent=G.test?'測試：無限次數':'測試：關（每天一次）';
@@ -2315,7 +2315,8 @@ function render(anim){
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🎨</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
-  if (s === "on") {
+  if (s === "on" && st.sim) banner = '<div class="gc-banner test">🔧 示範模式（老師／工作人員）：可以一直轉，<b>抽到的紅利和票券都不會入帳</b>，也不會扣限量獎品。</div>';
+  else if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
     if (st.doubleToday) banner += '<div class="gc-banner">🎨 今天是' + esc(st.doubleLabel || "加碼日") + '：多一次機會，而且每一次都一定中！</div>';
     else if (extras.length) banner += '<div class="gc-banner">🎉 ' + esc(extras.join("、")) + '，今天<b>多送 ' + extras.length + ' 次</b>！</div>';
