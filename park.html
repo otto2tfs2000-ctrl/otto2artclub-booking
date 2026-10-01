@@ -606,7 +606,7 @@ async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(
 window.onGachaClose=()=>gRefresh();
 function setStep(){location.href=BOOK_URL}
 /* 島還沒蓋好時資料先回來，就等島蓋好再重畫一次（不然會一直停在「連線中…」） */
-function gPaint(n){n=n||0;if(typeof hud==='function'&&window.GA&&GA.bubs){try{renderFigs();showBubbles();hud()}catch(e){}}else if(n<60)setTimeout(()=>gPaint(n+1),250)}
+function gPaint(n){n=n||0;if(typeof hud==='function'&&typeof GA!=='undefined'&&GA.bubs){try{renderFigs();showBubbles();hud()}catch(e){}}else if(n<240)setTimeout(()=>gPaint(n+1),250)}
 function gInfo(n){fetch(NOTIFY_URL+'/gacha/info?t='+Date.now()).then(r=>r.json()).then(j=>{if(j&&j.ok){INFO=j;gPaint()}else throw 0}).catch(()=>{if((n||0)<3)setTimeout(()=>gInfo((n||0)+1),1500)})}
 gInfo();
 /* LINE 的 liff.init 在遊樂島頁有時候卡住不回來 → 最多等 4 秒；預約頁已經傳了登入身分就先直接用 */
