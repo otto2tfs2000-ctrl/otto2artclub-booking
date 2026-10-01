@@ -397,10 +397,12 @@ function close(){
   document.body.style.overflow = "";
 }
 function shell(inner){
-  var t = (st && st.title) || "十月黑熊扭蛋";
+  /* 十月是畢卡索季：後台名稱還是舊的「黑熊」時，畫面一律顯示新名稱 */
+  var t = (st && st.title) || "世界藝術日・畢卡索扭扭樂";
+  if (BIMG() && /黑熊/.test(t)) t = "世界藝術日・畢卡索扭扭樂";
   return SYMBOLS + '<div class="gc-top"><button class="gc-x" id="gcX" aria-label="關閉">✕</button>' +
-    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🐻 ') + esc(t) + '</h1>' +
-    '<p>每天轉一次，紅利、課程券等你拿</p></div>' + inner;
+    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🎨 ') + esc(t) + '</h1>' +
+    '<p>每天轉一次，紅利、' + (BIMG() ? '畢卡索公仔' : '課程券') + '等你拿</p></div>' + inner;
 }
 function bindShell(){ var x = $("gcX"); if (x) x.onclick = close }
 
@@ -425,7 +427,7 @@ function renderNoLine(){
 }
 function renderPhone(guess, err){
   var c = window.customer || {};
-  ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🐻</h3>' +
+  ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🎨</h3>' +
     '<p>輸入上課留的手機號碼，抽到的紅利和票券會直接存進這支電話的帳戶，順便幫你查點數還剩多少。</p>' +
     '<label for="gcName">姓名</label><input id="gcName" autocomplete="name" value="' + esc(c.name || (st && st.lineName) || "") + '">' +
     '<label for="gcPhone">手機號碼</label><input id="gcPhone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxx" value="' + esc(guess || c.phone || "") + '">' +
@@ -449,7 +451,7 @@ function render(anim){
   var me = st.me, s = st.status;
   var banner = "";
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
-  else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
+  else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🎨</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
   if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
@@ -468,7 +470,7 @@ function render(anim){
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
-    '<button class="gc-go" id="gcGo">轉一下 🐻</button><div class="gc-hint" id="gcHint"></div></div>' +
+    '<button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
     gamesHtml() + bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
@@ -496,7 +498,7 @@ function updChance(){
   var can = (s === "on" || s === "test") && n > 0;
   $("gcChance").textContent = s === "soon" ? md(st.start) + " 開始" : s === "ended" ? "活動已結束" : (n > 0 ? "剩 " + n + " 次機會" : "今天玩完囉");
   $("gcGo").disabled = busy || !can;
-  $("gcGo").textContent = s === "soon" ? md(st.start) + " 開始 🐻" : "轉一下 🐻";
+  $("gcGo").textContent = s === "soon" ? md(st.start) + " 開始 🎨" : "轉一下 🎨";
   if (busy) return;
   var h = $("gcHint");
   h.className = "gc-hint" + (can ? "" : (s === "on" || s === "test" ? " done" : ""));
@@ -568,7 +570,7 @@ function stamps(anim){
   var ms = st.milestones || [], top = ms.length ? ms[ms.length - 1].d : 28;
   h += '</div><div class="gc-barw"><i style="width:' + Math.min(100, st.days.length / top * 100) + '%"></i></div><div class="gc-miles">' +
     ms.map(function(x){ return '<span class="' + (x.got ? "got" : "") + '">' + (x.got ? "✓ " : "") + x.d + ' 天<br>' + esc(x.nm) + '</span>' }).join("") +
-    '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🐻</div></div>';
+    '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🎨</div></div>';
   return h;
 }
 function pool(){
@@ -722,7 +724,7 @@ function memoryGame(){
     '<div class="gc-mem-bar"><i id="gcMemBar"></i></div>' +
     '<div class="gc-mem-grid">' + deck.map(function(c, i){
       return '<button class="gc-card2" data-i="' + i + '" aria-label="翻牌"><span class="in"><span class="bk">OTTO2</span><span class="fr">' + bearSvg(c.id) + '</span></span></button>' }).join("") +
-    '</div><div class="gc-mem-msg" id="gcMemMsg">翻開兩張一樣的小黑熊就會消掉</div></div>';
+    '</div><div class="gc-mem-msg" id="gcMemMsg">翻開兩張一樣的' + (BIMG() ? "畢卡索公仔" : "小黑熊") + '就會消掉</div></div>';
   document.body.appendChild(box);
   requestAnimationFrame(function(){ box.classList.add("show") });
   var open1 = null, lock = false, done = 0, left = 60, over = false;
@@ -803,7 +805,7 @@ function spin(){
     $("gcG").classList.add("focus");
     setTimeout(function(){
       cap.classList.add("held"); pg.className = "gc-pg land";
-      setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
+      setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = BIMG() ? "畢卡索抓到扭蛋了！點一下幫你打開 👆" : "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
     }, 1800);
   }).catch(function(e){
     busy = false;

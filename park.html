@@ -174,6 +174,10 @@ body.oct{background:linear-gradient(180deg,#86cdf5 0%,#bfe6fb 42%,#fff1d9 78%,#f
 body.oct .bottom{background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,248,236,.55) 45%)}
 .gpanel{font-family:var(--round); font-size:14px; color:var(--ink); background:var(--gold); border:3px solid var(--ink); border-radius:18px; box-shadow:0 5px 0 var(--ink); padding:8px 12px; cursor:pointer; line-height:1.25}
 .gpanel small{display:block; font-size:11px; color:#6b4f1a}
+body.oct .mainbtns{gap:8px}
+body.oct .mainbtns .rollbtn{padding:11px 20px; font-size:21px}
+body.oct .gpanel{padding:7px 10px}
+body.oct .menubtn{width:50px}
 .tapme{position:fixed; left:50%; top:22%; transform:translateX(-50%); background:#1e2b4f; color:#fff; font-size:15px; padding:9px 16px; border-radius:20px; white-space:nowrap; box-shadow:0 6px 16px rgba(30,43,79,.35); z-index:3; cursor:pointer; animation:tapb 1.2s ease-in-out infinite}
 @keyframes tapb{50%{transform:translateX(-50%) translateY(-5px)}}
 .loading{position:fixed; inset:0; display:grid; place-items:center; font-size:18px; color:#fff}
@@ -183,7 +187,7 @@ body.oct .bottom{background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,
 </style>
 
 <div id="game"></div>
-<div class="loading" id="loading">小黑熊換聖誕裝中…</div>
+<div class="loading" id="loading">遊樂島準備中…</div>
 <div class="hud" id="hud" hidden>
   <div>
     <div class="top">
@@ -793,7 +797,7 @@ async function spin(){
   const top=HOLD.clone().add(new THREE.Vector3(0,.78,-.18)),from=top.clone().add(new THREE.Vector3(-.6,5.5,0));kb.scale.setScalar(KS);kb.rotation.set(0,0,0);
   await tween(750,p=>{kb.position.lerpVectors(from,top,easeOut(p));kb.rotation.z=-(1-p)*Math.PI*1.1;const sq=p>.8?Math.sin((p-.8)/.2*Math.PI):0;kb.scale.set(KS*(1+.15*sq),KS*(1-.2*sq),KS*(1+.15*sq))});
   kb.rotation.set(.35,0,0);
-  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent='小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆';
+  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent='畢卡索抓到扭蛋了！點一下幫你打開 👆';
 }
 async function openCapsule(){
   if(!GA.capReady)return;GA.capReady=false;$('tapme').hidden=true;
@@ -1102,10 +1106,7 @@ function marqTick(now){if(!GA.mbulbs)return;const ph=Math.floor(now/(party?90:22
 /* 走格子島前面的雲霧：10 月蓋住、模糊一點；11/1 開放時散開 */
 function soft(){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.55,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(cv)}
 function buildMist(){const M=new THREE.Group();scene.add(M);GA.mist=M;const t=soft(),r=rng(9);
-  for(let k=0;k<26;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:.55+r()*.3}));const s=5+r()*6;sp.scale.set(s*1.4,s,1);
-    sp.position.set(-9+r()*18,.6+r()*3.2,-3+r()*11);M.add(sp)}
-  for(let k=0;k<8;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:.6}));const s=6+r()*5;sp.scale.set(s*1.4,s,1);sp.position.set(-7+r()*14,6+r()*3,-16+r()*6);M.add(sp)}
-  [[-6,1.4,8.6,3.2],[5.5,1.2,8.2,3.6],[0,2.2,6.5,2.6],[-2.5,.8,9.4,2.4]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);c.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.92}});M.add(c)})}
+  [[-6,1.4,8.6,3.2],[5.5,1.2,8.2,3.6],[0,2.4,6.2,2.8],[-2.5,.8,9.4,2.4],[-8.5,2.6,3.5,3.4],[8,2.8,3,3.6],[-3.5,4.2,1,3],[3.8,4.6,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);M.add(c)})}
 
 /* 空地上的小畫架：抽到的畢卡索公仔會走過去站著畫畫，畫布上會慢慢多出色塊 */
 const EASELS=[[-1.7,2.7,.95],[3.7,1.0,-.95],[4.3,-1.6,-1.2]];
@@ -1213,8 +1214,8 @@ function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
-  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':'明天再來';$('gpanel').disabled=busy;
-  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct;playerStripes();if(scene)scene.background=oct?skyTex():null;if(oct&&GA.bcv)drawBoard();
+  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
+  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct;playerStripes();if(scene){scene.background=oct?skyTex():null;scene.fog=oct?(scene.fog||new THREE.Fog('#d9eef9',40,85)):null}if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
   $('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
@@ -1224,7 +1225,7 @@ function hud(){
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
   $('test').classList.toggle('on',G.test);$('test').textContent=G.test?'測試：無限次數':'測試：關（每天一次）';
   $('book').classList.toggle('on',G.booked);$('book').textContent=G.booked?'模擬：已預約上課':'模擬：有預約上課';
-  $('view').textContent=overview?'跟著小黑熊':'看全圖';document.body.classList.toggle('ov',overview&&!treeCam);$('menuBtn').disabled=busy;
+  $('view').textContent=overview?(oct?'回到廣場':'跟著小黑熊'):'看全圖';$('backBtn').textContent=oct?'回到廣場':'回到小黑熊';document.body.classList.toggle('ov',overview&&!treeCam);$('menuBtn').disabled=busy;
   [...$('mats').children].forEach((m,i)=>m.classList.toggle('got',G.orn[i]));
   const lk=layersOf(G.tree);
   if(lk>=5){$('treeFill').style.width='100%';$('treeNum').textContent='5 層全部亮了！'}
@@ -2199,10 +2200,12 @@ function close(){
   document.body.style.overflow = "";
 }
 function shell(inner){
-  var t = (st && st.title) || "十月黑熊扭蛋";
+  /* 十月是畢卡索季：後台名稱還是舊的「黑熊」時，畫面一律顯示新名稱 */
+  var t = (st && st.title) || "世界藝術日・畢卡索扭扭樂";
+  if (BIMG() && /黑熊/.test(t)) t = "世界藝術日・畢卡索扭扭樂";
   return SYMBOLS + '<div class="gc-top"><button class="gc-x" id="gcX" aria-label="關閉">✕</button>' +
-    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🐻 ') + esc(t) + '</h1>' +
-    '<p>每天轉一次，紅利、課程券等你拿</p></div>' + inner;
+    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🎨 ') + esc(t) + '</h1>' +
+    '<p>每天轉一次，紅利、' + (BIMG() ? '畢卡索公仔' : '課程券') + '等你拿</p></div>' + inner;
 }
 function bindShell(){ var x = $("gcX"); if (x) x.onclick = close }
 
@@ -2227,7 +2230,7 @@ function renderNoLine(){
 }
 function renderPhone(guess, err){
   var c = window.customer || {};
-  ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🐻</h3>' +
+  ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🎨</h3>' +
     '<p>輸入上課留的手機號碼，抽到的紅利和票券會直接存進這支電話的帳戶，順便幫你查點數還剩多少。</p>' +
     '<label for="gcName">姓名</label><input id="gcName" autocomplete="name" value="' + esc(c.name || (st && st.lineName) || "") + '">' +
     '<label for="gcPhone">手機號碼</label><input id="gcPhone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxx" value="' + esc(guess || c.phone || "") + '">' +
@@ -2251,7 +2254,7 @@ function render(anim){
   var me = st.me, s = st.status;
   var banner = "";
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
-  else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
+  else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🎨</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
   if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
@@ -2270,7 +2273,7 @@ function render(anim){
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
-    '<button class="gc-go" id="gcTo3D">回島上轉扭蛋 🐻</button><button class="gc-go" id="gcGo">轉一下 🐻</button><div class="gc-hint" id="gcHint"></div></div>' +
+    '<button class="gc-go" id="gcTo3D">回島上轉扭蛋 🎨</button><button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
     gamesHtml() + bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
@@ -2298,7 +2301,7 @@ function updChance(){
   var can = (s === "on" || s === "test") && n > 0;
   $("gcChance").textContent = s === "soon" ? md(st.start) + " 開始" : s === "ended" ? "活動已結束" : (n > 0 ? "剩 " + n + " 次機會" : "今天玩完囉");
   $("gcGo").disabled = busy || !can;
-  $("gcGo").textContent = s === "soon" ? md(st.start) + " 開始 🐻" : "轉一下 🐻";
+  $("gcGo").textContent = s === "soon" ? md(st.start) + " 開始 🎨" : "轉一下 🎨";
   if (busy) return;
   var h = $("gcHint");
   h.className = "gc-hint" + (can ? "" : (s === "on" || s === "test" ? " done" : ""));
@@ -2370,7 +2373,7 @@ function stamps(anim){
   var ms = st.milestones || [], top = ms.length ? ms[ms.length - 1].d : 28;
   h += '</div><div class="gc-barw"><i style="width:' + Math.min(100, st.days.length / top * 100) + '%"></i></div><div class="gc-miles">' +
     ms.map(function(x){ return '<span class="' + (x.got ? "got" : "") + '">' + (x.got ? "✓ " : "") + x.d + ' 天<br>' + esc(x.nm) + '</span>' }).join("") +
-    '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🐻</div></div>';
+    '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🎨</div></div>';
   return h;
 }
 function pool(){
@@ -2524,7 +2527,7 @@ function memoryGame(){
     '<div class="gc-mem-bar"><i id="gcMemBar"></i></div>' +
     '<div class="gc-mem-grid">' + deck.map(function(c, i){
       return '<button class="gc-card2" data-i="' + i + '" aria-label="翻牌"><span class="in"><span class="bk">OTTO2</span><span class="fr">' + bearSvg(c.id) + '</span></span></button>' }).join("") +
-    '</div><div class="gc-mem-msg" id="gcMemMsg">翻開兩張一樣的小黑熊就會消掉</div></div>';
+    '</div><div class="gc-mem-msg" id="gcMemMsg">翻開兩張一樣的' + (BIMG() ? "畢卡索公仔" : "小黑熊") + '就會消掉</div></div>';
   document.body.appendChild(box);
   requestAnimationFrame(function(){ box.classList.add("show") });
   var open1 = null, lock = false, done = 0, left = 60, over = false;
@@ -2605,7 +2608,7 @@ function spin(){
     $("gcG").classList.add("focus");
     setTimeout(function(){
       cap.classList.add("held"); pg.className = "gc-pg land";
-      setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
+      setTimeout(function(){ cap.classList.add("ready"); $("gcG").classList.add("tap"); $("gcHint").textContent = BIMG() ? "畢卡索抓到扭蛋了！點一下幫你打開 👆" : "小黑熊抓到扭蛋了！點一下讓牠幫你打開 👆" }, 750);
     }, 1800);
   }).catch(function(e){
     busy = false;
