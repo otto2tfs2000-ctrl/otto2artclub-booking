@@ -293,13 +293,14 @@ const T={
   ginger:{c:'#f0c9a0',lbl:'薑餅人',ic:'ginger',o:2}, sock:{c:'#f4f7fb',lbl:'聖誕襪',ic:'sock',o:3},
   again:{c:'#6cd48a',lbl:'再擲',ic:'dice'}, fwd:{c:'#62a9ff',lbl:'雪橇',ic:'sled'}, back:{c:'#c9d6e8',lbl:'滑倒',ic:'slip'},
   rest:{c:'#e89a6a',lbl:'熱可可',ic:'cocoa'}, santa:{c:'#d63a2f',lbl:'聖誕老人',ic:'santa'},
+  gacha:{c:'#ff9a8a',lbl:'扭蛋機',ic:'gacha'},
   mix:{c:'#ffb3c7',lbl:'調色',ic:'palette',mg:'mix'}, stack:{c:'#b7e4a8',lbl:'疊禮物',ic:'tower',mg:'stack'},
   memo:{c:'#cdb8f2',lbl:'翻牌',ic:'cards',mg:'memo'}, catch:{c:'#9fd8f5',lbl:'接禮物',ic:'catch',mg:'catch'},
   hue:{c:'#ffe08a',lbl:'辨色',ic:'hue',mg:'hue'}, stairs:{c:'#ffc59e',lbl:'下樓梯',ic:'stairs',mg:'stairs'}, plant:{c:'#bfe8b0',lbl:'種樹',ic:'sapling'}, elf:{c:'#a8e6b4',lbl:'抓精靈',ic:'elf',mg:'elf'}, simon:{c:'#c7d2ff',lbl:'記燈',ic:'bulbs',mg:'simon'},
 };
 const LEVELS=[
-  {name:'第一層',w:8,h:6,pad:3.2,off:new THREE.Vector3(0,0,0),
-   path:['start','lot','mix','bell','hue','lot','stack','big', 'memo','lot','elf','star','catch', 'simon','lot','plant','ginger','stairs','lot','plant', 'elf','sock','plant','fwd']},
+  {name:'第一層',w:11,h:8,pad:2.0,off:new THREE.Vector3(0,0,0),
+   path:['start','lot','mix','bell','hue','lot','gacha','stack','big','memo','gift', 'lot','elf','star','catch','simon','plant', 'gacha','ginger','stairs','lot','plant','rest','elf','sock','again','plant', 'santa','catch','lot','gacha','hue','stack','fwd']},
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
    path:['start','big','star','memo','santa','fwd', 'big','again','ginger', 'simon','santa','bell','big','fwd', 'sock','catch']},
 ];
@@ -340,6 +341,7 @@ function icon(c,k,cx,cy,s){
   else if(k==='stairs'){[[-40,-30,40],[0,-2,40],[-34,26,40]].forEach(([x,y,w],i)=>{c.fillStyle=['#6cd48a','#f2c14e','#62a9ff'][i];rr(x,y,w,12,5,c);c.fill();c.stroke()});circ(22,-26,13,'#f7dcc4');c.fillStyle='#d63a2f';c.fillRect(14,-13,16,15);c.strokeRect(14,-13,16,15);c.fillStyle=ink;[18,26].forEach(x=>{c.beginPath();c.arc(x,-27,2.5,0,7);c.fill()})}
   else if(k==='hue'){for(let r=0;r<3;r++)for(let q=0;q<3;q++){c.fillStyle=r===1&&q===2?'#8fc2ff':'#4f95f0';c.fillRect(-40+q*28,-40+r*28,24,24);c.strokeRect(-40+q*28,-40+r*28,24,24)}}
   else if(k==='elf'){c.fillStyle='#f7dcc4';[[-1],[1]].forEach(([d])=>{c.beginPath();c.moveTo(d*26,4);c.lineTo(d*46,-10);c.lineTo(d*30,18);c.closePath();c.fill();c.stroke()});circ(0,12,30,'#f7dcc4');c.fillStyle='#2f8f58';c.beginPath();c.moveTo(-32,0);c.quadraticCurveTo(-10,-40,30,-56);c.quadraticCurveTo(22,-26,32,0);c.closePath();c.fill();c.stroke();circ(30,-56,8,'#f2c14e');c.fillStyle='#d63a2f';rr(-34,-8,68,12,6,c);c.fill();c.stroke();c.fillStyle=ink;[-11,11].forEach(x=>{c.beginPath();c.arc(x,12,4,0,7);c.fill()});c.beginPath();c.arc(0,22,8,.2,Math.PI-.2);c.stroke()}
+  else if(k==='gacha'){c.fillStyle='#d63a2f';rr(-26,6,52,36,8,c);c.fill();c.stroke();c.fillStyle='#dff1ff';c.beginPath();c.arc(0,-12,30,0,7);c.fill();c.stroke();[['#ff5a4a',-12,-8],['#ffd84a',8,-16],['#6ab8ff',12,0],['#5ee08a',-8,-22]].forEach(([f,x,y])=>circ(x,y,8,f));c.fillStyle='#2b2320';c.fillRect(-8,22,16,10);c.fillStyle='#f2c14e';c.beginPath();c.arc(16,24,5,0,7);c.fill()}
   else if(k==='bulbs'){c.beginPath();c.moveTo(-46,-26);c.quadraticCurveTo(0,4,46,-26);c.stroke();[['#ff5a4a',-28,-12],['#ffd84a',0,-4],['#5ee08a',28,-12]].forEach(([f,x,y])=>{c.fillStyle='#8a8f9a';c.fillRect(x-6,y-4,12,10);c.fillStyle=f;c.beginPath();c.ellipse(x,y+22,11,17,0,0,7);c.fill();c.stroke()})}
   c.restore();
 }
@@ -366,6 +368,15 @@ function roundedSlab(w,d,h,r,bevel=.06){const g=new THREE.ExtrudeGeometry(rrShap
 function mesh(geo,mat,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m}
 const shade=(hex,f)=>{const c=new THREE.Color(hex);c.multiplyScalar(f);return c};
 
+const gachaDeco={};
+function makeMiniGacha(){const g=new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(.2,.27,.4,10),toon('#d63a2f'),0,.2,0));
+  g.add(mesh(new THREE.BoxGeometry(.14,.1,.04),toon('#2b2320'),0,.14,.24));
+  const kn=mesh(new THREE.CylinderGeometry(.05,.05,.05,10),toon('#f2c14e'),0,.28,.22);kn.rotation.x=Math.PI/2;g.add(kn);
+  const gl=new THREE.Mesh(new THREE.SphereGeometry(.3,18,14),new THREE.MeshToonMaterial({color:'#e4f3ff',transparent:true,opacity:.5,gradientMap:gradMap,depthWrite:false}));gl.position.y=.72;g.add(gl);
+  ['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a','#ff9ac0','#ffffff','#b79cff'].forEach((c,k)=>{const a=k*2.4;g.add(mesh(new THREE.SphereGeometry(.085,10,8),toon(c),Math.cos(a)*.15*(k%2?1:.55),.6+(k%3)*.1,Math.sin(a)*.15*(k%2?1:.55)))});
+  g.add(mesh(new THREE.SphereGeometry(.2,14,8,0,Math.PI*2,0,Math.PI/2),toon('#d63a2f'),0,.93,0));
+  g.scale.setScalar(.9);return g}
 function buildIsland(lv){
   const L=LEVELS[lv],o=L.off,W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.pad||0);
   const g=new THREE.Group();g.position.copy(o);scene.add(g);
@@ -380,6 +391,7 @@ function buildIsland(lv){
     const m=mesh(roundedSlab(TILE,TILE,TILE_H,.2,.05),[toon('#ffffff',{map:tex}),toon(shade(t.c,.75))],p.x,o.y-.12,p.z);
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
+    if(k==='gacha'){const d=makeMiniGacha(),inw=new THREE.Vector3(-p.x,0,-p.z).normalize().multiplyScalar(.9);d.position.set(p.x+inw.x,o.y-.12,p.z+inw.z);scene.add(d);gachaDeco[i]=d} /* 放在格子靠圈內的那一側，不會被站在格子上的小熊擋住，也不擋格子上的字 */
     if(k==='lot'){const d=new THREE.Group();d.position.set(p.x+.27,o.y+TILE_H-.07,p.z-.27);scene.add(d);lotDeco[i]=d}
   });
   return g;
@@ -399,7 +411,12 @@ function buildScene(){
   const tree=makeCommunityTree();tree.position.set(0,-.12,0);i1.add(tree);GA.ctree=tree;
   [[-.9,.7,'#d63a2f'],[.9,.6,'#2f8f58'],[.3,1.1,'#f2c14e'],[-.4,-1,'#62a9ff']].forEach(([x,z,c])=>i1.add(makeBox(c,x,z)));
   [[-2.7,1.2],[2.7,-1.1]].forEach(([x,z])=>{const s=makeSnowman();s.position.set(x,-.12,z);i1.add(s)});
-  [[-6.7,5.4],[6.7,-5.4],[6.7,5.4],[-6.7,-5.4]].forEach(([x,z])=>{const t=makeXmasTree(.55);t.position.set(x,-.12,z);i1.add(t)});
+  { // 外圍一圈裝飾樹（不是會員種的）：前排矮、後排高，才不會擋到前排格子的字
+    const L=LEVELS[0],X=L.w*GAP/2+1.2+.0,ZB=L.h*GAP/2+.95,ring=[];
+    for(let x=-X;x<=X+.01;x+=2.6){ring.push([x,ZB,.3]);ring.push([x,-ZB,.52])}
+    [-2.9,0,2.9].forEach(z=>{ring.push([-X,z,.42]);ring.push([X,z,.42])});
+    ring.forEach(([x,z,sc],k)=>{const t=makeXmasTree(sc+(k%3)*.03);t.position.set(x,-.12,z);t.rotation.y=k;i1.add(t)});
+    [[-X+.9,-ZB+.2],[X-.9,-ZB+.2]].forEach(([x,z])=>{const sm=makeSnowman();sm.position.set(x,-.12,z);i1.add(sm)}) }
   buildForest();
   const fb=makeBear('#f7f4ee',1.6,true);fb.position.set(0,.3,0);i2.add(fb);
   i2.add(mesh(new THREE.CylinderGeometry(1,1.1,.45,24),toon('#d63a2f'),0,.08,0));
@@ -498,7 +515,7 @@ function treeFade(dt){const T=GA.ctree;if(!T||!bear)return;let want=1;
   if(G&&G.phase!=='oct'&&!overview&&!treeCam&&!parkCam&&!focusAt){T.getWorldPosition(_tc);_tc.y+=2.4;_tb.copy(bear.position);_tb.y+=.7;_td.copy(_tb).sub(camera.position);const L2=_td.lengthSq(),t=Math.max(0,Math.min(1,_tc.clone().sub(camera.position).dot(_td)/L2));
     const dx=camera.position.clone().addScaledVector(_td,t).distanceTo(_tc);if(t>.05&&t<.98&&dx<3.1)want=.16}
   _tf+=(want-_tf)*Math.min(1,dt*7);if(Math.abs(_tf-T.userData.fv)<.01)return;T.userData.fv=_tf;
-  T.traverse(o=>{if(o.isSprite){o.visible=_tf>.7;return}if(o.isMesh&&o.material&&!o.material.isMeshBasicMaterial||o.isMesh&&o===TREE.star){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{m.transparent=_tf<.99;m.opacity=_tf;m.depthWrite=_tf>.99;m.needsUpdate=true})}})}
+  T.traverse(o=>{if(o.isSprite){o.visible=_tf>.7;return}if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{m.transparent=_tf<.99;m.opacity=_tf;m.depthWrite=_tf>.99;m.needsUpdate=true})}})}
 function setTreeVisual(v){TREE.shown=v;TREE.pct=Math.min(1,v/TREE_GOAL);TREE.fills=LAYERS.map((_,k)=>layerFill(v,k));const amt=amtOf(v);
   TREE.bulbs.forEach((b,i)=>{const br=Math.max(0,Math.min(1,amt-i));b.userData.br=br;b.userData.on=br>0;b.material.color.copy(DARK).lerp(b.userData.col,br)});
   TREE.star.material.color.copy(STAR_DIM).lerp(STAR_ON,Math.pow(TREE.pct,.7))}
@@ -522,13 +539,12 @@ const FOREST={spots:[],parts:{},max:420,mine:null};
 const LVN=['','樹苗','小樹','聖誕樹','掛上彩燈','頂端星星'],LVS=[0,.45,.6,.72,.78,.86];
 const FAKE=['宥宥','小安','芊芊','阿哲','米米','樂樂','Emma','Leo','豆豆','恩恩','圓圓','橘子','糖糖','布丁','可可','小熊','晴晴','Ian','柚子','妞妞','凱凱','Mia','安安','小寶','Ruby','阿布','語語','皮皮'];
 function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
-function forestSpots(){ // free snow between the path and the island edge, and around the big tree
-  const L=LEVELS[0],W=L.w*GAP+1.9+L.pad,D=L.h*GAP+1.9+L.pad,r=rng(7),out=[],st=.56;
-  const avoid=[[0,0,2.05],[-2.7,1.2,.6],[2.7,-1.1,.6],[-.9,.7,.5],[.9,.6,.5],[.3,1.1,.5],[-.4,-1,.5],[-6.7,5.4,.8],[6.7,-5.4,.8],[6.7,5.4,.8],[-6.7,-5.4,.8]];
-  for(let z=-D/2+.55,row=0;z<D/2-.5;z+=st*.87,row++)for(let x=-W/2+.55+(row%2)*st/2;x<W/2-.5;x+=st){
-    const px=x+(r()-.5)*.14,pz=z+(r()-.5)*.14;
-    const cx=Math.max(Math.abs(px)-(W/2-1.1),0),cz=Math.max(Math.abs(pz)-(D/2-1.1),0);if(Math.hypot(cx,cz)>.55)continue;
-    if(L.path.some((_,i)=>{const t=tilePos(0,i);return Math.abs(t.x-px)<.78&&Math.abs(t.z-pz)<.78}))continue;
+function forestSpots(){ // 種樹位置：全部在格子圈圈裡面、大聖誕樹周圍；靠後面那排留一段空，不然樹會擋到後排格子上的字
+  const L=LEVELS[0],r=rng(7),out=[],st=.5;
+  const hx=(L.w-1)/2*GAP-TILE/2-.36,zf=(L.h-1)/2*GAP-TILE/2-.36,zb=-((L.h-1)/2*GAP-TILE/2-1.15);
+  const avoid=[[0,0,2.05],[-2.7,1.2,.6],[2.7,-1.1,.6],[-.9,.7,.5],[.9,.6,.5],[.3,1.1,.5],[-.4,-1,.5]];
+  for(let z=zb,row=0;z<=zf;z+=st*.87,row++)for(let x=-hx+(row%2)*st/2;x<=hx;x+=st){
+    const px=x+(r()-.5)*.12,pz=z+(r()-.5)*.12;
     if(avoid.some(([ax,az,ar])=>Math.hypot(px-ax,pz-az)<ar))continue;
     out.push(new THREE.Vector3(px,-.12,pz));}
   return out;
@@ -673,7 +689,7 @@ function dimObj(o,k){o.traverse(m=>{
   const ms=m.material?(Array.isArray(m.material)?m.material:[m.material]):[];
   ms.forEach(mt=>{if(!mt.color)return;const u=mt.userData;if(!u.c0)u.c0=mt.color.clone();const l=u.c0.r*.3+u.c0.g*.59+u.c0.b*.11;_gc.setRGB(.6+l*.26,.64+l*.25,.72+l*.22);mt.color.copy(u.c0).lerp(_gc,k)});
   if(m.userData.gtex){const mt=m.material[0],want=k>.5?m.userData.gtex:m.userData.tex;if(mt.map!==want){mt.map=want;mt.needsUpdate=true}}})}
-const boardParts=()=>[...ISL,...Object.values(lotDeco),lock2,...Object.values(FOREST.parts),FOREST.mine].filter(Boolean);
+const boardParts=()=>[...ISL,...Object.values(lotDeco),...Object.values(gachaDeco),lock2,...Object.values(FOREST.parts),FOREST.mine].filter(Boolean);
 function setDim(k){DIM=k;boardParts().forEach(o=>dimObj(o,k));if(!k)setTreeVisual(G.tree)}
 function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
 /* 天空：10 月白天、11–12 月夜景。開門走過橋時 SKYHOLD 先維持白天底色，再用 #nightVeil 淡入夜空 */
@@ -1279,7 +1295,7 @@ function camGoal0(){
   if(G&&G.phase==='oct'&&!overview)return{pos:MACH.clone().add(new THREE.Vector3(pt?-.6:.3,pt?11.2:9.4,pt?34.5:28.5)),at:MACH.clone().add(new THREE.Vector3(pt?-.6:.3,pt?3.5:3.2,pt?3.6:3.2))};  /* 直式手機往左挪、拉遠一點，左邊的集章告示牌才不會被切掉 */
   if(focusAt)return{pos:new THREE.Vector3(focusAt.x*.6,(pt?6.2:5.2),focusAt.z+(pt?6:5)),at:new THREE.Vector3(focusAt.x*.8,.3,focusAt.z)};
   if(treeCam)return{pos:new THREE.Vector3(0,pt?4.4:3.9,pt?9.6:7.6),at:new THREE.Vector3(0,pt?2.9:2.7,0)};
-  if(overview)return{pos:new THREE.Vector3(0,pt?36:25,pt?36:28),at:new THREE.Vector3(0,1,1.5)};
+  if(overview)return{pos:new THREE.Vector3(0,pt?44:26,pt?46:30),at:new THREE.Vector3(0,1,1.5)};
   const b=bear.position;
   return{pos:new THREE.Vector3(b.x*.55,b.y+(pt?10.5:7.6),b.z+(pt?13.5:10.5)),at:new THREE.Vector3(b.x*.8,b.y+.2,b.z-2)};
 }
@@ -1311,7 +1327,7 @@ function loop(now){
 /* ---------- game state (demo, per browser) ---------- */
 let G;
 const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gifts:3,orn:[false,false,false,false],
-  lots:{5:{o:'m1',lv:2},9:{o:'m4',lv:1},14:{o:'m2',lv:1},18:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
+  layout:34,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},29:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
 function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}}
 function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
@@ -1717,6 +1733,7 @@ async function resolve(){
   const key=LEVELS[G.cur].path[G.lv[G.cur].pos],t=T[key];
   if(t.mg){await minigame(t.mg);return}
   if(key==='lot')return landLot(G.lv[G.cur].pos);
+  if(key==='gacha'){const r=Math.random(),n=r<.6?1:r<.9?2:3;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),10,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);addGifts(n);await popup('gacha','扭蛋機！',`轉出一顆扭蛋，裡面有 ${n} 個禮物。（獎項內容之後公布，現在先送禮物。）`);return}
   if(key==='plant')return plant('踩到種樹格');
   if(t.g){addGifts(t.g);await popup(t.ic,key==='big'?'大禮物！':'小禮物',`拿到 ${t.g} 個禮物。禮物可以用來認領、升級聖誕小屋。`);return}
   if(t.o!==undefined){if(G.orn[t.o]){addGifts(1);await popup(t.ic,`又是${ORN[t.o].n}`,'這個吊飾已經有了，換成 1 個禮物。');return}return gotOrnament(t.o)}
@@ -1838,6 +1855,7 @@ async function start(data){
   G=data&&data.lv&&data.lots?data:null;
   if(!G){try{G=JSON.parse(localStorage.getItem('otto2-xmas-walk-demo3'))}catch(e){}}
   if(!G||!G.lv||!G.lots)G=fresh();
+  if(G.layout!==34){const f=fresh();G.lots=f.lots;G.lv[0].pos=0;G.forest=null;G.layout=34}
   if(G.test===undefined)G.test=true;
   if(!G.phase)G.phase='oct';if(window.PROD){G.phase='oct';G.test=false}if(G.spinLeft===undefined)G.spinLeft=1;
   if(!G.arc)G.arc={n:0,best:{}};
