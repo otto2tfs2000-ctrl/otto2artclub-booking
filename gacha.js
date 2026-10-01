@@ -474,6 +474,7 @@ function render(anim){
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
     '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送' + BU() + '，收進' + BT() + '。</li>' +
+    '<li>每轉一次都會多送一隻' + BU() + '；抽到重複的湊滿 3 隻，會自動多送你 1 次扭蛋（每天最多 1 次）。</li>' +
     '<li>整個活動期間，扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底送的紅利是額外的，不算在 ' + st.cap + ' 點裡。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
@@ -778,7 +779,7 @@ function bearsHtml(){
         '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.hidden ? '<b class="hid">隱藏版</b>' : x.rare ? '<i>稀有</i>' : '') + '</div>';
     }).join("") + '</div>' +
     '<div class="gc-dex-note">' + (b.done ? '✅ 已集滿！' + esc(b.reward) + ' 已送出' :
-      '每轉一次扭蛋，就會多一隻' + BU() + '。集滿 ' + reg.length + ' 款送 <b>' + esc(b.reward) + '</b>' +
+      '每轉一次扭蛋，就會多一隻' + BU() + '。重複的湊滿 3 隻自動多送 1 次扭蛋（目前 ' + (b.dupes || 0) + '／3）。<br>集滿 ' + reg.length + ' 款送 <b>' + esc(b.reward) + '</b>' +
       (b.limit ? (b.left > 0 ? '（限量 ' + b.limit + ' 名，搶先集滿的人才有）' : '（' + b.limit + ' 名已經送完囉）') : '')) + '</div></div></div>';
 }
 
@@ -826,10 +827,10 @@ var afterModal = null;
 function showModal(p){
   var me = spun.state.me, none = p.type === "none";
   $("gcMIc").textContent = p.ic;
-  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "送你一隻" + BU() + "！" : "恭喜獲得！";
+  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "今天的紅利中滿囉！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
     : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
-    : p.type === "bear" ? '今天的紅利已經中滿 ' + (spun.state.bonusDaily || 2) + ' 次囉<br>這次送你一隻' + BU() + '，收進你的' + BT()
+    : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
   var next = TIERS.filter(function(t){ return t[0] > me.bonus })[0];
@@ -842,7 +843,10 @@ function showModal(p){
   $("gcMBear").onclick = bb ? function(){ zoomBear(bb.id) } : null;
   $("gcMBear").innerHTML = bb ? '<div class="gc-mbear" data-id="' + esc(bb.id) + '">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
     (bb.isNew ? '<span class="nw">NEW</span>' : '') + (bb.hidden ? '<span class="nw" style="background:#1E2B4F;color:#E3B34C">隱藏版！</span>' : bb.rare ? '<span class="nw" style="background:#E3B34C;color:#1E2B4F">稀有</span>' : '') +
-    '<br><span style="color:#8A90A0;font-size:12px">' + BT() + ' ' + bb.count + '／' + bb.total + '</span></div></div>' : '';
+    '<br><span style="color:#8A90A0;font-size:12px">' + BT() + ' ' + bb.count + '／' + bb.total + '</span>' +
+    (bb.swap ? '<br><b style="color:#2E7D4F">🎉 重複的公仔湊滿 3 隻，自動多送你 1 次扭蛋！</b>'
+      : !bb.isNew && spun.state.bears ? '<br><span style="color:#8A90A0;font-size:12px">重複的公仔 ' + (spun.state.bears.dupes || 0) + '／3，湊滿自動多轉 1 次</span>' : '') +
+    '</div></div>' : '';
   $("gcMBal").style.display = "";
   $("gcModal").classList.toggle("nowin", none);
   $("gcModal").classList.add("show");
