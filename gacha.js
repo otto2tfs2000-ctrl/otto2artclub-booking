@@ -432,11 +432,9 @@ function render(anim){
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🐻</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
-  if (s === "test") banner += '<div style="text-align:right;margin:-4px 0 10px"><a class="gc-hwlink" id="gcHwPrev" style="font-size:12px;color:#6E3FA3;text-decoration:underline;cursor:pointer">' +
-    (st.halloween ? "看平常的造型" : "🎃 預覽萬聖節造型") + '</a></div>';
   if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
-    if (st.doubleToday) banner += '<div class="gc-banner">🎃 今天是加碼日：多一次機會，而且每一次都一定中！</div>';
+    if (st.doubleToday) banner += '<div class="gc-banner">🎨 今天是' + esc(st.doubleLabel || "加碼日") + '：多一次機會，而且每一次都一定中！</div>';
     else if (extras.length) banner += '<div class="gc-banner">🎉 ' + esc(extras.join("、")) + '，今天<b>多送 ' + extras.length + ' 次</b>！</div>';
   }
   var tk = (st.ticker || []);
@@ -597,6 +595,8 @@ function bearSvg(id, ghost){
       '<path d="M25.5 1.5 L39.5 1.5 M29 -3 L32.5 9.5 L36 -3" stroke="#2F8FB0" stroke-width=".5" fill="none"/><path d="M6 1 L7 3.5 L9.5 4 L7 5 L6 7.5 L5 5 L2.5 4 L5 3.5 Z" fill="#9FE3F0"/>';
     else if (id === "aroma") acc = '<ellipse cx="33" cy="37.5" rx="7" ry="4.5" fill="#D8D2C4" stroke="#9A9384" stroke-width=".8"/>' +
       '<circle cx="31.5" cy="32" r="1.8" fill="#E88BB0"/><circle cx="34.5" cy="32" r="1.8" fill="#E88BB0"/><circle cx="33" cy="29.6" r="1.8" fill="#E88BB0"/><circle cx="33" cy="34.2" r="1.8" fill="#E88BB0"/><circle cx="33" cy="32" r="1.3" fill="#F2C94C"/>';
+    else if (id === "picasso") acc = '<path d="M7 7 Q9 -3 22 -2 Q34 -1 33 6 Q27 3 20 4 Q12 5 7 7 Z" fill="#1E2B4F"/><circle cx="22" cy="-3" r="1.6" fill="#1E2B4F"/>' +
+      '<path d="M8 34 Q20 41 32 34 L33 38 Q20 45 7 38 Z" fill="#fff"/><path d="M7.6 36 Q20 42.6 32.4 36" stroke="#1E2B4F" stroke-width="1.4" fill="none"/>';
     else if (id === "pumpkin") acc = '<ellipse cx="20" cy="4" rx="11.5" ry="6.5" fill="#F08A24" stroke="#B85F10" stroke-width=".8"/>' +
       '<path d="M14 4 Q20 -2 26 4 M20 -2.5 L20 10.5" stroke="#B85F10" stroke-width=".7" fill="none"/><rect x="19" y="-6" width="2.6" height="4.5" rx="1" fill="#4E8A2E"/>';
     else if (id === "gold") acc = '<path d="M34 -3 L35.2 1 L39 2 L35.2 3 L34 7 L32.8 3 L29 2 L32.8 1 Z" fill="#FFF3C4"/><path d="M5 0 L5.8 2.4 L8 3 L5.8 3.6 L5 6 L4.2 3.6 L2 3 L4.2 2.4 Z" fill="#FFF3C4"/>';
