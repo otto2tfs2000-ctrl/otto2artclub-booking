@@ -773,7 +773,7 @@ function parkTap(e){
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
   if(GA.capReady){openCapsule();return true}
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
-  if(rc.intersectObject(GA.board,true).length){if(!busy)Gacha.open();return true}
+  if(rc.intersectObject(GA.board,true).length){if(!busy)boardBig();return true}
   if(rc.intersectObjects([GA.g,GA.kb],true).length){if(G.phase==='oct')spin();else toast('十月扭蛋已經結束囉');return true}
   const fh=Object.entries(GA.figs).find(([id,f])=>f.fig&&rc.intersectObject(f.fig,true).length);
   if(fh){const b=GB.bears.find(x=>x.id===fh[0].split('#')[0]),f=GA.figs[fh[0]];if(f.fig&&!f.fig.userData.hop)f.fig.userData.hop=.5;sfx('tap');setTimeout(()=>Gacha.zoom(b.id,gState()),350);return true}
@@ -943,11 +943,21 @@ function buildBoard(){
   const face=shardMesh([[-1.5,.82],[1.42,.75],[1.6,2.1],[1.36,3.25],[-.3,3.42],[-1.55,3.15],[-1.7,1.9]],'#fffaf2',.08);face.position.z=-.04;I.add(face);
   // 左上角的立體派眼睛（正面＋側面）
   const eye=new THREE.Group();eye.add(shardMesh([[-.22,0],[0,.1],[.22,0],[0,-.1]],'#ffffff',.03));const iris=mesh(new THREE.CircleGeometry(.065,14),toon('#1a1a1a'),0,0,.04);eye.add(iris);eye.position.set(-1.38,3.32,.06);eye.rotation.z=.35;I.add(eye);
-  GA.bcv=document.createElement('canvas');GA.bcv.width=768;GA.bcv.height=720;GA.btex=new THREE.CanvasTexture(GA.bcv);GA.btex.anisotropy=4;
+  GA.bcv=document.createElement('canvas');GA.bcv.width=1536;GA.bcv.height=1440;GA.btex=new THREE.CanvasTexture(GA.bcv);GA.btex.anisotropy=renderer.capabilities.getMaxAnisotropy();
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.64,2.475),new THREE.MeshBasicMaterial({map:GA.btex}));pl.position.set(-.05,2.05,.06);I.add(pl);
 }
+
+/* 點告示牌：把集章月曆放大蓋在畫面上（手機上 3D 裡的字太小），下面一顆按鈕開詳細資訊 */
+function boardBig(){drawBoard();sfx('tap');let o=document.getElementById('boardBig');
+  if(!o){o=document.createElement('div');o.id='boardBig';o.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(30,30,40,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:14px';
+    o.innerHTML='<img alt="十月集章" style="width:100%;max-width:520px;border-radius:14px;border:4px solid #2b2320;background:#fffaf2;box-shadow:0 8px 24px rgba(0,0,0,.3)">'+
+      '<div style="display:flex;gap:10px"><button id="bbInfo" style="font:900 17px/1 inherit;padding:14px 22px;border-radius:14px;border:3px solid #2b2320;background:#f2c94c;color:#2b2320">詳細資訊</button>'+
+      '<button id="bbX" style="font:900 17px/1 inherit;padding:14px 22px;border-radius:14px;border:3px solid #2b2320;background:#fff;color:#2b2320">關閉</button></div>';
+    document.body.appendChild(o);o.onclick=e=>{if(e.target===o||e.target.id==='bbX'||e.target.tagName==='IMG')o.style.display='none'};
+    o.querySelector('#bbInfo').onclick=()=>{o.style.display='none';Gacha.open()}}
+  o.querySelector('img').src=GA.bcv.toDataURL('image/png');o.style.display='flex'}
 const WK='日一二三四五六';
-function drawBoard(){if(!GA.bcv)return;const x=GA.bcv.getContext('2d'),W=768,H=720,st=gState(),t=gToday();
+function drawBoard(){if(!GA.bcv)return;const x=GA.bcv.getContext('2d'),W=768,H=720,st=gState(),t=gToday();x.setTransform(2,0,0,2,0,0);
   x.fillStyle='#fffaf2';x.fillRect(0,0,W,H);
   x.textBaseline='middle';x.textAlign='left';x.fillStyle='#1e2b4f';x.font=`900 52px ${FONT}`;x.fillText('十月集章',24,46);
   x.textAlign='right';x.fillStyle='#6b7180';x.font=`900 34px ${FONT}`;x.fillText(`已集 ${st.days.length} 天`,W-24,48);
@@ -1186,7 +1196,7 @@ function camGoal(){
   if(parkCam==='gacha')return{pos:MACH.clone().add(new THREE.Vector3(.4,pt?7.6:5.6,pt?26:16.5)),at:MACH.clone().add(new THREE.Vector3(0,3.6,0))};
   if(parkCam==='cap'&&GA.hold)return{pos:GA.hold.clone().add(new THREE.Vector3(0,pt?2.7:2.0,pt?11.5:7.8)),at:GA.hold.clone().add(new THREE.Vector3(0,.45,0))};
   if(parkCam==='fig'&&GA.figFocus){const f=GA.figFocus;return{pos:new THREE.Vector3(f.x*.8+MACH.x*.2,2.4,f.z+(pt?6:4.4)),at:new THREE.Vector3(f.x,f.y+.2,f.z)}}
-  if(G&&G.phase==='oct'&&!overview)return{pos:MACH.clone().add(new THREE.Vector3(.3,pt?10.6:9.4,pt?32:28.5)),at:MACH.clone().add(new THREE.Vector3(.3,pt?3.5:3.2,pt?3.6:3.2))};
+  if(G&&G.phase==='oct'&&!overview)return{pos:MACH.clone().add(new THREE.Vector3(pt?-.6:.3,pt?11.2:9.4,pt?34.5:28.5)),at:MACH.clone().add(new THREE.Vector3(pt?-.6:.3,pt?3.5:3.2,pt?3.6:3.2))};  /* 直式手機往左挪、拉遠一點，左邊的集章告示牌才不會被切掉 */
   if(focusAt)return{pos:new THREE.Vector3(focusAt.x*.6,(pt?6.2:5.2),focusAt.z+(pt?6:5)),at:new THREE.Vector3(focusAt.x*.8,.3,focusAt.z)};
   if(treeCam)return{pos:new THREE.Vector3(0,pt?4.4:3.9,pt?9.6:7.6),at:new THREE.Vector3(0,pt?2.9:2.7,0)};
   if(overview)return{pos:new THREE.Vector3(0,pt?36:25,pt?36:28),at:new THREE.Vector3(0,1,1.5)};
