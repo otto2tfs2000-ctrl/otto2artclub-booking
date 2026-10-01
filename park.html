@@ -12,7 +12,7 @@
   --round:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
 }
 html,body{height:100%}
-body{margin:0; background:linear-gradient(180deg,#101d46 0%,#2a4688 55%,#6f8fcf 100%); color:var(--ink); font-family:var(--round); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none}
+body{-webkit-user-select:none; -webkit-touch-callout:none; margin:0; background:linear-gradient(180deg,#101d46 0%,#2a4688 55%,#6f8fcf 100%); color:var(--ink); font-family:var(--round); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none}
 #game{position:fixed; inset:0}
 #game canvas{display:block; width:100%; height:100%}
 .hud{position:fixed; inset:0; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between;
@@ -25,15 +25,15 @@ body{margin:0; background:linear-gradient(180deg,#101d46 0%,#2a4688 55%,#6f8fcf 
 .brand{flex-direction:column; align-items:flex-start; gap:0; line-height:1.15}
 .brand small{font-size:11px; color:var(--green)}
 .row2{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:10px}
-.tree{font-family:var(--round); color:var(--ink); text-align:left; cursor:pointer; background:rgba(255,250,242,.94); border:2px solid var(--ink); border-radius:12px; padding:5px 9px; font-size:12px; width:156px; box-shadow:0 3px 0 var(--ink)}
+.tree{font-family:var(--round); color:var(--ink); text-align:left; cursor:pointer; background:rgba(255,250,242,.94); border:2px solid var(--ink); border-radius:12px; padding:5px 9px; font-size:12px; width:100%; box-sizing:border-box; box-shadow:0 3px 0 var(--ink)}
 .tree .tt{display:flex; justify-content:space-between; align-items:center}
 .tree .tt em{font-style:normal; background:var(--red); color:#fff; border-radius:99px; padding:0 7px; font-size:11px}
 .tree .bar{height:9px; border:1.5px solid var(--ink); border-radius:99px; background:#e6e0d8; overflow:hidden; margin:3px 0 2px}
 .tree .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--gold),#ffe58a); width:0; transition:width .6s}
 .tree b{font-weight:400; color:var(--red); font-variant-numeric:tabular-nums}
 .top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
-.colL{display:flex; flex-direction:column; align-items:flex-start; gap:10px; min-width:0}
-.colR{display:flex; flex-direction:column; gap:6px; width:168px; flex:none; align-items:stretch}
+.colL{display:flex; flex-direction:column; align-items:stretch; gap:10px; min-width:0; width:calc(50% - 5px); flex:none}
+.colR{display:flex; flex-direction:column; gap:6px; width:calc(50% - 5px); flex:none; align-items:stretch}
 .colR .matlbl{order:2; text-align:right}
 .colR .mats{order:1}
 .colR .gchip{order:3}
@@ -187,6 +187,15 @@ body.touring .xtra{pointer-events:none}
 body.touring .hud{opacity:0; pointer-events:none}
 body.oct,body.dayfade{background:linear-gradient(180deg,#86cdf5 0%,#bfe6fb 42%,#fff1d9 78%,#ffe0bf 100%)}
 #nightVeil{position:fixed; inset:0; background:linear-gradient(180deg,#101d46 0%,#2a4688 55%,#6f8fcf 100%); opacity:0; pointer-events:none}
+body:not(.oct) #left{display:none}
+body:not(.oct) .bottom{align-items:stretch}
+body:not(.oct) .mainbtns{width:100%}
+body:not(.oct) .mainbtns .rollbtn{flex:1.15; padding-inline:8px}
+body:not(.oct) .mainbtns .roombtn{flex:1; justify-content:center}
+body:not(.oct) .levels{align-self:stretch}
+body:not(.oct) .levels button{flex:1; justify-content:center}
+.lvn{font-style:normal; font-size:12px; background:rgba(0,0,0,.14); border-radius:99px; padding:0 7px; line-height:1.5}
+.levels button.on .lvn{background:rgba(255,255,255,.28)}
 body.oct .bottom{background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,248,236,.55) 45%)}
 .gpanel{font-family:var(--round); font-size:14px; color:var(--ink); background:var(--gold); border:3px solid var(--ink); border-radius:18px; box-shadow:0 5px 0 var(--ink); padding:8px 12px; cursor:pointer; line-height:1.25}
 .gpanel small{display:block; font-size:11px; color:#6b4f1a}
@@ -199,7 +208,10 @@ body.oct .menubtn{width:50px}
 .loading{position:fixed; inset:0; display:grid; place-items:center; font-size:18px; color:#fff}
 @media (prefers-reduced-motion:reduce){.flash,.toast,.tree .bar i{transition:none}.card,.mat.pop{animation:none}}
 .phase,#menu .mhead,#menu .mhead + .mgrid,#charBtn,#rank{display:none!important}
-html.demoq .phase{display:flex!important}
+input,textarea{-webkit-user-select:text; user-select:text}
+html.demoq #menu .phase{display:flex!important; margin:0 0 12px; justify-content:center}
+html.demoq #menu .mhead,html.demoq #menu .mhead + .mgrid{display:grid!important}
+html.demoq #menu .mhead{display:block!important}
 .left{font-size:15px;padding:5px 14px}
 </style>
 
@@ -223,8 +235,7 @@ html.demoq .phase{display:flex!important}
   </div>
   <div class="bottom">
     <div class="octinfo"><b>OTTO2 遊樂島・畢卡索月</b><span>🔒 聖誕走格子 11/1 開放</span></div>
-    <div class="phase" role="group" aria-label="示範切換月份"><span>示範切換</span><button type="button" id="ph0">10 月・扭蛋</button><button type="button" id="ph1">11–12 月・走格子</button></div>
-    <div class="left" id="left"></div>
+        <div class="left" id="left"></div>
     <div class="levels" role="group" aria-label="選擇關卡">
       <button type="button" id="lv0" class="on">第一層</button>
       <button type="button" id="lv1"></button>
@@ -241,6 +252,7 @@ html.demoq .phase{display:flex!important}
     <button class="small" id="view" type="button">看全圖</button>
     <button class="small" id="tourBtn" type="button">看導覽</button>
   </div>
+  <div class="phase" role="group" aria-label="示範切換月份"><span>示範切換</span><button type="button" id="ph0">10 月・扭蛋</button><button type="button" id="ph1">11–12 月・走格子</button></div>
   <p class="mhead">示範測試用・正式版不會有</p>
   <div class="mgrid">
     <button class="small on" id="test" type="button">測試：無限次數</button>
@@ -334,13 +346,13 @@ function icon(c,k,cx,cy,s){
 function iconURL(k,size=128){const cv=document.createElement('canvas');cv.width=cv.height=size;icon(cv.getContext('2d'),k,size/2,size/2,size*.85);return cv.toDataURL()}
 const IC={};const iconSrc=k=>IC[k]||(IC[k]=iconURL(k,192));
 function tileTexture(t){
-  const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');
+  const cv=document.createElement('canvas');cv.width=cv.height=512;const x=cv.getContext('2d');x.scale(2,2); /* 畫布加倍解析度，斜角看格子字才不糊 */
   x.fillStyle=t.c;x.fillRect(0,0,256,256);
   x.fillStyle='rgba(255,255,255,.4)';rr(18,18,220,220,34,x);x.fill();
   icon(x,t.ic,128,104,124);
   x.font=`${t.lbl.length>3?40:50}px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.lineWidth=10;x.strokeStyle='#fff';x.lineJoin='round';
   x.strokeText(t.lbl,128,206);x.fillStyle='#2b2320';x.fillText(t.lbl,128,206);
-  const tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;return tex;
+  const tex=new THREE.CanvasTexture(cv);tex.anisotropy=renderer?renderer.capabilities.getMaxAnisotropy():8;return tex;
 }
 
 /* ---------- three.js scene ---------- */
@@ -384,7 +396,7 @@ function buildScene(){
 
   const i1=buildIsland(0),i2=buildIsland(1);ISL=[i1,i2];
   // level 1 centerpiece: the community tree, lit bulb by bulb as members play
-  const tree=makeCommunityTree();tree.position.set(0,-.12,0);i1.add(tree);
+  const tree=makeCommunityTree();tree.position.set(0,-.12,0);i1.add(tree);GA.ctree=tree;
   [[-.9,.7,'#d63a2f'],[.9,.6,'#2f8f58'],[.3,1.1,'#f2c14e'],[-.4,-1,'#62a9ff']].forEach(([x,z,c])=>i1.add(makeBox(c,x,z)));
   [[-2.7,1.2],[2.7,-1.1]].forEach(([x,z])=>{const s=makeSnowman();s.position.set(x,-.12,z);i1.add(s)});
   [[-6.7,5.4],[6.7,-5.4],[6.7,5.4],[-6.7,-5.4]].forEach(([x,z])=>{const t=makeXmasTree(.55);t.position.set(x,-.12,z);i1.add(t)});
@@ -480,6 +492,13 @@ const layersOf=v=>LAYERS.filter(t=>v>=t).length;
 const amtOf=v=>LAYERS.reduce((a,_,k)=>a+layerFill(v,k)*20,0);   // 0..100 bulbs, fractional
 const litOf=v=>Math.ceil(amtOf(v)-1e-6);
 const STAR_DIM=new THREE.Color('#7d6a3a'),STAR_ON=new THREE.Color('#f5d56e');
+/* 大聖誕樹擋在鏡頭和小黑熊中間時，樹變半透明，才看得到格子和字 */
+let _tf=1;const _tc=new THREE.Vector3(),_tb=new THREE.Vector3(),_td=new THREE.Vector3();
+function treeFade(dt){const T=GA.ctree;if(!T||!bear)return;let want=1;
+  if(G&&G.phase!=='oct'&&!overview&&!treeCam&&!parkCam&&!focusAt){T.getWorldPosition(_tc);_tc.y+=2.4;_tb.copy(bear.position);_tb.y+=.7;_td.copy(_tb).sub(camera.position);const L2=_td.lengthSq(),t=Math.max(0,Math.min(1,_tc.clone().sub(camera.position).dot(_td)/L2));
+    const dx=camera.position.clone().addScaledVector(_td,t).distanceTo(_tc);if(t>.05&&t<.98&&dx<3.1)want=.16}
+  _tf+=(want-_tf)*Math.min(1,dt*7);if(Math.abs(_tf-T.userData.fv)<.01)return;T.userData.fv=_tf;
+  T.traverse(o=>{if(o.isSprite){o.visible=_tf>.7;return}if(o.isMesh&&o.material&&!o.material.isMeshBasicMaterial||o.isMesh&&o===TREE.star){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{m.transparent=_tf<.99;m.opacity=_tf;m.depthWrite=_tf>.99;m.needsUpdate=true})}})}
 function setTreeVisual(v){TREE.shown=v;TREE.pct=Math.min(1,v/TREE_GOAL);TREE.fills=LAYERS.map((_,k)=>layerFill(v,k));const amt=amtOf(v);
   TREE.bulbs.forEach((b,i)=>{const br=Math.max(0,Math.min(1,amt-i));b.userData.br=br;b.userData.on=br>0;b.material.color.copy(DARK).lerp(b.userData.col,br)});
   TREE.star.material.color.copy(STAR_DIM).lerp(STAR_ON,Math.pow(TREE.pct,.7))}
@@ -595,7 +614,7 @@ function updateLot(i){
 }
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
-window.PROD=true;try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
+window.PROD=true;document.addEventListener('selectstart',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});document.addEventListener('contextmenu',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
 const LIFF_ID='2010906803-FMDYktUN';
 var NOTIFY_URL='https://otto2-notify-production.up.railway.app';
 var customer={name:'',phone:''};
@@ -668,7 +687,7 @@ function gateSink(){return tween(700,p=>{GA.gate.position.y=GA.bridge.position.y
 function plazaSink(){ // 小黑熊離開廣場後，整座廣場（含扭蛋機）往下沉
   scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o));
   return tween(900,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
-function setPhaseLook(oct){plazaPut(oct);if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct,true);signLook(oct)}
+function setPhaseLook(oct){plazaPut(oct);resize();if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct,true);signLook(oct)}
 
 function labelTex(title,sub,bg,fg,w=512,h=200){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
   x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=10;rr(8,8,w-16,h-16,40,x);x.fill();x.stroke();
@@ -880,7 +899,7 @@ async function openPark(){ // 11/1: the gate opens and the board lights up tile 
   parkCam='walk';
   for(let k=1;k<pts.length;k++){if(k===4){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
-      await tween(120,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
+      await tween(200,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
   { // 從橋頭大跳一下、空翻過去，落在起點格
     const A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);gateSink();
     await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=-easeIO(p)*Math.PI*2});
@@ -1264,7 +1283,7 @@ function camGoal0(){
   const b=bear.position;
   return{pos:new THREE.Vector3(b.x*.55,b.y+(pt?10.5:7.6),b.z+(pt?13.5:10.5)),at:new THREE.Vector3(b.x*.8,b.y+.2,b.z-2)};
 }
-function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix()}
+function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix()}
 
 /* ---------- tween engine ---------- */
 const tweens=[];
@@ -1281,7 +1300,7 @@ function loop(now){
   if(!RM){const a=snow.geometry.attributes.position;for(let k=0;k<a.count;k++){let y=a.getY(k)-dt*(.6+(k%5)*.12);if(y<-6)y=16;a.setY(k,y);a.setX(k,a.getX(k)+Math.sin(now/900+k)*dt*.15)}a.needsUpdate=true}
   const ph=Math.floor(now/450)%4;bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar((b.userData.k===ph&&DIM<.5?1:.45)*(1-DIM*.8)));
   GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);
-  treeTick(dt,now);
+  treeTick(dt,now);treeFade(dt);
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);parts.splice(k,1)}}
   const g=camGoal(),a=ZM.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
@@ -1297,13 +1316,13 @@ function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(
 function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
-  $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
+  $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':(G.test?'11–12 月・測試模式':'11–12 月');
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim)document.documentElement.classList.add('demoq');if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
-  $('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
-  $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?'第二層':LOCK_SVG+'第二層';
+  $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
+  $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
   $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?'🔧 示範模式・可以一直轉（不入帳）':`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
@@ -1848,8 +1867,8 @@ $('tourBtn').addEventListener('click',()=>setTimeout(startTour,250));
 setTimeout(maybeTour,1800);
 $('gpanel').addEventListener('click',()=>{if(!busy)Gacha.open()});
 $('tapme').addEventListener('click',()=>openCapsule());
-$('ph0').addEventListener('click',()=>toOct());
-$('ph1').addEventListener('click',()=>openPark());
+$('ph0').addEventListener('click',()=>{$('menu').hidden=true;toOct()});
+$('ph1').addEventListener('click',()=>{$('menu').hidden=true;openPark()});
 $('lv0').addEventListener('click',()=>pickLevel(0));
 $('lv1').addEventListener('click',()=>pickLevel(1));
 $('view').addEventListener('click',()=>{overview=!overview;hud()});
