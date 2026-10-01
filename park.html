@@ -1288,7 +1288,7 @@ function hud(){
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
-  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(oct&&GA.bcv)drawBoard();
+  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim)document.documentElement.classList.add('demoq');if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
   $('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
