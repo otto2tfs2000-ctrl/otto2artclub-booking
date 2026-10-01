@@ -347,7 +347,11 @@ var esc = function(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, fun
 var md = function(d){ return String(d || "").slice(5).replace("-", "/") };
 
 function token(){
-  try { return (window.liff && liff.isLoggedIn && liff.isLoggedIn()) ? liff.getAccessToken() : "" } catch(e){ return "" }
+  var t = "";
+  try { if (window.liff && liff.isLoggedIn && liff.isLoggedIn()) t = liff.getAccessToken() || "" } catch(e){}
+  /* 從預約頁跳到 3D 遊樂島時，預約頁先把 LINE 身分放在這裡，遊樂島不用再登入一次 */
+  if (!t) try { t = sessionStorage.getItem("otto2-liff-tk") || "" } catch(e){}
+  return t;
 }
 async function call(path, body){
   var r = await fetch(NOTIFY_URL.replace(/\/$/, "") + path, {

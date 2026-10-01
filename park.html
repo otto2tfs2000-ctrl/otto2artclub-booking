@@ -582,10 +582,12 @@ const BOOK_URL='index.html?go=book';
 let ST=null,GP=null;
 const GB={bears:[{id:'p01',nm:'經典條紋'},{id:'p02',nm:'和平鴿'},{id:'p06',nm:'花冠少年'},{id:'p05',nm:'藍色吉他'},{id:'p03',nm:'哭泣的女人'},{id:'p04',nm:'自畫像'},
   {id:'p07',nm:'彩色劍客',rare:true},{id:'p08',nm:'幾何面具',rare:true},{id:'hbear',nm:'黑熊畢卡索',rare:true,hidden:true},{id:'hgold',nm:'金色和平鴿',rare:true,hidden:true}]};
-function token(){try{return (window.liff&&liff.isLoggedIn&&liff.isLoggedIn())?liff.getAccessToken():''}catch(e){return ''}}
+function ssTok(){try{return sessionStorage.getItem('otto2-liff-tk')||''}catch(e){return ''}}
+function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t=liff.getAccessToken();if(t)return t}}catch(e){}return ssTok()}
 async function gcall(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok){const e=new Error(j.error||'發生錯誤');e.code=j.code;throw e}return j}
-function gState(){return ST||{status:'soon',start:'2026-10-03',end:'2026-10-31',today:gToday(),days:[],cap:30,bonusDaily:2,
+let INFO=null,gErrMsg='';
+function gState(){return ST||{status:INFO?INFO.status:'loading',start:INFO?INFO.start:'2026-10-01',end:INFO?INFO.end:'2026-10-31',today:gToday(),days:[],cap:30,bonusDaily:2,
   milestones:[{d:7,nm:'紅利 3 點'},{d:14,nm:'紅利 5 點'},{d:21,nm:'材料升級券'},{d:28,nm:'6 號畫布一塊（全勤禮）'}],chances:{total:0,used:0,reasons:[]},quiz:null,memory:null,
   bears:{list:GB.bears,have:{},dupes:0,img:'gacha/picasso2/',title:'畢卡索圖鑑',unit:'畢卡索公仔'},me:{}}}
 function gOpen(){const s=ST;return !!s&&(s.status==='on'||s.status==='test')}
@@ -594,16 +596,17 @@ function gToday(){return (ST&&ST.today)||new Date(Date.now()+8*3600e3).toISOStri
 function gDay(){const s=gState();return{spins:s.chances.used||0,quiz:s.quiz&&s.quiz.answered?{ok:!!s.quiz.ok}:null,mem:!!(s.memory&&s.memory.done)}}
 function gpLoad(){const s=gState();return{have:(s.bears&&s.bears.have)||{},dupes:(s.bears&&s.bears.dupes)||0}}
 function gpFresh(){return{}}function gpSave(){}
-function gClosedMsg(){const s=gState();return s.status==='soon'?`活動 ${+s.start.slice(5,7)}/${+s.start.slice(8)} 才開始，先逛逛島吧！`:s.status==='ended'?'活動已經結束囉，謝謝你的參與':'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次'}
+function gClosedMsg(){const s=gState();if(!ST&&gErrMsg)return gErrMsg;if(s.status==='loading')return '連線中…';return s.status==='soon'?`活動 ${+s.start.slice(5,7)}/${+s.start.slice(8)} 才開始，先逛逛島吧！`:s.status==='ended'?'活動已經結束囉，謝謝你的參與':'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次'}
 async function gSpin(){try{const j=await gcall('/gacha/spin');ST=j.state;return j}catch(e){if(e.code==='NEED_PHONE')setTimeout(()=>Gacha.open(),300);if(e.code==='NO_CHANCE'||e.code==='SOON'||e.code==='ENDED')gRefresh();return{ok:false,error:e.message}}}
 async function gQuiz(b){const j=await gcall('/gacha/quiz',b);ST=j.state;return j}
 let _gNeed=false;
-async function gRefresh(){try{const j=await gcall('/gacha/state');if(j.needPhone){_gNeed=true;ST=null}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){}
+async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「詳細資訊」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
   if(typeof hud==='function'&&window.GA&&GA.bubs){renderFigs();showBubbles();hud()}
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
 window.onGachaClose=()=>gRefresh();
 function setStep(){location.href=BOOK_URL}
-(async()=>{try{if(window.liff){await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login({redirectUri:location.href});return}}}catch(e){}gRefresh()})();
+fetch(NOTIFY_URL+'/gacha/info').then(r=>r.json()).then(j=>{if(j&&j.ok){INFO=j;if(typeof hud==='function'&&window.GA&&GA.bubs)hud()}}).catch(()=>{});
+(async()=>{try{if(window.liff){await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()&&!ssTok()){liff.login({redirectUri:location.href});return}}}catch(e){}gRefresh()})();
 
 /* ---------- 遊樂島: the October gacha plaza sits in front; the board behind stays dark until 11/1 ---------- */
 const PLAZA=new THREE.Vector3(-2.2,0,16.6),PLAZA_R=7.2,BRIDGE_X=-4.3;
@@ -1214,7 +1217,7 @@ function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
-  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
+  const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&gState().status==='loading'?(ST||!gErrMsg?'連線中…':'重新整理'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct;playerStripes();if(scene){scene.background=oct?skyTex():null;scene.fog=oct?(scene.fog||new THREE.Fog('#d9eef9',40,85)):null}if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
@@ -2145,7 +2148,11 @@ var esc = function(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, fun
 var md = function(d){ return String(d || "").slice(5).replace("-", "/") };
 
 function token(){
-  try { return (window.liff && liff.isLoggedIn && liff.isLoggedIn()) ? liff.getAccessToken() : "" } catch(e){ return "" }
+  var t = "";
+  try { if (window.liff && liff.isLoggedIn && liff.isLoggedIn()) t = liff.getAccessToken() || "" } catch(e){}
+  /* 從預約頁跳到 3D 遊樂島時，預約頁先把 LINE 身分放在這裡，遊樂島不用再登入一次 */
+  if (!t) try { t = sessionStorage.getItem("otto2-liff-tk") || "" } catch(e){}
+  return t;
 }
 async function call(path, body){
   var r = await fetch(NOTIFY_URL.replace(/\/$/, "") + path, {
