@@ -163,6 +163,14 @@ body.oct .top{display:none}
 .octinfo span{background:rgba(40,44,58,.88); color:#e6e8ee; border-radius:99px; padding:4px 10px}
 #muteBtn{position:fixed; top:calc(env(safe-area-inset-top,0px) + 12px); right:12px; width:46px; height:50px; font-size:18px; z-index:3}
 #muteBtn small{font-size:10px}
+.xtra{position:fixed; top:calc(env(safe-area-inset-top,0px) + 70px); right:10px; z-index:3; display:flex; flex-direction:column; align-items:center; gap:7px}
+.xtra .xh{font-size:11px; background:#b5573f; color:#fff; border-radius:99px; padding:2px 8px; border:2px solid var(--ink)}
+.xtra button{position:relative; width:52px; height:56px; border:2.5px solid var(--ink); border-radius:16px; background:var(--paper); box-shadow:0 3px 0 var(--ink); font-size:22px; line-height:1; padding:4px 0 0; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink); font-family:inherit}
+.xtra button small{font-size:11px}
+.xtra button b{position:absolute; top:-8px; right:-8px; min-width:22px; height:22px; border-radius:11px; background:#e0322f; color:#fff; font-size:12px; font-weight:400; display:flex; align-items:center; justify-content:center; border:2px solid var(--ink); padding:0 3px}
+.xtra button.done{opacity:.6}
+.xtra button.done b{background:#2e7d4f}
+body:not(.oct) .xtra, body.touring .xtra{display:none}
 .tour{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 18px); transform:translateX(-50%); width:min(360px,calc(100% - 32px)); background:var(--paper); border:3px solid var(--ink); border-radius:22px; box-shadow:0 8px 0 var(--ink); padding:14px 16px 14px; z-index:6; text-align:center; animation:popin .35s cubic-bezier(.3,1.5,.5,1)}
 .tour h3{margin:6px 0 4px; font-weight:400; font-size:21px; color:#b5573f}
 .tour p{margin:0 0 12px; font-size:15px; line-height:1.6}
@@ -236,6 +244,7 @@ body.oct .menubtn{width:50px}
 </div></div>
 <div class="tapme" id="tapme" hidden></div>
 <button class="menubtn" id="muteBtn" type="button" aria-label="音效開關"></button>
+<div class="xtra" id="xtra" hidden></div>
 <div class="tour" id="tour" hidden></div>
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast"></div>
@@ -972,7 +981,7 @@ function drawBoard(){if(!GA.bcv)return;const x=GA.bcv.getContext('2d'),W=768,H=7
   GA.btex.needsUpdate=true}
 
 /* 每天早上的泡泡：飄在廣場上空，點破才開始玩；隔天又會冒出來 */
-const BUBS=[{id:'spin',ic:'🎰',nm:'今日扭蛋',at:[-2.7,2.3,7.5],c:'#d4a347'},{id:'quiz',ic:'🎨',nm:'藝術問答',at:[.1,2.0,8.1],c:'#c98a9a'},{id:'book',ic:'📅',nm:'預約加碼',at:[2.9,2.3,7.5],c:'#5f8fa8'}];
+const BUBS=[{id:'spin',ic:'🎰',nm:'今日扭蛋',at:[-3.15,2.45,7.4],c:'#d4a347'},{id:'quiz',ic:'🎨',nm:'藝術問答',at:[-1.05,1.95,8.1],c:'#c98a9a'},{id:'mem',ic:'🃏',nm:'翻牌配對',at:[1.05,1.95,8.1],c:'#86a596'},{id:'book',ic:'📅',nm:'預約加碼',at:[3.15,2.45,7.4],c:'#5f8fa8'}];
 const BR=.95;
 // 泡泡本體：中間淡、邊緣有顏色，外面一圈白色亮框，跟背景分得開
 function bubbleSkin(c){const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d'),g=x.createRadialGradient(128,128,40,128,128,124);
@@ -994,16 +1003,27 @@ function buildBubbles(){GA.bubs=[];
     g.position.copy(g.userData.base);scene.add(g);GA.bubs.push(g)});
   showBubbles()}
 
-function showBubbles(){const t=gToday();if(!G.pops||G.pops.day!==t)G.pops={day:t,ids:[]};GA.bubs.forEach(b=>{b.visible=G.phase==='oct'&&!G.pops.ids.includes(b.userData.bid);b.scale.setScalar(1);b.children.forEach(c=>{if(c.material&&c.userData.op==null)c.userData.op=c.material.opacity})})}
+function showBubbles(){const t=gToday();if(!G.pops||G.pops.day!==t)G.pops={day:t,ids:[]};GA.bubs.forEach(b=>{b.visible=G.phase==='oct'&&!G.pops.ids.includes(b.userData.bid)&&!(b.userData.bid==='mem'&&window.PROD&&!(ST&&ST.memory));b.scale.setScalar(1);b.children.forEach(c=>{if(c.material&&c.userData.op==null)c.userData.op=c.material.opacity})})}
 function bubbleTick(dt,now){if(!GA.bubs)return;const hide=!!parkCam&&parkCam!=='tour';GA.bubs.forEach(b=>{b.children.forEach(c=>{c.visible=!hide});if(!b.visible||b.userData.popping)return;const u=b.userData,t=now/1000+u.ph;
   b.position.set(u.base.x+Math.sin(t*.6)*.25,u.base.y+Math.sin(t*1.1)*.18,u.base.z+Math.cos(t*.5)*.15);const s=1+Math.sin(t*2.3)*.03;b.scale.set(s,1/s,s)})}
 async function popBubble(b){const id=b.userData.bid;if(b.userData.popping)return;b.userData.popping=true;
   G.pops.ids.push(id);save();sfx('pop');
   await tween(240,p=>{b.scale.setScalar(1+p*.45);b.children.forEach(c=>{if(c.material)c.material.opacity=(c.userData.op??1)*(1-p)})});
   sparkle(b.position.clone(),16,['#ffffff','#bfe9ff','#ffd6ea']);b.visible=false;b.userData.popping=false;b.children.forEach(c=>{if(c.material)c.material.opacity=c.userData.op??1});
-  if(id==='spin')spin();else if(id==='quiz')quizPopup();
-  else{const r=await popup('house','預約加碼','今天用線上預約系統約課，或來教室上課，都會多送你一次扭蛋（告示牌上會打勾）。',[{t:'去預約',v:1,cls:'red'},{t:'知道了',v:0,cls:'ghost'}]);if(r)setStep(1)}
+  if(id==='spin')spin();else if(id==='quiz')quizPopup();else if(id==='mem')memPlay();
+  else await bookPopup();
   hud()}
+async function bookPopup(){const r=await popup('house','預約加碼','今天用線上預約系統約課，或來教室上課，都會多送你一次扭蛋（告示牌上會打勾）。',[{t:'去預約',v:1,cls:'red'},{t:'知道了',v:0,cls:'ghost'}]);if(r)setStep(1)}
+function memPlay(){const st=gState();if(!ST||!st.memory){toast(typeof gClosedMsg==='function'?gClosedMsg():'翻牌還沒開放');return}
+  if(st.memory.done){toast('今天已經翻牌過關囉，明天再來');return}Gacha.memory(st)}
+/* 右上角「多轉一次」：問答、翻牌、預約／上課，做完打勾，家長一眼看到還有哪些可以拿 */
+function xtraRender(){const el=$('xtra');if(!el)return;const st=ST;if(!st||G.phase!=='oct'||!(st.status==='on'||st.status==='test')){el.hidden=true;return}
+  const rs=(st.chances&&st.chances.reasons||[]).map(r=>r.why),items=[];
+  if(st.quiz)items.push({id:'quiz',ic:'🎨',nm:'問答',done:!!st.quiz.answered,ok:!!st.quiz.ok});
+  if(st.memory)items.push({id:'mem',ic:'🃏',nm:'翻牌',done:!!st.memory.done,ok:true});
+  const bk=rs.includes('book')||rs.includes('class');items.push({id:'book',ic:'📅',nm:'預約',done:bk,ok:true});
+  el.innerHTML='<div class="xh">多轉一次</div>'+items.map(x=>`<button type="button" data-x="${x.id}" class="${x.done?'done':''}">${x.ic}<small>${x.nm}</small><b>${x.done?(x.ok?'✓':'✗'):'+1'}</b></button>`).join('');
+  el.hidden=false;el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(busy)return;sfx('tap');const k=b.dataset.x;if(k==='quiz')quizPopup();else if(k==='mem')memPlay();else bookPopup()})}
 async function quizPopup(){const st=gState(),q=st.quiz;if(!q){await popup(null,'藝術問答',typeof gClosedMsg==='function'?gClosedMsg():'活動還沒開始');return}
   if(q.answered){await popup(null,'今天已經答過囉',q.ok?'答對了！今天已經多送你一次扭蛋。':'明天會有新題目，再來挑戰。');return}
   const lv=['','簡單','中等','有難度','超難'][q.lv]||'';
@@ -1167,12 +1187,12 @@ function toggleMute(){SFX.on=!SFX.on;try{localStorage.setItem('otto2-park-mute',
 
 /* ---------- 第一次打開：鏡頭帶著走一圈 ---------- */
 function tourSteps(){const b=GA.bubs.map(x=>x.userData.base).reduce((a,v)=>a.add(v),new THREE.Vector3()).multiplyScalar(1/GA.bubs.length),bd=PLAZA.clone().add(ZONE.board);
-  return[{at:b.clone(),pos:b.clone().add(new THREE.Vector3(0,2.2,10)),t:'每天早上，島的前面會冒出三顆泡泡',d:'點破泡泡就開始玩：今日扭蛋、藝術問答、預約加碼。隔天早上又會再冒出來。'},
+  return[{at:b.clone(),pos:b.clone().add(new THREE.Vector3(0,2.2,10)),t:'每天早上，島的前面會冒出四顆泡泡',d:'點破泡泡就開始玩：今日扭蛋、藝術問答、翻牌配對、預約加碼。右上角也看得到今天還有哪些可以多轉一次。'},
     {at:MACH.clone().add(new THREE.Vector3(0,3.4,0)),pos:MACH.clone().add(new THREE.Vector3(.4,4.6,15)),t:'畢卡索扭扭樂',d:'點扭蛋機的 OTTO2 方向盤就能轉。每天一次；答對問答、來上課、線上預約，各多一次。'},
     {at:bd.clone().add(new THREE.Vector3(0,3.2,0)),pos:bd.clone().add(new THREE.Vector3(1.5,3.6,10)),t:'十月集章',d:'每天轉一次就蓋一個章。集滿 7、14、21、28 天都有保底好禮，不用連續。'},
     {at:PLAZA.clone().add(new THREE.Vector3(1.2,1,1.8)),pos:PLAZA.clone().add(new THREE.Vector3(1.2,3.6,11)),t:'收集畢卡索公仔',d:'每轉一次就多一隻畢卡索公仔，牠們會住在島上散步、去畫架畫畫。點公仔可以放大看。'},
     {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在下面黃色的「詳細資訊」。'}]}
-async function startTour(){if(busy||G.phase!=='oct')return;const S=tourSteps(),el=document.getElementById('tour');busy=true;hud();document.body.classList.add('touring');
+async function startTour(){if(busy||G.phase!=='oct')return;G.pops={day:gToday(),ids:[]};save();showBubbles();const S=tourSteps(),el=document.getElementById('tour');busy=true;hud();document.body.classList.add('touring');
   for(let i=0;i<S.length;i++){GA.tour=S[i];parkCam='tour';
     const go=await new Promise(res=>{el.innerHTML=`<div class="tdots">${S.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><h3>${esc(S[i].t)}</h3><p>${esc(S[i].d)}</p><div class="acts"><button type="button" class="btn ghost" data-v="0">略過</button><button type="button" class="btn" data-v="1">${i<S.length-1?'下一步':'開始玩'}</button></div>`;
       el.hidden=false;el.querySelectorAll('button').forEach(b=>b.onclick=()=>{sfx('tap');res(b.dataset.v==='1')})});
@@ -1245,7 +1265,7 @@ const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gi
   lots:{5:{o:'m1',lv:2},9:{o:'m4',lv:1},14:{o:'m2',lv:1},18:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
 function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}}
 function hud(){
-  const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);
+  const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':'11–12 月・示範版';
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
@@ -2605,6 +2625,7 @@ function memoryGame(){
       $("gcMemMsg").innerHTML = (st.sim ? "🎉 過關！（測試模式，可以一直玩）" : j.first ? "🎉 過關！今天多送你一次扭蛋" : "🎉 過關！今天的加碼已經領過囉") +
         '<button class="gc-mini" id="gcMemOk">回去轉扭蛋</button>';
       $("gcMemOk").onclick = function(){ shut(); render(false) };
+      if (window.onGachaClose) setTimeout(window.onGachaClose, 0);
     } catch(e) {
       $("gcMemMsg").innerHTML = esc(e.message) + '<button class="gc-mini" id="gcMemOk">關閉</button>';
       $("gcMemOk").onclick = shut;
@@ -2765,7 +2786,8 @@ function confetti(big){
   clearTimeout(confetti._t); confetti._t = setTimeout(function(){ c.innerHTML = "" }, 5600);
 }
 
-window.Gacha = { result: function(j){ ensureUI(); spun = j; st = j.state; busy = true; showModal(j.prize) }, open: open, close: close, zoom: function(id, state){ if (state) st = state; zoomBear(id) } };
+window.Gacha = { result: function(j){ ensureUI(); spun = j; st = j.state; busy = true; showModal(j.prize) }, open: open, close: close, zoom: function(id, state){ if (state) st = state; zoomBear(id) },
+  memory: function(state){ ensureUI(); if (state) st = state; memoryGame() } };
 })();
 
 </script>
