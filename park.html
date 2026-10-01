@@ -1,5 +1,5 @@
 <title>世界藝術日・畢卡索扭扭樂</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script>(function(){var ok=false;try{var c=document.createElement("canvas");ok=!!(c.getContext("webgl")||c.getContext("experimental-webgl"))}catch(e){}if(!ok)location.replace("index.html?go=gacha2d");window.addEventListener("error",function(){if(!window.__parkReady&&!window.__fb){window.__fb=1;location.replace("index.html?go=gacha2d")}})})()</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -355,7 +355,7 @@ function buildIsland(lv){
 }
 function buildScene(){
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
   $('game').appendChild(renderer.domElement);
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(32,1,.1,200);
   scene.add(new THREE.HemisphereLight(0xdfe9ff,0x5a6a9a,.8));
@@ -785,38 +785,32 @@ let spunJ=null;
 async function spin(){
   if(busy||G.phase!=='oct')return;
   if(gLeft()<=0){toast(typeof gClosedMsg==='function'?gClosedMsg():'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次');return}
-  busy=true;party=1;parkCam='gacha';hud();$('tapme').hidden=true;sfx('toot');
-  const res=new Promise(r=>setTimeout(()=>r(gSpin()),300));
-  await sleep(500);
+  busy=true;party=1;parkCam='gacha';hud();$('tapme').hidden=true;sfx('tick');
+  const res=gSpin();
   const kb=GA.kb,home=kb.userData.home;
-  // 方向盤轉兩圈、整團扭蛋在球裡轉一整圈、機台跟著晃，小黑熊趴在上面晃
-  let lastTk=0;await tween(1400,p=>{const e=easeIO(p),s=Math.sin(p*Math.PI);const tk=Math.floor(e*16);if(tk!==lastTk){lastTk=tk;sfx('tick')}GA.knob.rotation.z=-e*Math.PI*4;GA.swirl.rotation.z=-e*Math.PI*2;
-    GA.wob.rotation.z=(Math.sin(p*Math.PI*5)*.05)*(1-p);kb.rotation.z=Math.sin(p*26)*.3*s;kb.position.y=home.y+Math.abs(Math.sin(p*18))*.06*s});
-  GA.wob.rotation.z=0;kb.rotation.z=0;
+  /* 2026-10-01 大熊：動畫簡化成「方向盤輕轉 → 扭蛋滾出來 → 小畢卡索去拿」，柔和就好、不要等太久 */
+  const k0=GA.knob.rotation.z;let lastTk=0;
+  await tween(550,p=>{const e=easeIO(p);GA.knob.rotation.z=k0-e*Math.PI*.6;const tk=Math.floor(e*3);if(tk!==lastTk){lastTk=tk;sfx('tick')}});
   const j=await res;
   if(!j.ok){party=0;parkCam=null;busy=false;hud();toast(j.error);return}
   spunJ=j;
-  // 小黑熊被甩飛出去
-  const fly=home.clone().add(new THREE.Vector3(3,6,1));sfx('fling');
-  tween(900,p=>{kb.position.lerpVectors(home,fly,p);kb.position.y+=Math.sin(p*Math.PI)*1.5;kb.rotation.y=p*Math.PI*5;kb.rotation.x=KX*(1-p);kb.scale.setScalar(KS*(1-p*.6))});
-  // 扭蛋從出口轉出來，一邊轉一邊變大，停在機台前面（比之前大兩倍多）
+  // 扭蛋從出口滾出來，柔和地停在機台前面
   const cap=makeCapsule(CAPC[Math.floor(Math.random()*CAPC.length)],.93);GA.capObj=cap;scene.add(cap);
-  const c0=MACH.clone().add(new THREE.Vector3(0,1.08,2.4)),c1=MACH.clone().add(new THREE.Vector3(0,1.08,3.15)),HOLD=MACH.clone().add(new THREE.Vector3(0,1.9,4.9));GA.hold=HOLD;
+  const c0=MACH.clone().add(new THREE.Vector3(0,1.08,2.4)),HOLD=MACH.clone().add(new THREE.Vector3(0,1.9,4.9));GA.hold=HOLD;
   parkCam='cap';
-  await tween(1800,p=>{let pos,sc;if(p<.25){const q=p/.25;pos=c0.clone().lerp(c1,q);pos.y-=Math.sin(q*Math.PI)*.1;sc=.2+q*.2}else{const q=easeOut((p-.25)/.75);pos=c1.clone().lerp(HOLD,q);pos.y+=Math.sin(q*Math.PI)*.8;sc=.4+q*.6}
-    cap.position.copy(pos);cap.scale.setScalar(sc);cap.rotation.z=-p*Math.PI*6*(1-p*.5);cap.rotation.x=.3*(1-p)});
+  await tween(900,p=>{const q=easeOut(p);cap.position.copy(c0).lerp(HOLD,q);cap.position.y+=Math.sin(q*Math.PI)*.35;cap.scale.setScalar(.35+q*.65);cap.rotation.z=-(1-q)*Math.PI*1.5});
   cap.rotation.set(0,0,0);sfx('thunk');
-  // 小黑熊從天上掉下來，抱住扭蛋
-  const top=HOLD.clone().add(new THREE.Vector3(0,.78,-.18)),from=top.clone().add(new THREE.Vector3(-.6,5.5,0));kb.scale.setScalar(KS);kb.rotation.set(0,0,0);
-  await tween(750,p=>{kb.position.lerpVectors(from,top,easeOut(p));kb.rotation.z=-(1-p)*Math.PI*1.1;const sq=p>.8?Math.sin((p-.8)/.2*Math.PI):0;kb.scale.set(KS*(1+.15*sq),KS*(1-.2*sq),KS*(1+.15*sq))});
-  kb.rotation.set(.35,0,0);
-  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent='畢卡索抓到扭蛋了！點一下幫你打開 👆';
+  // 小畢卡索從方向盤上輕輕跳下來，走到扭蛋上面抱住
+  const top=HOLD.clone().add(new THREE.Vector3(0,.78,-.18)),from=kb.position.clone();kb.scale.setScalar(KS);
+  await tween(700,p=>{const e=easeIO(p);kb.position.lerpVectors(from,top,e);kb.position.y+=Math.sin(p*Math.PI)*.6;kb.rotation.set(KX*(1-e)+.35*e,0,0)});
+  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent='畢卡索拿到扭蛋了！點一下打開 👆';
+  setTimeout(()=>{if(GA.capReady)openCapsule()},450);
 }
 async function openCapsule(){
   if(!GA.capReady)return;GA.capReady=false;$('tapme').hidden=true;
   const cap=GA.capObj,kb=GA.kb,top=cap.userData.top,p0=kb.position.clone();
-  tween(900,p=>{kb.position.copy(p0).add(new THREE.Vector3(-p*1.2,p*2.4,0));kb.rotation.z=p*.7;kb.scale.setScalar(KS*(1-p*.5))});
-  await tween(700,p=>{const e=easeOut(p);top.position.set(-e*.35,e*.9,0);top.rotation.z=e*.9});
+  tween(500,p=>{const e=easeOut(p);kb.position.copy(p0).add(new THREE.Vector3(-e*.9,-e*.2,.3*e))});
+  await tween(550,p=>{const e=easeOut(p);top.position.set(-e*.35,e*.9,0);top.rotation.z=e*.9});
   sparkle(cap.position.clone(),18,['#fff4c2','#f2cc6b','#ffffff']);sfx('open');setTimeout(()=>sfx('chime'),250);
   const j=spunJ;window.onGachaDone=()=>afterSpin(j);Gacha.result(j);
 }
@@ -824,7 +818,7 @@ async function afterSpin(j){
   window.onGachaDone=null;
   const cap=GA.capObj;await tween(350,p=>cap.scale.setScalar(Math.max(.01,1-p)));scene.remove(cap);GA.capObj=null;
   const kb=GA.kb,home=kb.userData.home;kb.scale.setScalar(KS);
-  await tween(600,p=>{kb.position.copy(home).add(new THREE.Vector3(0,(1-easeOut(p))*1.2,0));kb.rotation.set(KX,0,0);kb.scale.setScalar(KS*Math.max(.01,easeOut(p)))});
+  const kp=kb.position.clone();await tween(600,p=>{const e=easeIO(p);kb.position.lerpVectors(kp,home,e);kb.position.y+=Math.sin(p*Math.PI)*.5;kb.rotation.set(KX,0,0)});kb.position.copy(home);kb.scale.setScalar(KS);
   party=0;
   if(j.bear){const nb=Number(gpLoad().have[j.bear.id])||0;if(!j.bear.isNew&&nb>3){renderFigs();}else{parkCam='fig';GA.figFocus=GA.figs[j.bear.id];await sleep(700);renderFigs(j.bear.id);sfx('sparkle');toast(j.bear.isNew?`${j.bear.nm}住進島上了！`:`又一隻${j.bear.nm}來島上玩了！`);await sleep(1600)}}
   if(j.bear&&j.bear.swap){await popup('star','重複的公仔湊滿 3 隻！','自動多送你 1 次扭蛋，按「轉一下」就能用。');}
@@ -1188,8 +1182,23 @@ let _sky;function skyTex(){if(_sky)return _sky;const cv=document.createElement('
 function maybeTour(){if(!GA.bubs||!G)return setTimeout(maybeTour,500);let seen=false;try{seen=localStorage.getItem('otto2-park-tour')==='1'}catch(e){}if(!seen&&G.phase==='oct'&&!busy)startTour()}
 
 /* ---------- camera ---------- */
+/* 兩指放大／縮小島（鏡頭往前推，畫面重新畫，所以不會糊）；放大後單指拖可以移動。網頁本身的縮放關掉 */
+const ZM={z:1,px:0,pz:0,live:0};
+function zoomable(){return G&&G.phase==='oct'&&!overview&&!parkCam&&!focusAt&&!treeCam}
+function camGoal(){const g=camGoal0();if(!zoomable()||ZM.z<=1.01&&!ZM.px&&!ZM.pz)return g;
+  const off=new THREE.Vector3(ZM.px,0,ZM.pz);g.at.add(off);g.pos.add(off);g.pos.sub(g.at).multiplyScalar(1/ZM.z).add(g.at);return g}
+(function(){const el=document.getElementById('game'),P=new Map();let d0=0,z0=1,moved=false;
+  el.style.touchAction='none';
+  ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+  el.addEventListener('pointerdown',e=>{P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=ZM.z;moved=true;ZM.pinchAt=Date.now()}});
+  el.addEventListener('pointermove',e=>{const q=P.get(e.pointerId);if(!q||!zoomable())return;
+    if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d0>0){ZM.pinchAt=Date.now();ZM.z=Math.max(1,Math.min(3,z0*d/d0));ZM.live=1;if(ZM.z<1.02){ZM.px=ZM.pz=0}}return}
+    if(ZM.z>1.05){const dx=e.clientX-q[0],dy=e.clientY-q[1];if(Math.abs(dx)+Math.abs(dy)>2){const k=.03/ZM.z;ZM.px=Math.max(-6,Math.min(6,ZM.px-dx*k));ZM.pz=Math.max(-6,Math.min(6,ZM.pz-dy*k));ZM.live=1}}
+    P.set(e.pointerId,[e.clientX,e.clientY])});
+  ['pointerup','pointercancel','pointerleave'].forEach(t=>el.addEventListener(t,e=>{P.delete(e.pointerId);if(P.size<2)d0=0;if(!P.size){ZM.live=0;moved=false}}));
+})();
 let overview=false,treeCam=false;const look=new THREE.Vector3();
-function camGoal(){
+function camGoal0(){
   const pt=innerHeight>innerWidth;
   if(parkCam==='tour'&&GA.tour){const t=GA.tour;return{pos:t.at.clone().add(t.pos.clone().sub(t.at).multiplyScalar(pt?1.55:1)),at:t.at}}
   if(parkCam==='open')return{pos:new THREE.Vector3(-1.5,pt?15:9.5,pt?40:29),at:new THREE.Vector3(-1.5,0,5)};
@@ -1223,7 +1232,7 @@ function loop(now){
   treeTick(dt,now);
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);parts.splice(k,1)}}
-  const g=camGoal(),a=1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
+  const g=camGoal(),a=ZM.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
   billboardHead();
   renderer.render(scene,camera);requestAnimationFrame(loop);
 }
@@ -1808,7 +1817,7 @@ $('menuX').addEventListener('click',()=>$('menu').hidden=true);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.mgrid button'))$('menu').hidden=true},true);
 $('backBtn').addEventListener('click',()=>{overview=false;hud()});
 let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.clientY]);
-$('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8)forestTap(e);_down=null});
+$('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
 $('teachBtn').addEventListener('click',teacherPanel);
 $('reset').addEventListener('click',()=>{if(busy)return;const keep={avatar:G.avatar,teachers:G.teachers};G=Object.assign(fresh(),keep);setPhaseLook(true);GP=gpFresh();gpSave();renderFigs();showBubbles();G.forest=seedForest();renderForest();setTreeVisual(G.tree);TREE.flash=[0,0,0,0,0];Object.keys(lotDeco).forEach(i=>updateLot(+i));placeBear();hud();toast('示範重置了')});
