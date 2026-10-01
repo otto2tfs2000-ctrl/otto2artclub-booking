@@ -152,6 +152,14 @@ var CSS = `
 @keyframes gcGot{50%{transform:rotateY(180deg) scale(1.1)}}
 .gc-mem-msg{text-align:center;font-size:13.5px;color:#1E2B4F;font-weight:700;margin-top:12px;min-height:34px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
 
+/* ── 畢卡索公仔圖片（cfg.bearImg 有設定時用圖片，沒有就用黑熊 SVG）── */
+.gc-pic{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
+.gc-dx .gc-pic{width:62px;height:86px;margin:0 auto}
+.gc-pic.gh{filter:grayscale(1) blur(2.5px) opacity(.35)}
+.gc-mbear .gc-pic{width:46px;height:64px;flex:0 0 auto}
+.gc-card2 .fr .gc-pic{width:88%;height:88%}
+.gc-ball.bh .gc-pic,.gc-peek .gc-pic,.gc-pb .gc-pic{border-radius:50%}
+.gc-dx b.hid{position:absolute;left:4px;top:4px;font-size:9.5px;background:#1E2B4F;color:#E3B34C;padding:0 5px;border-radius:6px;font-weight:900}
 /* ── 黑熊圖鑑 ── */
 .gc-dex{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .gc-dx{position:relative;text-align:center;background:#F3F1EC;border-radius:12px;padding:8px 4px 6px}
@@ -454,7 +462,7 @@ function render(anim){
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
-    '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送造型小黑熊，收進黑熊圖鑑。</li>' +
+    '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送' + BU() + '，收進' + BT() + '。</li>' +
     '<li>整個活動期間，扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底送的紅利是額外的，不算在 ' + st.cap + ' 點裡。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回預約頁</button></div>');
@@ -488,7 +496,7 @@ function machine(){
       : '<div class="gc-sun"><i style="left:22px;top:30px;color:#E0322F;font-size:16px;--d:0s">❤</i><i style="left:238px;top:62px;color:#E3B34C;font-size:18px;--d:.7s">✦</i><i style="left:30px;top:210px;color:#E3B34C;font-size:14px;--d:1.3s">✦</i><i style="left:244px;top:226px;color:#E0322F;font-size:14px;--d:.4s">❤</i><i style="left:252px;top:150px;color:#E3B34C;font-size:11px;--d:1.9s">✦</i><i style="left:12px;top:120px;color:#E3B34C;font-size:11px;--d:2.2s">✦</i></div>') +
     '<div class="gc-floor"></div>' +
     '<div class="gc-mach" id="gcMach">' +
-      '<div class="gc-globe"><svg class="gc-peek l"><use href="#gcBh"/></svg><svg class="gc-peek r"><use href="#gcBh"/></svg><div class="gc-swirl" id="gcSwirl"></div><div class="gc-gl"></div></div>' +
+      '<div class="gc-globe">' + (BIMG() ? '<div class="gc-peek l"><img class="gc-pic" src="' + BIMG() + 'head.webp" alt=""></div><div class="gc-peek r"><img class="gc-pic" src="' + BIMG() + 'head.webp" alt=""></div>' : '<svg class="gc-peek l"><use href="#gcBh"/></svg><svg class="gc-peek r"><use href="#gcBh"/></svg>') + '<div class="gc-swirl" id="gcSwirl"></div><div class="gc-gl"></div></div>' +
       '<svg class="gc-svg up" viewBox="0 0 280 424" aria-hidden="true">' +
         '<rect class="gc-red" x="122" y="6" width="36" height="16" rx="7" fill="#D7262E" stroke="#1A1A1A" stroke-width="3"/>' +
         '<path class="gc-red" d="M86 52 Q88 20 140 18 Q192 20 194 52 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>' +
@@ -505,7 +513,7 @@ function machine(){
     '<div class="gc-crowd" id="gcCrowd"></div>' +
     '<div class="gc-cap" id="gcCap"><div class="gc-capin"><i class="t"></i><i class="b"></i><div class="gc-burst"></div></div></div>' +
     '<div class="gc-tapme">👆 點扭蛋打開！</div>' +
-    '<div class="gc-pg" id="gcPg"><div class="gc-pb">' + (st && st.halloween ? bearSvg("pumpkin") : '<svg viewBox="0 0 40 40"><use href="#gcBh"/></svg>') + '</div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
+    '<div class="gc-pg" id="gcPg"><div class="gc-pb">' + (st && st.halloween ? bearSvg("pumpkin") : BIMG() ? '<img class="gc-pic" src="' + BIMG() + 'head.webp" alt="">' : '<svg viewBox="0 0 40 40"><use href="#gcBh"/></svg>') + '</div><div class="gc-paw l"></div><div class="gc-paw r"></div></div>' +
   '</div>';
 }
 var BALLC_HW = ["#F08A24","#6E3FA3","#231F20","#7BBF3F","#F2C94C","#F08A24","#6E3FA3","#E88BB0"];
@@ -517,7 +525,7 @@ function fillMachine(){
     for (var i = 0; i < r[1]; i++) {
       var x = Math.round(i * w + (w - 36) / 2 + (ri % 2 ? 6 : -4)), d = (k * .29).toFixed(2);
       h += (k % 4 === 1)
-        ? '<div class="gc-ball bh" style="left:' + (x - 2) + 'px;top:' + (r[0] - 4) + 'px;--d:' + d + 's"><svg viewBox="0 0 40 40"><use href="#gcBh"/></svg></div>'
+        ? '<div class="gc-ball bh" style="left:' + (x - 2) + 'px;top:' + (r[0] - 4) + 'px;--d:' + d + 's">' + (BIMG() ? '<img class="gc-pic" src="' + BIMG() + 'head.webp" alt="">' : '<svg viewBox="0 0 40 40"><use href="#gcBh"/></svg>') + '</div>'
         : '<div class="gc-ball" style="left:' + x + 'px;top:' + r[0] + 'px;--c:' + pal[k % pal.length] + ';--d:' + d + 's"></div>';
       k++;
     }
@@ -571,7 +579,14 @@ function pool(){
    一樣只負責畫面：答對了沒、過關了沒、抽到哪隻熊，都是伺服器說了算。 */
 
 /* 造型小黑熊：同一顆黑熊頭，加上不同的配件 */
+function BT(){ return (st && st.bears && st.bears.title) || "黑熊圖鑑" }
+function BU(){ return (st && st.bears && st.bears.unit) || "造型小黑熊" }
+function BIMG(){ return (st && st.bears && st.bears.img) || "" }
 function bearSvg(id, ghost){
+  var base = BIMG();
+  if (base && id === "hbear" && !ghost) return hbearSvg();
+  if (base && id !== "hbear") return '<img class="gc-pic' + (ghost ? ' gh' : '') + '" src="' + base + id + '.webp" alt="">';
+  if (base && id === "hbear") return '<img class="gc-pic gh" src="' + base + 'head.webp" alt="">';
   var k = ghost ? "#D8D5CD" : id === "gold" ? "#E3B34C" : "#231F20";
   var ln = ghost ? "#EEEBE4" : "#fff";
   var head =
@@ -603,6 +618,18 @@ function bearSvg(id, ghost){
   }
   return '<svg viewBox="-2 -7 44 50" aria-hidden="true">' + head + acc + '</svg>';
 }
+
+/* 隱藏版「黑熊畢卡索」：OTTO2 小黑熊戴白色側髮、頭上停一隻白鴿 */
+function hbearSvg(){
+  return '<svg viewBox="-4 -12 48 56" aria-hidden="true"><circle cx="8" cy="9" r="7" fill="#231F20"/><circle cx="32" cy="9" r="7" fill="#231F20"/>' +
+    '<ellipse cx="20" cy="22" rx="17" ry="16" fill="#231F20"/>' +
+    '<ellipse cx="3.5" cy="16" rx="5" ry="8" fill="#F2EEE6" transform="rotate(-18 3.5 16)"/><ellipse cx="36.5" cy="16" rx="5" ry="8" fill="#F2EEE6" transform="rotate(18 36.5 16)"/>' +
+    '<path d="M12 4 Q20 -2 28 4 Q24 1 20 2 Q16 1 12 4 Z" fill="#F2EEE6"/><path d="M15 -1 Q20 -9 26 -3 L29 -4 L27 -1 Q21 3 15 -1 Z" fill="#fff" stroke="#C9C2B5" stroke-width=".6"/><circle cx="25" cy="-3.6" r=".8" fill="#231F20"/>' +
+    '<circle cx="13" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/><circle cx="27" cy="19" r="2.6" fill="#231F20" stroke="#fff" stroke-width="1.6"/>' +
+    '<rect x="15" y="20" width="10" height="10" rx="4" fill="#fff"/><ellipse cx="20" cy="22.5" rx="3" ry="2" fill="#231F20"/>' +
+    '<path d="M6 35 Q20 43 34 35 L35 39 Q20 47 5 39 Z" fill="#fff"/><path d="M5.6 37 Q20 44.6 34.4 37" stroke="#231F20" stroke-width="1.6" fill="none"/></svg>';
+}
+function memIds(){ return BIMG() ? st.bears.list.filter(function(x){ return !x.hidden }).slice(0, 6).map(function(x){ return x.id }) : MEM_BEARS }
 
 /* ── 多拿扭蛋機會：小問答＋翻牌＋線上預約 ── */
 function gamesHtml(){
@@ -661,7 +688,8 @@ async function answer(i, btn){
 var MEM_BEARS = ["paint","sketch","pour","yarn","crystal","aroma"];
 function memoryGame(){
   if (busy) return toast("扭蛋轉完再來玩喔");
-  var deck = MEM_BEARS.concat(MEM_BEARS).map(function(id){ return { id:id, r:Math.random() } })
+  var ids = memIds();
+  var deck = ids.concat(ids).map(function(id){ return { id:id, r:Math.random() } })
     .sort(function(a, b){ return a.r - b.r });
   var box = document.createElement("div"); box.className = "gc-mem"; box.id = "gcMemBox";
   box.innerHTML = '<div class="gc-mem-in"><div class="gc-mem-top"><b>🃏 翻牌配對</b><span id="gcMemT">60</span><button class="gc-x" id="gcMemX" aria-label="關閉">✕</button></div>' +
@@ -687,7 +715,7 @@ function memoryGame(){
       var a = open1, b = el; open1 = null;
       if (deck[+a.dataset.i].id === deck[+b.dataset.i].id) {
         setTimeout(function(){ a.classList.add("got"); b.classList.add("got") }, 250);
-        if (++done === MEM_BEARS.length) { clearInterval(tick); over = true; setTimeout(win, 500) }
+        if (++done === ids.length) { clearInterval(tick); over = true; setTimeout(win, 500) }
       } else {
         lock = true;
         setTimeout(function(){ a.classList.remove("flip"); b.classList.remove("flip"); lock = false }, 750);
@@ -717,15 +745,15 @@ function memoryGame(){
 /* ── 黑熊圖鑑 ── */
 function bearsHtml(){
   var b = st.bears; if (!b) return "";
-  var have = b.have || {}, n = b.list.filter(function(x){ return have[x.id] > 0 }).length;
-  return '<div class="gc-sec"><div class="gc-sh"><h2>黑熊圖鑑</h2><small>已收集 ' + n + '／' + b.list.length + '</small></div>' +
+  var have = b.have || {}, reg = b.list.filter(function(x){ return !x.hidden }), n = reg.filter(function(x){ return have[x.id] > 0 }).length;
+  return '<div class="gc-sec"><div class="gc-sh"><h2>' + BT() + '</h2><small>已收集 ' + n + '／' + reg.length + '</small></div>' +
     '<div class="gc-card"><div class="gc-dex">' + b.list.map(function(x){
       var got = have[x.id] > 0;
       return '<div class="gc-dx' + (got ? " got" : "") + (x.rare ? " rare" : "") + '">' + bearSvg(x.id, !got) +
-        '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.rare ? '<i>稀有</i>' : '') + '</div>';
+        '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.hidden ? '<b class="hid">隱藏版</b>' : x.rare ? '<i>稀有</i>' : '') + '</div>';
     }).join("") + '</div>' +
     '<div class="gc-dex-note">' + (b.done ? '✅ 已集滿！' + esc(b.reward) + ' 已送出' :
-      '每轉一次扭蛋，就會多一隻造型小黑熊。集滿 ' + b.list.length + ' 款送 <b>' + esc(b.reward) + '</b>' +
+      '每轉一次扭蛋，就會多一隻' + BU() + '。集滿 ' + reg.length + ' 款送 <b>' + esc(b.reward) + '</b>' +
       (b.limit ? (b.left > 0 ? '（限量 ' + b.limit + ' 名，搶先集滿的人才有）' : '（' + b.limit + ' 名已經送完囉）') : '')) + '</div></div></div>';
 }
 
@@ -773,10 +801,10 @@ var afterModal = null;
 function showModal(p){
   var me = spun.state.me, none = p.type === "none";
   $("gcMIc").textContent = p.ic;
-  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "送你一隻造型小黑熊！" : "恭喜獲得！";
+  $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "送你一隻" + BU() + "！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
     : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
-    : p.type === "bear" ? '今天的紅利已經中滿 ' + (spun.state.bonusDaily || 2) + ' 次囉<br>這次送你一隻造型小黑熊，收進你的黑熊圖鑑'
+    : p.type === "bear" ? '今天的紅利已經中滿 ' + (spun.state.bonusDaily || 2) + ' 次囉<br>這次送你一隻' + BU() + '，收進你的' + BT()
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
   var next = TIERS.filter(function(t){ return t[0] > me.bonus })[0];
@@ -787,8 +815,8 @@ function showModal(p){
   if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
   var bb = spun.bear;
   $("gcMBear").innerHTML = bb ? '<div class="gc-mbear">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
-    (bb.isNew ? '<span class="nw">NEW</span>' : '') + (bb.rare ? '<span class="nw" style="background:#E3B34C;color:#1E2B4F">稀有</span>' : '') +
-    '<br><span style="color:#8A90A0;font-size:12px">黑熊圖鑑 ' + bb.count + '／' + bb.total + '</span></div></div>' : '';
+    (bb.isNew ? '<span class="nw">NEW</span>' : '') + (bb.hidden ? '<span class="nw" style="background:#1E2B4F;color:#E3B34C">隱藏版！</span>' : bb.rare ? '<span class="nw" style="background:#E3B34C;color:#1E2B4F">稀有</span>' : '') +
+    '<br><span style="color:#8A90A0;font-size:12px">' + BT() + ' ' + bb.count + '／' + bb.total + '</span></div></div>' : '';
   $("gcMBal").style.display = "";
   $("gcModal").classList.toggle("nowin", none);
   $("gcModal").classList.add("show");
@@ -827,8 +855,8 @@ function showModalNext(){
   } else finish();
 }
 function showCollect(co){
-  if (co.soldOut) showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊 🎉<br>可惜 <b style="color:#1E2B4F">' + esc(co.nm) + '</b> 限量名額已經送完了<br>謝謝你這麼認真收集！');
-  else showModal2("📖", "黑熊圖鑑集滿了！", '恭喜集齊全部造型小黑熊<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
+  if (co.soldOut) showModal2("📖", BT() + "集滿了！", '恭喜集齊全部' + BU() + ' 🎉<br>可惜 <b style="color:#1E2B4F">' + esc(co.nm) + '</b> 限量名額已經送完了<br>謝謝你這麼認真收集！');
+  else showModal2("📖", BT() + "集滿了！", '恭喜集齊全部' + BU() + '<br>送你 <b style="color:#1E2B4F">' + esc(co.nm) + '</b>' +
     (co.type === "bonus" ? "<br>已存進你的帳戶" : "<br>已放進你的票券，來店出示就能領"));
 }
 function closeModal(){
