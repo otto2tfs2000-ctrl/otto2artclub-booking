@@ -403,7 +403,7 @@ function buildScene(){
   bear=new THREE.Group();bearBody=makeBear('#1c1c1f',1,false);bear.add(bearBody);scene.add(bear);
   const n0=scene.children.length;buildPlaza();buildMist();buildEasels();
   /* 把廣場上的東西收進 GA.PR（原點、不旋轉不縮放，座標照舊），11/1 走過橋後整座沉下去，不然大扭蛋機會擋住走格子島的鏡頭 */
-  GA.PR=new THREE.Group();scene.add(GA.PR);scene.children.slice(n0).forEach(o=>{if(o!==GA.PR&&o!==GA.gate&&o!==GA.mist)GA.PR.add(o)});
+  GA.PR=new THREE.Group();scene.add(GA.PR);scene.children.slice(n0).forEach(o=>{if(o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==GA.bridge)GA.PR.add(o)});
   dieG=new THREE.Group();die=mesh(new THREE.BoxGeometry(.72,.72,.72),[3,4,1,6,2,5].map(v=>toon('#ffffff',{map:dieFace(v)})));dieG.add(die);dieG.visible=false;scene.add(dieG);
   addEventListener('resize',resize);resize();
 }
@@ -637,8 +637,8 @@ gInfo();
 setTimeout(()=>{if(!ST&&!gErrMsg){gErrMsg='連線比較慢，請關掉頁面重新打開';gPaint()}},12000);
 
 /* ---------- 遊樂島: the October gacha plaza sits in front; the board behind stays dark until 11/1 ---------- */
-const PLAZA=new THREE.Vector3(-2.2,0,16.6),PLAZA_R=7.2,BRIDGE_X=-4.3;
-const MACH=new THREE.Vector3(-2.2,0,14.2),STAND=new THREE.Vector3(1.1,0,12.8);
+const PLAZA=new THREE.Vector3(-2.2,0,14.2),PLAZA_R=7.2,BRIDGE_X=-4.3,BR_Z0=5.9,BR_Z1=PLAZA.z-PLAZA_R+.9; /* 廣場跟走格子島的距離：橋只有一小段，開門後很快就走到 */
+const MACH=new THREE.Vector3(-2.2,0,11.8),STAND=new THREE.Vector3(1.1,0,12.8);
 let DIM=0,ISL=[],parkCam=null;const GA={bulbs:[],caps:[]};
 function grayTex(cv){const c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;const x=c2.getContext('2d');x.drawImage(cv,0,0);
   const d=x.getImageData(0,0,c2.width,c2.height),a=d.data;
@@ -658,11 +658,11 @@ function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v
   if(!scene)return;const day=oct||SKYHOLD;scene.background=day&&SKY===0?skyTex():null;
   if(day){if(!scene.fog)scene.fog=new THREE.Fog('#d9eef9',40,85);scene.fog.color.set('#d9eef9').lerp(_fn.set('#16275a'),SKY)}else scene.fog=null}
 const _fn=new THREE.Color();
-function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.visible=on}
-function gateSink(){return tween(900,p=>{GA.gate.position.y=-easeIn(p)*8}).then(()=>{GA.gate.visible=false})}
+function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.visible=on;GA.bridge.position.y=0;GA.bridge.visible=on}
+function gateSink(){return tween(700,p=>{GA.gate.position.y=GA.bridge.position.y=-easeIn(p)*8}).then(()=>{GA.gate.visible=false;GA.bridge.visible=false})}
 function plazaSink(){ // 小黑熊離開廣場後，整座廣場（含扭蛋機）往下沉
   scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o));
-  return tween(1300,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
+  return tween(900,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
 function setPhaseLook(oct){plazaPut(oct);if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct,true);signLook(oct)}
 
 function labelTex(title,sub,bg,fg,w=512,h=200){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
@@ -770,10 +770,10 @@ function buildPlaza(){
   GA.ring=new THREE.Mesh(new THREE.TorusGeometry(1,.04,8,40),new THREE.MeshBasicMaterial({color:'#d4a347',transparent:true,opacity:0,depthWrite:false}));scene.add(GA.ring);
 
   // 木橋和 11/1 柵門
-  const B=new THREE.Group();scene.add(B);
-  for(let z=5.9,k=0;z<10.2;z+=.34,k++)B.add(mesh(new THREE.BoxGeometry(1.35,.1,.28),toon(k%2?'#b07a4c':'#9c6a40'),BRIDGE_X+(Math.random()-.5)*.05,-.02,z));
-  [5.9,10.1].forEach(z=>[-1,1].forEach(d=>B.add(mesh(new THREE.CylinderGeometry(.06,.07,.7,8),toon('#7a4c30'),BRIDGE_X+d*.72,.3,z))));
-  const gate=new THREE.Group();gate.position.set(BRIDGE_X,0,8.1);scene.add(gate);GA.gate=gate;
+  const B=new THREE.Group();scene.add(B);GA.bridge=B;
+  for(let z=BR_Z0,k=0;z<BR_Z1;z+=.34,k++)B.add(mesh(new THREE.BoxGeometry(1.35,.1,.28),toon(k%2?'#b07a4c':'#9c6a40'),BRIDGE_X+(Math.random()-.5)*.05,-.02,z));
+  [BR_Z0,BR_Z1-.1].forEach(z=>[-1,1].forEach(d=>B.add(mesh(new THREE.CylinderGeometry(.06,.07,.7,8),toon('#7a4c30'),BRIDGE_X+d*.72,.3,z))));
+  const gate=new THREE.Group();gate.position.set(BRIDGE_X,0,(BR_Z0+BR_Z1)/2);scene.add(gate);GA.gate=gate;
   [-1,1].forEach(d=>gate.add(mesh(new THREE.CylinderGeometry(.11,.13,2.3,10),toon('#fffaf2'),d*.85,1.15,0)));
   gate.add(mesh(new THREE.BoxGeometry(2.1,.62,.16),toon('#2f8f58'),0,2.35,0));
   GA.gsign=new THREE.Mesh(new THREE.PlaneGeometry(1.95,.56),new THREE.MeshBasicMaterial({transparent:true}));GA.gsign.position.set(0,2.35,.09);gate.add(GA.gsign);
@@ -861,19 +861,21 @@ function signLook(oct){drawSign(oct?'世界藝術日':'十月活動結束・明�
 async function openPark(){ // 11/1: the gate opens and the board lights up tile by tile
   if(busy||G.phase!=='oct')return;
   busy=true;overview=false;parkCam='open';SKYHOLD=true;SKY=0;hud();
-  await sleep(RM?100:1300);
-  await tween(700,p=>{GA.bar.rotation.z=easeOut(p)*Math.PI*.48});gateLook(true);
+  await sleep(RM?100:450);
+  await tween(450,p=>{GA.bar.rotation.z=easeOut(p)*Math.PI*.48});gateLook(true);
   sparkle(GA.gate.position.clone().add(new THREE.Vector3(0,2.4,0)),12);
-  for(const lv of [0,1])for(const t of tiles[lv]){dimObj(t,0);const y0=t.position.y;tween(260,p=>{t.position.y=y0+Math.sin(p*Math.PI)*.22});
-    if(lv===0)sparkle(t.position.clone().add(new THREE.Vector3(0,.4,0)),2);await sleep(RM?0:55)}
-  if(GA.mist)GA.mist.children.forEach(o=>o.userData.op=o.material?o.material.opacity:1);await tween(1300,p=>{setDim(1-p);if(GA.mist)GA.mist.children.forEach(o=>{if(o.material)o.material.opacity=o.userData.op*(1-p);o.position.y+=.02})});setDim(0);signLook(false);if(GA.mist){GA.mist.visible=false;GA.mist.children.forEach(o=>{if(o.material)o.material.opacity=o.userData.op})}
+  if(GA.mist)GA.mist.children.forEach(o=>o.userData.op=o.material?o.material.opacity:1);
+  const clear=tween(1000,p=>{setDim(1-p);if(GA.mist)GA.mist.children.forEach(o=>{if(o.material)o.material.opacity=o.userData.op*(1-p);o.position.y+=.03})}); /* 雲散開、島亮起來跟格子亮燈同時進行，不要排隊等 */
+  for(const lv of [0,1])for(const t of tiles[lv]){dimObj(t,0);const y0=t.position.y;tween(200,p=>{t.position.y=y0+Math.sin(p*Math.PI)*.22});
+    if(lv===0)sparkle(t.position.clone().add(new THREE.Vector3(0,.4,0)),2);await sleep(RM?0:20)}
+  await clear;setDim(0);signLook(false);if(GA.mist){GA.mist.visible=false;GA.mist.children.forEach(o=>{if(o.material)o.material.opacity=o.userData.op})}
   G.phase='nov';G.cur=0;G.lv[0].pos=0;GA.bubs.forEach(b=>b.visible=false);hud();busy=true;
   // the bear walks over the bridge to the start tile
-  const y=bear.position.y,pts=[STAND.clone(),PLAZA.clone().add(new THREE.Vector3(-6.0,0,4.0)),PLAZA.clone().add(new THREE.Vector3(-6.3,0,-2.8)),PLAZA.clone().add(new THREE.Vector3(-3.4,0,-5.8)),new THREE.Vector3(BRIDGE_X,0,10.3),new THREE.Vector3(BRIDGE_X,0,5.9)],st=tilePos(0,0);pts.push(new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z));
+  const y=bear.position.y,pts=[STAND.clone(),PLAZA.clone().add(new THREE.Vector3(-6.0,0,4.0)),PLAZA.clone().add(new THREE.Vector3(-6.3,0,-2.8)),PLAZA.clone().add(new THREE.Vector3(-3.4,0,-5.8)),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2),new THREE.Vector3(BRIDGE_X,0,BR_Z0)],st=tilePos(0,0);pts.push(new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z));
   parkCam='walk';
-  for(let k=1;k<pts.length;k++){if(k===3){tween(3600,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}if(k===6)gateSink();const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  for(let k=1;k<pts.length;k++){if(k===3){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}if(k===6)gateSink();const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
-      await tween(230,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
+      await tween(120,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
   bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;hud();confetti(40);
   await popup('start','聖誕走格子開放了！','11/1～12/25：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
   await dailyOpen();busy=false;hud();
@@ -1163,7 +1165,7 @@ function marqTick(now){if(!GA.mbulbs)return;const ph=Math.floor(now/(party?90:22
 /* 走格子島前面的雲霧：10 月蓋住、模糊一點；11/1 開放時散開 */
 function soft(){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.55,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(cv)}
 function buildMist(){const M=new THREE.Group();scene.add(M);GA.mist=M;const t=soft(),r=rng(9);
-  [[-6,1.4,8.6,3.2],[5.5,1.2,8.2,3.6],[0,2.4,6.2,2.8],[-2.5,.8,9.4,2.4],[-8.5,2.6,3.5,3.4],[8,2.8,3,3.6],[-3.5,4.2,1,3],[3.8,4.6,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);M.add(c)})}
+  [[-6,1.4,6.4,3.2],[5.5,1.2,6.0,3.6],[0,2.4,4.2,2.8],[-2.5,.8,7.2,2.4],[-8.5,2.6,3.5,3.4],[8,2.8,3,3.6],[-3.5,4.2,1,3],[3.8,4.6,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);M.add(c)})}
 
 /* 空地上的小畫架：抽到的畢卡索公仔會走過去站著畫畫，畫布上會慢慢多出色塊 */
 const EASELS=[[-1.7,2.7,.95],[3.7,1.0,-.95],[4.3,-1.6,-1.2]];
