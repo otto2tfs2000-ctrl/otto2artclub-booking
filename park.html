@@ -590,7 +590,7 @@ function updateLot(i){
 }
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
-window.PROD=true;try{if(/[?&]demo=1/.test(location.search))document.documentElement.classList.add('demoq')}catch(e){}
+window.PROD=true;try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
 const LIFF_ID='2010906803-FMDYktUN';
 var NOTIFY_URL='https://otto2-notify-production.up.railway.app';
 var customer={name:'',phone:''};
