@@ -300,7 +300,7 @@ const T={
 };
 const LEVELS=[
   {name:'第一層',w:11,h:8,pad:2.0,off:new THREE.Vector3(0,0,0),
-   path:['start','lot','mix','bell','hue','lot','gacha','stack','big','memo','gift', 'lot','elf','star','catch','simon','plant', 'gacha','ginger','stairs','lot','plant','rest','elf','sock','again','plant', 'santa','catch','lot','gacha','hue','stack','fwd']},
+   path:['start','lot','mix','bell','hue','lot','simon','stack','big','memo','gift', 'lot','elf','star','catch','gacha','plant', 'rest','ginger','stairs','lot','plant','sock','elf','gacha','again','plant', 'santa','catch','gacha','lot','hue','stack','fwd']},
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
    path:['start','big','star','memo','santa','fwd', 'big','again','ginger', 'simon','santa','bell','big','fwd', 'sock','catch']},
 ];
@@ -391,7 +391,7 @@ function buildIsland(lv){
     const m=mesh(roundedSlab(TILE,TILE,TILE_H,.2,.05),[toon('#ffffff',{map:tex}),toon(shade(t.c,.75))],p.x,o.y-.12,p.z);
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
-    if(k==='gacha'){const d=makeMiniGacha(),inw=new THREE.Vector3(-p.x,0,-p.z).normalize().multiplyScalar(.9);d.position.set(p.x+inw.x,o.y-.12,p.z+inw.z);scene.add(d);gachaDeco[i]=d} /* 放在格子靠圈內的那一側，不會被站在格子上的小熊擋住，也不擋格子上的字 */
+    if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
     if(k==='lot'){const d=new THREE.Group();d.position.set(p.x+.27,o.y+TILE_H-.07,p.z-.27);scene.add(d);lotDeco[i]=d}
   });
   return g;
@@ -415,7 +415,7 @@ function buildScene(){
     const L=LEVELS[0],X=L.w*GAP/2+1.2+.0,ZB=L.h*GAP/2+.95,ring=[];
     for(let x=-X;x<=X+.01;x+=2.6){ring.push([x,ZB,.3]);ring.push([x,-ZB,.52])}
     [-2.9,0,2.9].forEach(z=>{ring.push([-X,z,.42]);ring.push([X,z,.42])});
-    ring.forEach(([x,z,sc],k)=>{const t=makeXmasTree(sc+(k%3)*.03);t.position.set(x,-.12,z);t.rotation.y=k;i1.add(t)});
+    ring.filter(([x,z])=>!Object.values(gachaDeco).some(d=>Math.hypot(d.position.x-x,d.position.z-z)<1.6)).forEach(([x,z,sc],k)=>{const t=makeXmasTree(sc+(k%3)*.03);t.position.set(x,-.12,z);t.rotation.y=k;i1.add(t)});
     [[-X+.9,-ZB+.2],[X-.9,-ZB+.2]].forEach(([x,z])=>{const sm=makeSnowman();sm.position.set(x,-.12,z);i1.add(sm)}) }
   buildForest();
   const fb=makeBear('#f7f4ee',1.6,true);fb.position.set(0,.3,0);i2.add(fb);
@@ -1327,7 +1327,7 @@ function loop(now){
 /* ---------- game state (demo, per browser) ---------- */
 let G;
 const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gifts:3,orn:[false,false,false,false],
-  layout:34,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},29:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
+  layout:35,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},30:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
 function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}}
 function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
@@ -1855,7 +1855,7 @@ async function start(data){
   G=data&&data.lv&&data.lots?data:null;
   if(!G){try{G=JSON.parse(localStorage.getItem('otto2-xmas-walk-demo3'))}catch(e){}}
   if(!G||!G.lv||!G.lots)G=fresh();
-  if(G.layout!==34){const f=fresh();G.lots=f.lots;G.lv[0].pos=0;G.forest=null;G.layout=34}
+  if(G.layout!==35){const f=fresh();G.lots=f.lots;G.lv[0].pos=0;G.forest=null;G.layout=35}
   if(G.test===undefined)G.test=true;
   if(!G.phase)G.phase='oct';if(window.PROD){G.phase='oct';G.test=false}if(G.spinLeft===undefined)G.spinLeft=1;
   if(!G.arc)G.arc={n:0,best:{}};
