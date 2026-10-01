@@ -433,6 +433,7 @@ function renderPhone(guess, err){
   var c = window.customer || {};
   ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🎨</h3>' +
     '<p>輸入上課留的手機號碼，抽到的紅利和票券會直接存進這支電話的帳戶，順便幫你查點數還剩多少。</p>' +
+    (new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10) <= "2026-10-14" ? '<div class="gc-banner" style="margin:8px 0 10px">🎁 <b>登錄禮（10/14 前）</b>：會員登錄電話多送 <b>1 次必中扭蛋</b>，新朋友也多送 1 次扭蛋！</div>' : '') +
     '<label for="gcName">姓名</label><input id="gcName" autocomplete="name" value="' + esc(c.name || (st && st.lineName) || "") + '">' +
     '<label for="gcPhone">手機號碼</label><input id="gcPhone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxx" value="' + esc(guess || c.phone || "") + '">' +
     '<div class="gc-err" id="gcErr">' + esc(err || "") + '</div>' +
