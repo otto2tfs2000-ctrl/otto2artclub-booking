@@ -159,6 +159,17 @@ var CSS = `
 .gc-mbear .gc-pic{width:46px;height:64px;flex:0 0 auto}
 .gc-card2 .fr .gc-pic{width:88%;height:88%}
 .gc-ball.bh .gc-pic,.gc-peek .gc-pic,.gc-pb .gc-pic{border-radius:50%}
+.gc-dx.got[data-id]{cursor:zoom-in}
+.gc-mbear[data-id]{cursor:zoom-in}
+.gc-zoom{position:fixed;inset:0;z-index:85;background:rgba(20,26,45,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .25s}
+.gc-zoom.show{opacity:1}
+.gc-zoom .zi{width:min(78vw,360px);border-radius:18px;background:#F6F4EF;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35);transform:scale(.85);transition:transform .35s cubic-bezier(.22,1.3,.36,1)}
+.gc-zoom.show .zi{transform:none}
+.gc-zoom .zi img{display:block;width:100%}
+.gc-zoom .zi svg{display:block;width:70%;margin:24px auto}
+.gc-zoom .zt{color:#fff;font-size:20px;font-weight:900;margin-top:14px;text-align:center}
+.gc-zoom .zs{color:#E3B34C;font-size:13px;margin-top:4px;text-align:center}
+.gc-zoom .zc{margin-top:16px;color:rgba(255,255,255,.7);font-size:12px}
 .gc-dx b.hid{position:absolute;left:4px;top:4px;font-size:9.5px;background:#1E2B4F;color:#E3B34C;padding:0 5px;border-radius:6px;font-weight:900}
 /* ── 黑熊圖鑑 ── */
 .gc-dex{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -470,6 +481,7 @@ function render(anim){
   bindShell();
   fillMachine();
   bindGames();
+  document.querySelectorAll('.gc-dx.got[data-id]').forEach(function(el){ el.onclick = function(){ zoomBear(el.dataset.id) } });
   $("gcGo").onclick = spin; $("gcKnob").onclick = spin; $("gcCap").onclick = openCap;
   var goBook = function(){ close(); if (window.setStep) setStep(1) };
   $("gcBook").onclick = goBook;
@@ -619,6 +631,19 @@ function bearSvg(id, ghost){
   return '<svg viewBox="-2 -7 44 50" aria-hidden="true">' + head + acc + '</svg>';
 }
 
+/* 點收集到的公仔：放大看大圖 */
+function zoomBear(id){
+  var S = (spun && spun.state) || st, b = S && S.bears; if (!b) return;
+  var x = b.list.filter(function(v){ return v.id === id })[0]; if (!x) return;
+  var n = (b.have || {})[id] || 0, base = BIMG();
+  var pic = !base ? bearSvg(id) : id === "hbear" ? hbearSvg() : '<img src="' + base + id + '_l.webp" alt="' + esc(x.nm) + '">';
+  var z = document.createElement("div"); z.className = "gc-zoom";
+  z.innerHTML = '<div class="zi">' + pic + '</div><div class="zt">' + esc(x.nm) + '</div>' +
+    '<div class="zs">' + (x.hidden ? "隱藏版・" : x.rare ? "稀有・" : "") + (n ? "已收集 " + n + " 隻" : "") + '</div><div class="zc">點任何地方關閉</div>';
+  z.onclick = function(){ z.classList.remove("show"); setTimeout(function(){ z.remove() }, 250) };
+  document.body.appendChild(z); requestAnimationFrame(function(){ z.classList.add("show") });
+}
+
 /* 隱藏版「黑熊畢卡索」：OTTO2 小黑熊戴白色側髮、頭上停一隻白鴿 */
 function hbearSvg(){
   return '<svg viewBox="-4 -12 48 56" aria-hidden="true"><circle cx="8" cy="9" r="7" fill="#231F20"/><circle cx="32" cy="9" r="7" fill="#231F20"/>' +
@@ -749,7 +774,7 @@ function bearsHtml(){
   return '<div class="gc-sec"><div class="gc-sh"><h2>' + BT() + '</h2><small>已收集 ' + n + '／' + reg.length + '</small></div>' +
     '<div class="gc-card"><div class="gc-dex">' + b.list.map(function(x){
       var got = have[x.id] > 0;
-      return '<div class="gc-dx' + (got ? " got" : "") + (x.rare ? " rare" : "") + '">' + bearSvg(x.id, !got) +
+      return '<div class="gc-dx' + (got ? " got" : "") + (x.rare ? " rare" : "") + '"' + (got ? ' data-id="' + esc(x.id) + '"' : '') + '>' + bearSvg(x.id, !got) +
         '<span>' + (got ? esc(x.nm) : "？？？") + '</span>' + (got && have[x.id] > 1 ? '<em>×' + have[x.id] + '</em>' : '') + (x.hidden ? '<b class="hid">隱藏版</b>' : x.rare ? '<i>稀有</i>' : '') + '</div>';
     }).join("") + '</div>' +
     '<div class="gc-dex-note">' + (b.done ? '✅ 已集滿！' + esc(b.reward) + ' 已送出' :
@@ -814,7 +839,8 @@ function showModal(p){
     (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
   if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
   var bb = spun.bear;
-  $("gcMBear").innerHTML = bb ? '<div class="gc-mbear">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
+  $("gcMBear").onclick = bb ? function(){ zoomBear(bb.id) } : null;
+  $("gcMBear").innerHTML = bb ? '<div class="gc-mbear" data-id="' + esc(bb.id) + '">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
     (bb.isNew ? '<span class="nw">NEW</span>' : '') + (bb.hidden ? '<span class="nw" style="background:#1E2B4F;color:#E3B34C">隱藏版！</span>' : bb.rare ? '<span class="nw" style="background:#E3B34C;color:#1E2B4F">稀有</span>' : '') +
     '<br><span style="color:#8A90A0;font-size:12px">' + BT() + ' ' + bb.count + '／' + bb.total + '</span></div></div>' : '';
   $("gcMBal").style.display = "";
@@ -890,5 +916,5 @@ function confetti(big){
   clearTimeout(confetti._t); confetti._t = setTimeout(function(){ c.innerHTML = "" }, 5600);
 }
 
-window.Gacha = { open: open, close: close };
+window.Gacha = { open: open, close: close, zoom: function(id, state){ if (state) st = state; zoomBear(id) } };
 })();
