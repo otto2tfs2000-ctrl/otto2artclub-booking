@@ -642,6 +642,16 @@ function ssTok(){try{return sessionStorage.getItem('otto2-liff-tk')||''}catch(e)
 function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t=liff.getAccessToken();if(t)return t}}catch(e){}return ssTok()}
 async function gcall(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok){const e=new Error(j.error||'發生錯誤');e.code=j.code;throw e}return j}
+/* ---------- 聖誕走格子：進度存雲端（/xmas/*）。連不上或還沒綁電話就退回本機示範 ---------- */
+let XS=null,XEXTRA=[0,0],_xTimer=0,XOPEN=false;
+function applyX(j){const p=j.p;G.gifts=p.gifts;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
+  if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}}
+async function xmasPull(){if(!window.PROD||!token())return;
+  try{const j=await gcall('/xmas/state');
+    if(j.needPhone){XS=null;toast('請先輸入手機號碼，進度才存得下來');setTimeout(()=>{try{Gacha.open()}catch(e){}},500);return}
+    XS=j;applyX(j);if(G.phase!=='oct')placeBear();hud()}catch(e){XS=null}}
+function xmasPushSoon(){if(!XS||!window.PROD)return;clearTimeout(_xTimer);_xTimer=setTimeout(async()=>{try{const ex=XEXTRA.slice();XEXTRA=[0,0];
+  const j=await gcall('/xmas/save',{state:{gifts:G.gifts,orn:G.orn,pos:[G.lv[0].pos,G.lv[1].pos],arc:G.arc,extraAdd:ex}});XS=j}catch(e){}},1200)}
 let INFO=null,gErrMsg='';
 function gState(){return ST||{status:INFO?INFO.status:'loading',start:INFO?INFO.start:'2026-10-01',end:INFO?INFO.end:'2026-10-31',today:gToday(),days:[],cap:30,bonusDaily:2,
   milestones:[{d:7,nm:'紅利 3 點'},{d:14,nm:'紅利 5 點'},{d:21,nm:'材料升級券'},{d:28,nm:'6 號畫布一塊（全勤禮）'}],chances:{total:0,used:0,reasons:[]},quiz:null,memory:null,
@@ -659,7 +669,7 @@ let _gNeed=false;
 async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「詳細資訊」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
   gPaint()
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
-window.onGachaClose=()=>gRefresh();
+window.onGachaClose=()=>{gRefresh();if(G&&G.phase!=='oct'&&!XS)xmasPull()};
 function setStep(){location.href=BOOK_URL}
 /* 島還沒蓋好時資料先回來，就等島蓋好再重畫一次（不然會一直停在「連線中…」） */
 function gPaint(n){n=n||0;if(typeof hud==='function'&&typeof GA!=='undefined'&&GA.bubs){try{renderFigs();showBubbles();hud()}catch(e){}
@@ -901,6 +911,7 @@ function signLook(oct){drawSign(oct?'世界藝術日':'十月活動結束・明�
 async function openPark(){ // 11/1: the gate opens and the board lights up tile by tile
   if(busy||G.phase!=='oct')return;
   busy=true;overview=false;parkCam='open';SKYHOLD=true;SKY=0;hud();
+  const xp=window.PROD?xmasPull():null;
   await sleep(RM?100:450);
   await tween(450,p=>{GA.bar.rotation.z=easeOut(p)*Math.PI*.48});gateLook(true);
   sparkle(GA.gate.position.clone().add(new THREE.Vector3(0,2.4,0)),12);
@@ -922,6 +933,7 @@ async function openPark(){ // 11/1: the gate opens and the board lights up tile 
     bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10)}
   bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;hud();confetti(40);
   await popup('start','聖誕走格子開放了！','11/1～12/25：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
+  if(xp){await xp;placeBear()}
   await dailyOpen();busy=false;hud();
 }
 function toOct(){if(busy||G.phase==='oct')return;overview=false;G.phase='oct';SKYHOLD=false;SKY=0;setPhaseLook(true);placeBear();showBubbles();hud();toast('回到 10 月：走格子還沒開放')}
@@ -1328,7 +1340,7 @@ function loop(now){
 let G;
 const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gifts:3,orn:[false,false,false,false],
   layout:36,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},30:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
-function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}}
+function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}xmasPushSoon()}
 function hud(){
   const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
@@ -1738,7 +1750,7 @@ async function resolve(){
   if(key==='plant')return plant('踩到種樹格');
   if(t.g){addGifts(t.g);await popup(t.ic,key==='big'?'大禮物！':'小禮物',`拿到 ${t.g} 個禮物。禮物可以用來認領、升級聖誕小屋。`);return}
   if(t.o!==undefined){if(G.orn[t.o]){addGifts(1);await popup(t.ic,`又是${ORN[t.o].n}`,'這個吊飾已經有了，換成 1 個禮物。');return}return gotOrnament(t.o)}
-  if(key==='again'){G.lv[G.cur].left++;hud();await popup('dice','再擲一次！','送你一次擲骰機會。');return}
+  if(key==='again'){G.lv[G.cur].left++;XEXTRA[G.cur]=1;hud();await popup('dice','再擲一次！','送你一次擲骰機會。');return}
   if(key==='fwd'){await popup('sled','坐上雪橇！','咻～前進 3 格。');await walk(3);return resolve()}
   if(key==='back'){await popup('slip','踩到結冰滑倒了','後退 2 格。');await walk(-2);return resolve()}
   if(key==='rest'){await popup('cocoa','喝杯熱可可','在火爐邊暖暖身子，休息一下。');return}
@@ -1796,8 +1808,11 @@ async function donate(){
 }
 async function doRoll(){
   const L=G.lv[G.cur];if(G.phase==='oct')return;if(busy||(!G.test&&L.left<=0)||(G.cur===1&&!G.booked))return;
-  busy=true;if(!G.test)L.left--;hud();
-  const v=1+Math.floor(Math.random()*6);
+  busy=true;hud();
+  let v=0;
+  if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1]}
+    catch(e){if(e.code){toast(e.message);xmasPull();busy=false;hud();return}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
+  if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6)}
   passedStart=false;await rollDie(v);await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}await lightTree(LIGHTS_PER_ROLL,null,false,true);
   busy=false;hud();
   if(!G.test&&L.left<=0)toast(G.cur===0&&G.booked&&G.lv[1].left>0?'第二層還可以擲一次喔':'今天的次數用完了，明天再來');
@@ -1870,6 +1885,8 @@ async function start(data){
   if(G.treeDone&&G.tree<TREE_GOAL)G.treeDone=false;
   if(!G.forest)G.forest=seedForest();renderForest();
   applyAvatar();await refreshAvatarImg();
+  if(window.PROD){try{const xi=await Promise.race([fetch(NOTIFY_URL+'/xmas/info').then(r=>r.json()),new Promise((_,rj)=>setTimeout(rj,2500))]);XOPEN=!!(xi&&xi.ok&&xi.status==='on')}catch(e){}
+    if(XOPEN){let seen=false;try{seen=localStorage.getItem('otto2-park-opened')==='1'}catch(e){}if(seen)G.phase='nov'}}
   setPhaseLook(G.phase==='oct');renderFigs();
   placeBear();const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
   $('giftIcon').src=iconURL('gift',64);$('soonIc').innerHTML=LOCK_SVG;$('roomIcon').src=iconURL('elf',64);
@@ -1877,7 +1894,9 @@ async function start(data){
   $('loading').hidden=true;$('hud').hidden=false;hud();window.__parkReady=true;
   requestAnimationFrame(loop);
   window.claude?.hot?.snapshot?.(()=>G);
-  setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;dailyOpen().then(()=>{busy=false;hud()})}},1500);
+  setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;(window.PROD?xmasPull():Promise.resolve()).then(()=>dailyOpen()).then(()=>{busy=false;hud()})}},1500);
+  /* 11/1 之後第一次打開：播開門、小熊跳過去的轉場；之後直接進走格子島 */
+  if(window.PROD&&XOPEN&&G.phase==='oct')setTimeout(()=>{openPark().then(()=>{try{localStorage.setItem('otto2-park-opened','1')}catch(e){}})},1800);
 }
 $('roll').addEventListener('click',doRoll);
 $('spin').addEventListener('click',spin);
