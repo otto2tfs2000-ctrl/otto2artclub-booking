@@ -27,6 +27,14 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .go{background:#e0682f;border-color:#e0682f;color:#fff}.go:hover{background:#cf5a24}
 button:disabled{opacity:.5;cursor:default}
+.mini{font-size:13px;padding:7px 14px;min-height:36px}
+#dest{display:flex;flex-direction:column;gap:9px;width:min(440px,100%)}
+.dc{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:12px 16px;border-radius:18px;background:rgba(255,250,240,.97);border:1.5px solid var(--line);font-weight:500}
+.dc b{display:block;font-size:17px;font-weight:900}.dc small{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px;font-weight:500}
+.dc .tag{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--gold);color:var(--ink);flex:none}
+.dc .go2{margin-left:auto;font-size:22px;font-weight:900}
+.dc.main{background:#e0682f;border-color:#e0682f;color:#fff}.dc.main:hover{background:#cf5a24}.dc.main small{color:rgba(255,255,255,.92)}.dc.main .tag{background:#fff;color:#c24f1a}
+.dc:disabled{opacity:.6}
 #meter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
 #meter i{display:block;width:90px;height:8px;border-radius:5px;background:rgba(41,65,54,.15);overflow:hidden}
 #meter u{display:block;height:100%;width:62%;background:var(--gold);text-decoration:none;transition:width .4s}
@@ -43,19 +51,10 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261002h">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261002i">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
-  <div class="row" id="acts">
-    <button id="fVeg" class="go">餵菜</button>
-    <button id="fCorn" class="go">餵玉米鬚</button>
-    <button id="fCross" class="go"></button>
-    <button id="fPlay" class="go">進入遊戲</button>
-  </div>
-  <div class="row" id="tabs" role="group" aria-label="切換畫面">
-    <button data-m="home" aria-pressed="true">吉祥物島</button>
-    <button data-m="bridge" aria-pressed="false">橋</button>
-    <button data-m="game" aria-pressed="false">遊戲島</button>
-  </div>
+  <div class="row" id="acts"><button id="fVeg" class="mini" type="button">餵菜</button><button id="fCorn" class="mini" type="button">餵玉米鬚</button></div>
+  <div id="dest" role="group" aria-label="選一個地方出發"></div>
 </div>
 <div id="card" hidden><button class="x" aria-label="關閉">×</button><img id="cImg" alt=""><div><h2><span id="cName"></span><span class="chip" id="cRole"></span></h2><p id="cLine"></p></div></div>
 <div id="toast" role="status"></div>
@@ -64,7 +63,7 @@ button:disabled{opacity:.5;cursor:default}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002h';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002i';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -285,11 +284,10 @@ function cross(to){
   ['gabi','kabu','moka'].forEach(id=>{const p=pets[id];reset(p);
     p.q.push(A.wait(delay[id]+.3),A.fn(()=>{if(id==='gabi')say(toGame?'嘎逼帶頭衝過橋！':'嘎逼先衝回家');if(id==='moka')say(toGame?'摩卡最後才敢過橋':'摩卡慢慢跟上')}),A.go(new V3(fromX,0,.3+off[id]),2.0),A.go(new V3(toX,0,.3+off[id]),2.2),A.go(ANCH[to].home[id].clone(),1.8))});
   setTimeout(()=>{seq=false;say(toGame?'到遊戲島了':'回到吉祥物島了');setMode(toGame?'game':'home')},8600)}
-$('fCross').addEventListener('click',()=>cross(loc==='home'?'game':'home'));
 
 /* ---------- 鏡頭與介面 ---------- */
 const MODES={
-  home:{t:[0,.6,1.4],w:10.5,h:6.6,dir:[0,.55,.85],D:'三隻住在這裡。站在旁邊的是畢卡索公仔，三隻都比他矮。點牠們看照片，也可以拖曳轉動畫面。'},
+  home:{t:[0,.6,1.4],w:10.5,h:6.6,dir:[0,.55,.85],D:'三隻住在這裡，站在旁邊的是畢卡索公仔。點牠們看照片。選下面的地方出發，三隻也會在那裡等你。'},
   bridge:{t:[11,.4,.5],w:15,h:8,dir:[0,.55,.85],D:'吉祥物島和遊戲島之間用橋連起來。按下面的按鈕，三隻會一起過橋。'},
   game:{t:[GX,.9,.8],w:12,h:8,dir:[0,.55,.85],D:'這是遊戲島的縮小示意。按「進入遊戲」去玩真正的扭蛋和走格子，三隻在遊戲裡也會出現。'},
 };
@@ -297,24 +295,18 @@ let mode='home',yaw=0;const camPos=new V3(),camAt=new V3();let camInit=false;
 function goal(){const M=MODES[mode],t=typeof M.t==='function'?M.t():new V3(...M.t),tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const d=Math.max(M.w/(2*tf*asp),M.h/(2*tf));const dir=new V3(...M.dir).normalize().applyAxisAngle(new V3(0,1,0),yaw);return{pos:t.clone().addScaledVector(dir,d),at:t}}
 function setMode(m){mode=m;document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m?'true':'false'));$('capD').textContent=MODES[m].D;$('card').hidden=true;updateUI()}
-function updateUI(){const m=mode;
-  const feedOk=m===loc&&(m==='home'||m==='game');
-  $('fVeg').hidden=$('fCorn').hidden=!feedOk;
-  $('fVeg').disabled=$('fCorn').disabled=!!food||seq;
-  $('fCross').hidden=!(m==='bridge'||m==='game');$('fPlay').hidden=!(m==='bridge'||m==='game');$('fCross').textContent=loc==='home'?'三隻一起去遊戲島':'三隻回吉祥物島';$('fCross').disabled=seq||(loc!=='home'&&loc!=='game');
-  $('acts').style.display=($('fVeg').hidden&&$('fCross').hidden&&$('fPlay').hidden)?'none':'flex'}
-$('fPlay').addEventListener('click',()=>{location.href=PARK});
-document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{setMode(b.dataset.m)}));
+function updateUI(){$('fVeg').disabled=$('fCorn').disabled=!!food||seq}
 setMode('home');
 
 /* ---------- 點選與拖曳 ---------- */
 const rc=new THREE.Raycaster(),mv=new THREE.Vector2();let down=null,drag=false,lastX=0;const el=renderer.domElement;
 el.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];lastX=e.clientX;drag=false});
-el.addEventListener('pointermove',e=>{if(!down)return;if(Math.hypot(e.clientX-down[0],e.clientY-down[1])>8)drag=true;if(drag){yaw=Math.max(-.9,Math.min(.9,yaw-(e.clientX-lastX)*.006));lastX=e.clientX}});
+el.addEventListener('pointermove',e=>{if(!down)return;if(Math.hypot(e.clientX-down[0],e.clientY-down[1])>8)drag=true;if(drag){yaw=Math.max(-1.4,Math.min(1.4,yaw-(e.clientX-lastX)*.006));lastX=e.clientX}});
 el.addEventListener('pointerup',e=>{const was=down,d=drag;down=null;drag=false;if(!was||d)return;
   const r=el.getBoundingClientRect();mv.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);rc.setFromCamera(mv,camera);
   const hit=rc.intersectObjects(['gabi','kabu','moka'].map(i=>pets[i].g).filter(g=>g.visible),true)[0];
-  if(hit){let o=hit.object;while(o&&!o.userData.id)o=o.parent;if(o){pets[o.userData.id].hop=.4;openCard(o.userData.id)}}});
+  if(hit){let o=hit.object;while(o&&!o.userData.id)o=o.parent;if(o){pets[o.userData.id].hop=.4;openCard(o.userData.id);return}}
+  if(CUR!=='none'&&rc.intersectObjects([GAME,bridge],true)[0])go(CUR)});
 function openCard(id){const p=PETS[id];$('cImg').src=IMG[id];$('cImg').alt=p.name+'的照片';$('cName').textContent=p.name;$('cRole').textContent=p.role;$('cLine').textContent=p.line;$('card').hidden=false}
 document.querySelector('#card .x').addEventListener('click',()=>$('card').hidden=true);
 
@@ -332,6 +324,29 @@ function loop(now){
   for(let i=FX.length-1;i>=0;i--){const f=FX[i];f.t-=dt;if(f.kind==='conf')f.v.y-=7*dt;f.o.position.addScaledVector(f.v,dt);if(f.kind==='heart')f.o.material.opacity=Math.max(0,f.t/f.life);else{f.o.rotation.x+=dt*6;f.o.scale.setScalar(Math.max(.01,f.t/f.life))}if(f.t<=0){scene.remove(f.o);FX.splice(i,1)}}
   renderer.render(scene,camera);requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
+
+/* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
+const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002i';
+const DEST={
+  gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
+  xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},
+  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261002a'}};
+const ART_PUBLIC=false; /* 作品島目前還是示範資料（假的作品和人數），先只給管理者進；改成 true 就開放給所有人 */
+const taipei=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
+let CUR=(t=>t<'2026-11-01'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
+function isAdmin(){try{return sessionStorage.getItem('otto2-park-staff')==='1'||localStorage.getItem('otto2-park-demo')==='1'}catch(e){return false}}
+function go(k){location.href=DEST[k].u}
+function renderDest(){const adm=isAdmin(),box=$('dest');box.innerHTML='';
+  const add=(k,o)=>{o=o||{};const b=document.createElement('button');b.type='button';b.className='dc'+(o.main?' main':'');
+    b.innerHTML=(o.tag?'<span class="tag">'+o.tag+'</span>':'')+'<span><b>'+DEST[k].t+'</b><small>'+(o.label||DEST[k].s)+'</small></span><span class="go2">'+(o.dis?'':'→')+'</span>';
+    if(o.dis)b.disabled=true;else b.addEventListener('click',()=>go(k));box.appendChild(b)};
+  if(CUR!=='none')add(CUR,{main:true,tag:'本月'});
+  if(ART_PUBLIC||adm)add('art',{tag:ART_PUBLIC?'常駐':'常駐・示範資料',main:CUR==='none'});
+  else add('art',{dis:true,label:'準備中，之後會開放'});
+  if(adm){const other=CUR==='gacha'?'xmas':CUR==='xmas'?'gacha':null;
+    if(other)add(other,{tag:'管理者',label:'管理者先進去看'});else{add('gacha',{tag:'管理者'});add('xmas',{tag:'管理者'})}}}
+renderDest();
+(async()=>{try{const c=new AbortController(),t=setTimeout(()=>c.abort(),2500);const r=await fetch(NOTIFY+'/xmas/info',{signal:c.signal});clearTimeout(t);const j=await r.json();if(j&&j.ok&&j.status==='on'&&CUR!=='xmas'){CUR='xmas';renderDest()}}catch(e){}})();
 window.__dbg={pets,cross,feed,setMode,get loc(){return loc}};
 })();
 </script>

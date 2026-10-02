@@ -1429,7 +1429,7 @@ function petsCapsule(hold){if(PET.loc!=='oct')return;const P=PET.g,end=new THREE
 function petTap(rc){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.visible);if(!gs.length)return false;
   const hit=rc.intersectObjects(gs,true)[0];if(!hit)return false;let o=hit.object;while(o&&!(o.userData&&o.userData.id&&PETD[o.userData.id]))o=o.parent;if(!o)return false;
   const id=o.userData.id,d=PETD[id];PET.g[id].hop=.4;sfx('tap');
-  popup(null,`${d.name}・${d.role}`,d.line,[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')location.href='mascot.html?v=20261002a'});
+  popup(null,`${d.name}・${d.role}`,d.line,[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')location.href='mascot.html?v=20261002b'});
   return true}
 
 /* ---------- tween engine ---------- */
@@ -1465,7 +1465,7 @@ function hud(){
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':(G.test?'11–12 月・測試模式':'11–12 月');
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
-  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim)document.documentElement.classList.add('demoq');if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
+  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
@@ -2051,6 +2051,8 @@ async function start(data){
   $('loading').hidden=true;$('hud').hidden=false;hud();window.__parkReady=true;
   requestAnimationFrame(loop);
   window.claude?.hot?.snapshot?.(()=>G);
+  /* 吉祥物島的目的地按鈕：管理者帶 ?phase=oct / nov 直接進 10 月或 11–12 月（要等員工身分確認後才生效） */
+  (function(){const m=/[?&]phase=(oct|nov)/.exec(location.search);if(!m)return;let n=0;const t=setInterval(()=>{n++;if(document.documentElement.classList.contains('demoq')){clearInterval(t);if(busy)return;if(m[1]==='nov'&&G.phase==='oct')openPark();else if(m[1]==='oct'&&G.phase!=='oct')toOct()}else if(n>30)clearInterval(t)},400)})();
   setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;(window.PROD?xmasPull():Promise.resolve()).then(()=>dailyOpen()).then(()=>{busy=false;hud()})}},1500);
   /* 11/1 之後第一次打開：播開門、小熊跳過去的轉場；之後直接進走格子島 */
   if(window.PROD&&XOPEN&&G.phase==='oct')setTimeout(()=>{openPark().then(()=>{try{localStorage.setItem('otto2-park-opened','1')}catch(e){}})},1800);
@@ -2085,7 +2087,7 @@ $('backBtn').addEventListener('click',()=>{overview=false;hud()});
 let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.clientY]);
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
-$('mascotBtn').addEventListener('click',()=>{location.href='mascot.html?v=20261002a'});
+$('mascotBtn').addEventListener('click',()=>{location.href='mascot.html?v=20261002b'});
 $('teachBtn').addEventListener('click',teacherPanel);
 $('reset').addEventListener('click',()=>{if(busy)return;const keep={avatar:G.avatar,teachers:G.teachers};G=Object.assign(fresh(),keep);setPhaseLook(true);GP=gpFresh();gpSave();renderFigs();showBubbles();G.forest=seedForest();renderForest();setTreeVisual(G.tree);TREE.flash=[0,0,0,0,0];Object.keys(lotDeco).forEach(i=>updateLot(+i));placeBear();hud();toast('示範重置了')});
 addEventListener('keydown',e=>{if(e.code==='Space'&&$('pop').hidden&&document.activeElement.tagName!=='BUTTON'){e.preventDefault();G.phase==='oct'?spin():doRoll()}});
