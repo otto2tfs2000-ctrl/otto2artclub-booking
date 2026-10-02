@@ -169,6 +169,18 @@ body.oct .top{display:none}
 .places button small{font-size:10px; background:#8a8f9a; color:#fff; border-radius:99px; padding:0 6px}
 .places button.gray{background:#d3d6dc; color:#7d838f; border-color:#9aa0ab; box-shadow:0 2px 0 #9aa0ab}
 .places button:disabled{opacity:.6}
+#miUI{position:fixed; left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); display:flex; flex-direction:column; align-items:center; gap:10px; z-index:4; pointer-events:none}
+#miUI>*{pointer-events:auto}
+#miUI .mich{font-size:13px; background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:4px 14px}
+#miFood{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:0 12px}
+#miFood button{font:inherit; font-size:15px; color:var(--ink); background:var(--paper); border:2.5px solid var(--ink); border-radius:99px; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 0 var(--ink); cursor:pointer}
+#miFood i{width:12px; height:12px; border-radius:50%; display:block}
+#miUI .mirow{display:flex; gap:10px}
+#miUI .mirow button{font:inherit; font-size:19px; color:var(--ink); background:var(--paper); border:3px solid var(--ink); border-radius:99px; padding:12px 26px; box-shadow:0 5px 0 var(--ink); cursor:pointer}
+#miUI .mirow button.red{background:var(--red); color:#fff}
+#miUI button:disabled{opacity:.55}
+body.mi .hud{opacity:0; pointer-events:none}
+body.mi .xtra{display:none}
 .demotag{position:fixed; left:6px; top:calc(env(safe-area-inset-top,0px) + 3px); font-size:10px; color:#fff; background:#8a8f9a; border-radius:99px; padding:1px 8px; z-index:3; pointer-events:none}
 body.touring .demotag{display:none}
 .octinfo{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; font-size:12px}
@@ -252,6 +264,7 @@ html.demoq #menu .mhead{display:block!important}
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
+<div id="miUI" hidden><div class="mich">吉祥物島・三隻的家</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
 <div class="pop" id="menu" hidden><div class="card">
   <h2>選單</h2>
@@ -902,6 +915,7 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
+  if(MI.state!=='off'){if(MI.state==='on')petTap(rc,true);return true}
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
@@ -1353,6 +1367,7 @@ function camGoal(){const g=camGoal0();if(!zoomable()||ZM.z<=1.01&&!ZM.px&&!ZM.pz
 let overview=false,treeCam=false;const look=new THREE.Vector3();
 function camGoal0(){
   const pt=innerHeight>innerWidth;
+  if(parkCam==='mascot'&&MI.g)return miCam();
   if(parkCam==='tour'&&GA.tour){const t=GA.tour;return{pos:t.at.clone().add(t.pos.clone().sub(t.at).multiplyScalar(pt?1.55:1)),at:t.at}}
   if(parkCam==='walk'){const b=bear.position;return{pos:new THREE.Vector3(b.x-(pt?9:11),b.y+(pt?13:9.5),b.z+(pt?23:16)),at:new THREE.Vector3(b.x*.7,0,b.z-9)}}
   if(parkCam==='open')return{pos:new THREE.Vector3(-1.5,pt?15:9.5,pt?40:29),at:new THREE.Vector3(-1.5,0,5)};
@@ -1411,8 +1426,10 @@ function petIdle(p){const id=p.id,A=PET.A,B=A.box,h=A.home[id],y=A.y,rnd=()=>new
   else p.q.push(PA.go(h,1.0),PA.wait(3+Math.random()*4))}
 function petFace(p,to,dt,k){const d=to.clone().sub(p.g.position),yaw=Math.atan2(d.x,d.z);let a=yaw-p.g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));p.g.rotation.y+=a*Math.min(1,dt*(k||6))}
 function petEnd(p){const a=p.cur;p.cur=null;if(a&&a.eat!==undefined)p.g.userData.head.rotation.x=0;if(a&&a.sleep!==undefined)petSleep(p,false)}
-function petStep(p,dt,now){const u=p.g.userData,base=PET.A.y;
+function petStep(p,dt,now){if(!PET.A)return;const u=p.g.userData,base=PET.A.y;
   if(p.hop>0){p.hop-=dt;p.g.position.y=base+Math.sin(Math.max(0,p.hop)/.4*Math.PI)*.3}
+  if(!PET.A)return;
+  if(!p.cur&&!p.q.length&&PET.loc==='transit')return;
   if(!p.cur){if(!p.q.length)petIdle(p);const a=p.q.shift();p.cur=a;p.t=0;if(a.sleep!==undefined){petSleep(p,true);p.t=a.sleep}if(a.wait!==undefined)p.t=a.wait;if(a.eat!==undefined){p.t=a.eat;p.heart=0}if(a.fn)a.fn(p)}
   const a=p.cur;let walking=false;
   if(a.go){const d=a.go.clone().sub(p.g.position);d.y=0;const L=d.length(),st=Math.min(L,dt*a.sp);if(L<.04)petEnd(p);else{p.g.position.addScaledVector(d.normalize(),st);petFace(p,a.go,dt,8);walking=true}}
@@ -1424,10 +1441,11 @@ function petStep(p,dt,now){const u=p.g.userData,base=PET.A.y;
   u.feet.forEach((f,i)=>f.position.y=.07+(walking?Math.max(0,Math.sin(now/90+i*1.6))*.08:0));
   if(!(p.hop>0))p.g.position.y=base+(walking?Math.abs(Math.sin(now/110))*.04:0);
   if(a.sleep===undefined&&!walking)u.body.scale.y=.78}
+function petsPlace(want){PET.loc=want;PET.cc=null;PET.t=0;PET.A=want==='oct'?petAnch():petAnchNov(PET.cc=petCenterNov());
+  Object.values(PET.g).forEach(p=>{p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null;p.g.position.copy(PET.A.home[p.id]);p.g.visible=true;p.hop=.4})}
 function petsTick(dt,now){if(!PET.g.gabi||!G)return;
-  const want=G.phase==='oct'?'oct':'nov';
-  if(PET.loc!==want){PET.loc=want;PET.cc=null;PET.t=0;PET.A=want==='oct'?petAnch():petAnchNov(PET.cc=petCenterNov());
-    Object.values(PET.g).forEach(p=>{p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null;p.g.position.copy(PET.A.home[p.id]);p.hop=.4})}
+  const want=MI.state==='off'?(G.phase==='oct'?'oct':'nov'):null;
+  if(want&&PET.loc!==want)petsPlace(want)
   else if(want==='nov'){PET.t-=dt;const c=petCenterNov();
     if(PET.t<=0&&PET.cc.distanceTo(c)>3){PET.t=2.5;PET.cc=c;PET.A=petAnchNov(c);Object.values(PET.g).forEach(p=>{p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null;p.q.push(PA.go(PET.A.home[p.id],2.8))})}}
   const vis=!(want==='nov'&&G.cur===1);Object.values(PET.g).forEach(p=>{p.g.visible=vis;if(vis)petStep(p,dt,now)})}
@@ -1438,17 +1456,17 @@ function petsCapsule(hold){if(PET.loc!=='oct')return;const P=PET.g,end=new THREE
   P.gabi.q.push(PA.wait(.1),PA.fn(p=>{p.hop=.4}),PA.go(s('gabi'),3.6),PA.eat(4));
   P.moka.q.push(PA.wait(.9),PA.go(s('moka'),2.4),PA.eat(3.2));
   P.kabu.q.push(PA.wait(.3),PA.go(end.clone().add(new THREE.Vector3(-3.2,0,-1.2)),2.2),PA.wait(.3),PA.go(s('kabu'),2.4),PA.eat(3))}
-function petTap(rc){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.visible);if(!gs.length)return false;
+function petTap(rc,noGo){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.visible);if(!gs.length)return false;
   const hit=rc.intersectObjects(gs,true)[0];if(!hit)return false;let o=hit.object;while(o&&!(o.userData&&o.userData.id&&PETD[o.userData.id]))o=o.parent;if(!o)return false;
   const id=o.userData.id,d=PETD[id];PET.g[id].hop=.4;sfx('tap');
-  popup(null,`${d.name}・${d.role}`,d.line,[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')location.href='mascot.html?v=20261002d'});
+  popup(null,`${d.name}・${d.role}`,d.line,noGo?[{t:'好',v:true}]:[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')mascotGo()});
   return true}
 
 /* ---------- 常駐入口（吉祥物島、作品島）＋示範標籤＋每天一次的「三隻出現了」通知 ---------- */
 function isStaffNow(){try{return document.documentElement.classList.contains('demoq')||sessionStorage.getItem('otto2-park-staff')==='1'}catch(e){return false}}
 function placesUI(){const adm=isStaffNow(),a=$('plArt');if(!a)return;a.classList.toggle('gray',!adm);a.innerHTML=adm?'作品島<small>示範</small>':'作品島';
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
-$('plMascot').addEventListener('click',()=>{if(busy)return;location.href='mascot.html?v=20261002d'});
+$('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}location.href='art.html?v=20261002b'});
 function petsNotice(){
   let seen='';try{seen=localStorage.getItem('otto2-pets-notice')||''}catch(e){}
@@ -1458,7 +1476,123 @@ function petsNotice(){
     clearInterval(t);try{localStorage.setItem('otto2-pets-notice',today)}catch(e){}
     const row=['gabi','kabu','moka'].map(id=>`<figure style="margin:0;text-align:center"><img alt="${PETD[id].name}" src="${PETD[id].img}" style="width:84px;height:84px;border-radius:14px;object-fit:cover;display:block"><figcaption style="font-size:13px;margin-top:3px">${PETD[id].name}</figcaption></figure>`).join('');
     const v=await popup(null,'嘎逼、卡布、摩卡出現了！','教室的三隻天竺鼠來遊樂島玩了，要不要去餵牠們吃點心？',[{t:'去餵食',v:'go',cls:'red'},{t:'先不要',v:false,cls:'ghost'}],`<div style="display:flex;gap:8px;justify-content:center;margin:10px 0 4px">${row}</div>`);
-    if(v==='go')location.href='mascot.html?v=20261002d'},1200)}
+    if(v==='go')mascotGo()},1200)}
+
+/* ---------- 吉祥物島（蓋進場景）：點「吉祥物島」→ 鏡頭往左移、島和橋浮出來、三隻一隻接一隻過橋 ---------- */
+const MI={state:'off',g:null,br:null,c:new THREE.Vector3(),y:0,A:null,food:null,eaten:0,done:0,spot:null};
+const MIK=.72; /* 吉祥物島縮小成 .72 倍放進場景 */
+const MIB=(function(){
+  const hash=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s)-.5};
+  const fl=(g,j)=>{if(j){const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);p.setXYZ(i,x+hash(x,y,z)*j,y+hash(y,z,x)*j,z+hash(z,x,y)*j)}}if(g.index)g=g.toNonIndexed();g.computeVertexNormals();return g};
+  const lam=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
+  const M=(g,m,x,y,z)=>{const o=new THREE.Mesh(g,m);o.position.set(x||0,y||0,z||0);return o};
+  const SGf=(r,w,h)=>fl(new THREE.SphereGeometry(r,w||12,h||8));
+  const ICO=(r,d,j)=>fl(new THREE.IcosahedronGeometry(r,d===undefined?1:d),j);
+  const CYL=(a,b,h,s,j)=>fl(new THREE.CylinderGeometry(a,b,h,s||10),j);
+  const CON=(r,h,s,j)=>fl(new THREE.ConeGeometry(r,h,s||8),j);
+  const BOX=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+  const GR={g1:'#7fa65a',g3:'#92b866',sand:'#e0c98e',rock:'#b39366',deep:'#85704e',wood:'#b07a45',wood2:'#8b5e34',cream:'#f7ecd2',roof:'#e0723a'};
+  let seed=7;const rng=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  function lathe(g,R,pts,col,j){const geo=fl(new THREE.LatheGeometry(pts.map(a=>new THREE.Vector2(a[0]*R,a[1])),20),j||.12);g.add(new THREE.Mesh(geo,lam(col,{side:THREE.DoubleSide})))}
+  function base(R){const g=new THREE.Group();
+    lathe(g,R,[[0,0],[.9,0],[.98,-.28],[.99,-.52]],GR.g1,.06);lathe(g,R,[[.99,-.52],[1,-1.2],[.92,-1.9]],GR.sand);
+    lathe(g,R,[[.92,-1.9],[.8,-2.8],[.6,-3.6]],GR.rock);lathe(g,R,[[.6,-3.6],[.38,-4.5],[.12,-5.2],[0,-5.4]],GR.deep);return g}
+  function tree(kind,s){const g=new THREE.Group();g.add(M(CYL(.12,.2,1.1,6),lam(GR.wood2),0,.55,0));
+    if(kind==='pine'){[[1.0,1.2,1.2],[.78,1.1,1.95],[.52,.95,2.65]].forEach(([r,h,y],i)=>g.add(M(CON(r,h,8,.05),lam(i%2?'#6c9448':'#5d853d'),0,y,0)))}
+    else{const cols=kind==='blossom'?['#f2d4cf','#f7e2dd','#ecc3bf']:['#7fae52','#93c062','#6f9a4a'];
+      [[0,1.6,0,.95],[-.5,1.35,.25,.62],[.5,1.4,-.2,.66]].forEach(([x,y,z,r],i)=>{const c=M(ICO(r,1,.1),lam(cols[i%3]),x,y,z);c.scale.y=.88;g.add(c)})}
+    g.scale.setScalar(s||1);return g}
+  function signTex(txt,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#e9c98f';x.fillRect(0,0,w,h);x.strokeStyle='#8b5e34';x.lineWidth=8;x.strokeRect(4,4,w-8,h-8);x.fillStyle='#4a2f17';x.font='900 '+Math.floor(h*.5)+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,w/2,h/2+4);return new THREE.CanvasTexture(c)}
+  function hut(){const g=new THREE.Group();
+    g.add(M(CYL(1.35,1.45,1.5,10,.04),lam(GR.cream),0,.75,0));g.add(M(CON(1.85,1.5,10,.05),lam(GR.roof),0,2.2,0));g.add(M(CYL(.12,.14,.7,6),lam('#9a8058'),.8,2.7,-.2));
+    g.add(M(BOX(.75,1.0,.12),lam('#7a4a2c'),0,.5,1.36));g.add(M(new THREE.SphereGeometry(.05,8,6),lam('#f2c14e'),.2,.5,1.44));
+    [-1,1].forEach(d=>{const w=M(new THREE.CylinderGeometry(.24,.24,.1,12),lam('#bfe3f2'),d*.9,.95,1.15);w.rotation.x=Math.PI/2;g.add(w)});
+    const sg=new THREE.Group();sg.add(M(CYL(.06,.07,1.4,6),lam(GR.wood2),0,.7,0));
+    const b=M(BOX(1.5,.55,.08),[lam(GR.wood),lam(GR.wood),lam(GR.wood),lam(GR.wood),new THREE.MeshLambertMaterial({map:signTex('毛孩之家',256,94)}),lam(GR.wood)],0,1.35,0);sg.add(b);sg.scale.setScalar(.65);sg.position.set(-1.5,0,1.5);g.add(sg);return g}
+  function island(){seed=7;const R=7,g=new THREE.Group();g.add(base(R));
+    [[-1.5,1.6,.9],[3.4,-1.6,1.2],[-4.4,-1.8,1.1],[2.4,3.6,1.0]].forEach(([x,z,r])=>{const m=M(ICO(r,2,.05),lam(GR.g3),x,0,z);m.scale.y=.2;g.add(m)});
+    const h=hut();h.position.set(0,0,-2.3);g.add(h);
+    [[-4.6,-3.2,'pine',1.0],[-5.4,.4,'blossom',.95],[4.8,-2.8,'round',1.05],[5.0,1.8,'pine',.85],[-2.6,-4.6,'round',.9],[2.4,-4.8,'blossom',.9],[-4.6,3.2,'round',.8]].forEach(([x,z,k,s])=>{const t=tree(k,s);t.position.set(x,0,z);t.rotation.y=x;g.add(t)});
+    [[3.7,2.6,.45],[-3.2,2.9,.35],[5.5,-.4,.4],[-1.8,-5.0,.35]].forEach(([x,z,r])=>{const k=M(ICO(r,0,.08),lam('#d9ccb0'),x,r*.45,z);k.scale.y=.62;g.add(k)});
+    const cols=['#ffd36a','#ff9ac0','#ffffff','#a9d4ff','#ffb27a'];for(let i=0;i<60;i++){const a=rng()*6.28,d=Math.sqrt(rng())*6.4*.86,f=M(new THREE.OctahedronGeometry(.1),lam(cols[i%5]),Math.cos(a)*d,.1,Math.sin(a)*d);f.rotation.set(rng()*3,rng()*3,0);g.add(f)}
+    {const p=new THREE.Group();p.position.set(-3.3,0,.9);p.add(M(BOX(2.2,.14,1.5),lam('#8a6038'),0,.07,0));
+      for(let r=0;r<3;r++)for(let c=0;c<4;c++){const x=-.75+c*.5,z=-.45+r*.45;p.add(M(ICO(.17,0,.03),lam(r===1?'#f08a2f':'#6fae4a'),x,.22,z))}g.add(p)}
+    {const p=new THREE.Group();p.position.set(3.6,0,.5);[[0,.35,0,.55],[.5,.28,.25,.42],[-.45,.25,.3,.38]].forEach(([x,y,z,r])=>p.add(M(ICO(r,1,.06),lam('#ecc760'),x,y,z)));g.add(p)}
+    g.add(M(CYL(1.05,1.15,.08,16),lam('#8ec9c4'),-3.9,.03,-.9));g.add(M(CYL(1.25,1.3,.06,16),lam(GR.sand),-3.9,.02,-.9));
+    g.scale.setScalar(MIK);return g}
+  function bridge(x0,x1){const g=new THREE.Group(),L=Math.abs(x1-x0),n=Math.max(4,Math.round(L/.5)),dir=x1<x0?-1:1;g.userData.planks=[];
+    for(let k=0;k<n;k++){const p=M(fl(new THREE.BoxGeometry(.5,.14,1.7)),lam(k%2?'#b8824a':'#a8743f'),x0+dir*(k+.5)*L/n,-.08,0);p.scale.x=L/n/.5*.96;p.visible=false;g.add(p);g.userData.planks.push(p)}
+    const rails=[];[-1,1].forEach(d=>{const r=M(BOX(L,.08,.08),lam(GR.wood2),(x0+x1)/2,.45,d*.86);r.visible=false;g.add(r);rails.push(r);
+      for(let i=0;i<=Math.round(L/1.2);i++){const q=M(CYL(.05,.06,.6,5),lam(GR.wood2),x0+dir*i*1.2,.18,d*.86);q.visible=false;g.add(q);rails.push(q)}});g.userData.rails=rails;return g}
+  function food(kind){const g=new THREE.Group();
+    if(kind==='veg'){[[-.12,0,.5],[.1,.02,-.4],[0,.04,.1]].forEach(([x,z,r],i)=>{const l=M(SGf(.2,8,6),lam(i===1?'#6fbb55':'#4ca64c'),x,.1,z);l.scale.set(1.1,.3,1.6);l.rotation.y=r;g.add(l)});g.add(M(CON(.1,.4,6),lam('#f08a2f'),.25,.12,.15).rotateZ(Math.PI/2))}
+    else if(kind==='corn'){for(let k=0;k<14;k++){const a=k/14*6.28,s=M(CYL(.012,.012,.42,4),lam(k%2?'#f2d36a':'#e0b94a'),Math.cos(a)*.06,.2,Math.sin(a)*.06);s.rotation.z=Math.cos(a)*.7;s.rotation.x=Math.sin(a)*.7;g.add(s)}g.add(M(SGf(.18,8,6),lam('#9cc563'),0,.05,0))}
+    else if(kind==='pepper'){[['#4aa84a',-.2,0],['#e8b53a',.2,.1],['#d9483b',0,-.22]].forEach(([c,x,z])=>{const p=M(SGf(.19,9,7),lam(c),x,.17,z);p.scale.set(.95,1,.9);g.add(p);g.add(M(CYL(.025,.03,.1,5),lam('#3f7a35'),x,.34,z))})}
+    else{for(let k=0;k<26;k++){const a=Math.random()*6.28,d=Math.random()*.22,h=M(CYL(.012,.012,.5,4),lam(k%3?'#e2c56a':'#cdaa4c'),Math.cos(a)*d,.16,Math.sin(a)*d);h.rotation.z=(Math.random()-.5)*1.6;h.rotation.x=(Math.random()-.5)*1.6;g.add(h)}g.add(M(SGf(.2,8,6),lam('#d9bb5c'),0,.08,0))}
+    return g}
+  return{island,bridge,food}})();
+const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡'};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function petReset(p){p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null;p.arrived=false}
+/* 島的位置：10 月在廣場左邊，11–12 月在走格子島左邊（鏡頭往左移就看得到） */
+function miSpot(){return G.phase==='oct'?{c:new THREE.Vector3(-21,0,14.2),bz:14.2,x0:-9.6,x1:-16.0}:{c:new THREE.Vector3(-23.5,-.12,1.45),bz:1.45,x0:-8.6,x1:-18.5}}
+function miAnch(){const c=MI.c,y=MI.c.y,o=(x,z)=>new THREE.Vector3(c.x+x*MIK,y,c.z+z*MIK);
+  return{y,home:{gabi:o(3.2,1.5),kabu:o(-.8,2.2),moka:o(1.7,-3.9)},box:[c.x-3*MIK,c.x+2.6*MIK,c.z+.9*MIK,c.z+4.2*MIK],food:o(.4,2.9)}}
+function miCam(){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect,at=new THREE.Vector3(c.x,c.y+.6,c.z+.9),d=Math.max(9.8/(2*tf*asp),6.4/(2*tf)),dir=new THREE.Vector3(0,.55,.85).normalize();return{pos:at.clone().addScaledVector(dir,d),at}}
+const miWaitAll=()=>new Promise(r=>{const t=setInterval(()=>{if(Object.values(PET.g).every(p=>p.arrived)){clearInterval(t);r()}},120)});
+async function mascotGo(){
+  if(busy||MI.state!=='off')return;
+  busy=true;MI.state='going';overview=false;hud();
+  if(PET.loc!=='oct'&&PET.loc!=='nov')petsPlace(G.phase==='oct'?'oct':'nov'); /* 剛進遊戲、三隻還沒就位時也要能出發 */
+  const sp=miSpot();MI.spot=sp;MI.c.copy(sp.c);MI.y=sp.c.y;
+  if(!MI.g){MI.g=MIB.island();scene.add(MI.g)}
+  if(MI.br){scene.remove(MI.br)}MI.br=MIB.bridge(sp.x0,sp.x1);MI.br.position.set(0,sp.c.y,sp.bz);scene.add(MI.br);
+  MI.g.position.set(sp.c.x,sp.c.y-14,sp.c.z);MI.g.visible=true;
+  document.body.classList.add('mi');PET.loc='transit';PET.look=null;
+  parkCam='mascot';sfx('tap');
+  tween(1200,p=>{MI.g.position.y=sp.c.y-14*(1-easeOut(p))});
+  await sleep(500);
+  const pl=MI.br.userData.planks,rl=MI.br.userData.rails;
+  await tween(800,p=>{const n=Math.floor(p*pl.length+.001);pl.forEach((q,i)=>q.visible=i<n||p>=1);rl.forEach(q=>q.visible=p>.5)});
+  MI.g.position.y=sp.c.y;
+  /* 一隻接一隻：嘎逼帶頭，卡布跟著，摩卡最後 */
+  const A2=miAnch(),dx=sp.x1<sp.x0?-1:1;
+  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
+    p.q.push(PA.wait(i*1.0+.2),PA.fn(()=>{if(id==='gabi')toast('嘎逼帶頭衝過橋！');if(id==='moka')toast('摩卡最後才敢過橋')}),
+      PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),2.4),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),2.2),PA.go(A2.home[id].clone(),2.0),PA.fn(q0=>{q0.arrived=true}))});
+  await miWaitAll();
+  PET.A=A2;MI.A=A2;PET.loc='mascot';MI.state='on';
+  $('miUI').hidden=false;
+}
+async function mascotBack(){
+  if(MI.state!=='on')return;MI.state='returning';$('miUI').hidden=true;$('miFood').hidden=true;
+  if(MI.food){scene.remove(MI.food);MI.food=null}
+  const sp=MI.spot,dx=sp.x1<sp.x0?-1:1,target=G.phase==='oct'?petAnch():petAnchNov(petCenterNov());
+  PET.loc='transit';PET.look=null;
+  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
+    p.q.push(PA.wait(i*1.0+.2),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),2.2),PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),2.4),PA.go(target.home[id].clone(),2.0),PA.fn(q0=>{q0.arrived=true}))});
+  await sleep(3200);parkCam=null;
+  await miWaitAll();
+  PET.A=target;PET.loc=G.phase==='oct'?'oct':'nov';PET.cc=PET.loc==='nov'?petCenterNov():null;PET.t=2.5;
+  const y0=MI.g.position.y;await tween(900,p=>{MI.g.position.y=y0-14*easeIn(p);MI.br.position.y=sp.c.y-14*easeIn(p)});
+  MI.g.visible=false;MI.br.visible=false;MI.br.position.y=sp.c.y;
+  MI.state='off';document.body.classList.remove('mi');busy=false;hud();
+}
+function miFeed(kind){
+  if(MI.state!=='on'||MI.food)return;$('miFood').hidden=true;
+  const f=MI.A.food.clone();MI.food=MIB.food(kind);MI.food.position.copy(f);scene.add(MI.food);MI.eaten=0;MI.done=0;PET.look=f.clone();$('miFeed').disabled=true;
+  const P=['gabi','kabu','moka'],woke={};P.forEach(id=>woke[id]=PET.g[id].sleeping);P.forEach(id=>petReset(PET.g[id]));
+  const S={gabi:new THREE.Vector3(.6,0,.1),moka:new THREE.Vector3(-.56,0,-.04),kabu:new THREE.Vector3(.08,0,.6)},seat=id=>f.clone().add(S[id]);
+  toast(FOODN[kind]+'來囉！');
+  shuf(P).forEach((id,r)=>{const p=PET.g[id],q=[PA.wait([.5,1.5,2.6][r]+Math.random()*.4),PA.fn(q0=>{if(woke[id])q0.hop=.4})];
+    if(id==='kabu'&&Math.random()<.6)q.push(PA.go(f.clone().add(new THREE.Vector3((Math.random()<.5?-1:1)*2.4,0,-1)),1.9),PA.wait(.4),PA.fn(()=>toast('卡布跑錯方向了')));
+    q.push(PA.go(seat(id),2.4+Math.random()*1.2),PA.fn(()=>{MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.01,1-MI.eaten/3*.97));toast(r===0?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}),PA.eat(2.6+Math.random()*.5),
+      PA.fn(()=>{if(++MI.done>=3){if(MI.food){scene.remove(MI.food);MI.food=null}$('miFeed').disabled=false}}));
+    q.forEach(a=>p.q.push(a))})}
+const MI_FOODS=[['veg','菜菜','#4ca64c'],['corn','玉米鬚','#e0b94a'],['pepper','青椒','#3f9a3f'],['hay','乾草','#d9b95a']];
+(function(){const t=$('miFood');MI_FOODS.forEach(([k,n,c])=>{const b=document.createElement('button');b.type='button';b.innerHTML='<i style="background:'+c+'"></i>'+n;b.addEventListener('click',()=>miFeed(k));t.appendChild(b)})})();
+$('miFeed').addEventListener('click',()=>{if(MI.food)return;$('miFood').hidden=!$('miFood').hidden});
+$('miBack').addEventListener('click',mascotBack);
 
 /* ---------- tween engine ---------- */
 const tweens=[];
@@ -2116,7 +2250,7 @@ $('backBtn').addEventListener('click',()=>{overview=false;hud()});
 let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.clientY]);
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
-$('mascotBtn').addEventListener('click',()=>{location.href='mascot.html?v=20261002d'});
+$('mascotBtn').addEventListener('click',()=>{if(!busy)mascotGo()});
 $('teachBtn').addEventListener('click',teacherPanel);
 $('reset').addEventListener('click',()=>{if(busy)return;const keep={avatar:G.avatar,teachers:G.teachers};G=Object.assign(fresh(),keep);setPhaseLook(true);GP=gpFresh();gpSave();renderFigs();showBubbles();G.forest=seedForest();renderForest();setTreeVisual(G.tree);TREE.flash=[0,0,0,0,0];Object.keys(lotDeco).forEach(i=>updateLot(+i));placeBear();hud();toast('示範重置了')});
 addEventListener('keydown',e=>{if(e.code==='Space'&&$('pop').hidden&&document.activeElement.tagName!=='BUTTON'){e.preventDefault();G.phase==='oct'?spin():doRoll()}});
