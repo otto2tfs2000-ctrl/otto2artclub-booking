@@ -1384,7 +1384,8 @@ function card(html){$('card').innerHTML=html;$('pop').hidden=false}
 const ROOM_DAILY=3;
 async function minigame(kind,room){
   const m=MG[kind];
-  await popup(m.ic,m.t,m.rule,[{t:'開始',v:1,cls:'red'}]);
+  const go=await popup(m.ic,m.t,m.rule,room?[{t:'開始',v:1,cls:'red'}]:[{t:'開始',v:1,cls:'red'},{t:'略過，領 1 個禮物',v:2,cls:'ghost'}]);
+  if(go===2){addGifts(1);await popup('gift','這次先不玩','送你 1 個禮物。遊戲室裡可以隨時再來玩。');return 1}  /* 給不想玩小遊戲的家長：不用過關，也拿得到小禮物 */
   const r=await {mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs}[kind]();
   const old=G.arc.best[kind],isBest=!old||r.s>old.s;if(isBest)G.arc.best[kind]={s:r.s,lbl:r.lbl};
   let g=r.g,note='';
