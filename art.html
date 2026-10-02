@@ -118,6 +118,8 @@ body.tour .tourstop{display:block}
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="ferry.js?v=20261002r"></script>
+<script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -734,7 +736,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);closeSheet();
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002q';a.textContent='搭飛艇回遊戲';$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002r';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(h,5.5,1.8);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`,next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -824,7 +826,7 @@ async function start(data){
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
-  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);
+  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;
   const c=cvEl();c.addEventListener('pointerdown',onDown);c.addEventListener('pointermove',onMove);c.addEventListener('pointerup',onUp);c.addEventListener('pointercancel',onUp);
   c.addEventListener('wheel',e=>{zoom=Math.max(.5,Math.min(1.3,zoom+e.deltaY*.0008));idleT=0;e.preventDefault()},{passive:false});
   if(location.hash==='#album')setTimeout(openAlbum,800);

@@ -52,7 +52,7 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261002q">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261002r">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
   <div id="food" hidden role="group" aria-label="選食物"></div>
   <div id="dest" role="group" aria-label="選一個地方出發"></div>
@@ -61,10 +61,11 @@ button:disabled{opacity:.5;cursor:default}
 <div id="toast" role="status"></div>
 <div id="err">這個瀏覽器打不開 3D 畫面，請換 Safari 或 Chrome 試試。</div>
 
+<script src="ferry.js?v=20261002r"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002q';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002r';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -335,16 +336,16 @@ function loop(now){
 requestAnimationFrame(loop);
 
 /* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
-const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002q';
+const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002r';
 const DEST={
   gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
   xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},
-  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261002b'}};
+  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261002r'}};
 const ART_PUBLIC=false; /* 作品島目前還是示範資料（假的作品和人數），先只給管理者進；改成 true 就開放給所有人 */
 const taipei=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 let CUR=(t=>t<'2026-11-01'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
 function isAdmin(){try{return sessionStorage.getItem('otto2-park-staff')==='1'||localStorage.getItem('otto2-park-demo')==='1'}catch(e){return false}}
-function go(k){location.href=DEST[k].u}
+function go(k){if(k==='art'&&window.Ferry)Ferry.go({to:DEST[k].u,place:'art',from:'park'});else location.href=DEST[k].u}
 function renderDest(){const adm=isAdmin(),box=$('dest');box.innerHTML='';
   const add=(k,o)=>{o=o||{};const b=document.createElement('button');b.type='button';b.className='dc'+(o.main?' main':'');
     b.innerHTML=(o.tag?'<span class="tag">'+o.tag+'</span>':'')+'<span>'+DEST[k].t+(o.sfx||'')+'</span>';
