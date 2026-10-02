@@ -1478,7 +1478,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const adm=isStaffNow(),a=$('plArt');if(!a)return;a.classList.toggle('gray',!adm);a.innerHTML=adm?'作品島<small>示範</small>':'作品島';
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002x',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002cloud',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}

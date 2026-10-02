@@ -115,12 +115,13 @@ body.tour .tourstop{display:block}
 <div class="lb" id="lb" hidden>
   <img id="lbImg" alt="">
   <div class="cap"><h3 id="lbT"></h3><p id="lbP"></p></div>
-  <div class="nav"><button class="pill" id="lbPrev" type="button">上一張</button><button class="pill main" id="lbX" type="button">關閉</button><button class="pill" id="lbNext" type="button">下一張</button></div>
+  <div class="nav"><button class="pill" id="lbPrev" type="button">上一張</button><button class="pill main" id="lbX" type="button">關閉</button><button class="pill" id="lbDel" type="button" hidden>刪除</button><button class="pill" id="lbNext" type="button">下一張</button></div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script src="ferry.js?v=20261002x"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 跟遊戲一致：不管手機有沒有開「減少動態效果」，動畫照常播 */
@@ -746,58 +747,73 @@ function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(
 function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
 const closeModal=()=>{$('modal').hidden=true;if(!touring)artists.forEach(a=>a.userData.hold=false)};
 let lb=null;
-function openImage(src,t,p){lb=null;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
-function openList(list,i,label){lb={list,i,label};const w=list[i];$('lbImg').src=w.img||demoPhoto(w.seed,560).toDataURL();$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;$('lb').hidden=false}
+function openImage(src,t,p){lb=null;$('lbDel').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
+function openList(list,i,label,del){lb={list,i,label,del};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;$('lb').hidden=false}
 function groupByMonth(list){const out=new Map();list.forEach((w,i)=>{const k=w.date||'未標日期';if(!out.has(k))out.set(k,[]);out.get(k).push(i)});return[...out.entries()]}
 function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[i];return`<button type="button" data-i="${i}" aria-label="${esc(w.title||'作品')}"><img alt="" src="${w.img||demoPhoto(w.seed,160).toDataURL()}"></button>`}).join('')}</div>`}
 function houseWall(m){
-  const mine=m.id===G.me,list=m.works;
-  modal(`<h2>${esc(m.name)}的小屋</h2><div class="meta">${list.length} 件作品・照時間排列</div><div class="wall">${list.length?groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join(''):'<div class="empty">還沒有作品，上傳第一件吧</div>'}</div>
-    <div class="acts">${mine?'<button class="pill main" type="button" id="hwUp">上傳作品</button>':''}<button class="pill" type="button" id="hwX">關閉</button></div>`);
-  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`));
-  $('hwX').onclick=closeModal;if(mine)$('hwUp').onclick=()=>uploadTo(m);
+  const mine=m.id===G.me,can=mine||ME.staff,list=m.works;
+  modal(`<h2>${esc(m.name)}的小屋</h2><div class="meta">${list.length} 件作品・照時間排列</div><div class="wall">${list.length?groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join(''):`<div class="empty">${mine?'還沒有作品，上傳第一件吧':'還沒有作品'}</div>`}</div>
+    <div class="acts">${can?`<button class="pill main" type="button" id="hwUp">${mine?'上傳作品':'老師幫忙放作品'}</button>`:''}<button class="pill" type="button" id="hwX">關閉</button></div>`);
+  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can&&!DEMO?{house:m.id}:null));
+  $('hwX').onclick=closeModal;if(can)$('hwUp').onclick=()=>uploadTo(m);
 }
 function openAlbum(){
   focusOn(bigTree,11,4.2);const list=G.album;
-  modal(`<h2>大樹相簿</h2><div class="meta">上課的點點滴滴・老師上傳</div><div class="wall">${groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join('')}</div>
-    <div class="acts"><button class="pill main" type="button" id="alShare">複製分享連結</button><button class="pill" type="button" id="alUp">老師上傳</button><button class="pill" type="button" id="alX">關閉</button></div>`);
-  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,w=>w.title||'上課花絮'));
-  $('alX').onclick=()=>{closeModal();focus=null};$('alUp').onclick=()=>uploadTo('album');
+  modal(`<h2>大樹相簿</h2><div class="meta">上課的點點滴滴・老師上傳</div><div class="wall">${list.length?'':'<div class="empty">老師還沒放上課照片</div>'}${groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join('')}</div>
+    <div class="acts"><button class="pill main" type="button" id="alShare">複製分享連結</button>${ME.staff||DEMO?'<button class="pill" type="button" id="alUp">老師上傳</button>':''}<button class="pill" type="button" id="alX">關閉</button></div>`);
+  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,w=>w.title||'上課花絮',ME.staff&&!DEMO?{album:true}:null));
+  $('alX').onclick=()=>{closeModal();focus=null};if($('alUp'))$('alUp').onclick=()=>uploadTo('album');
   $('alShare').onclick=async()=>{const link=location.href.split('#')[0]+'#album';try{await navigator.clipboard.writeText(link);toast('連結複製好了，可以貼到 LINE')}catch(e){toast('這個瀏覽器不讓我複製，請長按網址列分享')}};
 }
 function fileTo(file,size,q=.82){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,size/Math.max(im.width,im.height)),c=cvs(Math.round(im.width*sc),Math.round(im.height*sc));
   c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=fr.result};fr.onerror=rej;fr.readAsDataURL(file)})}
 function joinPanel(){
-  modal(`<h2>搬進你的小屋</h2><p>留下名字，島上就會多一間屬於你的小屋。<br>作品上傳後會照時間收在小屋裡。</p>
+  modal(`<h2>搬進你的小屋</h2><p>OTTO2 會員留下名字，島上就會多一間屬於你的小屋。<br>作品上傳後會照時間收在小屋裡。</p>
     <label for="jn">名字（會寫在小屋的門牌上）</label><input type="text" id="jn" maxlength="8" placeholder="例如：宥宥">
     <label>房子要怎麼長大</label><div class="styles" id="js">${Object.entries(HSTYLES).map(([k,t],q)=>`<button type="button" class="pill${q?'':' main'}" data-s="${k}">${t}</button>`).join('')}</div>
     <p class="sdesc" id="jsd">作品越多，一層一層往上疊，蓋到很高會有燈塔尖頂。</p>
-    <label for="jp">電話（只用來確認是你，不公開）</label><input type="tel" id="jp" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx">
+    ${DEMO||ME.hasPhone?'':'<label for="jp">上課登記的手機（只用來確認是會員，不公開）</label><input type="tel" id="jp" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx">'}
     <div class="acts"><button class="pill" type="button" id="jc">取消</button><button class="pill main" type="button" id="jo">搬進去</button></div>`);
   $('jn').focus();$('jc').onclick=closeModal;let pick='stack';const SD={stack:'作品越多，一層一層往上疊，蓋到很高會有燈塔尖頂。',stilts:'每蓋一層就架在深色高腳柱上，左右錯開往上長。',wing:'先往旁邊擴建成 L 型，再從轉角長出小塔。'};
   $('js').querySelectorAll('button').forEach(b=>b.onclick=()=>{pick=b.dataset.s;$('js').querySelectorAll('button').forEach(x=>x.classList.toggle('main',x===b));$('jsd').textContent=SD[pick]});
   $('jo').onclick=async()=>{const name=$('jn').value.trim();if(!name){$('jn').focus();toast('請先寫名字');return}
-    const m={id:'u'+Date.now(),name,since:new Date().getFullYear(),style:pick,works:[]};G.members.push(m);G.me=m.id;save();closeModal();rebuildHouses();
+    let m;
+    if(DEMO){m={id:'u'+Date.now(),name,since:new Date().getFullYear(),style:pick,works:[]};G.members.push(m);G.me=m.id;save()}
+    else{const ph=$('jp')?$('jp').value.trim():'';if($('jp')&&!/^09\d{8}$/.test(ph)){$('jp').focus();toast('請輸入 09 開頭的 10 碼手機');return}
+      $('jo').disabled=true;$('jo').textContent='搬家中…';
+      try{const r=await api('/island/join',{name,style:pick,phone:ph});await reload();G.me=r.house;ME.house=r.house;ME.hasPhone=true}
+      catch(e){$('jo').disabled=false;$('jo').textContent='搬進去';toast(e.message);return}
+      m=G.members.find(x=>x.id===G.me);if(!m){closeModal();return}}
+    closeModal();rebuildHouses();
     const h=houses[houses.length-1];h.scale.setScalar(.01);openHouseSheet(m);await sleep(800);await tween(1200,q=>h.scale.setScalar(Math.max(.01,q<.7?q/.7*1.08:1.08-(q-.7)/.3*.08)));toast('小屋蓋好了，放第一件作品吧')};
 }
 function upPanel(){
-  modal(`<h2>上傳</h2><p>正式版會用 LINE 登入，自動知道你是學員還是老師。</p><div class="acts" style="flex-direction:column">
+  if(!DEMO){if(!ME.ok){toast(ME.err||'請從 LINE 的 OTTO2 預約頁打開作品島，才能上傳');return}
+    if(!ME.staff){const mine=G.members.find(m=>m.id===G.me);if(mine)uploadTo(mine);else joinPanel();return}}
+  modal(`<h2>上傳</h2><p>${DEMO?'示範版：照片只存在這支手機。':'老師身分：可以放大樹相簿，也可以幫學員放作品。'}</p><div class="acts" style="flex-direction:column">
     <button class="pill main" type="button" id="asMe">我是學員：放進我的小屋</button><button class="pill" type="button" id="asAl">我是老師：上課照片放進大樹相簿</button><button class="pill" type="button" id="asTm">我是老師：幫學員放作品</button><button class="pill" type="button" id="asX">取消</button></div>`);
   $('asMe').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(!mine){joinPanel();toast('先搬進一間小屋，才能放作品');return}uploadTo(mine)};
   $('asAl').onclick=()=>uploadTo('album');$('asTm').onclick=()=>uploadTo(null);$('asX').onclick=closeModal;
 }
 function uploadTo(target){
-  let data=null;const pickM=target===null,album=target==='album';
+  let data=null,thumb=null;const pickM=target===null,album=target==='album';
   modal(`<h2>${album?'放進大樹相簿':'放作品'}</h2><p>${album?'照片會放進中間大樹的相簿，可以複製連結分享到 LINE。':'作品會照時間收進小屋，小屋也會跟著慢慢變漂亮。'}</p>
     ${pickM?`<label for="um">這是誰的作品</label><select id="um">${G.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>`:''}
     <label>照片</label><div class="filebtn">選擇照片<input type="file" accept="image/*" id="uf"></div><img class="preview" id="upv" alt="" hidden>
-    <label for="ut">${album?'說明（例如：流體熊課）':'作品名稱（可以不填）'}</label><input type="text" id="ut" maxlength="14">
+    <label for="ut">${album?'說明（例如：流體熊課）':'作品名稱（可以不填）'}</label><input type="text" id="ut" maxlength="14">${DEMO?'':'<p class="sdesc">放上去之後，所有人逛到這間小屋都看得到。</p>'}
     <div class="acts"><button class="pill" type="button" id="uc">取消</button><button class="pill main" type="button" id="uo" disabled>放上去</button></div>`);
   $('uc').onclick=closeModal;
-  $('uf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{data=await fileTo(f,900);$('upv').src=data;$('upv').hidden=false;$('uo').disabled=false}catch(err){toast('這張照片讀不到，換一張試試')}};
+  $('uf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{data=await fileTo(f,DEMO?900:1280);thumb=DEMO?null:await fileTo(f,360,.78);$('upv').src=data;$('upv').hidden=false;$('uo').disabled=false}catch(err){toast('這張照片讀不到，換一張試試')}};
   $('uo').onclick=async()=>{if(!data)return;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`,title=$('ut').value.trim();
+    const m=album?null:pickM?G.members.find(x=>x.id===$('um').value):target;
+    if(!DEMO){$('uo').disabled=true;$('uo').textContent='上傳中…';
+      try{await api('/island/upload',{target:album?'album':m.id,title,full:data,thumb});await reload()}catch(e){$('uo').disabled=false;$('uo').textContent='放上去';toast(e.message);return}
+      if(album){closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
+      const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
+      const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${nm.works.length} 件作品收進小屋了`);return}
     if(album){G.album.push({img:data,title:title||'上課花絮',date});save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
-    const m=pickM?G.members.find(x=>x.id===$('um').value):target;m.works.push({img:data,title:title||'作品',date,by:pickM?'老師':'本人'});save();closeModal();rebuildHouses();openHouseSheet(m);
+    m.works.push({img:data,title:title||'作品',date,by:pickM?'老師':'本人'});save();closeModal();rebuildHouses();openHouseSheet(m);
     const h=houses[G.members.indexOf(m)];await sleep(700);await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${m.works.length} 件作品收進小屋了`)};
 }
 /* ================= tour (12/12 dinner) ================= */
@@ -808,6 +824,7 @@ async function tour(){
   if(!touring)return;focusOn(bigTree,12,4.2);cap('大樹','上課的點點滴滴都收在這裡');await sleep(5000);
   for(let i=0;touring&&i<ARTISTS.length;i++){const A=ARTISTS[i];await summon(artists[i]);if(!touring)break;focusOn(artists[i],4,1.1);cap(A.n,`正在畫《${A.work}》`);await sleep(4200);artists[i].userData.hold=false}
   const order=[...G.members].sort((a,b)=>b.works.length-a.works.length);
+  if(!order.length){cap('OTTO2 作品島','等你搬進來');await sleep(5000);stopTour();return}
   for(let i=0;touring;i=(i+1)%order.length){const m=order[i];focusOn(houses[G.members.indexOf(m)],5,1.6);cap(`${m.name}的小屋`,m.works.length?`${m.works.length} 件作品`:'新搬來的鄰居');await sleep(4200)}
 }
 async function summon(art){const u=art.userData;u.hold=true;
@@ -826,11 +843,29 @@ function demoData(){const r=rng(3);return{members:NAMES.map((n,i)=>{const k=Math
     works:Array.from({length:k},(_,j)=>({seed:i*50+j+1,title:TITLES[(i+j)%12],date:`20${24+Math.floor(j/10)}/${String(1+(j*3)%12).padStart(2,'0')}`,by:j%3?'本人':'老師'}))}}),
   album:SNAPS.map((t,i)=>({seed:900+i,title:t,date:`2026/${String(1+Math.floor(i/3)+6).padStart(2,'0')}`})),me:null}}
 let G;
-function save(){try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
+/* 正式版：小屋和作品都放在 otto2-notify（大家看到同一座島）。網址加 ?demo=1 才是只存在這支手機的示範版 */
+const DEMO=/[?&]demo=1/.test(location.search),NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
+let ME={ok:false,staff:false,house:null,hasPhone:false,suggest:''};
+function ssTok(){try{return sessionStorage.getItem('otto2-liff-tk')||''}catch(e){return ''}}
+function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t=liff.getAccessToken();if(t)return t}}catch(e){}return ssTok()}
+async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
+  let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
+const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by}))})),
+  album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
+async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
+async function whoAmI(){
+  try{if(!ssTok()&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),sleep(4000)])}}catch(e){}
+  if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品島，才能搬家、上傳'};return}
+  try{const j=await api('/island/me');ME=Object.assign({ok:true},j);if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
+function save(){if(!DEMO)return;try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
 async function start(data){
-  G=data&&data.members&&data.album?data:null;
-  if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
-  if(!G||!G.members||!G.album)G=demoData();
+  G=null;
+  if(DEMO){G=data&&data.members&&data.album?data:null;
+    if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
+    if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
+  else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
+    if(!G)throw new Error('連不上作品島，請稍後重新打開');whoAmI()}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
@@ -840,7 +875,9 @@ async function start(data){
   if(location.hash==='#album')setTimeout(openAlbum,800);
   window.claude?.hot?.snapshot?.(()=>G);
 }
-$('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else joinPanel()};
+$('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
+$('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
+  try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
 $('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261002x';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
