@@ -100,6 +100,7 @@ body.tour .tourstop{display:block}
       <button class="pill" id="upBtn" type="button">上傳作品</button>
       <button class="pill" id="albumBtn" type="button">大樹相簿</button>
       <button class="pill" id="tourBtn" type="button">導覽</button>
+      <button class="pill" id="homeBtn" type="button" style="grid-column:1/-1">🎈 搭熱氣球回遊戲島</button>
     </div>
   </div>
 </div>
@@ -118,7 +119,7 @@ body.tour .tourstop{display:block}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="ferry.js?v=20261002r"></script>
+<script src="ferry.js?v=20261002s"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -508,14 +509,15 @@ function buildArtists(){
 function artistTick(art,dt,now){
   const u=art.userData,b=u.body,p=art.position;
   const goTo=(x,z,next)=>{u.state='walk';u.tgt=new THREE.Vector3(x,0,z);u.next=next};
+  if(u.hold&&u.state!=='walk')u.t=Math.max(u.t,5);
   if(u.state==='paint'){u.armR.rotation.z=-.25+Math.sin(now/260+u.i)*.25;u.armR.rotation.x=-.4+Math.sin(now/410+u.i)*.2;b.position.y=0;u.t-=dt;
     if(u.t<=0){for(let k=0;k<8;k++){const q=POIS[Math.floor(Math.random()*POIS.length)];if(clearWalk(p,q)){goTo(q[0],q[1],'linger');return}}u.t=5}}
   else if(u.state==='linger'){u.t-=dt;b.position.y=0;u.armR.rotation.set(0,0,-.25);
     if(u.t<=0){if(Math.random()<.45){for(let k=0;k<8;k++){const q=POIS[Math.floor(Math.random()*POIS.length)];if(clearWalk(p,q)){goTo(q[0],q[1],'linger');return}}}
       if(clearWalk(p,[u.home.x,u.home.z]))goTo(u.home.x,u.home.z,'paint');else{const q=POIS.find(q=>clearWalk(p,q)&&clearWalk({x:q[0],z:q[1]},[u.home.x,u.home.z]));if(q)goTo(q[0],q[1],'linger');else goTo(u.home.x,u.home.z,'paint')}}}
   else{const dx=u.tgt.x-p.x,dz=u.tgt.z-p.z,d=Math.hypot(dx,dz);
-    if(d<.08){u.state=u.next;if(u.state==='paint'){u.t=12+Math.random()*16;art.rotation.y=u.face}else{u.t=3+Math.random()*5;art.rotation.y+=(Math.random()-.5)*1.5}b.position.y=0;return}
-    const sp=.75*dt;p.x+=dx/d*Math.min(sp,d);p.z+=dz/d*Math.min(sp,d);const want=Math.atan2(dx,dz);let dr=want-art.rotation.y;while(dr>Math.PI)dr-=6.283;while(dr<-Math.PI)dr+=6.283;art.rotation.y+=dr*Math.min(1,dt*6);
+    if(d<.08){u.fast=false;u.state=u.next;if(u.state==='paint'){u.t=12+Math.random()*16;art.rotation.y=u.face}else{u.t=3+Math.random()*5;art.rotation.y+=(Math.random()-.5)*1.5}b.position.y=0;return}
+    const sp=(u.fast?3:.75)*dt;p.x+=dx/d*Math.min(sp,d);p.z+=dz/d*Math.min(sp,d);const want=Math.atan2(dx,dz);let dr=want-art.rotation.y;while(dr>Math.PI)dr-=6.283;while(dr<-Math.PI)dr+=6.283;art.rotation.y+=dr*Math.min(1,dt*6);
     p.y=heightAt(p.x,p.z);b.position.y=Math.abs(Math.sin(now/170+u.i))*.06;b.rotation.z=Math.sin(now/170+u.i)*.05;u.armR.rotation.z=-.25+Math.sin(now/170)*.2;u.armR.rotation.x=0}
 }
 /* ================= students' treehouses ================= */
@@ -670,10 +672,10 @@ let yaw=.6,pitch=.58,zoom=1,focus=null,idleT=0,touring=false,dragging=false;cons
 const portrait=()=>innerHeight>innerWidth;
 function camGoal(){
   let at=new THREE.Vector3(0,2.4,0),d=(portrait()?66:36)*K*zoom,y=yaw,p=pitch;
-  if(focus){at=focus.pos.clone();d=focus.d*(portrait()?1.45:1);if(focus.yaw!==undefined)y=focus.yaw;p=focus.pitch??.35}
+  if(focus){if(focus.obj){focus.obj.getWorldPosition(focus.pos);focus.pos.y+=focus.h}at=focus.pos.clone();d=focus.d*(portrait()?1.45:1);if(focus.yaw!==undefined)y=focus.yaw;p=focus.pitch??.35}
   return{at,pos:at.clone().add(new THREE.Vector3(Math.sin(y)*Math.cos(p)*d,Math.sin(p)*d,Math.cos(y)*Math.cos(p)*d))};
 }
-function focusOn(obj,d,h){const w=new THREE.Vector3();obj.getWorldPosition(w);w.y+=h;focus={pos:w,d,yaw:Math.atan2(w.x,w.z)+.25,pitch:.3}}
+function focusOn(obj,d,h){const w=new THREE.Vector3();obj.getWorldPosition(w);w.y+=h;focus={pos:w,d,yaw:Math.atan2(w.x,w.z)+.25,pitch:.3,obj,h}}
 /* ================= loop ================= */
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
 let tPrev=performance.now();
@@ -726,7 +728,7 @@ const INFO={
   '奈良美智':{full:'奈良美智 Yoshitomo Nara',life:'1959–・日本',style:'當代藝術',works:'大頭小女孩系列',fact:'畫裡的小孩常常一臉倔強，很多大人說看了像看到小時候的自己。'},
   '葛飾北齋':{full:'葛飾北齋 Katsushika Hokusai',life:'1760–1849・日本',style:'浮世繪',works:'神奈川沖浪裏、富嶽三十六景',fact:'一生搬家九十多次、換了三十多個名字，到九十歲還在畫。'},
 };
-function openArtist(A){const art=artists.find(a=>a.userData.A===A);closeSheet();focusOn(art,4.2,1.1);
+function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEach(a=>a.userData.hold=false);art.userData.hold=true;closeSheet();focusOn(art,4.2,1.1);
   const I=INFO[A.n]||{},img=FIGS[A.n],paint=paintWork(A.kind,480).toDataURL(),k=ARTISTS.indexOf(A);
   modal(`<div class="acard"><div class="afig${img?'':' paint'}"><img alt="${esc(A.n)}" src="${img||paint}"></div>
     <h2>${esc(A.n)}</h2><div class="meta">${esc(I.full||'')}<br>${esc(I.life||'')}</div>
@@ -736,13 +738,13 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);closeSheet();
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002r';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002s';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(h,5.5,1.8);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`,next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* ================= walls, album, lightbox ================= */
 function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
-const closeModal=()=>$('modal').hidden=true;
+const closeModal=()=>{$('modal').hidden=true;if(!touring)artists.forEach(a=>a.userData.hold=false)};
 let lb=null;
 function openImage(src,t,p){lb=null;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
 function openList(list,i,label){lb={list,i,label};const w=list[i];$('lbImg').src=w.img||demoPhoto(w.seed,560).toDataURL();$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;$('lb').hidden=false}
@@ -804,11 +806,17 @@ async function tour(){
   const cap=(a,b)=>{$('tourName').textContent=a;$('tourInfo').textContent=b};
   cap('OTTO2 作品島',`${G.members.length} 間小屋・${G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length} 件作品`);focus=null;await sleep(5000);
   if(!touring)return;focusOn(bigTree,12,4.2);cap('大樹','上課的點點滴滴都收在這裡');await sleep(5000);
-  for(let i=0;touring&&i<ARTISTS.length;i++){const A=ARTISTS[i];focusOn(artists[i],4,1.1);cap(A.n,`正在畫《${A.work}》`);await sleep(4200)}
+  for(let i=0;touring&&i<ARTISTS.length;i++){const A=ARTISTS[i];await summon(artists[i]);if(!touring)break;focusOn(artists[i],4,1.1);cap(A.n,`正在畫《${A.work}》`);await sleep(4200);artists[i].userData.hold=false}
   const order=[...G.members].sort((a,b)=>b.works.length-a.works.length);
   for(let i=0;touring;i=(i+1)%order.length){const m=order[i];focusOn(houses[G.members.indexOf(m)],5,1.6);cap(`${m.name}的小屋`,m.works.length?`${m.works.length} 件作品`:'新搬來的鄰居');await sleep(4200)}
 }
-function stopTour(){touring=false;focus=null;document.body.classList.remove('tour')}
+async function summon(art){const u=art.userData;u.hold=true;
+  if(u.state==='walk'&&u.next==='paint'){}else{u.state='walk';u.tgt=u.home.clone();u.next='paint'}
+  if(!clearWalk(art.position,[u.home.x,u.home.z])){art.position.set(u.home.x,heightAt(u.home.x,u.home.z),u.home.z);u.state='paint';u.t=6;art.rotation.y=u.face}
+  u.fast=true;focusOn(u.easel,5,1.1);
+  for(let k=0;k<60&&touring&&u.state!=='paint';k++)await sleep(150);
+  u.fast=false;u.state='paint'}
+function stopTour(){artists.forEach(a=>a.userData.hold=false);touring=false;focus=null;document.body.classList.remove('tour')}
 
 /* ================= data + boot ================= */
 const NAMES=['宥宥','芊芊','Emma','阿哲','小安','米米','樂樂','Leo','恩恩','豆豆','圓圓','晴晴','Ian','柚子','Mia','安安'];
@@ -833,7 +841,7 @@ async function start(data){
   window.claude?.hot?.snapshot?.(()=>G);
 }
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else joinPanel()};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261002s';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label)};
