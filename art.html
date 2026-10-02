@@ -523,7 +523,18 @@ function artistTick(art,dt,now){
 }
 /* ================= students' treehouses ================= */
 const ROOFS=['#b8745a','#5f8f95','#c9a256','#7f9a5e','#a87485','#6f84a8','#b0845e','#6f9a8c'];
-const HSPOTS=(()=>{const out=[];for(let i=0;i<30;i++){const a=i/30*Math.PI*2+.1,ang=t=>Math.abs(((a-t+Math.PI*3)%(2*Math.PI))-Math.PI);if(ang(PIER_A)<.22||PONDS.some(p=>ang(p.a)<.3))continue;const rad=(i%2?.84:.74)*outline(a),x=Math.cos(a)*rad,z=Math.sin(a)*rad;if(inPond(x,z,1.6))continue;out.push({x,z,a})}return out})();
+const HSPOTS_OUT=(()=>{const out=[];for(let i=0;i<30;i++){const a=i/30*Math.PI*2+.1,ang=t=>Math.abs(((a-t+Math.PI*3)%(2*Math.PI))-Math.PI);if(ang(PIER_A)<.22||PONDS.some(p=>ang(p.a)<.3))continue;const rad=(i%2?.84:.74)*outline(a),x=Math.cos(a)*rad,z=Math.sin(a)*rad;if(inPond(x,z,1.6))continue;out.push({x,z,a})}return out})();
+/* 外圈 22 間住滿之後，往內圈蓋（2026-10-03 開放給全部會員）：避開湖、小路、畫架、中間廣場，彼此留 2.5 的距離。
+   樹只避開「已經有人住」的位置，所以人還少的時候內圈還是草地和樹，住到內圈時那裡的樹才讓位 */
+const HSPOTS=(()=>{const out=HSPOTS_OUT.slice();
+  [.79,.69,.6,.52,.44,.37,.3].forEach((f,ri)=>{const R=f*R0,n=Math.floor(2*Math.PI*R/2.4);
+    for(let i=0;i<n;i++){const a=i/n*Math.PI*2+ri*.37,rad=f*outline(a),x=Math.cos(a)*rad,z=Math.sin(a)*rad;
+      if(Math.hypot(x,z)<6||inPond(x,z,1.7)||pathDist(x,z)<1.25||!onIsland(x,z,.86))continue;
+      if(Math.abs(((a-PIER_A+Math.PI*3)%(2*Math.PI))-Math.PI)<.3)continue;
+      if(ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2))continue;
+      if(out.some(h=>Math.hypot(h.x-x,h.z-z)<2.4))continue;out.push({x,z,a})}});
+  return out})();
+const usedSpots=()=>HSPOTS.slice(0,Math.max(HSPOTS_OUT.length,(G&&G.members?G.members.length:0)));
 let _plank;function plankTex(){if(_plank)return _plank;const c=cvs(128,128),x=c.getContext('2d');for(let i=0;i<8;i++){x.fillStyle=['#c9b49a','#bea88d','#d2bea5'][i%3];x.fillRect(i*16,0,16,128);x.fillStyle='rgba(80,60,40,.25)';x.fillRect(i*16,0,1.5,128)}
   x.fillStyle='rgba(80,60,40,.18)';x.fillRect(0,60,128,2);return _plank=new THREE.CanvasTexture(c)}
 /* little Townscaper-ish houses that grow one floor at a time.
@@ -646,7 +657,7 @@ function buildAnimals(){
   // trees: round broccoli trees, tall Solarpunk trees and a few autumn ones, kept off paths, lakes and easels
   const tr=rng(44),KINDS=['pine','round','pine','blossom','round','pine','autumn','round','pine','blossom','round','pine','round','autumn','pine'],trees=[];let placed=0;
   for(let k=0;k<1500&&placed<KINDS.length;k++){const a=tr()*6.28,d=5+tr()*(R0*.78-5),x=Math.cos(a)*d,z=Math.sin(a)*d;
-    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||HSPOTS.some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
+    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||usedSpots().some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
     if(Math.abs(((a-PIER_A+Math.PI*3)%(2*Math.PI))-Math.PI)<.3)continue;
     const kind=KINDS[placed++];trees.push([x,z]);lpTree(x,z,(kind==='pine'?1.15:1)*(1+tr()*.35),kind,k+1)}
 }
@@ -741,7 +752,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261003a';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261003c';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`,next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -880,7 +891,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261003a';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261003c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label)};
