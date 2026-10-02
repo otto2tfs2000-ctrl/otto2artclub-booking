@@ -1077,7 +1077,7 @@ function syncChrome(n){
 /* 扭蛋活動的程式很大，點首頁的扭蛋卡片才去載，平常開預約頁不用多等 */
 /* 2026-10-01 起扭蛋改在 3D 遊樂島（park.html）玩；舊手機跑不動 3D 時，park.html 會自動轉回這裡用平面版（?go=gacha2d） */
 function parkToken(){ try{ if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){ const t=liff.getAccessToken(); if(t) sessionStorage.setItem("otto2-liff-tk",t) } }catch(e){} }
-function openGacha(){ parkToken(); location.href="park.html?v=20261002f" }
+function openGacha(){ parkToken(); location.href="park.html?v=20261002g" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
@@ -1853,7 +1853,7 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261002f") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261002g") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);
