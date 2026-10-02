@@ -319,7 +319,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.56</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.57</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -593,7 +593,7 @@ function rowsToGroups(rows){
   const H=courseHead||{};
   const gi=(r,n)=>H[n]!=null?String(r[H[n]]??"").trim():"";
   const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y",
-    seats:Math.max(0,pNum(gi(r,"佔位"))),hourly:Math.max(0,pNum(gi(r,"計時")))})).filter(c=>c.name&&c.on);
+    seats:Math.max(0,pNum(gi(r,"佔位"))),hourly:Math.max(0,pNum(gi(r,"計時"))),pairRaw:gi(r,"兩人價")})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
     if(!catOrder.includes(it.cat))catOrder.push(it.cat);
@@ -602,7 +602,7 @@ function rowsToGroups(rows){
     const g=map.get(k);
     if(it.seats>g.seats)g.seats=it.seats;
     if(it.hourly>g.hourly)g.hourly=it.hourly;
-    g.variants.push({spec:it.spec,priceRaw:it.priceRaw});
+    g.variants.push({spec:it.spec,priceRaw:it.priceRaw,pair:Math.max(0,pNum(it.pairRaw))});
   }
   return [...map.values()].sort((a,b)=>a.sort-b.sort);
 }
@@ -704,7 +704,7 @@ function applyAddons(a){
 /* 有暫存就先套上，讓畫面立刻出得來。回傳有沒有拿到課程。 */
 function loadFromCache(){
   const cr=cacheGet("課程");
-  if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時"]);
+  if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時","兩人價"]);
   const c=cacheGet("課程");
   if(!c)return false;
   try{ applyCourses(c) }catch(e){ return false }
@@ -719,7 +719,7 @@ async function loadCourses(){
   try{
     const rows=await gviz("課程");
     cachePut("課程",rows);
-    courseHead=headerIdx(rows,["佔位","計時"]);
+    courseHead=headerIdx(rows,["佔位","計時","兩人價"]);
     applyCourses(rows);
   }finally{ coursesLoaded=true }
 }
@@ -1047,11 +1047,21 @@ function totalMinutes(){
   }
   return max;
 }
+/* 兩人價（v4.57）：課程表「兩人價」欄有填的那個尺寸，
+   同課同尺寸每兩位算一次兩人價，落單的那位照原價——
+   1800／兩人 3400：2 位 3400、3 位 5200、4 位 6800。
+   留空＝這門課沒有同行優惠，照原價 × 人數。後台手動登記（salary-system
+   booking.js 的 bkPairTotal）是同一條公式，改這裡要一起改。 */
+function pairTotal(unit,pair,qty){
+  qty=+qty||0;
+  return pair>0 ? Math.floor(qty/2)*pair+(qty%2)*unit : unit*qty;
+}
 function pickPrice(id){
   const g=groups.find(x=>x.id===id),p=picks[id];
   /* 計時課：每小時單價 × 時數 × 人數。價格欄留空也算得出來。 */
   const unit = g.hourly>0 ? g.hourly*pickHours(id) : pNum(g.variants[p.variantIdx].priceRaw);
-  let sum=unit*p.qty*(p.sessions===2?2:1);
+  const pair = g.hourly>0 ? 0 : (g.variants[p.variantIdx].pair||0);
+  let sum=pairTotal(unit,pair,p.qty)*(p.sessions===2?2:1);
   const ads=addonsFor(g,p);
   for(const i in p.addons) if(p.addons[i]&&ads[i]) sum+=ads[i].price;
   return sum;
@@ -1525,10 +1535,10 @@ function renderCourses(){
         ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
-        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
+        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         <div class="cardfoot"><span class="cf-dur">${g.hourly>0?`${HOUR_MIN}-${HOUR_MAX} 小時`:(g.dur||'')}</span><span class="cf-cta">${p?'已加入清單 ✓':'點選加入 →'}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
-          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}</button>`;
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
@@ -1681,7 +1691,7 @@ function pickSummary(id){
   const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
   const ads=addonsFor(g,p);
   const chosen=Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>ads[i].name);
-  return `${g.name}${vv.spec?'（'+vv.spec+'）':''} × ${p.qty}位${chosen.length?'<br><span style="font-size:12.5px;color:var(--ink-soft)">加購：'+chosen.join("、")+'</span>':''}`;
+  return `${g.name}${vv.spec?'（'+vv.spec+'）':''} × ${p.qty}位${(vv.pair>0&&p.qty>=2&&!(g.hourly>0))?'（兩人同行價）':''}${chosen.length?'<br><span style="font-size:12.5px;color:var(--ink-soft)">加購：'+chosen.join("、")+'</span>':''}`;
 }
 function renderForm(){
   const items=Object.keys(picks).map(pickSummary).join("<br>");
@@ -1775,6 +1785,7 @@ async function submitBooking(){
       const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
       const ads=addonsFor(g,p);
       return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),
+        ...((vv.pair>0&&!(g.hourly>0))?{pair:vv.pair}:{}),
         addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
     }),
     people:totalPeople(), seats:totalSeats(), total:totalPrice(),
