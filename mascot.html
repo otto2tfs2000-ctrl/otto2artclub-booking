@@ -52,7 +52,7 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261002m">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261002n">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
   <div id="food" hidden role="group" aria-label="選食物"></div>
   <div id="dest" role="group" aria-label="選一個地方出發"></div>
@@ -64,7 +64,7 @@ button:disabled{opacity:.5;cursor:default}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002m';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002n';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -335,7 +335,7 @@ function loop(now){
 requestAnimationFrame(loop);
 
 /* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
-const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002m';
+const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002n';
 const DEST={
   gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
   xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},

@@ -1367,7 +1367,7 @@ function camGoal(){const g=camGoal0();if(!zoomable()||ZM.z<=1.01&&!ZM.px&&!ZM.pz
 let overview=false,treeCam=false;const look=new THREE.Vector3();
 function camGoal0(){
   const pt=innerHeight>innerWidth;
-  if(parkCam==='mascot'&&MI.g)return miCam();
+  if((parkCam==='mascot'||parkCam==='mascotB'||parkCam==='mascotX')&&MI.g)return miCam(parkCam);
   if(parkCam==='tour'&&GA.tour){const t=GA.tour;return{pos:t.at.clone().add(t.pos.clone().sub(t.at).multiplyScalar(pt?1.55:1)),at:t.at}}
   if(parkCam==='walk'){const b=bear.position;return{pos:new THREE.Vector3(b.x-(pt?9:11),b.y+(pt?13:9.5),b.z+(pt?23:16)),at:new THREE.Vector3(b.x*.7,0,b.z-9)}}
   if(parkCam==='open')return{pos:new THREE.Vector3(-1.5,pt?15:9.5,pt?40:29),at:new THREE.Vector3(-1.5,0,5)};
@@ -1538,7 +1538,12 @@ function petReset(p){p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,f
 function miSpot(){return G.phase==='oct'?{c:new THREE.Vector3(-21,0,14.2),bz:14.2,x0:-9.6,x1:-16.0}:{c:new THREE.Vector3(-23.5,-.12,1.45),bz:1.45,x0:-8.6,x1:-18.5}}
 function miAnch(){const c=MI.c,y=MI.c.y,o=(x,z)=>new THREE.Vector3(c.x+x*MIK,y,c.z+z*MIK);
   return{y,home:{gabi:o(3.2,1.5),kabu:o(-.8,2.2),moka:o(1.7,-3.9)},box:[c.x-3*MIK,c.x+2.6*MIK,c.z+.9*MIK,c.z+4.2*MIK],food:o(.4,2.9)}}
-function miCam(){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect,at=new THREE.Vector3(c.x,c.y+.6,c.z+.9),d=Math.max(9.8/(2*tf*asp),6.4/(2*tf)),dir=new THREE.Vector3(0,.55,.85).normalize();return{pos:at.clone().addScaledVector(dir,d),at}}
+/* 鏡頭：mascotB＝看橋長出來；mascotX＝跟著三隻走（過橋全程都看得到）；mascot＝島的全景 */
+function miCam(mode){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect,dir=new THREE.Vector3(0,.55,.85).normalize();let at,w,h;
+  if(mode==='mascotB'){const sp=MI.spot;at=new THREE.Vector3((sp.x0+sp.x1)/2,sp.c.y+.4,sp.bz);w=Math.abs(sp.x1-sp.x0)+8;h=6.2}
+  else if(mode==='mascotX'){at=new THREE.Vector3();const P=Object.values(PET.g);P.forEach(p=>at.add(p.g.position));at.multiplyScalar(1/P.length);at.y+=.5;w=7;h=4.6}
+  else{at=new THREE.Vector3(c.x,c.y+.6,c.z+.9);w=9.8;h=6.4}
+  const d=Math.max(w/(2*tf*asp),h/(2*tf));return{pos:at.clone().addScaledVector(dir,d),at}}
 const miWaitAll=()=>new Promise(r=>{const t=setInterval(()=>{if(Object.values(PET.g).every(p=>p.arrived)){clearInterval(t);r()}},120)});
 async function mascotGo(){
   if(busy||MI.state!=='off')return;
@@ -1549,18 +1554,20 @@ async function mascotGo(){
   if(MI.br){scene.remove(MI.br)}MI.br=MIB.bridge(sp.x0,sp.x1);MI.br.position.set(0,sp.c.y,sp.bz);scene.add(MI.br);
   MI.g.position.set(sp.c.x,sp.c.y-14,sp.c.z);MI.g.visible=true;
   document.body.classList.add('mi');PET.loc='transit';PET.look=null;
-  parkCam='mascot';sfx('tap');
+  parkCam='mascotB';sfx('tap');
   tween(1200,p=>{MI.g.position.y=sp.c.y-14*(1-easeOut(p))});
   await sleep(500);
   const pl=MI.br.userData.planks,rl=MI.br.userData.rails;
   await tween(800,p=>{const n=Math.floor(p*pl.length+.001);pl.forEach((q,i)=>q.visible=i<n||p>=1);rl.forEach(q=>q.visible=p>.5)});
-  MI.g.position.y=sp.c.y;
+  MI.g.position.y=sp.c.y;await sleep(400);
+  parkCam='mascotX'; /* 鏡頭跟著三隻走，過橋全程都在畫面裡 */
   /* 一隻接一隻：嘎逼帶頭，卡布跟著，摩卡最後 */
   const A2=miAnch(),dx=sp.x1<sp.x0?-1:1;
   ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
-    p.q.push(PA.wait(i*1.0+.2),PA.fn(()=>{if(id==='gabi')toast('嘎逼帶頭衝過橋！');if(id==='moka')toast('摩卡最後才敢過橋')}),
+    p.q.push(PA.wait(i*.7+.6),PA.fn(()=>{if(id==='gabi')toast('嘎逼帶頭衝過橋！');if(id==='moka')toast('摩卡最後才敢過橋')}),
       PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),2.4),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),2.2),PA.go(A2.home[id].clone(),2.0),PA.fn(q0=>{q0.arrived=true}))});
   await miWaitAll();
+  parkCam='mascot';await sleep(1100);
   PET.A=A2;MI.A=A2;PET.loc='mascot';MI.state='on';
   $('miUI').hidden=false;
 }
@@ -1568,11 +1575,10 @@ async function mascotBack(){
   if(MI.state!=='on')return;MI.state='returning';$('miUI').hidden=true;$('miFood').hidden=true;
   if(MI.food){scene.remove(MI.food);MI.food=null}
   const sp=MI.spot,dx=sp.x1<sp.x0?-1:1,target=G.phase==='oct'?petAnch():petAnchNov(petCenterNov());
-  PET.loc='transit';PET.look=null;
+  PET.loc='transit';PET.look=null;parkCam='mascotX';
   ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
-    p.q.push(PA.wait(i*1.0+.2),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),2.2),PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),2.4),PA.go(target.home[id].clone(),2.0),PA.fn(q0=>{q0.arrived=true}))});
-  await sleep(3200);parkCam=null;
-  await miWaitAll();
+    p.q.push(PA.wait(i*.7+.4),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),2.2),PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),2.4),PA.go(target.home[id].clone(),2.0),PA.fn(q0=>{q0.arrived=true}))});
+  await miWaitAll();parkCam=null;await sleep(900);
   PET.A=target;PET.loc=G.phase==='oct'?'oct':'nov';PET.cc=PET.loc==='nov'?petCenterNov():null;PET.t=2.5;
   const y0=MI.g.position.y;await tween(900,p=>{MI.g.position.y=y0-14*easeIn(p);MI.br.position.y=sp.c.y-14*easeIn(p)});
   MI.g.visible=false;MI.br.visible=false;MI.br.position.y=sp.c.y;
