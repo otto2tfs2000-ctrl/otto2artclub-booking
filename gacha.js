@@ -641,10 +641,12 @@ function bearSvg(id, ghost){
 }
 
 /* 點收集到的公仔：放大看大圖 */
-function zoomBear(id){
-  var S = (spun && spun.state) || st, b = S && S.bears; if (!b) return;
-  var x = b.list.filter(function(v){ return v.id === id })[0]; if (!x) return;
-  var n = (b.have || {})[id] || 0, base = BIMG();
+function zoomBear(id, fb){
+  /* 已經開著一張就不要再疊一張（以前手機卡的時候連點，之後會一張一張冒出來） */
+  if (document.querySelector(".gc-zoom")) return;
+  var S = (spun && spun.state) || st, b = (S && S.bears) || { list: [], have: {} };
+  var x = b.list.filter(function(v){ return v.id === id })[0] || (fb ? { id: id, nm: fb.nm, rare: fb.rare, hidden: fb.hidden } : null); if (!x) return;
+  var n = (b.have || {})[id] || 0, base = BIMG() || (fb && fb.img) || "";
   var pic = !base ? bearSvg(id) : id === "hbear" ? hbearSvg() : '<img src="' + base + id + '_l.webp" alt="' + esc(x.nm) + '">';
   var z = document.createElement("div"); z.className = "gc-zoom";
   z.innerHTML = '<div class="zi">' + pic + '</div><div class="zt">' + esc(x.nm) + '</div>' +
@@ -928,5 +930,5 @@ function confetti(big){
   clearTimeout(confetti._t); confetti._t = setTimeout(function(){ c.innerHTML = "" }, 5600);
 }
 
-window.Gacha = { open: open, close: close, zoom: function(id, state){ if (state) st = state; zoomBear(id) } };
+window.Gacha = { open: open, close: close, zoom: function(id, state, fb){ if (state) st = state; zoomBear(id, fb) } };
 })();

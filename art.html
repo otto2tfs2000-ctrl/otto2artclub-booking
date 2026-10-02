@@ -557,6 +557,18 @@ function storey(wall,w,d,h,lit,door,seed){const g=new THREE.Group(),r=rng(seed);
   if(w>.7)[-1,1].forEach(s=>{g.add(box(TRIM,.03,.2,.16,s*w/2,h*.38,0))});
   return g}
 function roofOn(g,w,d,y,big){const rf=gable(w+.16,d+.14,big?.5:.4,ROOF);rf.position.y=y;g.add(rf);const ch=box(BRICK,.12,.26,.12,w*.25,y+.12,-d*.18);g.add(ch);return g}
+/* 效能（2026-10-03）：一間小屋原本由 30～400 個小方塊組成，58 間就要畫 6,000 次，手機會卡。
+   小屋蓋好就不會動，所以把同一種材質的方塊合併成一塊（顏色記在頂點上）；有貼圖的門牌照舊 */
+function mergeGroup(R){R.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(R.matrixWorld).invert(),groups=new Map(),mtx=new THREE.Matrix4();
+  R.traverse(c=>{if(!c.isMesh||c.isInstancedMesh||Array.isArray(c.material)||c.material.map||c.material.transparent||!c.material.color||c.children.length)return;
+    const m=c.material,k=[m.type,m.side,!!m.flatShading,!!m.vertexColors,c.castShadow,c.receiveShadow].join('|');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(c)});
+  groups.forEach(list=>{if(list.length<2)return;const P=[],N=[],C=[];
+    list.forEach(c=>{const g=c.geometry.index?c.geometry.toNonIndexed():c.geometry.clone();mtx.multiplyMatrices(inv,c.matrixWorld);g.applyMatrix4(mtx);if(!g.attributes.normal)g.computeVertexNormals();
+      const pa=g.attributes.position,na=g.attributes.normal,ca=c.material.vertexColors&&g.attributes.color,col=c.material.color,flip=mtx.determinant()<0;
+      for(let t=0;t<pa.count;t+=3)for(const v of flip?[0,2,1]:[0,1,2]){const i=t+v;P.push(pa.getX(i),pa.getY(i),pa.getZ(i));N.push(na.getX(i),na.getY(i),na.getZ(i));if(ca)C.push(ca.getX(i)*col.r,ca.getY(i)*col.g,ca.getZ(i)*col.b);else C.push(col.r,col.g,col.b)}
+      g.dispose();c.parent.remove(c)});
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+    const m=list[0].material.clone();m.color.set('#ffffff');m.vertexColors=true;const M=new THREE.Mesh(g,m);M.castShadow=list[0].castShadow;M.receiveShadow=list[0].receiveShadow;M.userData.mg=1;R.add(M)})}
 function makeHouse(m,i){
   const sp=HSPOTS[i%HSPOTS.length],g=new THREE.Group(),n=m.works.length,r=rng(i*17+3),wall=m.color||WALLS[i%WALLS.length],F=floorsOf(n),lit=n>0;
   const style=normStyle(m.style,i);
@@ -585,11 +597,11 @@ function makeHouse(m,i){
   if(n>=20){const pole=cyl('#e9e3d6',.015,.015,.7,0,y+.3,0,6);g.add(pole);const flag=box(wall==='#eadcbc'?'#c9573f':'#f3eee4',.26,.16,.01,.13,y+.82,0);g.add(flag)}
   const sign=cvs(256,72),sx=sign.getContext('2d');sx.fillStyle='#f6ecd8';sx.fillRect(0,0,256,72);sx.strokeStyle='#a07b56';sx.lineWidth=6;sx.strokeRect(3,3,250,66);sx.fillStyle='#3d2f22';sx.font='34px "Noto Sans TC",sans-serif';sx.textAlign='center';sx.textBaseline='middle';sx.fillText(m.name,128,38);
   const sg=new THREE.Mesh(new THREE.PlaneGeometry(.7,.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sign)}));sg.position.set(.55,.62,pd/2+.35);sg.rotation.y=.25;g.add(sg);g.add(cyl('#a07b56',.02,.02,.55,.55,.1,pd/2+.33,6));
-  g.scale.setScalar(1.15);
+  g.scale.setScalar(1.15);mergeGroup(g);
   g.userData={member:m,i};g.traverse(o=>{if(o.isMesh){o.userData.house=m;picks.push(o)}});scene.add(g);return g;
 }
 function rebuildHouses(){
-  const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>all.add(o))});picks=picks.filter(p=>!all.has(p));
+  const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>{all.add(o);if(o.userData.mg){o.geometry.dispose();o.material.dispose()}})});picks=picks.filter(p=>!all.has(p));
   houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();
   $('nHouses').textContent=G.members.length;$('nWorks').textContent=G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length;
 }
@@ -678,6 +690,11 @@ function build(){
   addEventListener('resize',resize);resize();
 }
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+/* 手機跑不動時自動降畫質：連續 2 秒每格超過 1/30 秒，解析度降一級（2→1.5→1.25），再不行就關影子 */
+const PERF={acc:0,n:0};
+function perfTick(raw){if(document.hidden||!(raw>0&&raw<1))return;PERF.acc+=raw;PERF.n++;if(PERF.acc<2)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;if(avg<=1/30)return;
+  const cur=renderer.getPixelRatio(),nx=[1.5,1.25].find(v=>v<cur-.01);
+  if(nx){renderer.setPixelRatio(nx);resize()}else if(renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}}
 
 /* ================= camera ================= */
 let yaw=.6,pitch=.58,zoom=1,focus=null,idleT=0,touring=false,dragging=false;const look=new THREE.Vector3(),camPos=new THREE.Vector3();
@@ -694,7 +711,7 @@ function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
 let tPrev=performance.now();
 function loop(now){
-  const dt=Math.min(.05,(now-tPrev)/1000);tPrev=now;
+  const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;perfTick(raw);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
   if(!RM){
     clouds.forEach(c=>{c.userData.a+=c.userData.v*dt;c.position.x=Math.cos(c.userData.a)*c.userData.d;c.position.z=Math.sin(c.userData.a)*c.userData.d});
@@ -752,7 +769,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261003d';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261003f';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -891,7 +908,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261003d';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261003f';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label)};
