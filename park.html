@@ -240,6 +240,7 @@ html.demoq #menu .mhead{display:block!important}
 
 <div id="nightVeil"></div>
 <div id="game"></div>
+<button id="zmBack" type="button" hidden style="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 205px);z-index:2;font:inherit;font-size:15px;padding:9px 18px;border-radius:99px;border:2px solid #2b2320;background:#fffaf2;color:#2b2320;box-shadow:0 3px 0 #2b2320">⟲ 回到原位</button>
 <div class="loading" id="loading">遊樂島準備中…</div>
 <div class="hud" id="hud" hidden>
   <div>
@@ -305,7 +306,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261002x';
+const PARK_VER='20261003a';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1362,7 +1363,10 @@ function maybeTour(){if(!GA.bubs||!G)return setTimeout(maybeTour,500);let seen=f
 /* ---------- camera ---------- */
 /* 兩指放大／縮小島（鏡頭往前推，畫面重新畫，所以不會糊）；放大後單指拖可以移動。網頁本身的縮放關掉 */
 const ZM={z:1,px:0,pz:0,live:0};
-function zoomable(){return G&&G.phase==='oct'&&!overview&&!parkCam&&!focusAt&&!treeCam}
+function zoomable(){return G&&(G.phase==='oct'||!busy)&&!overview&&!parkCam&&!focusAt&&!treeCam}
+/* 滑動看別的地方（2026-10-03 大熊要的）：一根手指拖就能移動，不用先放大；擲骰子、按「回到原位」就回來 */
+function zmReset(){ZM.z=1;ZM.px=ZM.pz=0;zmLook()}
+function zmLook(){const b=document.getElementById('zmBack');if(b)b.hidden=!(zoomable()&&(ZM.z>1.02||Math.abs(ZM.px)+Math.abs(ZM.pz)>.3))}
 function camGoal(){const g=camGoal0();if(!zoomable()||ZM.z<=1.01&&!ZM.px&&!ZM.pz)return g;
   const off=new THREE.Vector3(ZM.px,0,ZM.pz);g.at.add(off);g.pos.add(off);g.pos.sub(g.at).multiplyScalar(1/ZM.z).add(g.at);return g}
 (function(){const el=document.getElementById('game'),P=new Map();let d0=0,z0=1,moved=false;
@@ -1370,8 +1374,12 @@ function camGoal(){const g=camGoal0();if(!zoomable()||ZM.z<=1.01&&!ZM.px&&!ZM.pz
   ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
   el.addEventListener('pointerdown',e=>{P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=ZM.z;moved=true;ZM.pinchAt=Date.now()}});
   el.addEventListener('pointermove',e=>{const q=P.get(e.pointerId);if(!q||!zoomable())return;
-    if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d0>0){ZM.pinchAt=Date.now();ZM.z=Math.max(1,Math.min(3,z0*d/d0));ZM.live=1;if(ZM.z<1.02){ZM.px=ZM.pz=0}}return}
-    if(ZM.z>1.05){const dx=e.clientX-q[0],dy=e.clientY-q[1];if(Math.abs(dx)+Math.abs(dy)>2){const k=.03/ZM.z;ZM.px=Math.max(-6,Math.min(6,ZM.px-dx*k));ZM.pz=Math.max(-6,Math.min(6,ZM.pz-dy*k));ZM.live=1}}
+    if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d0>0){ZM.pinchAt=Date.now();ZM.z=Math.max(1,Math.min(3,z0*d/d0));ZM.live=1;zmLook()}return}
+    {const dx=e.clientX-q[0],dy=e.clientY-q[1];if(Math.abs(dx)+Math.abs(dy)>2){const k=.035/ZM.z;ZM.px-=dx*k;ZM.pz-=dy*k;
+        /* 不要滑出島外：十月廣場最多移 7；走格子讓畫面中心留在格子範圍裡 */
+        if(G.phase==='oct'){ZM.px=Math.max(-7,Math.min(7,ZM.px));ZM.pz=Math.max(-7,Math.min(7,ZM.pz))}
+        else{const c=camGoal0().at;ZM.px=Math.max(-6.5-c.x,Math.min(6.5-c.x,ZM.px));ZM.pz=Math.max(-6-c.z,Math.min(4.5-c.z,ZM.pz))}
+        ZM.live=1;zmLook()}}
     P.set(e.pointerId,[e.clientX,e.clientY])});
   ['pointerup','pointercancel','pointerleave'].forEach(t=>el.addEventListener(t,e=>{P.delete(e.pointerId);if(P.size<2)d0=0;if(!P.size){ZM.live=0;moved=false}}));
 })();
@@ -1646,7 +1654,7 @@ const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gi
   layout:36,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},30:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
 function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}xmasPushSoon()}
 function hud(){
-  const oct=G.phase==='oct';document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
+  const oct=G.phase==='oct';try{zmLook()}catch(e){}document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':(G.test?'11–12 月・測試模式':'11–12 月');
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
@@ -1992,13 +2000,31 @@ function gStairs(){return new Promise(res=>{
 
 /* ---------- board flow ---------- */
 async function rollDie(v){
+  /* 小熊把骰子往前丟出去：拋物線飛出、在格子上彈三下邊滾邊轉，最後停在點數那一面（2026-10-03） */
   const E={1:[0,0],6:[Math.PI,0],2:[-Math.PI/2,0],5:[Math.PI/2,0],3:[0,Math.PI/2],4:[0,-Math.PI/2]}[v];
-  const b=bear.position,y0=b.y+3.4,y1=b.y+.36;
-  dieG.visible=true;dieG.scale.setScalar(1);dieG.position.set(b.x+.9,y0,b.z+.5);
-  const sx=(2+Math.floor(Math.random()*2))*Math.PI*2,sz=(1+Math.floor(Math.random()*2))*Math.PI*2,sy=Math.PI*2;
-  await tween(1000,p=>{dieG.position.y=y0+(y1-y0)*bounce(p);const e=1-easeOut(p);die.rotation.set(E[0]+sx*e,sy*e*.5,E[1]+sz*e)});
-  const f=$('flash');f.textContent=v;f.classList.add('on');await sleep(700);f.classList.remove('on');
-  await tween(220,p=>dieG.scale.setScalar(1-p));dieG.visible=false;
+  const b=bear.position.clone(),gy=b.y+.36;
+  // 往小熊接下來要走的方向丟（沿著格子），不會丟進中間的大聖誕樹
+  const N=LEVELS[G.cur].path.length,cur=G.lv[G.cur].pos,nx=tilePos(G.cur,(cur+2)%N),cp=tilePos(G.cur,cur);
+  let dx=nx.x-cp.x,dz=nx.z-cp.z;const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;
+  bear.rotation.y=Math.atan2(dx,dz);
+  await tween(160,p=>{bearBody.rotation.x=-.35*p});                          // 小熊往後蓄力
+  const P0=new THREE.Vector3(b.x+dx*.35,b.y+1.25,b.z+dz*.35);
+  // 每一段：往前多少、彈多高、花多久
+  const seg=[[.75,1.35,420],[.45,.55,290],[.26,.22,210],[.1,0,220]],T=seg.reduce((a,q)=>a+q[2],0);
+  const sx=(3+Math.floor(Math.random()*2))*Math.PI*2*(Math.random()<.5?1:-1),sy=Math.PI*(1+Math.random()),sz=(2+Math.floor(Math.random()*2))*Math.PI*2;
+  dieG.visible=true;dieG.scale.setScalar(1);dieG.position.copy(P0);
+  tween(220,p=>{bearBody.rotation.x=-.35+.75*Math.sin(p*Math.PI*.5)}).then(()=>tween(260,p=>{bearBody.rotation.x=.4*(1-p)}));
+  let thump=0;
+  await tween(T,p=>{let t=p*T,d=0,k=0;while(k<seg.length-1&&t>seg[k][2]){t-=seg[k][2];d+=seg[k][0];k++}
+    const q=Math.min(1,t/seg[k][2]),fwd=d+seg[k][0]*(k===seg.length-1?easeOut(q):q);
+    let y;if(k===0)y=P0.y+(gy-P0.y)*q+seg[0][1]*Math.sin(q*Math.PI)*.9;else y=gy+seg[k][1]*Math.sin(q*Math.PI);
+    if(k!==thump&&k<seg.length){thump=k;try{sfx('tap')}catch(e){}}
+    dieG.position.set(P0.x+dx*fwd,y,P0.z+dz*fwd);
+    const e=1-easeOut(p);die.rotation.set(E[0]+sx*e,sy*e,E[1]+sz*e)});
+  die.rotation.set(E[0],0,E[1]);
+  await tween(160,p=>{const s=Math.sin(p*Math.PI);dieG.scale.set(1+.12*s,1-.12*s,1+.12*s)});
+  const f=$('flash');f.textContent=v;f.classList.add('on');await sleep(800);f.classList.remove('on');
+  await tween(220,p=>dieG.scale.setScalar(1-p));dieG.visible=false;dieG.scale.setScalar(1);bearBody.rotation.x=0;
 }
 async function hop(to){
   const lv=G.cur,from=G.lv[lv].pos,a=tilePos(lv,from),b=tilePos(lv,to),y=bear.position.y;
@@ -2149,7 +2175,7 @@ async function donate(){
 }
 async function doRoll(){
   const L=G.lv[G.cur];if(G.phase==='oct')return;if(busy||(!G.test&&L.left<=0)||(G.cur===1&&!G.booked))return;
-  busy=true;hud();
+  busy=true;zmReset();hud();
   let v=0;
   if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1]}
     catch(e){if(e.code){toast(e.message);xmasPull();busy=false;hud();return}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
@@ -2244,6 +2270,7 @@ async function start(data){
   if(window.PROD&&XOPEN&&G.phase==='oct')setTimeout(()=>{openPark().then(()=>{try{localStorage.setItem('otto2-park-opened','1')}catch(e){}})},1800);
 }
 $('roll').addEventListener('click',doRoll);
+$('zmBack').addEventListener('click',zmReset);
 $('spin').addEventListener('click',spin);
 $('muteBtn').addEventListener('click',toggleMute);muteLook();
 $('tourBtn').addEventListener('click',()=>setTimeout(startTour,250));
