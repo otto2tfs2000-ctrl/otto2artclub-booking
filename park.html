@@ -269,7 +269,7 @@ html.demoq #menu .mhead{display:block!important}
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
-<div id="miUI" hidden><div class="mich">吉祥物島・三隻的家</div><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
+<div id="miUI" hidden><div class="mich">吉祥物島・五隻的家</div><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
 <div class="pop" id="menu" hidden><div class="card">
   <h2>選單</h2>
@@ -306,7 +306,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261003f';
+const PARK_VER='20261003g';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -927,7 +927,7 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
-  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food)petTap(rc,true);return true}
+  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(!frTap(rc))petTap(rc,true)}return true}
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
@@ -1404,10 +1404,10 @@ function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!==
 
 /* ---------- 教室三隻天竺鼠：嘎逼（老大）、卡布、摩卡。10 月在扭蛋廣場、11–12 月在走格子島散步，點牠們看照片 ---------- */
 const PETD={
-  gabi:{name:'嘎逼',role:'老大',body:'#d98a2b',face:'#6a4228',top:'#e39a35',capLen:1.42,ear:'#e8a28c',rump:'#6a4228',img:'pets/gabi.webp',line:'沒人看的時候就趴著睡。只要有菜吃，一定第一個衝到。'},
-  kabu:{name:'卡布',role:'最無害',body:'#e29a38',ear:'#e7a08a',patch:'#fbf5ea',img:'pets/kabu.webp',line:'最笨的一隻，不會咬人。常常跑錯方向，吃得最慢。'},
-  moka:{name:'摩卡',role:'長毛・躲貓貓',body:'#4a4038',face:'#3a322b',top:'#9a9288',capLen:.8,ear:'#5a4a40',hair:'#6b6258',backc:'#52483f',long:true,img:'pets/moka.webp',line:'吃飯也會搶，可是最會躲。躲在後面偷看大家抓卡布和嘎逼。'}};
-const PS=.6; /* 比畢卡索公仔（.72 倍）小，站著的高度約公仔的一半 */
+  gabi:{name:'嘎逼',role:'老大',body:'#d98a2b',face:'#5e3a22',top:'#e39a35',capLen:1.42,ear:'#e8a28c',rump:'#6a4228',chin:'#f4ece0',tufts:true,img:'pets/gabi.webp',line:'沒人看的時候就趴著睡。只要有菜吃，一定第一個衝到。'},
+  kabu:{name:'卡布',role:'最無害',body:'#e29a38',ear:'#e7a08a',patch:'#fbf5ea',bib:'#fbf5ea',chin:'#f3c88e',img:'pets/kabu.webp',line:'最笨的一隻，不會咬人。常常跑錯方向，吃得最慢。'},
+  moka:{name:'摩卡',role:'長毛・躲貓貓',body:'#4a4038',face:'#3a322b',top:'#9a9288',capLen:.8,ear:'#5a4a40',hair:'#6b6258',backc:'#52483f',long:true,chin:'#5a5048',img:'pets/moka.webp',line:'吃飯也會搶，可是最會躲。躲在後面偷看大家抓卡布和嘎逼。'}};
+const PS=.9; /* 2026-10-03 大熊要再大 0.5 倍（原本 .6）。小熊、蛙蛙叫再小 1/3（.6） */
 const PET={g:{},loc:null,A:null,cc:null,t:0,look:null};
 function petHead(p){const k=1.04,g=new THREE.Group(),fc=p.face||p.body,SGp=(r,a,b)=>new THREE.SphereGeometry(r,a||18,b||12);
   const head=mesh(SGp(.36*k,22,16),toon(fc));head.scale.set(1,.95,1.06);g.add(head);
@@ -1415,6 +1415,7 @@ function petHead(p){const k=1.04,g=new THREE.Group(),fc=p.face||p.body,SGp=(r,a,
   if(p.id==='gabi'){const bl=mesh(SGp(.08*k,10,8),toon('#ffffff'),0,.262*k,.252*k);bl.scale.set(.55,.22,1.7);bl.rotation.x=.7;g.add(bl)}
   const eyes=new THREE.Group();g.add(eyes);
   [-1,1].forEach(d=>{eyes.add(mesh(SGp(.062,12,10),toon('#16110f'),d*.18,.045,.33));eyes.add(mesh(SGp(.022,8,6),new THREE.MeshBasicMaterial({color:0xffffff}),d*.18+.02,.078,.385))});
+  if(p.chin){[-1,1].forEach(d=>{const m=mesh(SGp(.1,12,9),toon(p.chin),d*.075,-.15,.33);m.scale.set(1,.8,.9);g.add(m)})} /* 鼻子兩側鼓鼓的嘴邊肉，天竺鼠的臉才像 */
   g.add(mesh(SGp(.048,10,8),toon('#e59a98'),0,-.1,.4));
   [-1,1].forEach(d=>{const e=mesh(SGp(.12*k,12,10),toon(p.ear),d*.28,.2,-.03);e.scale.set(1,.85,.4);e.rotation.z=d*-.7;e.rotation.y=d*.5;g.add(e)});
   g.userData.eyes=eyes;return g}
@@ -1428,14 +1429,22 @@ function makePet(id){const p=PETD[id];p.id=id;const g=new THREE.Group(),SGp=(r,a
   if(p.long){const sk=mesh(SGp(.5,20,10),toon(p.hair),0,.24,-.12);sk.scale.set(1.25,.46,1.5);g.add(sk);
     const back=mesh(new THREE.SphereGeometry(.52,20,10,0,Math.PI*2,0,1.25),toon(p.backc),0,.42,-.08);back.scale.set(.92,.82,1.25);g.add(back);
     const tail=mesh(SGp(.3,12,10),toon(p.hair),0,.32,-.78);tail.scale.set(1,.7,.8);g.add(tail)}
+  if(p.bib){const b=mesh(SGp(.27,14,10),toon(p.bib),0,.34,.4);b.scale.set(1,.85,.5);g.add(b)} /* 卡布胸前白毛 */
+  if(p.tufts){/* 嘎逼是亂毛（漩渦毛），背上一撮一撮翹起來；身體側邊有深咖啡色塊 */
+    const up=new THREE.Vector3(0,1,0),C=new THREE.Vector3(0,.42,-.05),R=new THREE.Vector3(.44,.39,.6);
+    [[0,.95,.25],[.55,.75,.0],[-.55,.75,.0],[.35,.8,-.45],[-.35,.8,-.45],[0,.85,-.7],[.7,.45,-.4],[-.7,.45,-.4],[0,.6,-.95]].forEach(([x,y,z],i)=>{
+      const d=new THREE.Vector3(x,y,z).normalize(),t=mesh(new THREE.ConeGeometry(.11,.24,6),toon(i%3===2?p.rump:p.body));
+      t.position.copy(C).add(new THREE.Vector3(d.x*R.x,d.y*R.y,d.z*R.z).multiplyScalar(.93));t.quaternion.setFromUnitVectors(up,d);g.add(t)});
+    [-1,1].forEach(d=>{const s=mesh(SGp(.22,12,9),toon(p.face),d*.36,.5,-.32);s.scale.set(.5,.8,1.1);g.add(s)})}
+  if(p.long)[-1,1].forEach(d=>[.15,-.18,-.5].forEach((z,i)=>{const h=mesh(SGp(.2,10,8),toon(i%2?p.hair:p.top),d*.42,.26,z);h.scale.set(.55,.75,.9);h.rotation.z=d*.25;g.add(h)})); /* 摩卡兩側垂下來的長毛 */
   const head=petHead(p);head.position.set(0,.5,.52);g.add(head);
-  const feet=[];[[-.2,.34],[.2,.34],[-.24,-.34],[.24,-.34]].forEach(([x,z])=>{const f=mesh(SGp(.085,10,8),toon('#c9a58a'),x,.07,z);f.scale.set(1,.6,1.35);g.add(f);feet.push(f)});
+  const feet=[];[[-.2,.34],[.2,.34],[-.24,-.34],[.24,-.34]].forEach(([x,z])=>{const f=mesh(SGp(.085,10,8),toon('#eab3a6'),x,.07,z);f.scale.set(1,.6,1.35);g.add(f);feet.push(f)});
   const zzz=petZzz();zzz.position.set(.2,1.5,.5);zzz.visible=false;g.add(zzz);
   g.userData={id,head,eyes:head.userData.eyes,feet,body,zzz};return g}
 function petAnch(){const P=PLAZA,o=(x,z)=>new THREE.Vector3(P.x+x,0,P.z+z);return{y:0,home:{gabi:o(-3.3,2.4),kabu:o(-2.3,1.3),moka:o(-1.7,-3.8)},box:[P.x-4.4,P.x-1.4,P.z+.6,P.z+3.4]}}
 /* 11–12 月：三隻跟著小黑熊，待在離玩家最近的格子內側雪地（鏡頭看得到的地方） */
 function petCenterNov(){const b=bear.position,d=new THREE.Vector3(-b.x,0,-b.z);if(d.length()<.1)d.set(0,0,-1);d.normalize();const c=new THREE.Vector3(b.x+d.x*2.2,0,b.z+d.z*2.2);c.x=Math.max(-4.6,Math.min(4.6,c.x));c.z=Math.max(-2.8,Math.min(2.8,c.z));return c}
-function petAnchNov(c){const o=(x,z)=>new THREE.Vector3(c.x+x,-.12,c.z+z);return{y:-.12,home:{gabi:o(1.0,.3),kabu:o(-.5,.6),moka:o(.6,-.9)},box:[c.x-1.2,c.x+1.2,c.z-.6,c.z+.9]}}
+function petAnchNov(c){const o=(x,z)=>new THREE.Vector3(c.x+x,-.12,c.z+z);return{y:-.12,home:{gabi:o(1.2,.35),kabu:o(-.65,.7),moka:o(.75,-1.05)},box:[c.x-1.4,c.x+1.4,c.z-.7,c.z+1.0]}}
 function buildPets(){['gabi','kabu','moka'].forEach(id=>{const g=makePet(id);g.scale.setScalar(PS);g.visible=false;scene.add(g);PET.g[id]={id,g,q:[],cur:null,hop:0,t:0,heart:0}})}
 const PA={wait:t=>({wait:t}),go:(v,sp)=>({go:v.clone(),sp:sp||1.2}),eat:t=>({eat:t}),sleep:t=>({sleep:t}),fn:f=>({fn:f}),chase:sp=>({chase:true,sp})};
 function petSleep(p,on){p.sleeping=on;p.g.userData.eyes.scale.y=on?.12:1;p.g.userData.zzz.visible=on}
@@ -1475,7 +1484,7 @@ function petsTick(dt,now){if(!PET.g.gabi||!G)return;
   const vis=!(want==='nov'&&G.cur===1);Object.values(PET.g).forEach(p=>{p.g.visible=vis;if(vis)petStep(p,dt,now)})}
 /* 扭蛋滾出來的時候，三隻衝過去看：嘎逼第一個，卡布先跑錯方向，摩卡最慢 */
 function petsCapsule(hold){if(PET.loc!=='oct')return;const P=PET.g,end=new THREE.Vector3(hold.x,0,hold.z-.6);PET.look=end;
-  const seat={gabi:new THREE.Vector3(.8,0,.1),moka:new THREE.Vector3(-.8,0,-.1),kabu:new THREE.Vector3(.1,0,.8)},s=id=>end.clone().add(seat[id]);
+  const seat={gabi:new THREE.Vector3(1.1,0,.15),moka:new THREE.Vector3(-1.1,0,-.15),kabu:new THREE.Vector3(.15,0,1.1)},s=id=>end.clone().add(seat[id]);
   Object.values(P).forEach(p=>{p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null});
   P.gabi.q.push(PA.wait(.1),PA.fn(p=>{p.hop=.4}),PA.go(s('gabi'),3.6),PA.eat(4));
   P.moka.q.push(PA.wait(.9),PA.go(s('moka'),2.4),PA.eat(3.2));
@@ -1491,7 +1500,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray');a.innerHTML='作品島'; /* 2026-10-03 作品島正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003f',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003g',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1508,6 +1517,9 @@ function petsNotice(){
     else{await popup(null,'想找他們，隨時都可以','想去他們家，可以點一下島上的小動物，或是點畫面下方的「吉祥物島」。',[{t:'知道了',v:true}]);const b=$('plMascot');b.classList.add('pulse');setTimeout(()=>b.classList.remove('pulse'),6000)}},1200)}
 
 /* ---------- 吉祥物島（蓋進場景）：點「吉祥物島」→ 鏡頭往左移、島和橋浮出來、三隻一隻接一隻過橋 ---------- */
+/* 小熊的家、蛙蛙叫的家在吉祥物島上的位置（島的座標，未縮小前） */
+const XH=new THREE.Vector3(3.9,0,-.7),XWH=new THREE.Vector3(.5,0,-.55),XR=1.62,XFLOOR=.07;  // 圍欄中心、滾輪（相對圍欄）、圍欄半徑、木屑地板高度
+const FH=new THREE.Vector3(-4.0,0,-1.0),FD=new THREE.Vector3(1.25,0,.1),FT=new THREE.Vector3(-1.45,0,-.2); // 土的中心；水盆、魚缸（相對土）
 const MI={state:'off',g:null,br:null,c:new THREE.Vector3(),y:0,A:null,food:null,eaten:0,done:0,spot:null};
 const MIK=.72; /* 吉祥物島縮小成 .72 倍放進場景 */
 const MIB=(function(){
@@ -1536,18 +1548,80 @@ const MIB=(function(){
     g.add(M(CYL(1.35,1.45,1.5,10,.04),lam(GR.cream),0,.75,0));g.add(M(CON(1.85,1.5,10,.05),lam(GR.roof),0,2.2,0));g.add(M(CYL(.12,.14,.7,6),lam('#9a8058'),.8,2.7,-.2));
     g.add(M(BOX(.75,1.0,.12),lam('#7a4a2c'),0,.5,1.36));g.add(M(new THREE.SphereGeometry(.05,8,6),lam('#f2c14e'),.2,.5,1.44));
     [-1,1].forEach(d=>{const w=M(new THREE.CylinderGeometry(.24,.24,.1,12),lam('#bfe3f2'),d*.9,.95,1.15);w.rotation.x=Math.PI/2;g.add(w)});
-    const sg=new THREE.Group();sg.add(M(CYL(.06,.07,1.4,6),lam(GR.wood2),0,.7,0));
-    const b=M(BOX(1.5,.55,.08),[lam(GR.wood),lam(GR.wood),lam(GR.wood),lam(GR.wood),new THREE.MeshLambertMaterial({map:signTex('毛孩之家',256,94)}),lam(GR.wood)],0,1.35,0);sg.add(b);sg.scale.setScalar(.65);sg.position.set(-1.5,0,1.5);g.add(sg);return g}
+    const sg=sign('天竺鼠的家');sg.position.set(-1.5,0,1.5);g.add(sg);return g}
+  function sign(txt){const sg=new THREE.Group();sg.add(M(CYL(.06,.07,1.4,6),lam(GR.wood2),0,.7,0));
+    sg.add(M(BOX(1.5,.55,.08),[lam(GR.wood),lam(GR.wood),lam(GR.wood),lam(GR.wood),new THREE.MeshLambertMaterial({map:signTex(txt,256,94)}),lam(GR.wood)],0,1.35,0));sg.scale.setScalar(.65);return sg}
+  const glass=()=>new THREE.MeshLambertMaterial({color:'#dff2ff',transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false});
+  /* 天竺鼠的家多一點擺設：嘎逼的睡墊、照片裡那盤生菜、乾草架、水瓶、摩卡躲的木頭隧道、玉米鬚碗 */
+  function gpDecor(g){
+    {const b=M(CYL(.78,.82,.1,18),lam('#f4c4cf'),2.6,.05,2.1);g.add(b);const r=M(new THREE.TorusGeometry(.78,.12,8,22),lam('#eaa9b8'),2.6,.12,2.1);r.rotation.x=Math.PI/2;g.add(r)}
+    {const p=new THREE.Group();p.position.set(-2.0,0,3.3);p.rotation.y=.25;const st=lam('#b9c0c6');
+      p.add(M(BOX(1.3,.05,.9),st,0,.03,0));[[0,.45,1.3,.07],[0,-.45,1.3,.07],[.65,0,.07,.9],[-.65,0,.07,.9]].forEach(([x,z,w,d])=>p.add(M(BOX(w,.22,d),st,x,.12,z)));
+      [[-.35,.1,'#9fd36a'],[.05,-.12,'#86c45c'],[.35,.12,'#b5df7c'],[-.05,.2,'#7cbc55'],[.3,-.2,'#9fd36a']].forEach(([x,z,c],i)=>{const l=M(SGf(.28,9,7),lam(c),x,.2,z);l.scale.set(1,.35,.75);l.rotation.y=i;p.add(l)});g.add(p)}
+    {const p=new THREE.Group();p.position.set(1.85,0,-1.35);p.rotation.y=-.5;const w=lam(GR.wood);
+      p.add(M(BOX(.9,.08,.5),w,0,.04,0));[-.42,.42].forEach(x=>p.add(M(BOX(.08,.8,.5),w,x,.4,0)));for(let i=0;i<5;i++)p.add(M(BOX(.04,.6,.04),lam(GR.wood2),-.3+i*.15,.45,.24));
+      for(let i=0;i<24;i++){const h=M(CYL(.015,.015,.55,4),lam(i%3?'#e2c56a':'#cdaa4c'),(rng()-.5)*.75,.55+rng()*.25,(rng()-.5)*.35);h.rotation.z=(rng()-.5)*1.4;h.rotation.x=(rng()-.5)*.8;p.add(h)}g.add(p)}
+    {const b=new THREE.Group();b.position.set(.95,0,-1.13);b.rotation.y=.6;b.add(M(CYL(.12,.12,.55,10),lam('#cfe9f5'),0,1.05,0));b.add(M(CYL(.1,.1,.32,10),lam('#8fc6e4'),0,.94,0));b.add(M(CYL(.13,.13,.08,10),lam('#5b9fd0'),0,1.36,0));
+      const t=M(CYL(.025,.025,.3,6),lam('#c9ccd0'),0,.72,.06);t.rotation.x=.5;b.add(t);g.add(b)}
+    {const t=new THREE.Group();t.position.set(3.0,0,-3.3);t.rotation.y=-.9;const tube=M(new THREE.CylinderGeometry(.5,.5,1.3,14,1,true),lam('#a8743f',{side:THREE.DoubleSide}),0,.5,0);tube.rotation.z=Math.PI/2;t.add(tube);
+      [-.65,.65].forEach(x=>{const r=M(new THREE.TorusGeometry(.5,.07,6,16),lam('#8b5e34'),x,.5,0);r.rotation.y=Math.PI/2;t.add(r)});g.add(t)}
+    {g.add(M(CYL(.34,.26,.2,14),lam('#f3b8a8'),-1.2,.1,-.3));g.add(M(CYL(.29,.29,.03,14),lam('#9cc563'),-1.2,.2,-.3));
+      for(let k=0;k<10;k++){const a=k/10*6.28,s=M(CYL(.012,.012,.4,4),lam('#f2d36a'),-1.2+Math.cos(a)*.08,.32,-.3+Math.sin(a)*.08);s.rotation.z=Math.cos(a)*.8;s.rotation.x=Math.sin(a)*.8;g.add(s)}}}
+  /* 小熊（倉鼠）的家：透明圍欄、滾輪、城堡飼料碗、小木屋、木板台、滿地木屑和葵花子 */
+  function xiongHome(g){const H=new THREE.Group();H.position.set(XH.x,0,XH.z);g.add(H);
+    H.add(M(CYL(1.6,1.62,.07,22),lam('#ecd6a8'),0,.035,0));
+    for(let i=0;i<40;i++){const a=rng()*6.28,d=Math.sqrt(rng())*1.45,b=M(BOX(.14,.025,.07),lam(i%2?'#f6e4bb':'#dcc08a'),Math.cos(a)*d,.08,Math.sin(a)*d);b.rotation.y=rng()*3;H.add(b)}
+    H.add(M(new THREE.CylinderGeometry(XR,XR,.55,28,1,true),glass(),0,.33,0));
+    const rim=M(new THREE.TorusGeometry(XR,.035,6,36),lam('#bcdcec'),0,.6,0);rim.rotation.x=Math.PI/2;H.add(rim);
+    {const st=new THREE.Group();st.position.set(XWH.x,0,XWH.z);H.add(st);
+      st.add(M(BOX(.6,.06,.3),lam('#e6e2da'),0,.06,-.38));st.add(M(BOX(.1,1.0,.1),lam('#e6e2da'),0,.52,-.38));
+      const W=new THREE.Group();W.position.set(0,.98,0);st.add(W);MI.wheel=W;
+      const bd=M(new THREE.CylinderGeometry(.9,.9,.04,26),lam('#d3e3ea'),0,0,-.28);bd.rotation.x=Math.PI/2;W.add(bd);
+      W.add(M(new THREE.TorusGeometry(.88,.05,8,32),lam('#f3f1ec'),0,0,.26));
+      for(let i=0;i<22;i++){const a=i/22*6.28,r=M(new THREE.CylinderGeometry(.022,.022,.54,4),lam(i%2?'#f3f1ec':'#f2c94e'),Math.cos(a)*.87,Math.sin(a)*.87,0);r.rotation.x=Math.PI/2;W.add(r)}
+      const hub=M(new THREE.CylinderGeometry(.09,.09,.08,10),lam('#f2c94e'),0,0,-.25);hub.rotation.x=Math.PI/2;W.add(hub)}
+    {const c=new THREE.Group();c.position.set(-.7,0,-.35);const w=lam('#f3efe6');c.add(M(CYL(.42,.46,.4,12),w,0,.27,0));
+      for(let i=0;i<8;i++){const a=i/8*6.28;c.add(M(BOX(.13,.13,.1),w,Math.cos(a)*.41,.53,Math.sin(a)*.41).rotateY(-a))}
+      c.add(M(CYL(.37,.37,.03,12),lam('#9a7552'),0,.46,0));
+      for(let i=0;i<16;i++){const a=rng()*6.28,d=rng()*.3,s=M(SGf(.045,6,4),lam(i%2?'#3a3330':'#e8dcc4'),Math.cos(a)*d,.49,Math.sin(a)*d);s.scale.set(1,.6,1.8);s.rotation.y=rng()*3;c.add(s)}
+      [-.5,.5].forEach(a=>c.add(M(SGf(.06,6,4),lam('#8a5a3a'),Math.sin(a)*.44,.27,Math.cos(a)*.44)));H.add(c)}
+    {const h=new THREE.Group();h.position.set(-.15,.07,-1.12);h.add(M(BOX(.7,.45,.55),lam('#d9b07a'),0,.225,0));
+      [-1,1].forEach(d=>{const r=M(BOX(.46,.05,.64),lam(GR.wood),d*.19,.53,0);r.rotation.z=-d*.6;h.add(r)});
+      const dr=M(new THREE.CylinderGeometry(.13,.13,.02,12),lam('#5a3a22'),0,.2,.28);dr.rotation.x=Math.PI/2;h.add(dr);H.add(h)}
+    {const t=new THREE.Group();t.position.set(-.75,.07,.6);[-1,1].forEach(d=>t.add(M(BOX(.06,.26,.4),lam(GR.wood2),d*.3,.13,0)));t.add(M(BOX(.75,.06,.45),lam('#d8b583'),0,.29,0));H.add(t)}
+    for(let i=0;i<12;i++){const a=rng()*6.28,d=.3+rng()*.9,s=M(SGf(.04,6,4),lam(i%2?'#3a3330':'#e8dcc4'),Math.cos(a)*d,.1,Math.sin(a)*d);s.scale.set(1,.6,1.8);s.rotation.y=rng()*3;H.add(s)}
+    const sg=sign('小熊的家');sg.position.set(XH.x-1.55,0,XH.z+1.05);g.add(sg)}
+  /* 蛙蛙叫（角蛙）的家：一片土（椰土球）、黑色石頭水盆、葉子，旁邊是牠最愛盯著看的魚缸 */
+  function frogHome(g){const F=new THREE.Group();F.position.set(FH.x,0,FH.z);g.add(F);
+    F.add(M(CYL(1.15,1.22,.09,18,.02),lam('#4a3427'),0,.045,0));
+    for(let i=0;i<46;i++){const a=rng()*6.28,d=Math.sqrt(rng())*1.08;F.add(M(SGf(.05+rng()*.03,6,4),lam(i%3?'#2e2925':'#5a4232'),Math.cos(a)*d,.1,Math.sin(a)*d))}
+    {const d=new THREE.Group();d.position.set(FD.x,0,FD.z);
+      d.add(new THREE.Mesh(fl(new THREE.LatheGeometry([[0,.04],[.66,.04],[.73,.12],[.76,.26],[.92,.26],[.97,0]].map(a=>new THREE.Vector2(a[0],a[1])),8),.03),lam('#2c2927',{side:THREE.DoubleSide})));
+      d.add(M(new THREE.CylinderGeometry(.74,.74,.02,18),lam('#5f8d9e'),0,.17,0));
+      for(let i=0;i<5;i++){const a=i*1.3,b=M(BOX(.2,.02,.05),lam('#8d8882'),Math.cos(a)*.84,.27,Math.sin(a)*.84);b.rotation.y=-a;d.add(b)}F.add(d)}
+    [[.35,-1.05,0],[.85,-.85,1],[-.85,.95,2],[-.3,1.1,1],[-.8,-.95,0]].forEach(([x,z,k])=>{const p=new THREE.Group();p.position.set(x,0,z);
+      for(let i=0;i<4;i++){const a=i*1.6+k,l=M(SGf(.26,8,6),lam(i%2?'#4f8f45':'#69a84f'),Math.cos(a)*.18,.28+i*.06,Math.sin(a)*.18);l.scale.set(1.1,.18,.6);l.rotation.y=-a;l.rotation.z=.4;p.add(l)}
+      p.add(M(CYL(.03,.03,.3,4),lam('#3f7a35'),0,.15,0));F.add(p)});
+    {const t=new THREE.Group();t.position.set(FT.x,0,FT.z);t.rotation.y=Math.PI/2;F.add(t);
+      t.add(M(BOX(1.25,.4,.72),lam('#6b4a33'),0,.2,0));t.add(M(BOX(1.12,.07,.6),lam('#d9c9a8'),0,.44,0));
+      [[-.3,.1],[.35,-.12],[.05,.15]].forEach(([x,z])=>{for(let k=0;k<3;k++){const w=M(CON(.05,.45+k*.08,5),lam(k%2?'#4f9f45':'#3d8a3a'),x+k*.05,.68+k*.04,z-k*.04);w.rotation.z=(k-1)*.25;t.add(w)}});
+      MI.fish=[];const fc=['#ff8a3d','#ffb43d','#ff5a4a','#4aa8ff','#ffd84a','#ff8fb0'];
+      for(let i=0;i<16;i++){const f=new THREE.Group(),m=lam(fc[i%6]),b=M(SGf(.055,8,6),m);b.scale.set(1.7,1,.6);f.add(b);const tl=M(CON(.045,.08,4),m,-.12,0,0);tl.rotation.z=Math.PI/2;f.add(tl);
+        f.userData={cx:(rng()-.5)*.2,cy:.58+rng()*.38,rx:.2+rng()*.22,rz:.08+rng()*.12,sp:(.6+rng()*.9)*(rng()<.5?-1:1),ph:rng()*6.28};t.add(f);MI.fish.push(f)}
+      t.add(M(BOX(1.1,.62,.58),new THREE.MeshLambertMaterial({color:'#8fd0ea',transparent:true,opacity:.3,depthWrite:false}),0,.78,0));
+      t.add(M(BOX(1.18,.74,.66),glass(),0,.78,0));t.add(M(BOX(1.2,.04,.68),lam('#3a3a3a'),0,1.16,0))}
+    const sg=sign('蛙蛙叫的家');sg.position.set(-5.15,0,.5);g.add(sg)}
   function island(){seed=7;const R=7,g=new THREE.Group();g.add(base(R));
-    [[-1.5,1.6,.9],[3.4,-1.6,1.2],[-4.4,-1.8,1.1],[2.4,3.6,1.0]].forEach(([x,z,r])=>{const m=M(ICO(r,2,.05),lam(GR.g3),x,0,z);m.scale.y=.2;g.add(m)});
+    [[-1.5,1.6,.9],[3.6,3.8,1.0],[-1.6,-4.6,1.0],[1.2,4.6,1.0]].forEach(([x,z,r])=>{const m=M(ICO(r,2,.05),lam(GR.g3),x,0,z);m.scale.y=.2;g.add(m)});
     const h=hut();h.position.set(0,0,-2.3);g.add(h);
-    [[-4.6,-3.2,'pine',1.0],[-5.4,.4,'blossom',.95],[4.8,-2.8,'round',1.05],[5.0,1.8,'pine',.85],[-2.6,-4.6,'round',.9],[2.4,-4.8,'blossom',.9],[-4.6,3.2,'round',.8]].forEach(([x,z,k,s])=>{const t=tree(k,s);t.position.set(x,0,z);t.rotation.y=x;g.add(t)});
-    [[3.7,2.6,.45],[-3.2,2.9,.35],[5.5,-.4,.4],[-1.8,-5.0,.35]].forEach(([x,z,r])=>{const k=M(ICO(r,0,.08),lam('#d9ccb0'),x,r*.45,z);k.scale.y=.62;g.add(k)});
-    const cols=['#ffd36a','#ff9ac0','#ffffff','#a9d4ff','#ffb27a'];for(let i=0;i<60;i++){const a=rng()*6.28,d=Math.sqrt(rng())*6.4*.86,f=M(new THREE.OctahedronGeometry(.1),lam(cols[i%5]),Math.cos(a)*d,.1,Math.sin(a)*d);f.rotation.set(rng()*3,rng()*3,0);g.add(f)}
+    [[-3.9,-4.7,'pine',1.0],[4.2,-4.6,'blossom',.8],[5.4,-3.0,'round',1.0],[5.3,2.7,'pine',.85],[-2.3,-5.4,'round',.85],[2.6,-5.2,'blossom',.9],[-4.9,3.6,'round',.8]].forEach(([x,z,k,s])=>{const t=tree(k,s);t.position.set(x,0,z);t.rotation.y=x;g.add(t)});
+    [[-3.2,2.9,.35],[6.0,-.2,.35],[-.9,-4.7,.35],[1.6,5.0,.4]].forEach(([x,z,r])=>{const k=M(ICO(r,0,.08),lam('#d9ccb0'),x,r*.45,z);k.scale.y=.62;g.add(k)});
+    /* 小花不要長在別人家裡 */
+    const busyAt=(x,z)=>Math.hypot(x-XH.x,z-XH.z)<1.85||Math.hypot(x-FH.x,z-FH.z)<1.45||Math.hypot(x-FH.x-FD.x,z-FH.z-FD.z)<1.1||Math.hypot(x-FH.x-FT.x,z-FH.z-FT.z)<1||Math.hypot(x,z+2.3)<1.6||Math.hypot(x-2.6,z-2.1)<1||(x>-2.8&&x<-1.2&&z>2.7&&z<3.9)||(x>-4.5&&x<-2.1&&z>.1&&z<1.7);
+    const cols=['#ffd36a','#ff9ac0','#ffffff','#a9d4ff','#ffb27a'];for(let i=0;i<60;i++){const a=rng()*6.28,d=Math.sqrt(rng())*6.4*.86,x=Math.cos(a)*d,z=Math.sin(a)*d;if(busyAt(x,z))continue;const f=M(new THREE.OctahedronGeometry(.1),lam(cols[i%5]),x,.1,z);f.rotation.set(rng()*3,rng()*3,0);g.add(f)}
     {const p=new THREE.Group();p.position.set(-3.3,0,.9);p.add(M(BOX(2.2,.14,1.5),lam('#8a6038'),0,.07,0));
       for(let r=0;r<3;r++)for(let c=0;c<4;c++){const x=-.75+c*.5,z=-.45+r*.45;p.add(M(ICO(.17,0,.03),lam(r===1?'#f08a2f':'#6fae4a'),x,.22,z))}g.add(p)}
-    {const p=new THREE.Group();p.position.set(3.6,0,.5);[[0,.35,0,.55],[.5,.28,.25,.42],[-.45,.25,.3,.38]].forEach(([x,y,z,r])=>p.add(M(ICO(r,1,.06),lam('#ecc760'),x,y,z)));g.add(p)}
-    g.add(M(CYL(1.05,1.15,.08,16),lam('#8ec9c4'),-3.9,.03,-.9));g.add(M(CYL(1.25,1.3,.06,16),lam(GR.sand),-3.9,.02,-.9));
+    gpDecor(g);xiongHome(g);frogHome(g);frBuild(g);
     g.scale.setScalar(MIK);return g}
   function bridge(x0,x1){const g=new THREE.Group(),L=Math.abs(x1-x0),n=Math.max(4,Math.round(L/.5)),dir=x1<x0?-1:1;g.userData.planks=[];
     for(let k=0;k<n;k++){const p=M(fl(new THREE.BoxGeometry(.5,.14,1.7)),lam(k%2?'#b8824a':'#a8743f'),x0+dir*(k+.5)*L/n,-.08,0);p.scale.x=L/n/.5*.96;p.visible=false;g.add(p);g.userData.planks.push(p)}
@@ -1557,16 +1631,21 @@ const MIB=(function(){
     if(kind==='veg'){[[-.12,0,.5],[.1,.02,-.4],[0,.04,.1]].forEach(([x,z,r],i)=>{const l=M(SGf(.2,8,6),lam(i===1?'#6fbb55':'#4ca64c'),x,.1,z);l.scale.set(1.1,.3,1.6);l.rotation.y=r;g.add(l)});g.add(M(CON(.1,.4,6),lam('#f08a2f'),.25,.12,.15).rotateZ(Math.PI/2))}
     else if(kind==='corn'){for(let k=0;k<14;k++){const a=k/14*6.28,s=M(CYL(.012,.012,.42,4),lam(k%2?'#f2d36a':'#e0b94a'),Math.cos(a)*.06,.2,Math.sin(a)*.06);s.rotation.z=Math.cos(a)*.7;s.rotation.x=Math.sin(a)*.7;g.add(s)}g.add(M(SGf(.18,8,6),lam('#9cc563'),0,.05,0))}
     else if(kind==='pepper'){[['#4aa84a',-.2,0],['#e8b53a',.2,.1],['#d9483b',0,-.22]].forEach(([c,x,z])=>{const p=M(SGf(.19,9,7),lam(c),x,.17,z);p.scale.set(.95,1,.9);g.add(p);g.add(M(CYL(.025,.03,.1,5),lam('#3f7a35'),x,.34,z))})}
+    else if(kind==='seed'){for(let k=0;k<16;k++){const a=Math.random()*6.28,d=Math.random()*.2,s=M(SGf(.06,7,5),lam(k%2?'#3a3330':'#56504a'),Math.cos(a)*d,.06+Math.random()*.08,Math.sin(a)*d);s.scale.set(.7,.5,1.6);s.rotation.y=Math.random()*3;g.add(s);
+      const st=M(SGf(.061,7,5),lam('#e8e0d0'),s.position.x,s.position.y+.005,s.position.z);st.scale.set(.25,.5,1.62);st.rotation.y=s.rotation.y;g.add(st)}}
+    else if(kind==='fruit'){[['#8a4a5a',-.14,0,.13],['#e8963a',.14,.06,.12],['#8a4a5a',.02,-.15,.11],['#d9483b',.06,.16,.08],['#f2c14e',-.12,.16,.09]].forEach(([c,x,z,r],i)=>{const f=M(SGf(r,9,7),lam(c),x,.08,z);f.scale.set(1,.45,1);f.rotation.y=i;g.add(f)})}
     else{for(let k=0;k<26;k++){const a=Math.random()*6.28,d=Math.random()*.22,h=M(CYL(.012,.012,.5,4),lam(k%3?'#e2c56a':'#cdaa4c'),Math.cos(a)*d,.16,Math.sin(a)*d);h.rotation.z=(Math.random()-.5)*1.6;h.rotation.x=(Math.random()-.5)*1.6;g.add(h)}g.add(M(SGf(.2,8,6),lam('#d9bb5c'),0,.08,0))}
     return g}
   return{island,bridge,food}})();
-const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡'};
+const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草',seed:'葵花子',fruit:'水果乾'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡',xiong:'小熊'};
+/* 誰會來吃：天竺鼠吃菜和草；小熊（倉鼠）愛葵花子、水果乾、菜菜 */
+const FEEDERS={veg:['gabi','kabu','moka','xiong'],corn:['gabi','kabu','moka'],pepper:['gabi','kabu','moka'],hay:['gabi','kabu','moka'],seed:['xiong'],fruit:['xiong']};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function petReset(p){p.q.length=0;if(p.cur&&p.cur.sleep!==undefined)petSleep(p,false);p.cur=null;p.arrived=false}
 /* 島的位置：10 月在廣場左邊，11–12 月在走格子島左邊（鏡頭往左移就看得到） */
 function miSpot(){return G.phase==='oct'?{c:new THREE.Vector3(-21,0,14.2),bz:14.2,x0:-9.6,x1:-16.0}:{c:new THREE.Vector3(-23.5,-.12,1.45),bz:1.45,x0:-8.6,x1:-18.5}}
 function miAnch(){const c=MI.c,y=MI.c.y,o=(x,z)=>new THREE.Vector3(c.x+x*MIK,y,c.z+z*MIK);
-  return{y,home:{gabi:o(3.2,1.5),kabu:o(-.8,2.2),moka:o(1.7,-3.9)},box:[c.x-3*MIK,c.x+2.6*MIK,c.z+.9*MIK,c.z+4.2*MIK],food:o(.4,2.9)}}
+  return{y,home:{gabi:o(2.6,2.1),kabu:o(-.8,2.2),moka:o(1.9,-3.7)},box:[c.x-1.1*MIK,c.x+1.9*MIK,c.z+1.0*MIK,c.z+4.2*MIK],food:o(.4,3.0)}}
 /* 鏡頭：mascotB＝看橋長出來；mascotX＝跟著三隻走（過橋全程都看得到）；mascot＝島的全景 */
 function miCam(mode){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect,dir=new THREE.Vector3(0,.55,.85).normalize();let at,w,h;
   if(mode==='mascotB'){const sp=MI.spot;at=new THREE.Vector3((sp.x0+sp.x1)/2,sp.c.y+.4,sp.bz);w=Math.abs(sp.x1-sp.x0)+8;h=6.2}
@@ -1579,7 +1658,8 @@ async function mascotGo(){
   busy=true;MI.state='going';overview=false;hud();petsVisited();
   if(PET.loc!=='oct'&&PET.loc!=='nov')petsPlace(G.phase==='oct'?'oct':'nov'); /* 剛進遊戲、三隻還沒就位時也要能出發 */
   const sp=miSpot();MI.spot=sp;MI.c.copy(sp.c);MI.y=sp.c.y;
-  if(!MI.g){MI.g=MIB.island();scene.add(MI.g)}
+  if(!MI.g){MI.g=MIB.island();scene.add(MI.g);trimShadows(MI.g);if(!/[?&]nomerge/.test(location.search))try{mergeStatic(MI.g,staticRefs())}catch(e){console.warn('mergeMI',e)}}
+  frReset();
   if(MI.br){scene.remove(MI.br)}MI.br=MIB.bridge(sp.x0,sp.x1);MI.br.position.set(0,sp.c.y,sp.bz);scene.add(MI.br);
   MI.g.position.set(sp.c.x,sp.c.y-14,sp.c.z);MI.g.visible=true;
   document.body.classList.add('mi');PET.loc='transit';PET.look=null;
@@ -1592,7 +1672,7 @@ async function mascotGo(){
   parkCam='mascotX'; /* 鏡頭跟著三隻走，過橋全程都在畫面裡 */
   /* 一隻接一隻：嘎逼帶頭，卡布跟著，摩卡最後 */
   const A2=miAnch(),dx=sp.x1<sp.x0?-1:1;
-  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
+  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.42,0,.42][i];
     /* 2026-10-03 大熊嫌太久（原本來回各 12～13 秒）：三隻跑快一倍、間隔縮短 */
     p.q.push(PA.wait(i*.4+.2),PA.fn(()=>{if(id==='gabi')toast('嘎逼帶頭衝過橋！');if(id==='moka')toast('摩卡最後才敢過橋')}),
       PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),5),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),4.6),PA.go(A2.home[id].clone(),4.4),PA.fn(q0=>{q0.arrived=true}))});
@@ -1606,7 +1686,7 @@ async function mascotBack(){
   if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false;
   const sp=MI.spot,dx=sp.x1<sp.x0?-1:1,target=G.phase==='oct'?petAnch():petAnchNov(petCenterNov());
   PET.loc='transit';PET.look=null;parkCam='mascotX';
-  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.3,0,.3][i];
+  ['gabi','kabu','moka'].forEach((id,i)=>{const p=PET.g[id];petReset(p);const off=[-.42,0,.42][i];
     p.q.push(PA.wait(i*.35+.15),PA.go(new THREE.Vector3(sp.x1+dx*.2,sp.c.y,sp.bz+off),4.6),PA.go(new THREE.Vector3(sp.x0-dx*.2,sp.c.y,sp.bz+off),5),PA.go(target.home[id].clone(),4.4),PA.fn(q0=>{q0.arrived=true}))});
   await miWaitAll();parkCam=null;await sleep(400);
   PET.A=target;PET.loc=G.phase==='oct'?'oct':'nov';PET.cc=PET.loc==='nov'?petCenterNov():null;PET.t=2.5;
@@ -1615,19 +1695,22 @@ async function mascotBack(){
   MI.state='off';document.body.classList.remove('mi');busy=false;hud();
 }
 /* 餵食（2026-10-03 改，有人許願）：手指按住食物拖著走，三隻會衝過來追；放開食物掉在地上，牠們圍過來吃 */
-const MI_SEAT={gabi:new THREE.Vector3(.6,0,.1),moka:new THREE.Vector3(-.56,0,-.04),kabu:new THREE.Vector3(.08,0,.6)};
+const MI_SEAT={gabi:new THREE.Vector3(.84,0,.14),moka:new THREE.Vector3(-.8,0,-.06),kabu:new THREE.Vector3(.1,0,.84)};
 function miSeat(id){const f=MI.food?MI.food.position:MI.A.food;return new THREE.Vector3(f.x+MI_SEAT[id].x,MI.A.y,f.z+MI_SEAT[id].z)}
+function miGot(id){if(MI.got[id])return;MI.got[id]=1;MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.25,1-MI.eaten/MI.need*.6));toast(MI.eaten===1?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}
+function miAte(){if(++MI.done>=MI.need){if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false}}
 function miFeed(kind){
   if(MI.state!=='on'||MI.food)return;$('miFood').hidden=true;
   const f=MI.A.food.clone();MI.food=MIB.food(kind);MI.food.position.copy(f);scene.add(MI.food);MI.eaten=0;MI.done=0;MI.hold=false;MI.got={};PET.look=MI.food.position;$('miFeed').disabled=true;
-  const P=['gabi','kabu','moka'],woke={};P.forEach(id=>woke[id]=PET.g[id].sleeping);P.forEach(id=>petReset(PET.g[id]));
+  const FD0=FEEDERS[kind]||['gabi','kabu','moka'],P=FD0.filter(id=>PET.g[id]);MI.need=FD0.length;P.forEach(id=>petReset(PET.g[id]));
   const SP={gabi:3.4,moka:2.9,kabu:2.3};   // 嘎逼是老大，衝最快；卡布最慢
-  toast('按住'+FOODN[kind]+'拖拖看，牠們會追過來！');$('miHint').hidden=false;
+  toast('按住'+FOODN[kind]+'拖拖看，'+(P.length?'牠們':'小熊')+'會追過來！');$('miHint').hidden=false;
+  if(FD0.includes('xiong'))xFeed();
   shuf(P).forEach((id,r)=>{const p=PET.g[id],q=[PA.wait([.3,.8,1.4][r]+Math.random()*.3),PA.fn(q0=>{q0.hop=.4})];
     if(id==='kabu'&&Math.random()<.5)q.push(PA.go(f.clone().add(new THREE.Vector3((Math.random()<.5?-1:1)*2.4,0,-1)),1.9),PA.wait(.4),PA.fn(()=>toast('卡布跑錯方向了')));
-    q.push(PA.chase(SP[id]),PA.fn(()=>{if(MI.got[id])return;MI.got[id]=1;MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.25,1-MI.eaten/3*.6));toast(MI.eaten===1?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}),
+    q.push(PA.chase(SP[id]),PA.fn(()=>miGot(id)),
       Object.assign(PA.eat(2.8+Math.random()*.5),{food:true,sp:SP[id]}),
-      PA.fn(()=>{if(++MI.done>=3){if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false}}));
+      PA.fn(miAte));
     q.forEach(a=>p.q.push(a))})}
 /* 手指拿食物：碰到島上任何地方，食物就跳到手指下，跟著手指移動（抬高一點，看得出是拿著的） */
 (function(){const el=$('game'),plane=new THREE.Plane(),hit=new THREE.Vector3(),rc=new THREE.Raycaster();
@@ -1641,7 +1724,123 @@ function miFeed(kind){
   el.addEventListener('pointermove',e=>{if(e.pointerId!==id||!MI.food)return;const q=at(e);if(q)MI.food.position.set(q.x,q.y+.55+Math.sin(performance.now()/120)*.04,q.z)});
   ['pointerup','pointercancel'].forEach(t=>el.addEventListener(t,e=>{if(e.pointerId!==id)return;id=null;MI.hold=false;if(MI.food){const f=MI.food,y0=f.position.y;tween(220,p=>{if(f.parent)f.position.y=y0+(MI.A.y-y0)*easeIn(p)})}}));
 })();
-const MI_FOODS=[['veg','菜菜','#4ca64c'],['corn','玉米鬚','#e0b94a'],['pepper','青椒','#3f9a3f'],['hay','乾草','#d9b95a']];
+/* ---------- 2026-10-03 新朋友：小熊（倉鼠）、蛙蛙叫（角蛙）。只住在吉祥物島，不跟著過橋 ----------
+   小熊：愛把東西塞滿嘴巴（臉頰會鼓起來）、跑滾輪、洗臉，常常爬出圍欄翹家，要點牠才會回家（找回次數記在這台手機）
+   蛙蛙叫：輪流做三件事——盯著魚缸看、把自己埋進土裡只露眼睛、泡在水盆裡 */
+const FRD={
+  xiong:{name:'小熊',role:'倉鼠・翹家大王',img:'pets/xiong.webp',line:'最愛把東西塞滿嘴巴：葵花子、無花果、水果乾、菜菜都愛。超級喜歡翹家，常常要大家一起找。'},
+  frog:{name:'蛙蛙叫',role:'角蛙・躲貓貓高手',img:'pets/frog.webp',line:'最喜歡盯著家外面的小魚缸，裡面的魚好多好多。常常把自己埋在土裡找不到，有時候泡在水裡。'}};
+const FRS=.6; /* 世界大小：天竺鼠（.9）的 2/3 */
+const FR={lost:false,lastEsc:0};
+function makeXiong(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>new THREE.SphereGeometry(r,a||16,b||12),fur='#a9835f',lt='#dcc6aa';g.add(P);
+  const body=mesh(SGp(.5),toon(fur),0,.42,-.05);body.scale.set(1,.85,1.08);P.add(body);
+  const skirt=mesh(SGp(.52,18,10),toon(lt),0,.3,-.12);skirt.scale.set(1.12,.55,1.15);P.add(skirt);  /* 長毛倉鼠：下面一圈蓬蓬的淺色長毛 */
+  const back=mesh(SGp(.3,12,9),toon('#8e6c4f'),0,.62,-.2);back.scale.set(1.1,.7,1.3);P.add(back);
+  const bel=mesh(SGp(.3,12,9),toon('#f1e6d6'),0,.32,.28);bel.scale.set(1,.8,.6);P.add(bel);
+  const head=new THREE.Group();head.position.set(0,.55,.36);P.add(head);
+  const hd=mesh(SGp(.36),toon(fur));hd.scale.set(1,.92,.95);head.add(hd);
+  head.add(mesh(SGp(.16,12,9),toon('#ecdcc6'),0,-.1,.27));
+  const cheeks=[-1,1].map(d=>{const c=mesh(SGp(.17,12,9),toon(lt),d*.2,-.08,.14);head.add(c);return c});
+  head.add(mesh(SGp(.05,8,6),toon('#eaa0a0'),0,-.02,.42));
+  const eyes=new THREE.Group();head.add(eyes);[-1,1].forEach(d=>{eyes.add(mesh(SGp(.065,10,8),toon('#120e0c'),d*.17,.07,.28));eyes.add(mesh(SGp(.022,6,5),new THREE.MeshBasicMaterial({color:0xffffff}),d*.17+.02,.1,.335))});
+  [-1,1].forEach(d=>{const e=mesh(SGp(.11,10,8),toon('#5e4535'),d*.22,.27,-.04);e.scale.set(1,1,.35);e.rotation.y=d*.35;head.add(e);const i=mesh(SGp(.07,8,6),toon('#e8a6a0'),d*.22,.27,0);i.scale.set(1,1,.2);i.rotation.y=d*.35;head.add(i)});
+  const paws=[-1,1].map(d=>{const p=mesh(SGp(.06,8,6),toon('#efb3aa'),d*.13,.16,.42);P.add(p);return p});
+  const feet=[];[[-.2,.25],[.2,.25],[-.24,-.3],[.24,-.3]].forEach(([x,z])=>{const f=mesh(SGp(.07,8,6),toon('#efb3aa'),x,.05,z);f.scale.set(1,.6,1.3);P.add(f);feet.push(f)});
+  g.userData={id:'xiong',fr:true,P,head,eyes,cheeks,paws,feet};return g}
+function makeFrog(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>new THREE.SphereGeometry(r,a||18,b||12),Y='#f3d43a',O='#ee8a4c';g.add(P);
+  const surf=(x,z)=>.36+.363*Math.sqrt(Math.max(0,1-(x/.63)**2-(z/.58)**2));
+  const body=mesh(SGp(.55,22,16),toon(Y),0,.36,0);body.scale.set(1.15,.66,1.05);P.add(body);
+  const bel=mesh(SGp(.5,18,10),toon('#f6e5d8'),0,.2,.06);bel.scale.set(1.1,.42,1.0);P.add(bel);
+  const mo=mesh(new THREE.TorusGeometry(.52,.03,6,30,Math.PI),toon('#c98a6a'),0,.27,0);mo.rotation.x=Math.PI/2;mo.scale.set(1.2,1.08,1);P.add(mo); /* 大大的嘴巴線 */
+  [[-.18,-.05],[.2,-.12],[0,.12],[-.38,.08],[.4,.06],[-.1,-.32],[.25,-.35],[.45,-.2],[-.42,-.18]].forEach(([x,z],i)=>{const s=mesh(SGp(.075+(i%3)*.02,10,6),toon(O),x,surf(x,z)-.025,z);s.scale.set(1.2,.35,1);P.add(s)});
+  const eyes=[-1,1].map(d=>{const e=new THREE.Group();e.position.set(d*.25,surf(.25,.2)-.03,.2);
+    e.add(mesh(SGp(.15,14,10),toon('#f6e47a')));e.add(mesh(SGp(.1,12,9),toon('#d8461c'),d*.04,.04,.08));e.add(mesh(SGp(.045,8,6),toon('#1a0e0a'),d*.05,.05,.17));
+    e.add(mesh(SGp(.02,6,5),new THREE.MeshBasicMaterial({color:0xffffff}),d*.03,.09,.17));
+    const h=mesh(new THREE.ConeGeometry(.06,.14,6),toon('#e9c22e'),0,.15,-.05);h.rotation.x=-.3;e.add(h);P.add(e);return e});
+  [-1,1].forEach(d=>{const l=mesh(SGp(.12,10,8),toon(Y),d*.48,.1,.3);l.scale.set(.8,.5,1.3);P.add(l);const b=mesh(SGp(.17,10,8),toon('#e9c22e'),d*.58,.15,-.2);b.scale.set(.8,.6,1.3);P.add(b)});
+  /* 埋進土裡：身邊鼓起一圈土、頭上沾一點土 */
+  const mound=mesh(new THREE.TorusGeometry(.6,.17,8,20),toon('#3e2b20'));mound.rotation.x=Math.PI/2;mound.scale.set(1.12,1,1);mound.visible=false;g.add(mound);
+  const dirt=[[-.2,0],[.15,-.2],[.3,.1],[-.35,-.25],[.05,.25],[-.05,-.4]].map(([x,z])=>{const d=mesh(SGp(.05,6,4),toon('#3a2a20'),x,surf(x,z)+.01,z);d.visible=false;P.add(d);return d});
+  g.userData={id:'frog',fr:true,P,eyes,mound,dirt};return g}
+function frBuild(g){const k=FRS/MIK,x=makeXiong(),f=makeFrog();x.scale.setScalar(k);f.scale.setScalar(k);g.add(x);g.add(f);
+  MI.xiong={g:x,q:[],cur:null,t:0,hop:0,ch:1};MI.frog={g:f,q:[],cur:null,t:0,e:0,bl:3,st:'stare'}}
+const xIn=v=>Math.hypot(v.x-XH.x,v.z-XH.z)<XR-.05;
+const xGround=v=>Math.hypot(v.x-XH.x,v.z-XH.z)<XR?XFLOOR:0;
+const xAt=(x,z)=>new THREE.Vector3(XH.x+x,0,XH.z+z);
+const FSOIL=.09,FWAT=-.06,FS=new THREE.Vector3(FH.x-.42,FSOIL,FH.z+.05),FB=new THREE.Vector3(FH.x,FSOIL,FH.z),FW=new THREE.Vector3(FH.x+FD.x,FWAT,FH.z+FD.z),FTW=new THREE.Vector3(FH.x+FT.x,0,FH.z+FT.z);
+function frFace(g,to,dt,k){const d=to.clone().sub(g.position),yaw=Math.atan2(d.x,d.z);let a=yaw-g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));g.rotation.y+=a*Math.min(1,dt*(k||6))}
+function xPose(p){const u=p.g.userData;u.P.rotation.x=0;u.head.rotation.set(0,0,0);u.paws.forEach((w,i)=>w.position.set(i?.13:-.13,.16,.42))}
+function xReset(p){p.q.length=0;p.cur=null;p.hop=0;xPose(p)}
+function frReset(){const p=MI.xiong,f=MI.frog;if(!p)return;xReset(p);p.ch=1;p.g.position.copy(xAt(-.2,.25));p.g.position.y=XFLOOR;p.g.rotation.y=0;FR.lost=false;FR.lastEsc=performance.now()-12000;
+  f.q.length=0;f.cur=null;f.st='stare';f.g.position.copy(FS);f.g.rotation.y=Math.atan2(FTW.x-FS.x,FTW.z-FS.z);f.q.push({k:'stare',t:6+Math.random()*6})}
+function xFoundN(){let n=8;try{n=+localStorage.getItem('otto2-xiong-found')||8}catch(e){}return n} /* 真實已經找了 8 次，從 8 開始算 */
+/* 從圍欄裡出去／回家：先走到圍欄邊、跳過去 */
+function xOutQ(p,to,sp){const d=new THREE.Vector3(to.x-XH.x,0,to.z-XH.z).normalize();p.q.push({k:'go',v:XH.clone().addScaledVector(d,XR-.4),sp:sp||1.6},{k:'hop',v:XH.clone().addScaledVector(d,XR+.45),d:.55})}
+function xHomeQ(p){const s=p.g.position,d=new THREE.Vector3(s.x-XH.x,0,s.z-XH.z).normalize();
+  p.q.push({k:'go',v:XH.clone().addScaledVector(d,XR+.45),sp:1.8},{k:'hop',v:XH.clone().addScaledVector(d,XR-.4),d:.55},{k:'go',v:xAt(-.15,-.62),sp:1.4},{k:'empty',t:1.8},{k:'wait',t:.5})}
+function xEscape(p){const S=[[-2.3,1.95],[-1.9,.6],[-1.0,3.9],[3.6,3.1],[1.7,-4.5],[1.9,-.9],[4.5,2.2]],s=S[Math.floor(Math.random()*S.length)],to=new THREE.Vector3(s[0],0,s[1]);
+  FR.lastEsc=performance.now();xOutQ(p,to,1.4);p.q.push({k:'fn',f:()=>{FR.lost=true;toast('小熊又翹家了！快幫忙找找他')}},{k:'go',v:to,sp:1.7},{k:'lost'})}
+function xFound(){const p=MI.xiong,n=xFoundN()+1;try{localStorage.setItem('otto2-xiong-found',String(n))}catch(e){}
+  FR.lost=false;xReset(p);p.hop=.35;sfx('pop');const w=new THREE.Vector3();p.g.getWorldPosition(w);sparkle(w.add(new THREE.Vector3(0,.6,0)),8);
+  toast('找到小熊了！這是第 '+n+' 次找到他');p.q.push({k:'wait',t:.6});xHomeQ(p)}
+function xIdle(p){const r=Math.random();
+  if(!xIn(p.g.position)){xHomeQ(p);return}
+  if(MI.state==='on'&&!MI.food&&performance.now()-FR.lastEsc>30000&&r<.28){xEscape(p);return}
+  const W=xAt(XWH.x,XWH.z);
+  if(r<.55)p.q.push({k:'go',v:xAt(XWH.x-.1,XWH.z+.75),sp:1.3},{k:'go',v:W,sp:1.1},{k:'wheel',t:5+Math.random()*5},{k:'go',v:xAt(XWH.x-.2,XWH.z+.8),sp:1.3});
+  else if(r<.75)p.q.push({k:'go',v:xAt(-.2,-.12),sp:1.2},{k:'stuff',t:3,look:xAt(-.7,-.35)},{k:'go',v:xAt(-.15,-.62),sp:1.1},{k:'empty',t:1.8},{k:'wait',t:.5});
+  else if(r<.88)p.q.push({k:'wash',t:2.6},{k:'wait',t:.8});
+  else{const a=Math.random()*6.28,d=Math.random()*1.0;p.q.push({k:'go',v:xAt(Math.cos(a)*d,Math.sin(a)*d),sp:1.1},{k:'wait',t:1+Math.random()*2})}}
+function xSeat(){const w=MI.g.worldToLocal(MI.food.position.clone());return new THREE.Vector3(w.x,0,w.z-.75)}
+function xFeed(){const p=MI.xiong;if(!p||!MI.food)return;xReset(p);FR.lost=false;
+  p.q.push({k:'wait',t:.4+Math.random()*.4});
+  if(xIn(p.g.position))xOutQ(p,MI.g.worldToLocal(MI.food.position.clone()),2.4);
+  p.q.push({k:'chase',sp:2.8},{k:'fn',f:()=>miGot('xiong')},{k:'eat',t:3,sp:2.8},{k:'fn',f:miAte},{k:'wait',t:.6})}
+function xStep(p,dt,now){const u=p.g.userData,pos=p.g.position;let a=p.cur,walk=false,run=false;
+  if(!a){if(!p.q.length)xIdle(p);a=p.q.shift();if(!a)return;if(a.k==='fn'){a.f(p);return}p.cur=a;p.t=a.t||0;p.e=0;p.h0=pos.clone()}
+  p.e+=dt;
+  if(a.k==='go'){const d=a.v.clone().sub(pos);d.y=0;const L=d.length();if(L<.03)p.cur=null;else{pos.addScaledVector(d.normalize(),Math.min(L,dt*a.sp));frFace(p.g,a.v,dt,10);walk=true}pos.y=xGround(pos)}
+  else if(a.k==='hop'){const k=Math.min(1,p.e/a.d);pos.x=p.h0.x+(a.v.x-p.h0.x)*k;pos.z=p.h0.z+(a.v.z-p.h0.z)*k;pos.y=p.h0.y+(xGround(a.v)-p.h0.y)*k+Math.sin(k*Math.PI)*.85;frFace(p.g,a.v,dt,14);if(k>=1)p.cur=null}
+  else if(a.k==='wheel'){p.t-=dt;let r=Math.PI/2-p.g.rotation.y;r=Math.atan2(Math.sin(r),Math.cos(r));p.g.rotation.y+=r*Math.min(1,dt*10);pos.y=.14;if(MI.wheel)MI.wheel.rotation.z-=dt*7;run=true;if(p.t<=0){p.cur=null;pos.y=XFLOOR}}
+  else if(a.k==='stuff'){p.t-=dt;frFace(p.g,a.look,dt,8);u.head.rotation.x=.25+Math.sin(now/90)*.1;p.ch=Math.min(1.75,p.ch+dt*.28);if(p.t<=0){u.head.rotation.x=0;p.cur=null}}
+  else if(a.k==='empty'){p.t-=dt;p.ch=Math.max(1,p.ch-dt*.5);u.head.rotation.x=.2;if(p.t<=0){u.head.rotation.x=0;p.cur=null}}
+  else if(a.k==='wash'){p.t-=dt;const k=Math.max(0,Math.min(1,p.e/.3,p.t/.3));u.P.rotation.x=-.55*k;u.paws.forEach((w,i)=>w.position.set((i?1:-1)*(.13-.04*k),.16+.4*k+Math.sin(now/70+i*3)*.04*k,.42+.08*k));if(p.t<=0){xPose(p);p.cur=null}}
+  else if(a.k==='wait'){p.t-=dt;if(p.t<=0)p.cur=null}
+  else if(a.k==='lost'){u.head.rotation.y=Math.sin(now/600)*.6;if(!FR.lost){u.head.rotation.y=0;p.cur=null}}
+  else if(a.k==='chase'){if(!MI.food)p.cur=null;else{const tg=xSeat(),d=tg.clone().sub(pos);d.y=0;const L=d.length(),fp=MI.g.worldToLocal(MI.food.position.clone());
+      if(L>.05){pos.addScaledVector(d.normalize(),Math.min(L,dt*a.sp));frFace(p.g,fp,dt,12);walk=true}
+      else{frFace(p.g,fp,dt,12);if(!MI.hold)p.cur=null;else{p.t-=dt;if(p.t<=0&&p.hop<=0){p.hop=.35;p.t=.5+Math.random()*.4}}}pos.y=xGround(pos)}}
+  else if(a.k==='eat'){
+    if(MI.food&&(MI.hold||xSeat().distanceTo(new THREE.Vector3(pos.x,0,pos.z))>.5)){const left=p.t;p.cur=null;p.q.unshift({k:'chase',sp:a.sp},{k:'eat',t:Math.max(.8,left),sp:a.sp})}
+    else{p.t-=dt;u.head.rotation.x=.25+Math.sin(now/90)*.1;p.ch=Math.min(1.8,p.ch+dt*.3);if(MI.food)frFace(p.g,MI.g.worldToLocal(MI.food.position.clone()),dt,8);if(p.t<=0){u.head.rotation.x=0;p.cur=null}}}
+  if(p.hop>0){p.hop-=dt;pos.y=xGround(pos)+Math.sin(Math.max(0,p.hop)/.35*Math.PI)*.35}
+  else if(walk)pos.y+=Math.abs(Math.sin(now/80))*.03;
+  u.cheeks.forEach(c=>c.scale.setScalar(p.ch));
+  u.feet.forEach((f,i)=>f.position.y=.05+(run?Math.max(0,Math.sin(now/35+i*1.6))*.1:walk?Math.max(0,Math.sin(now/70+i*1.6))*.07:0))}
+function fIdle(f){const opts=['stare','bury','soak'].filter(s=>s!==f.st),st=opts[Math.floor(Math.random()*opts.length)],to=st==='stare'?FS:st==='bury'?FB:FW;f.st=st;
+  const s=f.g.position.clone(),n=Math.max(1,Math.ceil(Math.hypot(to.x-s.x,to.z-s.z)/.6));
+  for(let i=1;i<=n;i++){const v=s.clone().lerp(to,i/n);v.y=i===n?to.y:(Math.hypot(v.x-FH.x,v.z-FH.z)<1.15?FSOIL:0);f.q.push({k:'hop',v,d:.42},{k:'wait',t:.2+Math.random()*.25})}
+  f.q.push({k:st,t:st==='stare'?14+Math.random()*8:st==='bury'?16+Math.random()*8:12+Math.random()*6})}
+function fStep(f,dt,now){const u=f.g.userData,pos=f.g.position,K=FRS/MIK;let a=f.cur;
+  if(!a){if(!f.q.length)fIdle(f);a=f.cur=f.q.shift();f.t=a.t||0;f.e=0;f.h0=pos.clone()}
+  f.e+=dt;let sq=1;
+  if(a.k==='hop'){const k=Math.min(1,f.e/a.d);pos.x=f.h0.x+(a.v.x-f.h0.x)*k;pos.z=f.h0.z+(a.v.z-f.h0.z)*k;pos.y=f.h0.y+(a.v.y-f.h0.y)*k+Math.sin(k*Math.PI)*.42;frFace(f.g,a.v,dt,14);sq=1+Math.sin(k*Math.PI)*.18;if(k>=1)f.cur=null}
+  else if(a.k==='wait'){f.t-=dt;if(f.t<=0)f.cur=null}
+  else if(a.k==='stare'){f.t-=dt;frFace(f.g,FTW,dt,4);u.P.position.z=Math.max(0,Math.sin(now/1300))*.06;if(f.t<=0){u.P.position.z=0;f.cur=null}}
+  else if(a.k==='bury'){f.t-=dt;const k=Math.max(0,Math.min(1,f.e/1.2,f.t/.8));pos.y=FSOIL-.45*k;u.mound.visible=k>.05;u.mound.position.y=(FSOIL+.02-pos.y)/K;u.mound.scale.z=k;u.dirt.forEach(d=>d.visible=k>.6);if(f.t<=0){u.mound.visible=false;u.dirt.forEach(d=>d.visible=false);f.cur=null}}
+  else if(a.k==='soak'){f.t-=dt;pos.y=FWAT+Math.sin(now/700)*.015;if(f.t<=0)f.cur=null}
+  u.P.scale.set(1,sq*(1+Math.sin(now/260)*.02),1);  /* 喉嚨一鼓一鼓 */
+  f.bl-=dt;if(f.bl<=0)f.bl=2.5+Math.random()*3.5;u.eyes.forEach(e=>e.scale.y=f.bl<.13?.2:1)}
+function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);
+  if(MI.fish)MI.fish.forEach(f=>{const u=f.userData;u.ph+=dt*u.sp;const c=Math.cos(u.ph),s=Math.sin(u.ph),sg=u.sp<0?-1:1;f.position.set(u.cx+c*u.rx,u.cy+Math.sin(u.ph*2.3)*.04,s*u.rz);f.rotation.y=Math.atan2(-c*u.rz*sg,-s*u.rx*sg)})}
+function frTap(rc){if(!MI.xiong)return false;const hit=rc.intersectObjects([MI.xiong.g,MI.frog.g],true)[0];if(!hit)return false;
+  let o=hit.object;while(o&&!(o.userData&&o.userData.fr))o=o.parent;if(!o)return false;const id=o.userData.id,d=FRD[id];sfx('tap');
+  if(id==='xiong'){if(FR.lost){xFound();return true}MI.xiong.hop=.35}
+  else{const f=MI.frog;if(f.cur&&f.cur.k==='bury'&&f.g.position.y<FSOIL-.2){f.t=Math.min(f.t,.8);toast('找到蛙蛙叫了！他又把自己埋在土裡');return true}
+    if(f.cur&&f.cur.k==='hop')return true;toast(f.st==='soak'?'蛙蛙叫在泡澡':f.st==='stare'?'蛙蛙叫在看魚缸裡的魚':'蛙蛙叫')}
+  popup(null,`${d.name}・${d.role}`,d.line+(id==='xiong'?`（已經找回來 ${xFoundN()} 次）`:''),[{t:'好',v:true}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`);
+  return true}
+const MI_FOODS=[['veg','菜菜','#4ca64c'],['corn','玉米鬚','#e0b94a'],['pepper','青椒','#3f9a3f'],['hay','乾草','#d9b95a'],['seed','葵花子','#4a4440'],['fruit','水果乾','#b0603a']];
 (function(){const t=$('miFood');MI_FOODS.forEach(([k,n,c])=>{const b=document.createElement('button');b.type='button';b.innerHTML='<i style="background:'+c+'"></i>'+n;b.addEventListener('click',()=>miFeed(k));t.appendChild(b)})})();
 $('miFeed').addEventListener('click',()=>{if(MI.food)return;$('miFood').hidden=!$('miFood').hidden});
 $('miBack').addEventListener('click',mascotBack);
@@ -1700,7 +1899,7 @@ function loop(now){
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>22)c.position.x=-22});
   if(!RM){const a=snow.geometry.attributes.position;for(let k=0;k<a.count;k++){let y=a.getY(k)-dt*(.6+(k%5)*.12);if(y<-6)y=16;a.setY(k,y);a.setX(k,a.getX(k)+Math.sin(now/900+k)*dt*.15)}a.needsUpdate=true}
   const ph=Math.floor(now/450)%4;bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar((b.userData.k===ph&&DIM<.5?1:.45)*(1-DIM*.8)));
-  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);
+  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);frTick(dt,now);
   treeTick(dt,now);treeFade(dt);
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
