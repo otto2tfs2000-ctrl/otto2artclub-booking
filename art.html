@@ -526,7 +526,8 @@ let _plank;function plankTex(){if(_plank)return _plank;const c=cvs(128,128),x=c.
    stack = building blocks piled up like a lighthouse, stilts = each floor lifted on dark posts, wing = spreads into an L, then rises */
 const WALLS=['#d9907e','#e2bc6e','#8fb2c8','#9cc29a','#c79bb6','#eadcbc','#7fa7a1','#d6a37c','#a7a6cf','#e6a9a0'];
 const ROOF='#cf7448',ROOF_D='#b8613b',TRIM='#f3eee4',STONE='#b3aa9b',STONE_D='#9b9283',POST='#3e4249',BRICK='#a4584a';
-const HSTYLES={stack:'積木疊高',stilts:'高腳屋',wing:'擴建小屋'};
+const HSTYLES={stack:'積木疊高',wing:'擴建小屋'};
+const normStyle=(s,i)=>{s=s||['stack','wing'][i%2];return s==='stilts'?'stack':s}; /* 高腳屋拿掉了（一層層疊起來很怪）；舊資料裡的高腳屋改成積木疊高 */
 const floorsOf=n=>Math.min(7,1+Math.floor(n/4));
 function gable(w,d,h,c){const sh=new THREE.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(0,h);sh.lineTo(-w/2,0);
   const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false});g.translate(0,0,-d/2);const m=new THREE.Mesh(g,toon(c));m.castShadow=true;return m}
@@ -542,7 +543,7 @@ function storey(wall,w,d,h,lit,door,seed){const g=new THREE.Group(),r=rng(seed);
 function roofOn(g,w,d,y,big){const rf=gable(w+.16,d+.14,big?.5:.4,ROOF);rf.position.y=y;g.add(rf);const ch=box(BRICK,.12,.26,.12,w*.25,y+.12,-d*.18);g.add(ch);return g}
 function makeHouse(m,i){
   const sp=HSPOTS[i%HSPOTS.length],g=new THREE.Group(),n=m.works.length,r=rng(i*17+3),wall=m.color||WALLS[i%WALLS.length],F=floorsOf(n),lit=n>0;
-  const style=m.style||['stack','stilts','wing'][i%3];
+  const style=normStyle(m.style,i);
   g.position.set(sp.x,heightAt(sp.x,sp.z)-.05,sp.z);g.rotation.y=Math.atan2(sp.x,sp.z);
   // stone plinth with a brick rim, like a tiny harbour quay
   const pw=style==='wing'?2.3:1.6,pd=style==='wing'?2:1.5;
@@ -556,16 +557,6 @@ function makeHouse(m,i){
       st.position.set(ox,y,oz);st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox+=(r()-.5)*.16;oz+=(r()-.5)*.12;g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
     if(F>=4){const t=cyl(TRIM,.3,.34,.42,ox,y,oz,10);g.add(t);g.add(cyl('#f2d898',.24,.24,.22,ox,y+.42,oz,10));const cone=new THREE.Mesh(new THREE.ConeGeometry(.4,.55,10),toon(ROOF));cone.position.set(ox,y+.64+.27,oz);cone.castShadow=true;g.add(cone);g.add(ball('#c9573f',.05,ox,y+1.22,oz,1,1,1,true))}
     else roofOn(g,W-(F-1)*.03,D-(F-1)*.03,y,false).children.slice(-2).forEach(o=>{o.position.x+=ox;o.position.z+=oz})}
-  else if(style==='stilts'){
-    // every floor stands on its own dark posts, stepping sideways as it climbs
-    const post=.48;let ox=0;
-    for(let f=0;f<F;f++){const w=f?W*.92:W,dd=f?D*.92:D,base=y;
-      [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>g.add(box(POST,.06,post+.02,.06,ox+sx*(w/2-.06),base,sz*(dd/2-.06))));
-      g.add(box(POST,w-.08,.05,.05,ox,base+post*.45,dd/2-.06));g.add(box(POST,.05,.05,dd-.08,ox+(w/2-.06),base+post*.45,0));
-      g.add(box('#5b4f47',w+.1,.07,dd+.1,ox,base+post,0));
-      const st=storey(wall,w,dd,H,lit,f===0,i*31+f);st.position.set(ox,base+post+.07,0);g.add(st);y=base+post+.07+H;
-      if(f<F-1)ox+=(f%2?-1:1)*.22}
-    roofOn(g,W*.92,D*.92,y,true).children.slice(-2).forEach(o=>o.position.x+=ox)}
   else{
     // spreads along the ground into an L first, then the corner rises into a little tower
     const slots=[[0,0,0],[.94,0,0],[.94,0,-.84],[0,1,0],[.94,1,0],[0,2,0],[0,3,0]].slice(0,F);
@@ -743,8 +734,8 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);closeSheet();
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002k';a.textContent='搭飛艇回遊戲';$('sRow').appendChild(a)}
-function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(h,5.5,1.8);const n=m.works.length,F=floorsOf(n),st=m.style||['stack','stilts','wing'][idx%3];
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002l';a.textContent='搭飛艇回遊戲';$('sRow').appendChild(a)}
+function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(h,5.5,1.8);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`,next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* ================= walls, album, lightbox ================= */
