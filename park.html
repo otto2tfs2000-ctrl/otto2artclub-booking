@@ -169,6 +169,8 @@ body.oct .top{display:none}
 .places button small{font-size:10px; background:#8a8f9a; color:#fff; border-radius:99px; padding:0 6px}
 .places button.gray{background:#d3d6dc; color:#7d838f; border-color:#9aa0ab; box-shadow:0 2px 0 #9aa0ab}
 .places button:disabled{opacity:.6}
+@keyframes plPulse{0%,100%{transform:scale(1);box-shadow:0 2px 0 var(--ink),0 0 0 0 rgba(224,50,47,.55)}50%{transform:scale(1.1);box-shadow:0 2px 0 var(--ink),0 0 0 9px rgba(224,50,47,0)}}
+.places button.pulse{animation:plPulse 1s ease-in-out 6}
 #miUI{position:fixed; left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); display:flex; flex-direction:column; align-items:center; gap:10px; z-index:4; pointer-events:none}
 #miUI>*{pointer-events:auto}
 #miUI .mich{font-size:13px; background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:4px 14px}
@@ -268,6 +270,7 @@ html.demoq #menu .mhead{display:block!important}
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
 <div class="pop" id="menu" hidden><div class="card">
   <h2>選單</h2>
+  <small id="verTxt" style="display:block;font-size:11px;color:#8a8f9a;margin:-4px 0 8px"></small>
   <div class="mgrid">
     <button class="small" id="charBtn" type="button">換角色</button>
     <button class="small" id="rank" type="button">地主排行</button>
@@ -298,6 +301,10 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
+const PARK_VER='20261002p';
+/* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
+(function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
+  if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FONT='"Huninn","PingFang TC","Microsoft JhengHei",sans-serif';
@@ -1476,7 +1483,8 @@ function petsNotice(){
     clearInterval(t);try{localStorage.setItem('otto2-pets-notice',today)}catch(e){}
     const row=['gabi','kabu','moka'].map(id=>`<figure style="margin:0;text-align:center"><img alt="${PETD[id].name}" src="${PETD[id].img}" style="width:84px;height:84px;border-radius:14px;object-fit:cover;display:block"><figcaption style="font-size:13px;margin-top:3px">${PETD[id].name}</figcaption></figure>`).join('');
     const v=await popup(null,'嘎逼、卡布、摩卡出現了！','教室的三隻天竺鼠來遊樂島玩了，要不要去餵牠們吃點心？',[{t:'去餵食',v:'go',cls:'red'},{t:'先不要',v:false,cls:'ghost'}],`<div style="display:flex;gap:8px;justify-content:center;margin:10px 0 4px">${row}</div>`);
-    if(v==='go')mascotGo()},1200)}
+    if(v==='go')mascotGo();
+    else{await popup(null,'想找他們，隨時都可以','想去他們家，可以點一下島上的小動物，或是點畫面下方的「吉祥物島」。',[{t:'知道了',v:true}]);const b=$('plMascot');b.classList.add('pulse');setTimeout(()=>b.classList.remove('pulse'),6000)}},1200)}
 
 /* ---------- 吉祥物島（蓋進場景）：點「吉祥物島」→ 鏡頭往左移、島和橋浮出來、三隻一隻接一隻過橋 ---------- */
 const MI={state:'off',g:null,br:null,c:new THREE.Vector3(),y:0,A:null,food:null,eaten:0,done:0,spot:null};
@@ -2259,6 +2267,7 @@ let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.cl
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
 $('mascotBtn').addEventListener('click',()=>{if(!busy)mascotGo()});
+$('verTxt').textContent='版本 '+PARK_VER;
 $('teachBtn').addEventListener('click',teacherPanel);
 $('reset').addEventListener('click',()=>{if(busy)return;const keep={avatar:G.avatar,teachers:G.teachers};G=Object.assign(fresh(),keep);setPhaseLook(true);GP=gpFresh();gpSave();renderFigs();showBubbles();G.forest=seedForest();renderForest();setTreeVisual(G.tree);TREE.flash=[0,0,0,0,0];Object.keys(lotDeco).forEach(i=>updateLot(+i));placeBear();hud();toast('示範重置了')});
 addEventListener('keydown',e=>{if(e.code==='Space'&&$('pop').hidden&&document.activeElement.tagName!=='BUTTON'){e.preventDefault();G.phase==='oct'?spin():doRoll()}});
