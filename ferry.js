@@ -12,7 +12,7 @@ var VEH={'10':{stripes:['#cfa94f','#ece3cc','#c0705a','#ece3cc'],picasso:true},d
 function month(){return new Date(Date.now()+8*3600e3).toISOString().slice(5,7)}
 function veh(){return VEH[month()]||VEH.def}
 function castList(){var a=['bear','gabi','kabu','moka'];if(veh().picasso)a.unshift('picasso');return a}
-function reduced(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}}
+function reduced(){return false} /* 不管手機有沒有開「減少動態效果」，搭熱氣球照常演（大熊決定） */
 
 var CSS='.fy{position:fixed;inset:0;z-index:2147483000;overflow:hidden;touch-action:none;font-family:inherit;user-select:none;-webkit-user-select:none}'+
 '.fy-sky{position:absolute;inset:0;background:linear-gradient(#86a9bf,#b7ccd3 52%,#dde3dc)}'+

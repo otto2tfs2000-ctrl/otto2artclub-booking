@@ -300,12 +300,12 @@ html.demoq #menu .mhead{display:block!important}
 <div class="toast" id="toast"></div>
 <div class="pop" id="pop" hidden><div class="card" id="card"></div></div>
 
-<script src="ferry.js?v=20261002w"></script>
+<script src="ferry.js?v=20261002x"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261002w';
+const PARK_VER='20261002x';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -627,7 +627,7 @@ async function plant(why){
       if(pr.kind==='new'){G.forest.push({s:pr.s,n:'你',lv:1,me:true});const i=G.forest.length-1;await growAnim(i,0,1);
         await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，其他會員打開遊戲也看得到。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。')}
       else if(pr.kind==='max'){await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。')}
-      else{const mi=G.forest.findIndex(t=>t.me);if(mi>=0){const from=G.forest[mi].lv;overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(QK()?50:700);await growAnim(mi,from,pr.lv);
+      else{const mi=G.forest.findIndex(t=>t.me);if(mi>=0){const from=G.forest[mi].lv;overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(700);await growAnim(mi,from,pr.lv);
         await popup('sapling',`你的樹長大了：${LVN[pr.lv]}`,pr.lv<5?`下一級是「${LVN[pr.lv+1]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');overviewFocus(null)}}
     }catch(e){if(e.code==='PLANT_CAP')await popup('sapling','今天種樹的次數用完了','明天再來，你的樹會繼續長大。');else toast(e.message||'連線不穩，稍後再試')}
     return}
@@ -637,7 +637,7 @@ async function plant(why){
     await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，就種在你旁邊。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。');return}
   const t=G.forest[mi];
   if(t.lv>=5){addGifts(1);await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');return}
-  const from=t.lv;overviewFocus(FOREST.spots[t.s]);await sleep(QK()?50:700);await growAnim(mi,from,from+1);save();
+  const from=t.lv;overviewFocus(FOREST.spots[t.s]);await sleep(700);await growAnim(mi,from,from+1);save();
   await popup('sapling',`你的樹長大了：${LVN[from+1]}`,from+1<5?`下一級是「${LVN[from+2]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');
   overviewFocus(null);
 }
@@ -1478,7 +1478,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const adm=isStaffNow(),a=$('plArt');if(!a)return;a.classList.toggle('gray',!adm);a.innerHTML=adm?'作品島<small>示範</small>':'作品島';
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002w',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002x',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1618,10 +1618,9 @@ $('miBack').addEventListener('click',mascotBack);
 
 /* ---------- tween engine ---------- */
 const tweens=[];
-/* 走格子（11–12 月）要快：擲骰子、走格子、點燈的等待縮短，點了馬上能繼續玩；10 月扭蛋、吉祥物島過橋、11/1 開門動畫照常播完整長度 */
-const QK=()=>!!G&&G.phase!=='oct'&&MI.state==='off'&&parkCam!=='open'&&parkCam!=='walk';
-const tween=(d,f)=>new Promise(r=>{if(QK())d=Math.min(d,100);tweens.push({t0:performance.now(),d,f,r})});
-const sleep=ms=>new Promise(r=>setTimeout(r,QK()?Math.min(ms,150):ms));
+/* 動畫一律照原本長度播（不縮短）：之前 11–12 月把擲骰子、走格子縮到 0.1 秒，看起來「太快」 */
+const tween=(d,f)=>new Promise(r=>{tweens.push({t0:performance.now(),d,f,r})});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const easeIn=p=>p*p*p, easeOut=p=>1-Math.pow(1-p,3), easeIO=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
 const bounce=p=>{const n=7.5625,d=2.75;if(p<1/d)return n*p*p;if(p<2/d)return n*(p-=1.5/d)*p+.75;if(p<2.5/d)return n*(p-=2.25/d)*p+.9375;return n*(p-=2.625/d)*p+.984375};
 let busy=false,tPrev=performance.now();
@@ -2007,7 +2006,7 @@ async function hop(to){
   await tween(250,p=>{bear.position.x=a.x+(b.x-a.x)*p;bear.position.z=a.z+(b.z-a.z)*p;bear.position.y=y+Math.sin(p*Math.PI)*.6;bearBody.scale.set(1-.08*Math.sin(p*Math.PI),1+.14*Math.sin(p*Math.PI),1)});
   bear.position.y=y;const tl=tiles[lv][to],ty=LEVELS[lv].off.y-.12;
   tween(200,p=>{const s=Math.sin(p*Math.PI);bearBody.scale.set(1+.12*s,1-.18*s,1+.12*s);tl.position.y=ty-.08*s});
-  await sleep(QK()?20:70);
+  await sleep(70);
 }
 let passedStart=false;
 async function walk(n){
@@ -2100,7 +2099,7 @@ async function resolve(){
 }
 // the lighting ceremony: camera goes to the tree, bulbs light one by one, the current tier slowly glows, the star flashes
 async function ceremony(from,to,label){
-  treeCam=true;hud();await sleep(QK()?100:900);
+  treeCam=true;hud();await sleep(900);
   if(label)toast(label);
   const l0=Math.floor(amtOf(from)),l1=litOf(to);let last=l0,lay=layersOf(from);
   await tween(Math.min(5000,1800+(l1-l0)*260),p=>{
@@ -2121,7 +2120,7 @@ async function quickLight(from,to){
   TREE.pulse=1;
 }
 async function finale(){
-  treeCam=true;hud();await sleep(QK()?100:900);
+  treeCam=true;hud();await sleep(900);
   TREE.flash=[1,1,1,1,1];confetti(120,new THREE.Vector3(0,4.4,0));
   await starPulses(3);
   await popup('tree','聖誕樹全部點亮了！','全體會員一起點滿 5 層、1,500 盞燈，樹頂的星星會一直發光到活動結束。這裡會放全體加碼的獎勵，內容還在規劃。');
