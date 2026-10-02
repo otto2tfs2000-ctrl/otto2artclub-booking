@@ -27,13 +27,11 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .go{background:#e0682f;border-color:#e0682f;color:#fff}.go:hover{background:#cf5a24}
 button:disabled{opacity:.5;cursor:default}
-.mini{font-size:13px;padding:7px 14px;min-height:36px}
-#dest{display:flex;flex-direction:column;gap:9px;width:min(440px,100%)}
-.dc{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:12px 16px;border-radius:18px;background:rgba(255,250,240,.97);border:1.5px solid var(--line);font-weight:500}
-.dc b{display:block;font-size:17px;font-weight:900}.dc small{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px;font-weight:500}
-.dc .tag{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--gold);color:var(--ink);flex:none}
-.dc .go2{margin-left:auto;font-size:22px;font-weight:900}
-.dc.main{background:#e0682f;border-color:#e0682f;color:#fff}.dc.main:hover{background:#cf5a24}.dc.main small{color:rgba(255,255,255,.92)}.dc.main .tag{background:#fff;color:#c24f1a}
+#dest{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(440px,100%)}
+.dc{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;padding:8px 15px;min-height:40px;border-radius:999px;background:rgba(255,250,240,.96);border:1.5px solid var(--line)}
+.dc .tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--gold);color:var(--ink);flex:none}
+.dc.main{background:#e0682f;border-color:#e0682f;color:#fff}.dc.main:hover{background:#cf5a24}.dc.main .tag{background:#fff;color:#c24f1a}
+.dc.feed{background:rgba(255,250,240,.7);font-weight:500}
 .dc:disabled{opacity:.6}
 #meter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
 #meter i{display:block;width:90px;height:8px;border-radius:5px;background:rgba(41,65,54,.15);overflow:hidden}
@@ -51,9 +49,8 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261002i">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261002j">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
-  <div class="row" id="acts"><button id="fVeg" class="mini" type="button">餵菜</button><button id="fCorn" class="mini" type="button">餵玉米鬚</button></div>
   <div id="dest" role="group" aria-label="選一個地方出發"></div>
 </div>
 <div id="card" hidden><button class="x" aria-label="關閉">×</button><img id="cImg" alt=""><div><h2><span id="cName"></span><span class="chip" id="cRole"></span></h2><p id="cLine"></p></div></div>
@@ -63,7 +60,7 @@ button:disabled{opacity:.5;cursor:default}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002i';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261002j';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -273,8 +270,7 @@ function feed(kind){
   g.q.push(A.fn(p=>{p.hop=.4;say('嘎逼醒了')}),A.wait(.5),A.go(seat('gabi'),3.0),A.eat(2.8,'嘎逼第一個搶到！'));
   m.q.push(A.wait(1.3),A.fn(()=>say('摩卡探出頭')),A.go(seat('moka'),2.0),A.eat(2.6,'摩卡也來搶'));
   k.q.push(A.wait(.4),A.go(ATTR.clone().add(new V3(-3,0,-1.2)),1.9),A.wait(.5),A.fn(()=>say('卡布跑錯方向了')),A.go(seat('kabu'),2.0),A.eat(2.6,'卡布繞了一圈，還是吃到了'),A.wait(.5))}
-$('fVeg').addEventListener('click',()=>feed('veg'));
-$('fCorn').addEventListener('click',()=>feed('corn'));
+let _fk=0;function feedNext(){feed(_fk++%2?'corn':'veg')}
 
 /* 過橋：吉祥物島 ⇄ 遊戲島，嘎逼帶頭、摩卡最後 */
 function cross(to){
@@ -295,7 +291,7 @@ let mode='home',yaw=0;const camPos=new V3(),camAt=new V3();let camInit=false;
 function goal(){const M=MODES[mode],t=typeof M.t==='function'?M.t():new V3(...M.t),tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const d=Math.max(M.w/(2*tf*asp),M.h/(2*tf));const dir=new V3(...M.dir).normalize().applyAxisAngle(new V3(0,1,0),yaw);return{pos:t.clone().addScaledVector(dir,d),at:t}}
 function setMode(m){mode=m;document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m?'true':'false'));$('capD').textContent=MODES[m].D;$('card').hidden=true;updateUI()}
-function updateUI(){$('fVeg').disabled=$('fCorn').disabled=!!food||seq}
+function updateUI(){const b=$('fFeed');if(b)b.disabled=!!food||seq}
 setMode('home');
 
 /* ---------- 點選與拖曳 ---------- */
@@ -326,7 +322,7 @@ function loop(now){
 requestAnimationFrame(loop);
 
 /* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
-const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002i';
+const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261002j';
 const DEST={
   gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
   xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},
@@ -338,13 +334,14 @@ function isAdmin(){try{return sessionStorage.getItem('otto2-park-staff')==='1'||
 function go(k){location.href=DEST[k].u}
 function renderDest(){const adm=isAdmin(),box=$('dest');box.innerHTML='';
   const add=(k,o)=>{o=o||{};const b=document.createElement('button');b.type='button';b.className='dc'+(o.main?' main':'');
-    b.innerHTML=(o.tag?'<span class="tag">'+o.tag+'</span>':'')+'<span><b>'+DEST[k].t+'</b><small>'+(o.label||DEST[k].s)+'</small></span><span class="go2">'+(o.dis?'':'→')+'</span>';
+    b.innerHTML=(o.tag?'<span class="tag">'+o.tag+'</span>':'')+'<span>'+DEST[k].t+(o.sfx||'')+'</span>';
     if(o.dis)b.disabled=true;else b.addEventListener('click',()=>go(k));box.appendChild(b)};
   if(CUR!=='none')add(CUR,{main:true,tag:'本月'});
-  if(ART_PUBLIC||adm)add('art',{tag:ART_PUBLIC?'常駐':'常駐・示範資料',main:CUR==='none'});
-  else add('art',{dis:true,label:'準備中，之後會開放'});
+  if(ART_PUBLIC||adm)add('art',{tag:ART_PUBLIC?'常駐':'示範',main:CUR==='none'});
+  else add('art',{dis:true,sfx:'・準備中'});
   if(adm){const other=CUR==='gacha'?'xmas':CUR==='xmas'?'gacha':null;
-    if(other)add(other,{tag:'管理者',label:'管理者先進去看'});else{add('gacha',{tag:'管理者'});add('xmas',{tag:'管理者'})}}}
+    if(other)add(other,{tag:'管理者'});else{add('gacha',{tag:'管理者'});add('xmas',{tag:'管理者'})}}
+  const f=document.createElement('button');f.type='button';f.id='fFeed';f.className='dc feed';f.textContent='餵食';f.addEventListener('click',feedNext);box.appendChild(f);updateUI()}
 renderDest();
 (async()=>{try{const c=new AbortController(),t=setTimeout(()=>c.abort(),2500);const r=await fetch(NOTIFY+'/xmas/info',{signal:c.signal});clearTimeout(t);const j=await r.json();if(j&&j.ok&&j.status==='on'&&CUR!=='xmas'){CUR='xmas';renderDest()}}catch(e){}})();
 window.__dbg={pets,cross,feed,setMode,get loc(){return loc}};

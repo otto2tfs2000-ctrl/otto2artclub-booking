@@ -1429,7 +1429,7 @@ function petsCapsule(hold){if(PET.loc!=='oct')return;const P=PET.g,end=new THREE
 function petTap(rc){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.visible);if(!gs.length)return false;
   const hit=rc.intersectObjects(gs,true)[0];if(!hit)return false;let o=hit.object;while(o&&!(o.userData&&o.userData.id&&PETD[o.userData.id]))o=o.parent;if(!o)return false;
   const id=o.userData.id,d=PETD[id];PET.g[id].hop=.4;sfx('tap');
-  popup(null,`${d.name}・${d.role}`,d.line,[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')location.href='mascot.html?v=20261002b'});
+  popup(null,`${d.name}・${d.role}`,d.line,[{t:'去吉祥物島',v:'go',cls:'red'},{t:'好',v:true,cls:'ghost'}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(v=>{if(v==='go')location.href='mascot.html?v=20261002c'});
   return true}
 
 /* ---------- tween engine ---------- */
@@ -2087,7 +2087,7 @@ $('backBtn').addEventListener('click',()=>{overview=false;hud()});
 let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.clientY]);
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
-$('mascotBtn').addEventListener('click',()=>{location.href='mascot.html?v=20261002b'});
+$('mascotBtn').addEventListener('click',()=>{location.href='mascot.html?v=20261002c'});
 $('teachBtn').addEventListener('click',teacherPanel);
 $('reset').addEventListener('click',()=>{if(busy)return;const keep={avatar:G.avatar,teachers:G.teachers};G=Object.assign(fresh(),keep);setPhaseLook(true);GP=gpFresh();gpSave();renderFigs();showBubbles();G.forest=seedForest();renderForest();setTreeVisual(G.tree);TREE.flash=[0,0,0,0,0];Object.keys(lotDeco).forEach(i=>updateLot(+i));placeBear();hud();toast('示範重置了')});
 addEventListener('keydown',e=>{if(e.code==='Space'&&$('pop').hidden&&document.activeElement.tagName!=='BUTTON'){e.preventDefault();G.phase==='oct'?spin():doRoll()}});
