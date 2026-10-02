@@ -167,6 +167,8 @@ body.oct .top{display:none}
 .places{display:flex; gap:8px; justify-content:center}
 .places button{font:inherit; font-size:13px; color:var(--ink); background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:5px 13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 0 var(--ink); cursor:pointer}
 .places button small{font-size:10px; background:#8a8f9a; color:#fff; border-radius:99px; padding:0 6px}
+.places button{position:relative}
+.places button.dot::after{content:''; position:absolute; top:-5px; right:-4px; width:12px; height:12px; border-radius:50%; background:#e0322f; border:2px solid var(--ink)}
 .places button.gray{background:#d3d6dc; color:#7d838f; border-color:#9aa0ab; box-shadow:0 2px 0 #9aa0ab}
 .places button:disabled{opacity:.6}
 @keyframes plPulse{0%,100%{transform:scale(1);box-shadow:0 2px 0 var(--ink),0 0 0 0 rgba(224,50,47,.55)}50%{transform:scale(1.1);box-shadow:0 2px 0 var(--ink),0 0 0 9px rgba(224,50,47,0)}}
@@ -301,7 +303,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261002p';
+const PARK_VER='20261002q';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1475,12 +1477,16 @@ function placesUI(){const adm=isStaffNow(),a=$('plArt');if(!a)return;a.classList
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}location.href='art.html?v=20261002b'});
+const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
+const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
+function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
+function petsVisited(){try{localStorage.setItem('otto2-pets-visit',petsToday())}catch(e){}petsDot()}
 function petsNotice(){
-  let seen='';try{seen=localStorage.getItem('otto2-pets-notice')||''}catch(e){}
-  const today=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);if(seen===today)return;
+  let seen='',cnt=0;try{seen=localStorage.getItem('otto2-pets-notice')||'';cnt=+localStorage.getItem('otto2-pets-days')||0}catch(e){}
+  const today=petsToday();petsDot();if(seen===today||cnt>=PETS_NOTICE_DAYS)return;
   let n=0;const t=setInterval(async()=>{n++;if(n>45){clearInterval(t);return}
     if(busy||parkCam||!$('pop').hidden||document.body.classList.contains('touring'))return;
-    clearInterval(t);try{localStorage.setItem('otto2-pets-notice',today)}catch(e){}
+    clearInterval(t);try{localStorage.setItem('otto2-pets-notice',today);localStorage.setItem('otto2-pets-days',String(cnt+1))}catch(e){}
     const row=['gabi','kabu','moka'].map(id=>`<figure style="margin:0;text-align:center"><img alt="${PETD[id].name}" src="${PETD[id].img}" style="width:84px;height:84px;border-radius:14px;object-fit:cover;display:block"><figcaption style="font-size:13px;margin-top:3px">${PETD[id].name}</figcaption></figure>`).join('');
     const v=await popup(null,'嘎逼、卡布、摩卡出現了！','教室的三隻天竺鼠來遊樂島玩了，要不要去餵牠們吃點心？',[{t:'去餵食',v:'go',cls:'red'},{t:'先不要',v:false,cls:'ghost'}],`<div style="display:flex;gap:8px;justify-content:center;margin:10px 0 4px">${row}</div>`);
     if(v==='go')mascotGo();
@@ -1555,7 +1561,7 @@ function miCam(mode){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera
 const miWaitAll=()=>new Promise(r=>{const t=setInterval(()=>{if(Object.values(PET.g).every(p=>p.arrived)){clearInterval(t);r()}},120)});
 async function mascotGo(){
   if(busy||MI.state!=='off')return;
-  busy=true;MI.state='going';overview=false;hud();
+  busy=true;MI.state='going';overview=false;hud();petsVisited();
   if(PET.loc!=='oct'&&PET.loc!=='nov')petsPlace(G.phase==='oct'?'oct':'nov'); /* 剛進遊戲、三隻還沒就位時也要能出發 */
   const sp=miSpot();MI.spot=sp;MI.c.copy(sp.c);MI.y=sp.c.y;
   if(!MI.g){MI.g=MIB.island();scene.add(MI.g)}
