@@ -275,7 +275,7 @@ html.demoq #menu .mhead{display:block!important}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FONT='"Huninn","PingFang TC","Microsoft JhengHei",sans-serif';
@@ -885,7 +885,8 @@ function renderFigs(pop){const have=gpLoad().have;
 let party=0;const KS=.85,KX=1.0;
 function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,now);bubbleTick(dt,now);return}
   trainTick(dt,now);bubbleTick(dt,now);
-  if(!busy){GA.caps.forEach(c=>{c.position.y=c.userData.p.y+Math.sin(now/510+c.userData.r*7)*.03});GA.love.rotation.z=.2+Math.sin(now/480)*.14;
+  if(!busy){const dt2=Math.min(.05,dt);GA.swirl.rotation.z+=(Math.sin(now/1400)*.1-GA.swirl.rotation.z)*Math.min(1,dt2*3);GA.knob.rotation.z+=(Math.sin(now/650)*.22-GA.knob.rotation.z)*Math.min(1,dt2*3); /* 閒置時扭蛋輕輕晃、方向盤微微擺動，提示這台可以點 */
+    GA.caps.forEach(c=>{c.position.y=c.userData.p.y+Math.sin(now/510+c.userData.r*7)*.03});GA.love.rotation.z=.2+Math.sin(now/480)*.14;
     const kb=GA.kb;if(kb.position.distanceTo(kb.userData.home)<.01)kb.rotation.z=Math.sin(now/570)*.05*((now/3600%1)>.7?3:1)}
   if(GA.capReady){const c=GA.capObj,s=1+((now/1400)%1)*.35;GA.ring.position.copy(c.position);GA.ring.scale.setScalar(.75*s);GA.ring.material.opacity=.9*(1-((now/1400)%1));GA.ring.quaternion.copy(camera.quaternion)}
   else GA.ring.material.opacity=0}
@@ -911,8 +912,10 @@ async function spin(){
   const res=gSpin();
   const kb=GA.kb,home=kb.userData.home;
   /* 2026-10-01 大熊：動畫簡化成「方向盤輕轉 → 扭蛋滾出來 → 小畢卡索去拿」，柔和就好、不要等太久 */
-  const k0=GA.knob.rotation.z;let lastTk=0;
-  await tween(450,p=>{const e=easeIO(p);GA.knob.rotation.z=k0-e*Math.PI*.6;const tk=Math.floor(e*3);if(tk!==lastTk){lastTk=tk;sfx('tick')}});
+  const k0=GA.knob.rotation.z,s0=GA.swirl.rotation.z;let lastTk=0;
+  /* 方向盤轉、玻璃球裡面的扭蛋整團跟著轉一圈（v4.52 簡化時不小心拿掉了） */
+  await tween(750,p=>{const e=easeIO(p);GA.knob.rotation.z=k0-e*Math.PI*1.2;GA.swirl.rotation.z=s0-e*Math.PI*2;const tk=Math.floor(e*5);if(tk!==lastTk){lastTk=tk;sfx('tick')}});
+  GA.swirl.rotation.z=0;
   const j=await res;
   if(!j.ok){party=0;parkCam=null;busy=false;hud();toast(j.error);return}
   spunJ=j;

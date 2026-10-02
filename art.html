@@ -743,7 +743,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);closeSheet();
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002j';a.textContent='搭飛艇回遊戲';$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261002k';a.textContent='搭飛艇回遊戲';$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx];focusOn(h,5.5,1.8);const n=m.works.length,F=floorsOf(n),st=m.style||['stack','stilts','wing'][idx%3];
   const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`,next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
