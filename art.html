@@ -544,7 +544,7 @@ const WALLS=['#d9907e','#e2bc6e','#8fb2c8','#9cc29a','#c79bb6','#eadcbc','#7fa7a
 const ROOF='#cf7448',ROOF_D='#b8613b',TRIM='#f3eee4',STONE='#b3aa9b',STONE_D='#9b9283',POST='#3e4249',BRICK='#a4584a';
 const HSTYLES={stack:'積木疊高',wing:'擴建小屋'};
 const normStyle=(s,i)=>{s=s||['stack','wing'][i%2];return s==='stilts'?'stack':s}; /* 高腳屋拿掉了（一層層疊起來很怪）；舊資料裡的高腳屋改成積木疊高 */
-const floorsOf=n=>Math.min(7,1+Math.floor(n/4));
+const MAXF=30,floorsOf=n=>Math.min(MAXF,1+Math.floor(n/4)) /* 2026-10-03 大熊：最高 7 樓 → 30 樓 */;
 function gable(w,d,h,c){const sh=new THREE.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(0,h);sh.lineTo(-w/2,0);
   const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false});g.translate(0,0,-d/2);const m=new THREE.Mesh(g,toon(c));m.castShadow=true;return m}
 function box(c,w,h,d,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(c));m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;return m}
@@ -569,13 +569,13 @@ function makeHouse(m,i){
   if(style==='stack'){
     // blocks piled up, each a little turned and nudged, a lighthouse cap once it is tall
     let ox=0,oz=0;
-    for(let f=0;f<F;f++){const w=W-f*.03,dd=D-f*.03,st=storey(f%3===2?'#'+new THREE.Color(wall).offsetHSL(0,0,.06).getHexString():wall,w,dd,H,lit,f===0,i*31+f);
-      st.position.set(ox,y,oz);st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox+=(r()-.5)*.16;oz+=(r()-.5)*.12;g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
+    for(let f=0;f<F;f++){const w=Math.max(.62,W-f*.03),dd=Math.max(.56,D-f*.03),st=storey(f%3===2?'#'+new THREE.Color(wall).offsetHSL(0,0,.06).getHexString():wall,w,dd,H,lit,f===0,i*31+f);
+      st.position.set(ox,y,oz);st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox=Math.max(-.22,Math.min(.22,ox+(r()-.5)*.16));oz=Math.max(-.18,Math.min(.18,oz+(r()-.5)*.12));g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
     if(F>=4){const t=cyl(TRIM,.3,.34,.42,ox,y,oz,10);g.add(t);g.add(cyl('#f2d898',.24,.24,.22,ox,y+.42,oz,10));const cone=new THREE.Mesh(new THREE.ConeGeometry(.4,.55,10),toon(ROOF));cone.position.set(ox,y+.64+.27,oz);cone.castShadow=true;g.add(cone);g.add(ball('#c9573f',.05,ox,y+1.22,oz,1,1,1,true))}
-    else roofOn(g,W-(F-1)*.03,D-(F-1)*.03,y,false).children.slice(-2).forEach(o=>{o.position.x+=ox;o.position.z+=oz})}
+    else roofOn(g,Math.max(.62,W-(F-1)*.03),Math.max(.56,D-(F-1)*.03),y,false).children.slice(-2).forEach(o=>{o.position.x+=ox;o.position.z+=oz})}
   else{
     // spreads along the ground into an L first, then the corner rises into a little tower
-    const slots=[[0,0,0],[.94,0,0],[.94,0,-.84],[0,1,0],[.94,1,0],[0,2,0],[0,3,0]].slice(0,F);
+    const slots=[[0,0,0],[.94,0,0],[.94,0,-.84],[0,1,0],[.94,1,0],[0,2,0],[0,3,0]];for(let k=7;k<F;k++)slots.push([0,k-3,0]);slots.length=Math.min(slots.length,F);
     const occupied=new Set(slots.map(q=>q.join()));
     slots.forEach(([sx,sl,sz],k)=>{const st=storey(k%2?'#'+new THREE.Color(wall).offsetHSL(0,-.05,.05).getHexString():wall,W,D,H,lit,k===0,i*31+k);st.position.set(sx-.47,top+sl*H,sz+.3);g.add(st);
       if(!occupied.has([sx,sl+1,sz].join())){const rf=gable(W+.14,D+.12,.4,k%2?ROOF_D:ROOF);rf.position.set(sx-.47,top+(sl+1)*H,sz+.3);if(sz)rf.rotation.y=Math.PI/2;g.add(rf)}});
@@ -754,7 +754,7 @@ function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
   const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261003d';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
-  const next=F<7?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
+  const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* ================= walls, album, lightbox ================= */
 function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
