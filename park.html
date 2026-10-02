@@ -300,12 +300,12 @@ html.demoq #menu .mhead{display:block!important}
 <div class="toast" id="toast"></div>
 <div class="pop" id="pop" hidden><div class="card" id="card"></div></div>
 
-<script src="ferry.js?v=20261002s"></script>
+<script src="ferry.js?v=20261002t"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261002s';
+const PARK_VER='20261002t';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1478,7 +1478,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const adm=isStaffNow(),a=$('plArt');if(!a)return;a.classList.toggle('gray',!adm);a.innerHTML=adm?'作品島<small>示範</small>':'作品島';
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002s',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261002t',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
