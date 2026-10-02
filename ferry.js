@@ -8,15 +8,15 @@
 if(window.Ferry)return;
 var KEY='otto2-ferry',PLACE={art:'作品島',park:'歡樂島'};
 /* 每個月的交通工具與乘客；沒列到的月份用預設（熱氣球、不帶畢卡索）。畢卡索是十月生日才出場 */
-var VEH={'10':{stripes:['#f2c14e','#fff6dc','#e8836b','#fff6dc'],picasso:true},def:{stripes:['#7fb2a0','#fff6dc','#8fa6d9','#fff6dc'],picasso:false}};
+var VEH={'10':{stripes:['#cfa94f','#ece3cc','#c0705a','#ece3cc'],picasso:true},def:{stripes:['#7d9e90','#efe6cf','#8a9bbd','#efe6cf'],picasso:false}};
 function month(){return new Date(Date.now()+8*3600e3).toISOString().slice(5,7)}
 function veh(){return VEH[month()]||VEH.def}
 function castList(){var a=['bear','gabi','kabu','moka'];if(veh().picasso)a.unshift('picasso');return a}
 function reduced(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}}
 
 var CSS='.fy{position:fixed;inset:0;z-index:2147483000;overflow:hidden;touch-action:none;font-family:inherit;user-select:none;-webkit-user-select:none}'+
-'.fy-sky{position:absolute;inset:0;background:linear-gradient(#7fb9dc,#bfdde8 50%,#e9f0e6)}'+
-'.fy-cv{position:absolute;inset:0;width:100%;height:100%;display:block}'+
+'.fy-sky{position:absolute;inset:0;background:linear-gradient(#86a9bf,#b7ccd3 52%,#dde3dc)}'+
+'.fy-cv{position:absolute;inset:0;width:100%;height:100%;display:block;filter:saturate(.82) brightness(.96)}'+
 '.fy-cap{position:absolute;left:0;right:0;top:11%;text-align:center;z-index:5;color:#fff;font-size:22px;letter-spacing:.18em;text-shadow:0 2px 10px rgba(30,60,80,.5);transition:opacity .35s;pointer-events:none}'+
 '.fy-skip{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:6;border:0;border-radius:99px;padding:6px 14px;background:rgba(255,255,255,.55);color:#35505a;font:inherit;font-size:13px}'+
 '.fy-veil{position:absolute;inset:0;z-index:7;background:#f2f7f6;opacity:0;pointer-events:none}';
@@ -108,7 +108,7 @@ function mkChar(id){var m=getModels(),g;
   return g}
 
 /* ================= 浮空島場景（風格照吉祥物島 MIB：低多邊形、Lambert、層層岩壁） ================= */
-var GR={g1:'#7fa65a',g3:'#92b866',sand:'#e0c98e',rock:'#b39366',deep:'#85704e',wood:'#b07a45',wood2:'#8b5e34',cream:'#f7ecd2',roof:'#e0723a'};
+var GR={g1:'#687f41',g3:'#7d9444',sand:'#bfae82',rock:'#a38d68',deep:'#7a6a4c',wood:'#a07446',wood2:'#80593a',cream:'#efe6cf',roof:'#c9755a'};
 function hash(x,y,z){var s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s)-.5}
 function fl(g,j){if(j){var p=g.attributes.position;for(var i=0;i<p.count;i++){var x=p.getX(i),y=p.getY(i),z=p.getZ(i);p.setXYZ(i,x+hash(x,y,z)*j,y+hash(y,z,x)*j,z+hash(z,x,y)*j)}}if(g.index)g=g.toNonIndexed();g.computeVertexNormals();return g}
 function lam(c,o){return new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}))}
@@ -121,34 +121,38 @@ function islandBase(R){var g=new THREE.Group();
   lathe(g,R,[[0,0],[.9,0],[.98,-.28],[.99,-.52]],GR.g1,.06);lathe(g,R,[[.99,-.52],[1,-1.2],[.92,-1.9]],GR.sand);
   lathe(g,R,[[.92,-1.9],[.8,-2.8],[.6,-3.6]],GR.rock);lathe(g,R,[[.6,-3.6],[.38,-4.5],[.12,-5.2],[0,-5.4]],GR.deep);return g}
 function lpTree(kind,s){var g=new THREE.Group();g.add(M(CYL(.12,.2,1.1,6),lam(GR.wood2),0,.55,0));
-  if(kind==='pine'){[[1.0,1.2,1.2],[.78,1.1,1.95],[.52,.95,2.65]].forEach(function(a,i){g.add(M(CON(a[0],a[1],8,.05),lam(i%2?'#6c9448':'#5d853d'),0,a[2],0))})}
-  else{var cols=kind==='blossom'?['#f2d4cf','#f7e2dd','#ecc3bf']:['#7fae52','#93c062','#6f9a4a'];
+  if(kind==='pine'){[[1.0,1.2,1.2],[.78,1.1,1.95],[.52,.95,2.65]].forEach(function(a,i){g.add(M(CON(a[0],a[1],8,.05),lam(i%2?'#5d7a3a':'#566d2f'),0,a[2],0))})}
+  else{var cols=kind==='blossom'?['#d9c3bb','#e2d0c8','#cdb4ad']:['#7d9444','#6c843a','#6f8a40'];
     [[0,1.6,0,.95],[-.5,1.35,.25,.62],[.5,1.4,-.2,.66]].forEach(function(a,i){var c=M(ICO(a[3],1,.1),lam(cols[i%3]),a[0],a[1],a[2]);c.scale.y=.88;g.add(c)})}
   g.scale.setScalar(s||1);return g}
 function signTex(txt){var c=document.createElement('canvas');c.width=256;c.height=100;var x=c.getContext('2d');x.fillStyle='#e9c98f';x.fillRect(0,0,256,100);x.strokeStyle='#8b5e34';x.lineWidth=8;x.strokeRect(4,4,248,92);
   x.fillStyle='#4a2f17';x.font='900 50px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,128,54);return new THREE.CanvasTexture(c)}
-function lpCloud(){var g=new THREE.Group(),m=lam('#ffffff',{flatShading:true,emissive:'#dfeaf2'});
+function lpCloud(){var g=new THREE.Group(),m=lam('#ffffff',{flatShading:true,emissive:'#c9d6de'});
   [[0,0,0,1.5],[1.5,-.15,.2,1.1],[-1.5,-.2,-.1,1.15],[.6,.55,0,1.05]].forEach(function(a){var c=M(ICO(a[3],1,.18),m,a[0],a[1],a[2]);c.scale.y=.7;g.add(c)});return g}
 function mkIsland(destName){
-  var g=new THREE.Group(),R=5;g.add(islandBase(R));
-  /* 地面起伏的小草丘和石頭 */
-  [[-2.2,2.4,.9],[3.0,-2.0,1.1],[-3.4,-1.2,1.0],[2.2,3.0,.9]].forEach(function(a){var m=M(ICO(a[2],2,.05),lam(GR.g3),a[0],0,a[1]);m.scale.y=.2;g.add(m)});
-  [[-3.6,-3.0,'pine',1.0],[-4.1,.6,'blossom',.95],[3.9,-2.8,'round',1.0],[4.1,1.4,'pine',.85],[-1.4,-4.0,'round',.9],[1.2,-4.1,'blossom',.9],[-3.7,3.0,'round',.8]].forEach(function(a){var t=lpTree(a[2],a[3]);t.position.set(a[0],0,a[1]);t.rotation.y=a[0];g.add(t)});
-  [[3.4,2.9,.4],[-4.2,2.0,.35],[4.4,-.4,.4]].forEach(function(a){var k=M(ICO(a[2],0,.08),lam('#d9ccb0'),a[0],a[2]*.45,a[1]);k.scale.y=.62;g.add(k)});
-  var cols=['#ffd36a','#ff9ac0','#ffffff','#a9d4ff','#ffb27a'],sd=11;for(var i=0;i<46;i++){sd=(sd*16807)%2147483647;var a=sd/2147483647*6.28;sd=(sd*16807)%2147483647;var d=Math.sqrt(sd/2147483647)*R*.84;
-    var f=M(new THREE.OctahedronGeometry(.1),lam(cols[i%5]),Math.cos(a)*d,.1,Math.sin(a)*d);f.rotation.set(a,d,0);g.add(f)}
+  var g=new THREE.Group(),R=12,sd=11,rnd=function(){sd=(sd*16807)%2147483647;return sd/2147483647};
+  g.add(islandBase(R));
+  /* 這一帶留給停機坪和角色，其他地方才種東西 */
+  var free=function(x,z){return Math.hypot(x/6.6,(z-.4)/4.6)>1&&Math.hypot(x,z)<R*.88&&z<6.5};
+  var pick=function(){for(var k=0;k<60;k++){var a=rnd()*6.283,d=Math.sqrt(rnd())*R*.88,x=Math.cos(a)*d,z=Math.sin(a)*d;if(free(x,z))return[x,z]}return[R*.8,0]};
+  var i,p;
+  for(i=0;i<16;i++){p=pick();var m=M(ICO(.9+rnd()*.9,2,.05),lam(i%2?GR.g3:'#72893f'),p[0],0,p[1]);m.scale.y=.18;g.add(m)}
+  var kinds=['pine','round','pine','blossom','round','pine','round'];
+  for(i=0;i<26;i++){p=pick();for(var q=0;q<40&&p[1]>1.2;q++)p=pick();if(p[1]>1.2)continue;var t=lpTree(kinds[i%kinds.length],.85+rnd()*.35);t.position.set(p[0],0,p[1]);t.rotation.y=rnd()*6;g.add(t)}
+  for(i=0;i<9;i++){p=pick();var r=.3+rnd()*.3,k=M(ICO(r,0,.08),lam('#cdbf9e'),p[0],r*.45,p[1]);k.scale.y=.62;g.add(k)}
+  var cols=['#e0c067','#d99aa8','#efe9dc','#9fbad0','#d9a67a'];
+  for(i=0;i<130;i++){p=pick();var f=M(new THREE.OctahedronGeometry(.1),lam(cols[i%5]),p[0],.1,p[1]);f.rotation.set(rnd()*3,rnd()*3,0);g.add(f)}
   /* 木棧橋停機坪：熱氣球降在這裡 */
-  var pad=new THREE.Group();pad.add(M(CYL(2.0,2.1,.16,14,.03),lam('#a8743f'),0,.08,0));
-  for(var k=-2;k<=2;k++){pad.add(M(new THREE.BoxGeometry(3.6,.05,.42),lam(k%2?'#b8824a':'#c08c52'),0,.18,k*.62*.6).rotateY(0))}
-  g.add(pad);S_PAD=pad;
+  var pad=new THREE.Group();pad.add(M(CYL(2.0,2.1,.16,14,.03),lam('#96693a'),0,.08,0));
+  for(var k2=-2;k2<=2;k2++){pad.add(M(new THREE.BoxGeometry(3.6,.05,.42),lam(k2%2?'#a87a45':'#b08350'),0,.18,k2*.62*.6))}
+  g.add(pad);
   /* 木牌：寫這裡是哪一個島 */
   var sg=new THREE.Group();sg.add(M(CYL(.07,.08,1.5,6),lam(GR.wood2),0,.75,0));
   sg.add(M(new THREE.BoxGeometry(1.6,.62,.09),[lam(GR.wood),lam(GR.wood),lam(GR.wood),lam(GR.wood),new THREE.MeshLambertMaterial({map:signTex(destName)}),lam(GR.wood)],0,1.45,0));
   g.add(sg);g.userData.sign=sg;
-  /* 一疊箱子、一桶水 */
-  var cr=new THREE.Group();cr.add(M(new THREE.BoxGeometry(.7,.6,.7),lam('#c9a066'),0,.3,0));cr.add(M(new THREE.BoxGeometry(.55,.5,.55),lam('#b8824a'),.05,.85,0).rotateY(.4));cr.position.set(-3.2,0,-2.4);g.add(cr);
+  /* 一疊箱子 */
+  var cr=new THREE.Group();cr.add(M(new THREE.BoxGeometry(.7,.6,.7),lam('#b8935c'),0,.3,0));cr.add(M(new THREE.BoxGeometry(.55,.5,.55),lam('#a37a49'),.05,.85,0).rotateY(.4));cr.position.set(-4.4,0,-2.6);g.add(cr);
   return g}
-var S_PAD=null;
 /* 熱氣球：原點在籃子底部中央，往上長 */
 function wAt(y){return y<=110?102*Math.sqrt(Math.max(0,1-Math.pow((110-y)/106,2))):26+76*Math.cos((y-110)/76*Math.PI/2)}
 function canvasTex(w,h,draw){var c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);return new THREE.CanvasTexture(c)}
@@ -156,7 +160,7 @@ function mkBalloon(stripes){
   var g=new THREE.Group(),i,H=3.9,R=2.1,y0=3.3,pts=[];
   for(i=0;i<=30;i++){var t=i/30;pts.push(new THREE.Vector2(wAt(186-t*182)/102*R,y0+t*H))}
   var tex=canvasTex(512,16,function(x,w,h){for(var k=0;k<8;k++){x.fillStyle=stripes[k%stripes.length];x.fillRect(k*w/8,0,w/8+1,h)}});
-  var env=new THREE.Mesh(fl(new THREE.LatheGeometry(pts,24),.0),new THREE.MeshLambertMaterial({map:tex,side:THREE.DoubleSide,emissive:'#403828'}));g.add(env);
+  var env=new THREE.Mesh(fl(new THREE.LatheGeometry(pts,24),.0),new THREE.MeshLambertMaterial({map:tex,side:THREE.DoubleSide}));g.add(env);
   var wick=canvasTex(128,64,function(x,w,h){x.fillStyle='#b98a52';x.fillRect(0,0,w,h);x.strokeStyle='rgba(70,45,20,.35)';x.lineWidth=3;for(var a=0;a<w;a+=16){x.beginPath();x.moveTo(a,0);x.lineTo(a,h);x.stroke()}for(var b=8;b<h;b+=16){x.beginPath();x.moveTo(0,b);x.lineTo(w,b);x.stroke()}});
   var basket=new THREE.Mesh(new THREE.BoxGeometry(2.2,.95,1.8),new THREE.MeshLambertMaterial({map:wick}));basket.position.y=.48;g.add(basket);
   var rim=new THREE.Mesh(new THREE.BoxGeometry(2.34,.1,1.94),lam('#8f6232'));rim.position.y=.98;g.add(rim);
@@ -175,8 +179,8 @@ function build(side,list,siteName){
   var S={root:root,side:side,list:list,dead:false,cast:[],clouds:[],bal:{x:0,y:18},t:0};
   var R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));R.setClearColor(0x000000,0);
   var scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,.1,300);
-  scene.fog=new THREE.Fog('#cfe5ee',34,95);
-  scene.add(new THREE.HemisphereLight(0xeaf4ff,0x9bb273,.9));var sun=new THREE.DirectionalLight(0xfff2d6,.85);sun.position.set(-6,12,9);scene.add(sun);
+  scene.fog=new THREE.Fog('#bccdd3',40,110);
+  scene.add(new THREE.HemisphereLight(0xe4eef5,0x8a9a68,.8));var sun=new THREE.DirectionalLight(0xfff0d4,.75);sun.position.set(-6,12,9);scene.add(sun);
   S.R=R;S.scene=scene;S.cam=cam;
   var isl=mkIsland(siteName);scene.add(isl);S.island=isl;
   isl.userData.sign.position.set(side==='r'?-3.4:3.4,0,-2.6);isl.userData.sign.rotation.y=side==='r'?.35:-.35;
@@ -196,7 +200,7 @@ function build(side,list,siteName){
   S.veil=el('div','fy-veil');root.appendChild(S.veil);
   function size(){var W=window.innerWidth,H=window.innerHeight,asp=W/H,tf=Math.tan(20*Math.PI/180);
     R.setSize(W,H,false);cam.aspect=asp;
-    var dist=Math.max(12.5/(2*tf),10.5/(asp*2*tf)),pit=.3;S.dist=dist;cam.position.set(0,1.6+Math.sin(pit)*dist,Math.cos(pit)*dist);cam.lookAt(0,1.6,0);cam.updateProjectionMatrix()}
+    var dist=Math.max(12.5/(2*tf),10.5/(asp*2*tf)),pit=.4;S.dist=dist;cam.position.set(0,1.6+Math.sin(pit)*dist,Math.cos(pit)*dist);cam.lookAt(0,1.6,0);cam.updateProjectionMatrix()}
   size();window.addEventListener('resize',size);
   S.frame=function(now){
     if(S.stopped)return;var dt=Math.min(.05,(now-(S.tp||now))/1000);S.tp=now;S.t+=dt;
