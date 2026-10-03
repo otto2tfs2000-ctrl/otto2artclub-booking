@@ -181,6 +181,10 @@ body.oct .top{display:none}
 #miFood{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:0 12px}
 #miFood button{font:inherit; font-size:15px; color:var(--ink); background:var(--paper); border:2.5px solid var(--ink); border-radius:99px; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 0 var(--ink); cursor:pointer}
 #miFood i{width:12px; height:12px; border-radius:50%; display:block}
+#miFood .fav{display:inline-flex}
+#miFood .fav img{width:30px; height:30px; border-radius:50%; object-fit:cover; border:2px solid #fff; margin:-4px 0 -4px -10px; box-shadow:0 0 0 1px var(--ink)}
+#miFood .fav img:first-child{margin-left:-4px}
+#miFood button.ghost{background:transparent; box-shadow:none; border-style:dashed}
 #miUI .mirow{display:flex; gap:10px}
 #miUI .mirow button{font:inherit; font-size:19px; color:var(--ink); background:var(--paper); border:3px solid var(--ink); border-radius:99px; padding:12px 26px; box-shadow:0 5px 0 var(--ink); cursor:pointer}
 #miUI .mirow button.red{background:var(--red); color:#fff}
@@ -308,7 +312,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261003h';
+const PARK_VER='20261003i';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1502,7 +1506,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray');a.innerHTML='作品島'; /* 2026-10-03 作品島正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003h',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003i',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1635,11 +1639,24 @@ const MIB=(function(){
     else if(kind==='pepper'){[['#4aa84a',-.2,0],['#e8b53a',.2,.1],['#d9483b',0,-.22]].forEach(([c,x,z])=>{const p=M(SGf(.19,9,7),lam(c),x,.17,z);p.scale.set(.95,1,.9);g.add(p);g.add(M(CYL(.025,.03,.1,5),lam('#3f7a35'),x,.34,z))})}
     else if(kind==='seed'){for(let k=0;k<16;k++){const a=Math.random()*6.28,d=Math.random()*.2,s=M(SGf(.06,7,5),lam(k%2?'#3a3330':'#56504a'),Math.cos(a)*d,.06+Math.random()*.08,Math.sin(a)*d);s.scale.set(.7,.5,1.6);s.rotation.y=Math.random()*3;g.add(s);
       const st=M(SGf(.061,7,5),lam('#e8e0d0'),s.position.x,s.position.y+.005,s.position.z);st.scale.set(.25,.5,1.62);st.rotation.y=s.rotation.y;g.add(st)}}
+    else if(kind==='fig'){[[-.13,0,0],[.13,.04,1.3]].forEach(([x,z,r])=>{const o=M(SGf(.15,10,8),lam('#6b3a4a'),x,.1,z);o.scale.set(1,.55,1.1);o.rotation.y=r;g.add(o);
+        const c=M(new THREE.CylinderGeometry(.13,.13,.02,12),lam('#e88a8a'),x,.17,z);c.scale.z=1.1;g.add(c);for(let i=0;i<5;i++)g.add(M(SGf(.015,4,3),lam('#f6e2b0'),x+(Math.random()-.5)*.14,.185,z+(Math.random()-.5)*.14))})}
+    else if(kind==='pellet'){for(let k=0;k<14;k++){const a=Math.random()*6.28,d=Math.random()*.16,q=M(CYL(.035,.035,.06,6),lam(k%3?'#8a5a34':'#a8703f'),Math.cos(a)*d,.04+(k%3)*.04,Math.sin(a)*d);q.rotation.set(Math.random()*3,0,Math.random()*3);g.add(q)}}
+    else if(kind==='dfish'){/* 餵蛙蛙叫的小魚是死魚：躺著不動，銀灰色，跟魚缸裡會游的彩色魚不一樣 */
+      [[-.1,0,.4],[.1,.08,2.2],[0,-.12,-.9]].forEach(([x,z,r],i)=>{const f=new THREE.Group();const b=M(SGf(.07,9,6),lam(i%2?'#aeb6ba':'#c4cbce'));b.scale.set(1.9,.5,.8);f.add(b);
+        const t=M(CON(.05,.1,4),lam('#9aa3a8'),-.17,0,0);t.rotation.z=Math.PI/2;t.scale.z=.35;f.add(t);f.add(M(SGf(.014,5,4),lam('#2a2a2a'),.1,.025,.03));f.position.set(x,.04+i*.03,z);f.rotation.y=r;g.add(f)})}
     else if(kind==='fruit'){[['#8a4a5a',-.14,0,.13],['#e8963a',.14,.06,.12],['#8a4a5a',.02,-.15,.11],['#d9483b',.06,.16,.08],['#f2c14e',-.12,.16,.09]].forEach(([c,x,z,r],i)=>{const f=M(SGf(r,9,7),lam(c),x,.08,z);f.scale.set(1,.45,1);f.rotation.y=i;g.add(f)})}
     else{for(let k=0;k<26;k++){const a=Math.random()*6.28,d=Math.random()*.22,h=M(CYL(.012,.012,.5,4),lam(k%3?'#e2c56a':'#cdaa4c'),Math.cos(a)*d,.16,Math.sin(a)*d);h.rotation.z=(Math.random()-.5)*1.6;h.rotation.x=(Math.random()-.5)*1.6;g.add(h)}g.add(M(SGf(.2,8,6),lam('#d9bb5c'),0,.08,0))}
     return g}
   return{island,bridge,food}})();
-const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草',seed:'葵花子',fruit:'水果乾'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡',xiong:'小熊'};
+const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草',seed:'葵花子',fig:'無花果',fruit:'水果乾',pellet:'飼料',dfish:'小魚'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡',xiong:'小熊',frog:'蛙蛙叫'};
+const FOODC={veg:'#4ca64c',corn:'#e0b94a',pepper:'#3f9a3f',hay:'#d9b95a',seed:'#4a4440',fig:'#6b3a4a',fruit:'#b0603a',pellet:'#8a5a34',dfish:'#aeb6ba'};
+/* 2026-10-03 餵食分兩步：先選要餵誰，再出現牠吃的東西（大熊要的） */
+const FEED_GROUPS=[
+  {id:'gp',name:'天竺鼠',imgs:['pets/gabi.webp','pets/kabu.webp','pets/moka.webp'],who:['gabi','kabu','moka'],foods:['veg','corn','pepper','hay']},
+  {id:'xiong',name:'小熊',imgs:['pets/xiong.webp'],who:['xiong'],foods:['seed','fig','fruit','veg']},
+  {id:'frog',name:'蛙蛙叫',imgs:['pets/frog.webp'],who:['frog'],foods:['pellet','dfish']},
+  {id:'all',name:'大家一起',imgs:['pets/gabi.webp','pets/xiong.webp'],who:['gabi','kabu','moka','xiong'],foods:['veg']}];
 /* 誰會來吃：天竺鼠吃菜和草；小熊（倉鼠）愛葵花子、水果乾、菜菜 */
 const FEEDERS={veg:['gabi','kabu','moka','xiong'],corn:['gabi','kabu','moka'],pepper:['gabi','kabu','moka'],hay:['gabi','kabu','moka'],seed:['xiong'],fruit:['xiong']};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -1726,14 +1743,25 @@ async function mascotBack(){
 /* 餵食（2026-10-03 改，有人許願）：手指按住食物拖著走，三隻會衝過來追；放開食物掉在地上，牠們圍過來吃 */
 const MI_SEAT={gabi:new THREE.Vector3(.84,0,.14),moka:new THREE.Vector3(-.8,0,-.06),kabu:new THREE.Vector3(.1,0,.84)};
 function miSeat(id){const f=MI.food?MI.food.position:MI.A.food;return new THREE.Vector3(f.x+MI_SEAT[id].x,MI.A.y,f.z+MI_SEAT[id].z)}
+/* 食物放下來要放在東西上面（水盆、菜園、土、倉鼠木屑），不要陷進去看不到 */
+function miGroundY(w){const l=MI.g.worldToLocal(w.clone());let h=0;
+  if(Math.hypot(l.x-FW.x,l.z-FW.z)<.75)h=.18;else if(l.x>-4.4&&l.x<-2.2&&l.z>.15&&l.z<1.65)h=.16;else if(Math.hypot(l.x-FH.x,l.z-FH.z)<1.15)h=.09;else if(Math.hypot(l.x-XH.x,l.z-XH.z)<XR)h=.07;
+  return MI.A.y+h*MIK}
 function miGot(id){if(MI.got[id])return;MI.got[id]=1;MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.25,1-MI.eaten/MI.need*.6));toast(MI.eaten===1?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}
-function miAte(){if(++MI.done>=MI.need){if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false}}
-function miFeed(kind){
+function miAte(){if(++MI.done>=MI.need){MI.feedWho=null;if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false}}
+function miFeed(kind,who){
   if(MI.state!=='on'||MI.food)return;$('miFood').hidden=true;
-  const f=MI.A.food.clone();MI.food=MIB.food(kind);MI.food.position.copy(f);scene.add(MI.food);MI.eaten=0;MI.done=0;MI.hold=false;MI.got={};PET.look=MI.food.position;$('miFeed').disabled=true;
-  const FD0=FEEDERS[kind]||['gabi','kabu','moka'],P=FD0.filter(id=>PET.g[id]);MI.need=FD0.length;P.forEach(id=>petReset(PET.g[id]));
+  const FD0=who||FEEDERS[kind]||['gabi','kabu','moka'],P=FD0.filter(id=>PET.g[id]),frog=FD0.includes('frog');
+  let f=MI.A.food.clone();if(frog&&MI.frog){const l=MI.frog.g.position,a0=Math.PI/2,T=FH.clone().add(FT);let v=null; /* 先試牠前面（鏡頭這邊），再往兩邊找空地 */
+    for(const da of [0,1,-1,2,-2,3,-3,5]){const a=a0+da*.6,q=new THREE.Vector3(l.x+Math.cos(a)*1.2,0,l.z+Math.sin(a)*1.2);
+      if(Math.hypot(q.x-FW.x,q.z-FW.z)>1&&!(q.x>-4.6&&q.x<-2&&q.z>0&&q.z<1.85)&&Math.hypot(q.x-T.x,q.z-T.z)>1&&Math.hypot(q.x,q.z)<5.6){v=q;break}}
+    f=MI.g.localToWorld(v||new THREE.Vector3(l.x+.9,0,l.z));f.y=miGroundY(f)} /* 蛙蛙叫不會跑來追，食物放在牠旁邊的空地 */
+  MI.food=MIB.food(kind);MI.food.position.copy(f);scene.add(MI.food);MI.eaten=0;MI.done=0;MI.hold=false;MI.got={};MI.feedWho=FD0;PET.look=MI.food.position;$('miFeed').disabled=true;
+  MI.need=FD0.length;P.forEach(id=>petReset(PET.g[id]));
   const SP={gabi:3.4,moka:2.9,kabu:2.3};   // 嘎逼是老大，衝最快；卡布最慢
-  toast('按住'+FOODN[kind]+'拖拖看，'+(P.length?'牠們':'小熊')+'會追過來！');$('miHint').hidden=false;
+  if(frog){toast('拿著'+FOODN[kind]+'慢慢靠近蛙蛙叫，牠會一口吞掉！');$('miHint').textContent='👆 按住食物，拿到蛙蛙叫面前'}
+  else{toast('按住'+FOODN[kind]+'拖拖看，'+(P.length?'牠們':'小熊')+'會追過來！');$('miHint').textContent='👆 按住食物拖著走，牠們會追過來'}
+  $('miHint').hidden=false;
   if(FD0.includes('xiong'))xFeed();
   shuf(P).forEach((id,r)=>{const p=PET.g[id],q=[PA.wait([.3,.8,1.4][r]+Math.random()*.3),PA.fn(q0=>{q0.hop=.4})];
     if(id==='kabu'&&Math.random()<.5)q.push(PA.go(f.clone().add(new THREE.Vector3((Math.random()<.5?-1:1)*2.4,0,-1)),1.9),PA.wait(.4),PA.fn(()=>toast('卡布跑錯方向了')));
@@ -1751,7 +1779,7 @@ function miFeed(kind){
   let id=null;
   el.addEventListener('pointerdown',e=>{if(MI.state!=='on'||!MI.food||id!==null)return;const q=at(e);if(!q)return;id=e.pointerId;MI.hold=true;$('miHint').hidden=true;MI.food.position.set(q.x,q.y+.55,q.z)});
   el.addEventListener('pointermove',e=>{if(e.pointerId!==id||!MI.food)return;const q=at(e);if(q)MI.food.position.set(q.x,q.y+.55+Math.sin(performance.now()/120)*.04,q.z)});
-  ['pointerup','pointercancel'].forEach(t=>el.addEventListener(t,e=>{if(e.pointerId!==id)return;id=null;MI.hold=false;if(MI.food){const f=MI.food,y0=f.position.y;tween(220,p=>{if(f.parent)f.position.y=y0+(MI.A.y-y0)*easeIn(p)})}}));
+  ['pointerup','pointercancel'].forEach(t=>el.addEventListener(t,e=>{if(e.pointerId!==id)return;id=null;MI.hold=false;if(MI.food){const f=MI.food,y0=f.position.y,gy=miGroundY(f.position);tween(220,p=>{if(f.parent)f.position.y=y0+(gy-y0)*easeIn(p)})}}));
 })();
 /* ---------- 2026-10-03 新朋友：小熊（倉鼠）、蛙蛙叫（角蛙）。只住在吉祥物島，不跟著過橋 ----------
    小熊：愛把東西塞滿嘴巴（臉頰會鼓起來）、跑滾輪、洗臉，常常爬出圍欄翹家，要點牠才會回家（找回次數記在這台手機）
@@ -1801,7 +1829,7 @@ function frFace(g,to,dt,k){const d=to.clone().sub(g.position),yaw=Math.atan2(d.x
 function xPose(p){const u=p.g.userData;u.P.rotation.x=0;u.head.rotation.set(0,0,0);u.paws.forEach((w,i)=>w.position.set(i?.13:-.13,.16,.42))}
 function xReset(p){p.q.length=0;p.cur=null;p.hop=0;xPose(p)}
 function frReset(){const p=MI.xiong,f=MI.frog;if(!p)return;xReset(p);p.ch=1;p.g.position.copy(xAt(-.2,.25));p.g.position.y=XFLOOR;p.g.rotation.y=0;FR.lost=false;FR.lastEsc=performance.now()-12000;
-  f.q.length=0;f.cur=null;f.st='stare';f.g.position.copy(FS);f.g.rotation.y=Math.atan2(FTW.x-FS.x,FTW.z-FS.z);f.q.push({k:'stare',t:6+Math.random()*6})}
+  f.q.length=0;f.cur=null;f.snap=null;f.gulp=0;f.st='stare';f.g.position.copy(FS);f.g.rotation.y=Math.atan2(FTW.x-FS.x,FTW.z-FS.z);f.q.push({k:'stare',t:6+Math.random()*6})}
 function xFoundN(){let n=8;try{n=+localStorage.getItem('otto2-xiong-found')||8}catch(e){}return n} /* 真實已經找了 8 次，從 8 開始算 */
 /* 從圍欄裡出去／回家：先走到圍欄邊、跳過去 */
 function xOutQ(p,to,sp){const d=new THREE.Vector3(to.x-XH.x,0,to.z-XH.z).normalize();p.q.push({k:'go',v:XH.clone().addScaledVector(d,XR-.4),sp:sp||1.6},{k:'hop',v:XH.clone().addScaledVector(d,XR+.45),d:.55})}
@@ -1850,7 +1878,12 @@ function fIdle(f){const opts=['stare','bury','soak'].filter(s=>s!==f.st),st=opts
   const s=f.g.position.clone(),n=Math.max(1,Math.ceil(Math.hypot(to.x-s.x,to.z-s.z)/.6));
   for(let i=1;i<=n;i++){const v=s.clone().lerp(to,i/n);v.y=i===n?to.y:(Math.hypot(v.x-FH.x,v.z-FH.z)<1.15?FSOIL:0);f.q.push({k:'hop',v,d:.42},{k:'wait',t:.2+Math.random()*.25})}
   f.q.push({k:st,t:st==='stare'?14+Math.random()*8:st==='bury'?16+Math.random()*8:12+Math.random()*6})}
+const fGround=v=>Math.hypot(v.x-FW.x,v.z-FW.z)<.7?FWAT:Math.hypot(v.x-FH.x,v.z-FH.z)<1.15?FSOIL:0;
 function fStep(f,dt,now){const u=f.g.userData,pos=f.g.position,K=FRS/MIK;let a=f.cur;
+  /* 餵蛙蛙叫：牠不會追，等食物靠近就「啪」一口吞掉；埋在土裡會先鑽出來；食物放著不動，牠會慢慢跳過去 */
+  if(MI.food&&MI.feedWho&&MI.feedWho.includes('frog')&&!f.snap){
+    if(a&&a.k==='bury'){if(f.t>.8){f.t=.8;toast('蛙蛙叫聞到食物，從土裡鑽出來了')}}
+    else if(!(a&&(a.k==='hop'||a.k==='feed'||a.k==='snap'))&&!(f.q[0]&&f.q[0].k==='hop'&&f.q[1]&&f.q[1].k==='feed')){f.q.length=0;u.P.position.z=0;a=f.cur={k:'feed'};f.e=0;f.h0=pos.clone();f.wt=0}}
   if(!a){if(!f.q.length)fIdle(f);a=f.cur=f.q.shift();f.t=a.t||0;f.e=0;f.h0=pos.clone()}
   f.e+=dt;let sq=1;
   if(a.k==='hop'){const k=Math.min(1,f.e/a.d);pos.x=f.h0.x+(a.v.x-f.h0.x)*k;pos.z=f.h0.z+(a.v.z-f.h0.z)*k;pos.y=f.h0.y+(a.v.y-f.h0.y)*k+Math.sin(k*Math.PI)*.42;frFace(f.g,a.v,dt,14);sq=1+Math.sin(k*Math.PI)*.18;if(k>=1)f.cur=null}
@@ -1858,7 +1891,17 @@ function fStep(f,dt,now){const u=f.g.userData,pos=f.g.position,K=FRS/MIK;let a=f
   else if(a.k==='stare'){f.t-=dt;frFace(f.g,FTW,dt,4);u.P.position.z=Math.max(0,Math.sin(now/1300))*.06;if(f.t<=0){u.P.position.z=0;f.cur=null}}
   else if(a.k==='bury'){f.t-=dt;const k=Math.max(0,Math.min(1,f.e/1.2,f.t/.8));pos.y=FSOIL-.45*k;u.mound.visible=k>.05;u.mound.position.y=(FSOIL+.02-pos.y)/K;u.mound.scale.z=k;u.dirt.forEach(d=>d.visible=k>.6);if(f.t<=0){u.mound.visible=false;u.dirt.forEach(d=>d.visible=false);f.cur=null}}
   else if(a.k==='soak'){f.t-=dt;pos.y=FWAT+Math.sin(now/700)*.015;if(f.t<=0)f.cur=null}
-  u.P.scale.set(1,sq*(1+Math.sin(now/260)*.02),1);  /* 喉嚨一鼓一鼓 */
+  else if(a.k==='feed'){if(!MI.food){f.cur=null}else{const fl=MI.g.worldToLocal(MI.food.position.clone()),dist=Math.hypot(fl.x-pos.x,fl.z-pos.z);frFace(f.g,fl,dt,8);
+      if(dist<.95){f.snap={from:MI.food.position.clone()};f.cur={k:'snap'};f.e=0}
+      else if(!MI.hold){f.wt+=dt;if(f.wt>1.1){f.wt=0;const d=new THREE.Vector3(fl.x-pos.x,0,fl.z-pos.z),L=d.length(),st=Math.min(.55,L-.7);
+        if(st>.05){const v=pos.clone().addScaledVector(d.normalize(),st);v.y=fGround(v);f.q.unshift({k:'hop',v,d:.4},{k:'feed'});f.cur=null}}}
+      else f.wt=0}}
+  else if(a.k==='snap'){const k=f.e;u.P.position.z=k<.3?Math.sin(k/.3*Math.PI)*.35:0;
+    if(MI.food&&k<.14){const m=new THREE.Vector3(0,.3,.6);f.g.localToWorld(m);MI.food.position.lerpVectors(f.snap.from,m,k/.14);MI.food.scale.setScalar(1-k/.14*.7)}
+    else if(MI.food){MI.got.frog=1;MI.eaten=1;sfx('pop');toast('啪！蛙蛙叫一口吞掉了');f.gulp=.8;miAte()}
+    if(k>.7){f.snap=null;u.P.position.z=0;f.cur=null;f.q.push({k:'wait',t:1.5})}}
+  if(f.gulp>0)f.gulp-=dt;const gp=f.gulp>0?1+Math.sin((1-f.gulp/.8)*Math.PI)*.16:1;
+  u.P.scale.set(gp,sq*(1+Math.sin(now/260)*.02),gp);  /* 喉嚨一鼓一鼓 */
   f.bl-=dt;if(f.bl<=0)f.bl=2.5+Math.random()*3.5;u.eyes.forEach(e=>e.scale.y=f.bl<.13?.2:1)}
 function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);
   if(MI.fish)MI.fish.forEach(f=>{const u=f.userData;u.ph+=dt*u.sp;const c=Math.cos(u.ph),s=Math.sin(u.ph),sg=u.sp<0?-1:1;f.position.set(u.cx+c*u.rx,u.cy+Math.sin(u.ph*2.3)*.04,s*u.rz);f.rotation.y=Math.atan2(-c*u.rz*sg,-s*u.rx*sg)})}
@@ -1869,9 +1912,12 @@ function frTap(rc){if(!MI.xiong)return false;const hit=rc.intersectObjects([MI.x
     if(f.cur&&f.cur.k==='hop')return true;toast(f.st==='soak'?'蛙蛙叫在泡澡':f.st==='stare'?'蛙蛙叫在看魚缸裡的魚':'蛙蛙叫')}
   popup(null,`${d.name}・${d.role}`,d.line+(id==='xiong'?`（已經找回來 ${xFoundN()} 次）`:''),[{t:'好',v:true}],`<img alt="${d.name}的照片" src="${d.img}" style="display:block;width:150px;height:150px;border-radius:16px;object-fit:cover;margin:8px auto">`);
   return true}
-const MI_FOODS=[['veg','菜菜','#4ca64c'],['corn','玉米鬚','#e0b94a'],['pepper','青椒','#3f9a3f'],['hay','乾草','#d9b95a'],['seed','葵花子','#4a4440'],['fruit','水果乾','#b0603a']];
-(function(){const t=$('miFood');MI_FOODS.forEach(([k,n,c])=>{const b=document.createElement('button');b.type='button';b.innerHTML='<i style="background:'+c+'"></i>'+n;b.addEventListener('click',()=>miFeed(k));t.appendChild(b)})})();
-$('miFeed').addEventListener('click',()=>{if(MI.food)return;$('miFood').hidden=!$('miFood').hidden});
+function miMenu(gid){const t=$('miFood');t.innerHTML='';const btn=(html,fn,cls)=>{const b=document.createElement('button');b.type='button';if(cls)b.className=cls;b.innerHTML=html;b.addEventListener('click',fn);t.appendChild(b)};
+  const g=FEED_GROUPS.find(x=>x.id===gid);
+  if(!g){t.dataset.step='who';FEED_GROUPS.forEach(x=>btn('<span class="fav">'+x.imgs.map(s=>'<img alt="" src="'+s+'">').join('')+'</span>'+x.name,()=>miMenu(x.id)));return}
+  t.dataset.step='food';btn('‹ 換動物',()=>miMenu(),'ghost');
+  g.foods.forEach(k=>btn('<i style="background:'+FOODC[k]+'"></i>'+FOODN[k],()=>miFeed(k,g.who)))}
+$('miFeed').addEventListener('click',()=>{if(MI.food)return;const t=$('miFood');if(t.hidden){miMenu();t.hidden=false}else t.hidden=true});
 $('miBack').addEventListener('click',mascotBack);
 $('miReset').addEventListener('click',mzReset);
 
