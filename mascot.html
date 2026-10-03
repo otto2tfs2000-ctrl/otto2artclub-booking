@@ -52,7 +52,7 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261003k">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261003l">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
   <div id="food" hidden role="group" aria-label="選食物"></div>
   <div id="dest" role="group" aria-label="選一個地方出發"></div>
@@ -65,7 +65,7 @@ button:disabled{opacity:.5;cursor:default}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261003k';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261003l';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -336,11 +336,11 @@ function loop(now){
 requestAnimationFrame(loop);
 
 /* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
-const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261003k';
+const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261003l';
 const DEST={
   gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
   xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},
-  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261003k'}};
+  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261003l'}};
 const ART_PUBLIC=true; /* 2026-10-03 作品島雲端版正式開放給所有人 */
 const taipei=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 let CUR=(t=>t<'2026-11-01'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
