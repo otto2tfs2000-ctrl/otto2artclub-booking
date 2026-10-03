@@ -175,7 +175,9 @@ body.oct .top{display:none}
 .places button.pulse{animation:plPulse 1s ease-in-out 6}
 #miUI{position:fixed; left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); display:flex; flex-direction:column; align-items:center; gap:10px; z-index:4; pointer-events:none}
 #miUI>*{pointer-events:auto}
-#miUI .mich{font-size:13px; background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:4px 14px}
+#miUI .mich{font-size:13px; background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:4px 14px; text-align:center; line-height:1.35}
+#miUI .mich small{font-size:11.5px; opacity:.75}
+#miReset{font:inherit; color:var(--ink); cursor:pointer}
 #miFood{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:0 12px}
 #miFood button{font:inherit; font-size:15px; color:var(--ink); background:var(--paper); border:2.5px solid var(--ink); border-radius:99px; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 0 var(--ink); cursor:pointer}
 #miFood i{width:12px; height:12px; border-radius:50%; display:block}
@@ -269,7 +271,7 @@ html.demoq #menu .mhead{display:block!important}
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
-<div id="miUI" hidden><div class="mich">吉祥物島・五隻的家</div><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
+<div id="miUI" hidden><div class="mich">吉祥物島・五隻的家<br><small>一根手指轉島・兩根手指放大移動・點動物跟著看</small></div><button type="button" id="miReset" class="mich" hidden>⟲ 回到原位</button><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
 <div class="pop" id="menu" hidden><div class="card">
   <h2>選單</h2>
@@ -306,7 +308,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261003g';
+const PARK_VER='20261003h';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -927,7 +929,7 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
-  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(!frTap(rc))petTap(rc,true)}return true}
+  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
@@ -1500,7 +1502,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray');a.innerHTML='作品島'; /* 2026-10-03 作品島正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003g',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003h',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1650,8 +1652,35 @@ function miAnch(){const c=MI.c,y=MI.c.y,o=(x,z)=>new THREE.Vector3(c.x+x*MIK,y,c
 function miCam(mode){const c=MI.c,tf=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect,dir=new THREE.Vector3(0,.55,.85).normalize();let at,w,h;
   if(mode==='mascotB'){const sp=MI.spot;at=new THREE.Vector3((sp.x0+sp.x1)/2,sp.c.y+.4,sp.bz);w=Math.abs(sp.x1-sp.x0)+8;h=6.2}
   else if(mode==='mascotX'){at=new THREE.Vector3();const P=Object.values(PET.g);P.forEach(p=>at.add(p.g.position));at.multiplyScalar(1/P.length);at.y+=.5;w=7;h=4.6}
-  else{at=new THREE.Vector3(c.x,c.y+.6,c.z+.9);w=9.8;h=6.4}
-  const d=Math.max(w/(2*tf*asp),h/(2*tf));return{pos:at.clone().addScaledVector(dir,d),at}}
+  else{at=new THREE.Vector3(c.x,c.y+.6,c.z+.9);w=9.8;h=6.4;
+    /* 2026-10-03 大熊要的：吉祥物島可以轉、放大、移動（MZ），點動物鏡頭會跟著牠 */
+    if(MZ.follow){const f=new THREE.Vector3();MZ.follow.getWorldPosition(f);at=f.add(new THREE.Vector3(0,.35,0))}else at.add(new THREE.Vector3(MZ.px,0,MZ.pz));
+    dir.set(Math.sin(MZ.yaw)*Math.cos(MZ.el),Math.sin(MZ.el),Math.cos(MZ.yaw)*Math.cos(MZ.el))}
+  let d=Math.max(w/(2*tf*asp),h/(2*tf));if(mode==='mascot')d/=MZ.z;return{pos:at.clone().addScaledVector(dir,d),at}}
+const MZ0=Math.atan2(.55,.85),MZ={yaw:0,el:MZ0,z:1,px:0,pz:0,follow:null,live:0};
+function mzChanged(){return Math.abs(MZ.yaw)>.05||Math.abs(MZ.el-MZ0)>.05||MZ.z>1.05||Math.hypot(MZ.px,MZ.pz)>.3||!!MZ.follow}
+function mzLook(){const b=$('miReset');if(b)b.hidden=!(MI.state==='on'&&mzChanged())}
+function mzReset(){MZ.yaw=0;MZ.el=MZ0;MZ.z=1;MZ.px=MZ.pz=0;MZ.follow=null;mzLook()}
+const mzOn=()=>MI.state==='on'&&parkCam==='mascot'&&$('pop').hidden;
+/* 一根手指：左右拖＝轉島、上下拖＝抬高/壓低角度；兩根手指：捏＝放大縮小、一起拖＝移動；電腦用滾輪放大 */
+(function(){const el=$('game'),P=new Map();let d0=0,z0=1,m0=null;
+  const mid=()=>{const[a,b]=[...P.values()];return[(a[0]+b[0])/2,(a[1]+b[1])/2]};
+  const pan=(dx,dy)=>{if(MZ.follow){const f=new THREE.Vector3();MZ.follow.getWorldPosition(f);MZ.px=f.x-MI.c.x;MZ.pz=f.z-MI.c.z-.9;MZ.follow=null}
+    const k=.013/MZ.z,cy=Math.cos(MZ.yaw),sy=Math.sin(MZ.yaw);MZ.px-=(dx*cy+dy*sy)*k;MZ.pz-=(-dx*sy+dy*cy)*k;
+    const L=Math.hypot(MZ.px,MZ.pz),R=4.6;if(L>R){MZ.px*=R/L;MZ.pz*=R/L}};
+  el.addEventListener('pointerdown',e=>{if(!mzOn())return;P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=MZ.z;m0=mid();ZM.pinchAt=Date.now()}});
+  el.addEventListener('pointermove',e=>{const q=P.get(e.pointerId);if(!q||!mzOn())return;
+    if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),m=mid();ZM.pinchAt=Date.now();
+      if(d0>0)MZ.z=Math.max(1,Math.min(4,z0*d/d0));if(m0){pan(m[0]-m0[0],m[1]-m0[1]);m0=m}MZ.live=1;mzLook();return}
+    if(MI.food){P.set(e.pointerId,[e.clientX,e.clientY]);return}   /* 餵食時一根手指是拿食物 */
+    const dx=e.clientX-q[0],dy=e.clientY-q[1];if(Math.abs(dx)+Math.abs(dy)>1){MZ.yaw-=dx*.007;MZ.el=Math.max(.22,Math.min(1.3,MZ.el+dy*.006));MZ.live=1;mzLook()}
+    P.set(e.pointerId,[e.clientX,e.clientY])});
+  ['pointerup','pointercancel','pointerleave'].forEach(t=>el.addEventListener(t,e=>{P.delete(e.pointerId);if(P.size<2){d0=0;m0=null}if(!P.size)MZ.live=0}));
+  el.addEventListener('wheel',e=>{if(!mzOn())return;e.preventDefault();MZ.z=Math.max(1,Math.min(4,MZ.z*Math.exp(-e.deltaY*.0015)));mzLook()},{passive:false});
+})();
+/* 點到動物：鏡頭靠近、跟著牠走 */
+function miFocus(rc){const gs=[...Object.values(PET.g).map(p=>p.g),...(MI.xiong?[MI.xiong.g,MI.frog.g]:[])].filter(g=>g.visible);
+  const h=rc.intersectObjects(gs,true)[0];if(!h)return;let o=h.object;while(o&&!gs.includes(o))o=o.parent;if(!o)return;MZ.follow=o;MZ.z=Math.max(MZ.z,2.6);mzLook()}
 const miWaitAll=()=>new Promise(r=>{const t=setInterval(()=>{if(Object.values(PET.g).every(p=>p.arrived)){clearInterval(t);r()}},120)});
 async function mascotGo(){
   if(busy||MI.state!=='off')return;
@@ -1659,7 +1688,7 @@ async function mascotGo(){
   if(PET.loc!=='oct'&&PET.loc!=='nov')petsPlace(G.phase==='oct'?'oct':'nov'); /* 剛進遊戲、三隻還沒就位時也要能出發 */
   const sp=miSpot();MI.spot=sp;MI.c.copy(sp.c);MI.y=sp.c.y;
   if(!MI.g){MI.g=MIB.island();scene.add(MI.g);trimShadows(MI.g);if(!/[?&]nomerge/.test(location.search))try{mergeStatic(MI.g,staticRefs())}catch(e){console.warn('mergeMI',e)}}
-  frReset();
+  frReset();mzReset();
   if(MI.br){scene.remove(MI.br)}MI.br=MIB.bridge(sp.x0,sp.x1);MI.br.position.set(0,sp.c.y,sp.bz);scene.add(MI.br);
   MI.g.position.set(sp.c.x,sp.c.y-14,sp.c.z);MI.g.visible=true;
   document.body.classList.add('mi');PET.loc='transit';PET.look=null;
@@ -1679,10 +1708,10 @@ async function mascotGo(){
   await miWaitAll();
   parkCam='mascot';await sleep(500);
   PET.A=A2;MI.A=A2;PET.loc='mascot';MI.state='on';
-  $('miUI').hidden=false;
+  $('miUI').hidden=false;mzLook();
 }
 async function mascotBack(){
-  if(MI.state!=='on')return;MI.state='returning';$('miUI').hidden=true;$('miFood').hidden=true;
+  if(MI.state!=='on')return;mzReset();MI.state='returning';$('miUI').hidden=true;$('miFood').hidden=true;
   if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false;
   const sp=MI.spot,dx=sp.x1<sp.x0?-1:1,target=G.phase==='oct'?petAnch():petAnchNov(petCenterNov());
   PET.loc='transit';PET.look=null;parkCam='mascotX';
@@ -1844,6 +1873,7 @@ const MI_FOODS=[['veg','菜菜','#4ca64c'],['corn','玉米鬚','#e0b94a'],['pepp
 (function(){const t=$('miFood');MI_FOODS.forEach(([k,n,c])=>{const b=document.createElement('button');b.type='button';b.innerHTML='<i style="background:'+c+'"></i>'+n;b.addEventListener('click',()=>miFeed(k));t.appendChild(b)})})();
 $('miFeed').addEventListener('click',()=>{if(MI.food)return;$('miFood').hidden=!$('miFood').hidden});
 $('miBack').addEventListener('click',mascotBack);
+$('miReset').addEventListener('click',mzReset);
 
 /* ---------- 效能（2026-10-03 全盤檢查）----------
    iPhone 的 LINE 裡每畫一個物件都很貴：原本十月廣場一格畫面要畫約 1,770 個物件＋影子再畫一輪，
@@ -1903,7 +1933,7 @@ function loop(now){
   treeTick(dt,now);treeFade(dt);
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
-  const g=camGoal(),a=ZM.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
+  const g=camGoal(),a=ZM.live||MZ.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
   billboardHead();
   renderer.render(scene,camera);requestAnimationFrame(loop);
 }
