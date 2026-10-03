@@ -312,7 +312,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261003i';
+const PARK_VER='20261003j';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -684,6 +684,9 @@ function updateLot(i){
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
 window.PROD=true;document.addEventListener('selectstart',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});document.addEventListener('contextmenu',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
+/* 店內體驗平板：park.html?kiosk=1 開一次就記住（?kiosk=0 取消）。不用 LINE 登入，伺服器用 "kiosk" 身分走示範模式：可以一直轉、什麼都不入帳 */
+try{if(/[?&]kiosk=1/.test(location.search))localStorage.setItem('otto2-kiosk','1');if(/[?&]kiosk=0/.test(location.search)){localStorage.removeItem('otto2-kiosk');if(sessionStorage.getItem('otto2-liff-tk')==='kiosk')sessionStorage.removeItem('otto2-liff-tk')}
+  window.KIOSK=localStorage.getItem('otto2-kiosk')==='1';if(window.KIOSK){sessionStorage.setItem('otto2-liff-tk','kiosk');document.documentElement.classList.remove('demoq')}}catch(e){}
 const LIFF_ID='2010906803-FMDYktUN';
 var NOTIFY_URL='https://otto2-notify-production.up.railway.app';
 var customer={name:'',phone:''};
@@ -1504,9 +1507,9 @@ function petTap(rc,noGo){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.v
 /* ---------- 常駐入口（吉祥物島、作品島）＋示範標籤＋每天一次的「三隻出現了」通知 ---------- */
 function isStaffNow(){try{return document.documentElement.classList.contains('demoq')||sessionStorage.getItem('otto2-park-staff')==='1'}catch(e){return false}}
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray');a.innerHTML='作品島'; /* 2026-10-03 作品島正式開放給所有人 */
-  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
+  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003i',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261003j',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1994,12 +1997,12 @@ function hud(){
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':(G.test?'11–12 月・測試模式':'11–12 月');
   const gl=gLeft();$('spin').disabled=busy||gl<=0;$('spin').textContent=gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
-  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
+  $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;placesUI();
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
-  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?'🔧 示範模式・可以一直轉（不入帳）':`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
+  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
   $('test').classList.toggle('on',G.test);$('test').textContent=G.test?'測試：無限次數':'測試：關（每天一次）';
@@ -3112,7 +3115,8 @@ function render(anim){
   if (s === "soon") banner = '<div class="gc-banner">🎉 活動 <b>' + md(st.start) + '</b> 開始！到時候每天都能來轉一次，先看看有什麼獎品吧。</div>';
   else if (s === "ended") banner = '<div class="gc-banner">活動已經結束囉，謝謝你這個月的參與 🎨</div>';
   else if (s === "test") banner = '<div class="gc-banner test">🔧 測試模式：活動 ' + md(st.start) + ' 才開始，館內老師可以先無限次玩。<b>抽到的紅利和票券都不會入帳</b>，每轉一次算集一天，正式開始前會清空。</div>';
-  if (s === "on" && st.sim) banner = '<div class="gc-banner test">🔧 示範模式（老師／工作人員）：可以一直轉，<b>抽到的紅利和票券都不會入帳</b>，也不會扣限量獎品。</div>';
+  if (s === "on" && st.sim && window.KIOSK) banner = '<div class="gc-banner">🎨 店內體驗版：歡迎隨意轉！這裡抽到的是示範，不會入帳。想每天抽真的獎品，請用 LINE 打開預約頁的扭蛋。</div>';
+  else if (s === "on" && st.sim) banner = '<div class="gc-banner test">🔧 示範模式（老師／工作人員）：可以一直轉，<b>抽到的紅利和票券都不會入帳</b>，也不會扣限量獎品。</div>';
   else if (s === "on") {
     var extras = st.chances.reasons.slice(1).map(function(r){ return r.label + (r.sure ? "（保證中）" : "") });
     if (st.doubleToday) banner += '<div class="gc-banner">🎨 今天是' + esc(st.doubleLabel || "加碼日") + '：多一次機會，而且每一次都一定中！</div>';
