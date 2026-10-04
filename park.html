@@ -162,7 +162,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .soon svg{width:14px; height:14px}
 .soon small{display:block; font-size:11px; color:#aab0c0}
 body.oct #treeBtn, body.oct .colR, body.oct .levels, body.oct #roll, body.oct #room{display:none}
-body:not(.oct) #spin, body:not(.oct) #soon, body:not(.oct) #gpanel, body:not(.oct) .octinfo, body:not(.oct) #muteBtn{display:none}
+body:not(.oct) #spin, body:not(.oct) #soon, body:not(.oct) #gpanel, body:not(.oct) .octinfo{display:none}
 body.oct .top{display:none}
 .places{display:flex; gap:8px; justify-content:center}
 .places button{font:inherit; font-size:13px; color:var(--ink); background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:5px 13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 0 var(--ink); cursor:pointer}
@@ -239,7 +239,7 @@ input,textarea{-webkit-user-select:text; user-select:text}
 /* ===== 2026-10-04 十月版面改版（大熊覺得原本太亂、比例不統一）：上面標題區、下面整齊面板、畫廊背景 ===== */
 :root{--navy:#1d2a44; --terra:#c4553b; --terraD:#8e3826; --line:#e4d9c6}
 .ohead{display:none}
-body.oct .ohead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none}
+.ohead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none}
 body.oct .ohead > *{pointer-events:auto}
 .oh-l{min-width:0; color:var(--navy); text-shadow:0 0 10px rgba(255,250,242,.9),0 0 3px rgba(255,250,242,.9)}
 .oh-logo{font:900 30px/1 "Avenir Next","Helvetica Neue",Arial,sans-serif; letter-spacing:.02em}
@@ -254,7 +254,7 @@ body.oct .ohead > *{pointer-events:auto}
 .ohb svg{width:22px; height:22px}
 .ohb:active i{transform:scale(.94)}
 .ohb:disabled{opacity:.5}
-body.oct .demotag{display:none!important}
+.demotag{display:none!important}
 body.oct #menuBtn{display:none}
 body.oct .bottom{gap:10px; padding:28px 16px 0; background:linear-gradient(180deg,rgba(250,245,236,0),rgba(250,245,236,.94) 34px)}
 .oxtra{display:none}
@@ -267,18 +267,18 @@ body.oct .oxtra:not([hidden]){display:grid; grid-template-columns:repeat(3,1fr);
 .oxtra .done{color:#7d8290}
 .oxtra .done em{color:#2e7d4f}
 .oxtra .done svg{opacity:.55}
-body.oct .places{order:2; width:100%; box-sizing:border-box; gap:0; padding:6px; background:rgba(255,253,248,.96); border:1.5px solid var(--line); border-radius:20px; box-shadow:0 3px 12px rgba(60,40,10,.06)}
-body.oct .places button{flex:1; justify-content:center; gap:6px; font-size:16px; white-space:nowrap; padding:10px 2px; border:0; border-radius:14px; background:transparent; box-shadow:none; color:var(--navy); min-width:0}
-body.oct .places button+button{border-left:1.5px solid var(--line); border-radius:0}
-body.oct .places button.on{background:#fbefd6; border-radius:14px}
-body.oct .places button.on::before{content:''; position:absolute; left:14%; right:14%; bottom:5px; height:4px; border-radius:2px; background:var(--gold)}
-body.oct .places button.on+button{border-left-color:transparent}
-body.oct .places button.dot::after{top:4px; right:6px}
+body .places{order:2; width:100%; box-sizing:border-box; gap:0; padding:6px; background:rgba(255,253,248,.96); border:1.5px solid var(--line); border-radius:20px; box-shadow:0 3px 12px rgba(60,40,10,.06)}
+body .places button{flex:1; justify-content:center; gap:6px; font-size:16px; white-space:nowrap; padding:10px 2px; border:0; border-radius:14px; background:transparent; box-shadow:none; color:var(--navy); min-width:0}
+body .places button+button{border-left:1.5px solid var(--line); border-radius:0}
+body .places button.on{background:#fbefd6; border-radius:14px}
+body .places button.on::before{content:''; position:absolute; left:14%; right:14%; bottom:5px; height:4px; border-radius:2px; background:var(--gold)}
+body .places button.on+button{border-left-color:transparent}
+body .places button.dot::after{top:4px; right:6px}
 .places .pi{display:none}
-body.oct .places .pi{display:block; width:27px; height:27px; flex:none}
-body.oct .places .chev{display:inline; color:#9a9384; font-size:18px; margin-left:-2px}
+body .places .pi{display:block; width:27px; height:27px; flex:none}
+body .places .chev{display:inline; color:#9a9384; font-size:18px; margin-left:-2px}
 .places .chev,#plPark{display:none}
-body.oct #plPark{display:inline-flex; cursor:default}
+body #plPark{display:inline-flex; cursor:default}
 body.oct .octinfo{order:3; font-size:14px; color:#5b5f6b; gap:6px}
 body.oct .octinfo b{display:none}
 body.oct .octinfo span{background:none; color:inherit; padding:0; display:inline-flex; align-items:center; gap:6px}
@@ -308,7 +308,7 @@ body.oct.busy .bottom{background:none}
   .oh-logo{font-size:25px} .oh-bar{margin:6px 0 7px; height:3.5px} .oh-k{font-size:14px} .oh-t{font-size:32px; margin:1px 0 3px} .oh-s{font-size:13px}
   .ohb i{width:42px; height:42px}
   body.oct .bottom{gap:8px; padding-top:22px}
-  body.oct .places{padding:5px} body.oct .places button{padding:8px 2px}
+  body .places{padding:5px} body .places button{padding:8px 2px}
   body.oct .mainbtns .rollbtn#spin{padding:10px 10px 9px; font-size:25px}
   body.oct .oxtra svg{width:25px; height:25px}
 }
@@ -320,8 +320,8 @@ html.demoq #menu .mhead{display:block!important}
 /* 2026-10-04 第三輪：大熊覺得下面一大塊太大遮住島 → 全部再壓扁，轉一下按鈕裡的小字拿掉 */
 body.oct .bottom{gap:6px; padding-top:14px; background:linear-gradient(180deg,rgba(250,245,236,0),rgba(250,245,236,.82) 46px)}
 body.oct .oxtra button{font-size:13px; gap:5px} body.oct .oxtra svg{width:22px; height:22px} body.oct .oxtra em{font-size:11.5px}
-body.oct .places{padding:5px; border-radius:18px} body.oct .places button{padding:9px 2px; font-size:16.5px} body.oct .places .pi{width:26px; height:26px}
-body.oct .places button.on::before{bottom:3px; height:3px}
+body .places{padding:5px; border-radius:18px} body .places button{padding:9px 2px; font-size:16.5px} body .places .pi{width:26px; height:26px}
+body .places button.on::before{bottom:3px; height:3px}
 body.oct .octinfo{font-size:12.5px} body.oct .octinfo svg{width:14px; height:14px}
 body.oct .mainbtns{gap:2px}
 body.oct .mainbtns .rollbtn#spin{padding:8px 10px; font-size:22px; border-radius:16px; box-shadow:0 4px 0 var(--terraD)}
@@ -335,6 +335,44 @@ body.oct .gpanel{flex:1; min-width:0; font-size:16px; color:var(--navy); backgro
 body.oct .gpanel small{display:block; font-size:10.5px; letter-spacing:0; color:#7a6d5a; margin-top:2px; white-space:nowrap}
 body.oct .gpanel:active{transform:translateY(3px); box-shadow:0 1px 0 #d9c8a8}
 body.oct #spin::before{margin-left:-4px}
+/* 2026-10-04 11–12 月走格子版面（照大熊的參考圖）：上面標題＋聖誕樹＋吊飾禮物＋層別，下面島切換跟十月一模一樣，擲骰子 2/3＋遊戲室 1/3 */
+body:not(.oct) .oh-l{color:#fff; text-shadow:0 2px 10px rgba(10,20,50,.6)}
+body:not(.oct) .ohb{color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.45)}
+body:not(.oct) .ohb i{color:var(--navy)}
+body:not(.oct) #ohK{display:none}
+.oh-t .oh-demo{font-size:12px; vertical-align:9px; margin-left:10px; font-weight:400; letter-spacing:.04em}
+body:not(.oct) .top{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+body:not(.oct) .colL{display:contents}
+body:not(.oct) .brand{display:none}
+body:not(.oct) .tree{display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:9px; padding:8px 10px 8px 14px; border:1.5px solid var(--line); border-radius:18px; background:rgba(255,253,248,.96); box-shadow:0 3px 12px rgba(0,0,0,.15); font-size:15px; color:var(--navy)}
+body:not(.oct) .tree .tt{display:contents}
+body:not(.oct) .tree .tt > span{order:1; white-space:nowrap}
+body:not(.oct) .tree .bar{order:2; margin:0; height:11px; border:1px solid #d8cdb8}
+body:not(.oct) .tree b{order:3; font-size:13px; white-space:nowrap}
+body:not(.oct) .tree .tt em{order:4; background:var(--green); font-size:14px; padding:5px 12px}
+body:not(.oct) .colR{width:100%; flex-direction:row; align-items:center; gap:10px; background:rgba(255,253,248,.96); border:1.5px solid var(--line); border-radius:18px; padding:6px 14px; box-sizing:border-box; box-shadow:0 3px 12px rgba(0,0,0,.15)}
+body:not(.oct) .colR .mats{order:1; display:flex; gap:4px; flex:none; opacity:1!important}
+body:not(.oct) .mat{width:30px; height:30px; aspect-ratio:auto; border:0; box-shadow:none; background:none}
+body:not(.oct) .mat.got{background:none}
+body:not(.oct) .mat img{width:100%; height:100%}
+body:not(.oct) .colR .matlbl{order:2; flex:1; color:var(--navy); text-shadow:none; font-size:15px; text-align:center; white-space:nowrap; opacity:1!important}
+.matlbl b{font-weight:400; color:var(--red); font-size:20px; margin:0 2px}
+body:not(.oct) .colR .gchip{order:3; background:none; border:0; border-left:1.5px solid var(--line); border-radius:0; box-shadow:none; padding:0 0 0 12px; font-size:15px; color:var(--navy)}
+body:not(.oct) .gchip img{width:28px; height:28px}
+body:not(.oct) .levels{align-self:center; margin:10px auto 0; width:min(250px,68%); border:1.5px solid var(--line); box-shadow:0 3px 10px rgba(0,0,0,.18)}
+body:not(.oct) .levels button+button{border-left:1.5px solid var(--line)}
+body:not(.oct) .bottom{gap:8px; padding-top:14px; background:linear-gradient(180deg,rgba(16,29,70,0),rgba(16,29,70,.45) 46px)}
+body:not(.oct) .places{order:2}
+body:not(.oct) #menuBtn{display:none}
+body:not(.oct) .mainbtns{order:4; flex-direction:row; align-items:stretch; gap:8px; margin-bottom:4px; width:100%}
+body:not(.oct) .mainbtns .rollbtn#roll{flex:2; min-width:0; padding:8px 10px; font-size:22px; letter-spacing:.12em; border-radius:16px; background:var(--terra); border:2px solid var(--terraD); box-shadow:0 4px 0 var(--terraD)}
+body:not(.oct) .mainbtns .rollbtn#roll:active{transform:translateY(3px); box-shadow:0 1px 0 var(--terraD)}
+body:not(.oct) .mainbtns .rollbtn#roll:disabled{background:#a59a92; border-color:#7c726b; box-shadow:0 4px 0 #7c726b}
+body:not(.oct) #roll::before{content:''; display:inline-block; width:28px; height:28px; margin:-5px 10px -5px -6px; vertical-align:middle; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='4' y='4' width='32' height='32' rx='8' fill='%23fff'/%3E%3Cg fill='%23c4553b'%3E%3Ccircle cx='13' cy='13' r='3.2'/%3E%3Ccircle cx='27' cy='13' r='3.2'/%3E%3Ccircle cx='20' cy='20' r='3.2'/%3E%3Ccircle cx='13' cy='27' r='3.2'/%3E%3Ccircle cx='27' cy='27' r='3.2'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+body:not(.oct) .mainbtns .roombtn{flex:1; min-width:0; background:#fffaf2; border:2px solid #d9c8a8; border-radius:16px; box-shadow:0 4px 0 #d9c8a8; padding:4px 6px; font-size:16px; color:var(--navy); justify-content:center; column-gap:5px}
+body:not(.oct) .roombtn img{width:32px; height:32px}
+body:not(.oct) .roombtn small{color:#7a6d5a; font-size:10.5px}
+body:not(.oct) #zmBack{left:auto!important; right:14px; transform:none!important; bottom:calc(env(safe-area-inset-bottom,0px) + 140px)!important}
 </style>
 
 <div id="nightVeil"></div>
@@ -344,7 +382,7 @@ body.oct #spin::before{margin-left:-4px}
 <div class="loading" id="loading">遊樂島準備中…</div>
 <div class="hud" id="hud" hidden>
   <div>
-    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t">畢卡索扭扭樂</h1><p class="oh-s">點一下，轉出你的藝術驚喜。</p></div><div class="oh-r"><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
+    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k" id="ohK">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t"><span id="ohT">畢卡索扭扭樂</span><span class="oh-demo" id="ohDemo2" hidden>示範</span></h1><p class="oh-s" id="ohS">點一下，轉出你的藝術驚喜。</p></div><div class="oh-r"><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
     <div class="top">
       <div class="colL">
         <div class="chip brand"><span id="brandT">OTTO2 遊樂島</span><small id="brandS">示範版</small></div>
@@ -354,19 +392,20 @@ body.oct #spin::before{margin-left:-4px}
       <div class="colR">
         <div class="chip gchip"><img id="giftIcon" alt=""><span>禮物 <b id="gifts">0</b></span></div>
         <div class="mats" id="mats"></div>
-        <div class="matlbl">集滿四個聖誕吊飾</div>
+        <div class="matlbl" id="matlbl">集滿四個聖誕吊飾</div>
       </div>
     </div>
+    <div class="levels" role="group" aria-label="選擇關卡">
+      <button type="button" id="lv0" class="on">第一層</button>
+      <button type="button" id="lv1"></button>
+    </div>
+
   </div>
   <div class="bottom">
     <div class="oxtra" id="oxtra" hidden></div>
     <div class="octinfo"><b>OTTO2 遊樂島・畢卡索月</b><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" fill-opacity=".15"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>聖誕走格子｜11/1 開放</span></div>
         <div class="left" id="left"></div>
     <div class="places" id="places"><button type="button" id="plPark" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品島<span class="chev" aria-hidden="true">›</span></button></div>
-    <div class="levels" role="group" aria-label="選擇關卡">
-      <button type="button" id="lv0" class="on">第一層</button>
-      <button type="button" id="lv1"></button>
-    </div>
     <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">詳細資訊<small>規則・紅利・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
   </div>
 </div>
@@ -1564,6 +1603,7 @@ function islBP(B){if(B){const v=Math.round(innerHeight-B.bot+22);try{localStorag
 function bottomWant(pt){_bv.copy(pt).project(camera);const y0=(1-_bv.y)/2*innerHeight-VSH;return innerHeight-islBP(octBand())-y0}
 function viewShift(dt){const B=octBand(),pt=innerHeight>innerWidth;let want=0;
   if(B&&G.phase==='oct'&&!overview&&!parkCam&&pt)want=bottomWant(_bh.set(PLAZA.x,-1.68,PLAZA.z+PLAZA_R-.2));
+  else if(G.phase!=='oct'&&!parkCam&&!overview&&!treeCam&&!focusAt&&pt&&!$('hud').hidden){const t=document.querySelector('.levels').getBoundingClientRect().bottom,b=$('places').getBoundingClientRect().top;if(b-t>120)want=(t+b)/2-innerHeight/2} /* 走格子：小黑熊放在上面卡片和下面按鈕中間 */
   else if(parkCam==='mascot'&&MI.state==='on'&&pt&&MI.g){const g=MI.g,k=g.scale.x,d=camera.position.clone().sub(g.position);d.y=0;d.normalize(); /* 島底座沙土層下緣（base 的 -1.9、半徑 .92R） */
     want=bottomWant(_bh.copy(g.position).addScaledVector(d,7*.92*k).setY(g.position.y-1.9*k))}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
@@ -1666,7 +1706,7 @@ function petTap(rc,noGo){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.v
 /* ---------- 常駐入口（吉祥物島、作品島）＋示範標籤＋每天一次的「三隻出現了」通知 ---------- */
 function isStaffNow(){try{return document.documentElement.classList.contains('demoq')||sessionStorage.getItem('otto2-park-staff')==='1'}catch(e){return false}}
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品島正式開放給所有人 */
-  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
+  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261004k',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
@@ -2159,6 +2199,8 @@ function hud(){
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;placesUI();
+  $('ohT').textContent=oct?'畢卡索扭扭樂':'聖誕走格子';$('ohS').textContent=oct?'點一下，轉出你的藝術驚喜。':(G.test?'11–12 月・測試模式':'11/1–12/25・每天擲一次骰子');
+  $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`;
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
   $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
@@ -2170,8 +2212,8 @@ function hud(){
   $('view').textContent=overview?(oct?'回到廣場':'跟著小黑熊'):'看全圖';$('backBtn').textContent=oct?'回到廣場':'回到小黑熊';document.body.classList.toggle('ov',overview&&!treeCam);$('menuBtn').disabled=busy;
   [...$('mats').children].forEach((m,i)=>m.classList.toggle('got',G.orn[i]));
   const lk=layersOf(G.tree);
-  if(lk>=5){$('treeFill').style.width='100%';$('treeNum').textContent='5 層全部亮了！'}
-  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=`第 ${lk+1} 層 ${Math.floor(G.tree-layerStart(lk)).toLocaleString()} / ${(LAYERS[lk]-layerStart(lk)).toLocaleString()}`}
+  if(lk>=5){$('treeFill').style.width='100%';$('treeNum').textContent='全部亮了！'}
+  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=`${Math.floor(G.tree-layerStart(lk)).toLocaleString()} / ${(LAYERS[lk]-layerStart(lk)).toLocaleString()}`;$('treeBtn').querySelector('.tt>span').textContent=`會員聖誕樹・第${lk+1}層`}
   lock2.visible=!G.booked;
   save();
 }
