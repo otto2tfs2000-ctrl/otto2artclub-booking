@@ -89,9 +89,22 @@ body.tour .tourstop{display:block}
 .tourpill{padding:8px 14px; font-size:14px}
 .btns,.btns{grid-template-columns:repeat(3,1fr)!important; width:100%; gap:8px}
 .btns .pill{padding:11px 4px; font-size:14.5px; letter-spacing:.04em}
+/* 藝術家島民看作品說話（2026-10-05） */
+.lbcm{margin-top:10px; background:#fbf6ea; border:1px solid var(--line); border-radius:14px; padding:9px 12px; text-align:left; font-size:14px; line-height:1.6; color:var(--ink)}
+.lbcm b{font-family:var(--serif); color:var(--accent); font-weight:600; margin-right:4px}
+.lbcm .pill{padding:7px 14px; font-size:13px; box-shadow:none; margin-top:6px}
+.lbcm .del{font-size:12px; color:var(--ink2); background:none; border:0; text-decoration:underline; cursor:pointer; padding:0; margin-left:8px}
+.say{position:fixed; left:50%; transform:translateX(-50%); top:calc(env(safe-area-inset-top,0px) + 110px); width:min(360px,calc(100% - 32px)); z-index:9; background:#fffdf7; border:1px solid var(--line); border-radius:20px; padding:14px 16px 12px; box-shadow:0 14px 40px rgba(40,70,90,.25); font-size:15px; line-height:1.7; color:var(--ink)}
+.say::after{content:''; position:absolute; left:50%; bottom:-10px; margin-left:-10px; border:10px solid transparent; border-bottom:0; border-top-color:#fffdf7}
+.say h4{margin:0 0 4px; font-family:var(--serif); font-weight:600; font-size:17px; color:var(--accent); letter-spacing:.06em}
+.say .acts{display:flex; justify-content:flex-end; margin-top:8px}
+.say .pill{padding:8px 18px; font-size:14px; box-shadow:none}
+.say .dots::after{content:'…'; animation:sayd 1.2s steps(4) infinite}
+@keyframes sayd{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 </style>
 
 <div id="stage"></div>
+<div class="say" id="say" hidden></div>
 <div class="loading" id="loading">島嶼正在浮上來…</div>
 <div class="hud" id="hud" hidden>
   <div class="top">
@@ -119,7 +132,7 @@ body.tour .tourstop{display:block}
 <div class="modal" id="modal" hidden><div class="panel" id="panel"></div></div>
 <div class="lb" id="lb" hidden>
   <img id="lbImg" alt="">
-  <div class="cap"><h3 id="lbT"></h3><p id="lbP"></p></div>
+  <div class="cap"><h3 id="lbT"></h3><p id="lbP"></p><div class="lbcm" id="lbCm" hidden></div></div>
   <div class="nav"><button class="pill" id="lbPrev" type="button">上一張</button><button class="pill main" id="lbX" type="button">關閉</button><button class="pill" id="lbDel" type="button" hidden>刪除</button><button class="pill" id="lbNext" type="button">下一張</button></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -783,7 +796,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261004o';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005a';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -792,14 +805,14 @@ function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
 const closeModal=()=>{$('modal').hidden=true;if(!touring)artists.forEach(a=>a.userData.hold=false)};
 let lb=null;
 function openImage(src,t,p){lb=null;$('lbDel').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
-function openList(list,i,label,del){lb={list,i,label,del};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;$('lb').hidden=false}
+function openList(list,i,label,del,house){lb={list,i,label,del,house};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;lbComment(w,house);$('lb').hidden=false}
 function groupByMonth(list){const out=new Map();list.forEach((w,i)=>{const k=w.date||'未標日期';if(!out.has(k))out.set(k,[]);out.get(k).push(i)});return[...out.entries()]}
 function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[i];return`<button type="button" data-i="${i}" aria-label="${esc(w.title||'作品')}"><img alt="" src="${w.img||demoPhoto(w.seed,160).toDataURL()}"></button>`}).join('')}</div>`}
 function houseWall(m){
   const mine=m.id===G.me,can=mine||ME.staff,list=m.works;
   modal(`<h2>${esc(m.name)}的小屋</h2><div class="meta">${list.length} 件作品・照時間排列</div><div class="wall">${list.length?groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join(''):`<div class="empty">${mine?'還沒有作品，上傳第一件吧':'還沒有作品'}</div>`}</div>
     <div class="acts">${can?`<button class="pill main" type="button" id="hwUp">${mine?'上傳作品':'老師幫忙放作品'}</button>`:''}<button class="pill" type="button" id="hwX">關閉</button></div>`);
-  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can&&!DEMO?{house:m.id}:null));
+  $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can&&!DEMO?{house:m.id}:null,m));
   $('hwX').onclick=closeModal;if(can)$('hwUp').onclick=()=>uploadTo(m);
 }
 function openAlbum(){
@@ -852,10 +865,10 @@ function uploadTo(target){
   $('uo').onclick=async()=>{if(!data)return;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`,title=$('ut').value.trim();
     const m=album?null:pickM?G.members.find(x=>x.id===$('um').value):target;
     if(!DEMO){$('uo').disabled=true;$('uo').textContent='上傳中…';
-      try{await api('/island/upload',{target:album?'album':m.id,title,full:data,thumb});await reload()}catch(e){$('uo').disabled=false;$('uo').textContent='放上去';toast(e.message);return}
+      let up=null;try{up=await api('/island/upload',{target:album?'album':m.id,title,full:data,thumb});await reload()}catch(e){$('uo').disabled=false;$('uo').textContent='放上去';toast(e.message);return}
       if(album){closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
       const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
-      const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${nm.works.length} 件作品收進小屋了`);return}
+      const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${nm.works.length} 件作品收進小屋了`);if(up&&up.id){await sleep(1200);artistVisit(nm,up.id)}return}
     if(album){G.album.push({img:data,title:title||'上課花絮',date});save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
     m.works.push({img:data,title:title||'作品',date,by:pickM?'老師':'本人'});save();closeModal();rebuildHouses();openHouseSheet(m);
     const h=houses[G.members.indexOf(m)];await sleep(700);await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${m.works.length} 件作品收進小屋了`)};
@@ -871,6 +884,27 @@ async function tour(){
   if(!order.length){cap('OTTO2 作品島','等你搬進來');await sleep(5000);stopTour();return}
   for(let i=0;touring;i=(i+1)%order.length){const m=order[i];focusOn(houses[G.members.indexOf(m)],5.6+floorsOf(m.works.length)*1.15,.6+floorsOf(m.works.length)*.6,.6);cap(`${m.name}的小屋`,m.works.length?`${m.works.length} 件作品`:'新搬來的鄰居');await sleep(4200)}
 }
+/* ===== 藝術家島民來看作品：走到小屋前面、說一兩句話（伺服器挑風格最像的藝術家，AI 看圖寫的） ===== */
+async function artistVisit(m,wid){const box=$('say');
+  box.innerHTML='<h4>藝術家島民</h4><div class="dots">有一位藝術家聽說你放了新作品，正在走過來看</div>';box.hidden=false;
+  let r=null;try{r=await api('/island/comment',{id:wid,house:m.id})}catch(e){box.hidden=true;return}
+  const k=ARTISTS.findIndex(A=>A.n===r.a),art=artists[k],h=houses[G.members.indexOf(m)];
+  if(art&&h){const u=art.userData;u.hold=true;const hp=new THREE.Vector3();h.getWorldPosition(hp);
+    /* 鏡頭用「看小屋」的角度（從島外往裡看），藝術家站在小屋前面靠鏡頭這一側、稍微偏旁邊，不擋門牌 */
+    const yaw=Math.atan2(hp.x,hp.z)+.25,ox=Math.sin(yaw),oz=Math.cos(yaw),x=hp.x+ox*1.5+oz*.9,z=hp.z+oz*1.5-ox*.9;
+    art.position.set(x,heightAt(x,z),z);u.state='linger';u.t=999;art.rotation.y=yaw-.35;
+    art.scale.setScalar(.01);tween(450,q=>art.scale.setScalar(Math.max(.01,q)));
+    const FF=floorsOf(m.works.length);focusOn(h,6.8+FF*1.15,1.7+FF*.5,.5)} /* 看的點拉高，人和小屋落在畫面中下方，不被上面的對話框擋住 */
+  box.innerHTML=`<h4>${esc(r.a)}</h4><div>${esc(r.t)}</div><div class="acts"><button class="pill main" type="button" id="sayOk">謝謝！</button></div>`;
+  const done=()=>{box.hidden=true;focus=null;if(art){art.userData.hold=false;art.userData.t=2}};
+  $('sayOk').onclick=done;try{await reload()}catch(e){}
+}
+function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.id&&(house.id===G.me||ME.staff);
+  if(w&&w.cm){el.innerHTML=`<b>${esc(w.cm.a)}</b>${esc(w.cm.t)}${ME.staff&&!DEMO&&house?'<button class="del" type="button" id="cmDel">刪留言</button>':''}`;el.hidden=false;
+    const d=$('cmDel');if(d)d.onclick=async()=>{if(!confirm('刪掉這則藝術家留言？刪了之後屋主可以再請一次。'))return;try{await api('/island/comment/del',{id:w.id,house:house.id});w.cm=null;await reload();lbComment(w,house);toast('留言刪掉了')}catch(e){toast(e.message)}};return}
+  if(canAsk&&w&&w.id){el.innerHTML='<button class="pill" type="button" id="cmAsk">請藝術家來看看這件作品</button>';el.hidden=false;
+    $('cmAsk').onclick=async()=>{$('cmAsk').disabled=true;$('cmAsk').textContent='藝術家正在看…';try{const r=await api('/island/comment',{id:w.id,house:house.id});w.cm={a:r.a,t:r.t};lbComment(w,house);reload().catch(()=>{})}catch(e){toast(e.message);$('cmAsk').disabled=false;$('cmAsk').textContent='請藝術家來看看這件作品'}};return}
+  el.hidden=true;el.innerHTML=''}
 async function summon(art){const u=art.userData;u.hold=true;
   if(u.state==='walk'&&u.next==='paint'){}else{u.state='walk';u.tgt=u.home.clone();u.next='paint'}
   if(!clearWalk(art.position,[u.home.x,u.home.z])){art.position.set(u.home.x,heightAt(u.home.x,u.home.z),u.home.z);u.state='paint';u.t=6;art.rotation.y=u.face}
@@ -895,7 +929,7 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by}))})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null}))})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
@@ -922,10 +956,10 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261004o';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005a';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
-$('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
-$('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label)};
+$('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
+$('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('lb').hidden)$('lb').hidden=true;else if(!$('modal').hidden)closeModal();else if(touring)stopTour();else if(!$('sheet').hidden)closeSheet()}});
 function safeStart(d){return start(d).catch(err=>{console.error(err);$('loading').textContent='畫面載入失敗：'+(err&&err.message||err)+'（請截圖給我）'})}
 window.claude?.hot?.ready?window.claude.hot.ready(safeStart):safeStart(window.claude?.hot?.data??{});
