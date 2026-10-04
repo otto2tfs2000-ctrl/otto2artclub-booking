@@ -367,7 +367,7 @@ body.oct #spin::before{margin-left:-4px}
       <button type="button" id="lv0" class="on">第一層</button>
       <button type="button" id="lv1"></button>
     </div>
-    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">詳細資訊<small>獎品・規則・紅利・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
+    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">詳細資訊<small>規則・紅利・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
@@ -406,7 +406,7 @@ body.oct #spin::before{margin-left:-4px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004f';
+const PARK_VER='20261004g';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
