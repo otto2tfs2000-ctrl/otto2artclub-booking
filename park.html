@@ -406,7 +406,7 @@ body.oct #spin::before{margin-left:-4px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004j';
+const PARK_VER='20261004k';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1557,9 +1557,15 @@ function camGoal0(){
 function octBand(){if(GA.band!==undefined)return GA.band;let b=null;try{const h=$('ohead'),f=$('oxtra').hidden?$('places'):$('oxtra');
   if(document.body.classList.contains('oct')&&!$('hud').hidden&&h.offsetHeight){const t=h.getBoundingClientRect().bottom,u=f.getBoundingClientRect().top;if(u-t>120)b={top:t,bot:u}}}catch(e){}return GA.band=b}
 let VSH=0;
-function viewShift(dt){const B=octBand(),on=B&&G.phase==='oct'&&!overview&&!parkCam&&innerHeight>innerWidth;let want=on?B.top+.45*(B.bot-B.top)-innerHeight/2:0;
-  /* 吉祥物島：島對到畫面頂端～下面按鈕之間，不被按鈕擋住（2026-10-04） */
-  if(parkCam==='mascot'&&MI.state==='on'&&innerHeight>innerWidth){const u=$('miUI').getBoundingClientRect().top,t=(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0)+20;if(u-t>150)want=t+(u-t)*.52-innerHeight/2}
+/* 2026-10-04 三座島（扭蛋島、吉祥物島、作品島）底部對齊同一個高度：扭蛋島的木台底邊放在下方面板上面一點，
+   距離畫面底部幾 px 存進 localStorage 'otto2-isl-bp'，吉祥物島和作品島（art.html）都照這個高度對齊，換島時才不會跳 */
+const _bv=new THREE.Vector3(),_bh=new THREE.Vector3();
+function islBP(B){if(B){const v=Math.round(innerHeight-B.bot+22);try{localStorage.setItem('otto2-isl-bp',v)}catch(e){}return v}let v=0;try{v=+localStorage.getItem('otto2-isl-bp')}catch(e){}return v>80&&v<innerHeight*.6?v:220}
+function bottomWant(pt){_bv.copy(pt).project(camera);const y0=(1-_bv.y)/2*innerHeight-VSH;return innerHeight-islBP(octBand())-y0}
+function viewShift(dt){const B=octBand(),pt=innerHeight>innerWidth;let want=0;
+  if(B&&G.phase==='oct'&&!overview&&!parkCam&&pt)want=bottomWant(_bh.set(PLAZA.x,-1.68,PLAZA.z+PLAZA_R-.2));
+  else if(parkCam==='mascot'&&MI.state==='on'&&pt&&MI.g){const g=MI.g,k=g.scale.x,d=camera.position.clone().sub(g.position);d.y=0;d.normalize(); /* 島底座沙土層下緣（base 的 -1.9、半徑 .92R） */
+    want=bottomWant(_bh.copy(g.position).addScaledVector(d,7*.92*k).setY(g.position.y-1.9*k))}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
   if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
 function resize(){GA.band=undefined;renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight);if(scene&&scene.background&&(scene.background===_gal||scene.background===_galImg))scene.background=galTex()}
@@ -1662,7 +1668,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品島正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261004i',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品島還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261004k',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
