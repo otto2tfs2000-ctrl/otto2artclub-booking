@@ -298,7 +298,8 @@ body.oct #zmBack{bottom:auto!important; top:calc(env(safe-area-inset-top,0px) + 
 body.oct .tapme{top:33%}
 body.oct .toast{top:31%}
 body.oct,body.octload{background:#f6efe3}
-body.octload .loading{color:#1d2a44}
+body.octload{background:#f6efe3 url(gacha/gallery_bg.webp?v=20261004b) center/cover no-repeat}
+body.octload .loading{color:#1d2a44; text-shadow:0 0 8px #fff}
 @media (max-height:640px){.oh-s{display:none}}
 body.oct .oxtra,body.oct .places,body.oct .octinfo{transition:opacity .25s}
 body.oct.busy .oxtra,body.oct.busy .places,body.oct.busy .octinfo{opacity:0; pointer-events:none}
@@ -387,7 +388,7 @@ html.demoq #menu .mhead{display:block!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004a';
+const PARK_VER='20261004b';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -924,13 +925,18 @@ function makeFigure(id){return makePicasso(id);const gold=id==='gold',b=makeBear
 
 function buildPlaza(){
   const P=new THREE.Group();P.position.copy(PLAZA);scene.add(P);GA.plaza=P;
-  P.add(mesh(new THREE.CylinderGeometry(PLAZA_R,PLAZA_R-.2,.55,64),[toon('#8a5a3b'),toon('#ffffff',{map:cubistGround()}),toon('#8a5a3b')],0,-.27,0));
-  P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.7,PLAZA_R-1.2,1.1,40),toon('#7a4c30'),0,-1.1,0));
-  const rock=mesh(new THREE.ConeGeometry(PLAZA_R*.62,3.4,9),toon('#6e4429'),0,-3.3,0);rock.rotation.x=Math.PI;P.add(rock);
+  /* 2026-10-04 改成放在畫廊地板上的木頭圓台（原本是飄在空中的島，底下尖尖的岩石拿掉） */
+  P.add(mesh(new THREE.CylinderGeometry(PLAZA_R,PLAZA_R-.05,.55,64),[toon('#d0a26c'),toon('#fbf6ec',{map:cubistGround()}),toon('#d0a26c')],0,-.27,0));
+  P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.12,PLAZA_R-.3,1.05,64),toon('#b98552'),0,-1.07,0));
+  P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.3,PLAZA_R-.25,.12,64),toon('#9c6c40'),0,-1.62,0));
   for(let k=0;k<84;k++){const a=k/84*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),new THREE.MeshBasicMaterial({color:['#e07a5f','#f2cc6b','#e9a35b','#fff4c2'][k%4]}));
     b.position.set(Math.cos(a)*(PLAZA_R-.12),.08,Math.sin(a)*(PLAZA_R-.12));b.userData.base=b.material.color.clone();b.userData.k=k%4;P.add(b);GA.bulbs.push(b)}
   [[-5.3,-4.6,'',.95],[3.6,-4.6,'',1.1],[5.4,-2.0,'',.85],[1.4,-5.6,'',.8]].forEach(([x,z,c,s])=>{const t=makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)});
   [[-1.0,-5.4,'#3f5f8a'],[2.4,-3.6,'#d4a347'],[5.4,.8,'#b5573f']].forEach(([x,z,c])=>{const b=new THREE.Group();b.add(mesh(new THREE.CylinderGeometry(.2,.17,.32,14),toon('#c9ced6'),0,.16,0));b.add(mesh(new THREE.CylinderGeometry(.19,.19,.04,14),toon(c),0,.33,0));const d=mesh(new THREE.SphereGeometry(.07,8,6),toon(c),.17,.25,.08);d.scale.y=1.6;b.add(d);b.position.set(x,0,z);P.add(b)});
+  /* 低多邊形綠色小樹叢（參考圖那種），放在軌道內側後排 */
+  {const BG=['#7fae6a','#93bf74','#6a9a5c','#a6c97f'];[[-2.8,-5.0,1],[-.3,-5.7,.85],[2.5,-5.4,.9],[5.6,-.4,.8],[-5.7,-1.6,1.05],[-4.1,-3.4,.75]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
+    [[0,.32,0,.42],[.38,.24,.12,.3],[-.34,.22,.1,.32],[.08,.2,.34,.26]].forEach(([bx,by,bz,r],k)=>{const m=mesh(new THREE.IcosahedronGeometry(r,0),toon(BG[(i+k)%4],{flatShading:true}),bx,by,bz);m.rotation.set(i+k,k*.7,0);b.add(m)});
+    b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)})}
   buildTrack(P);GA._easelsLater=true;
 
   // 紅色扭蛋機：照預約頁那台畫（黑色描邊、玻璃球、紅帽子、OTTO2 方向盤、灰色出口、LOVE 吊牌、LUCK 標籤）
@@ -1450,8 +1456,13 @@ async function startTour(){if(busy||G.phase!=='oct')return;G.pops={day:gToday(),
   el.hidden=true;document.body.classList.remove('touring');parkCam=null;GA.tour=null;busy=false;try{localStorage.setItem('otto2-park-tour','1')}catch(e){}hud()}
 
 /* 2026-10-04 十月背景改成明亮的畫廊（拱窗＋牆上的立體派色塊畫），一樣畫在 3D 畫面裡（不透明） */
-let _gal=null,_galK='';
-function galTex(){const W=640,H=Math.round(W*Math.min(2.4,Math.max(.5,innerHeight/innerWidth))),k=W+'x'+H;if(_gal&&_galK===k)return _gal;
+let _gal=null,_galK='',_galImg=null,_galReq=false;
+/* 大熊用 GPT 生的畫廊照片（gacha/gallery_bg.webp），載好之前先用下面畫的版本；照螢幕比例裁切（像 CSS cover） */
+function galFit(){const t=_galImg;if(!t)return;const ia=t.image.width/t.image.height,sa=innerWidth/innerHeight;
+  if(sa>ia){const r=ia/sa;t.repeat.set(1,r);t.offset.set(0,(1-r)*.5)}else{const r=sa/ia;t.repeat.set(r,1);t.offset.set((1-r)/2,0)}}
+function galTex(){if(!_galReq){_galReq=true;new THREE.TextureLoader().load('gacha/gallery_bg.webp?v=20261004b',t=>{t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;_galImg=t;galFit();if(scene&&scene.background===_gal)scene.background=t})}
+  if(_galImg){galFit();return _galImg}return galCanvas()}
+function galCanvas(){const W=640,H=Math.round(W*Math.min(2.4,Math.max(.5,innerHeight/innerWidth))),k=W+'x'+H;if(_gal&&_galK===k)return _gal;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),R=rng(7),fy=.6*H;
   let g=x.createLinearGradient(0,0,0,fy);g.addColorStop(0,'#f2e8d8');g.addColorStop(.35,'#faf4ea');g.addColorStop(1,'#f6eee1');x.fillStyle=g;x.fillRect(0,0,W,fy);
   // 天花板的拱
@@ -1530,7 +1541,7 @@ let VSH=0;
 function viewShift(dt){const B=octBand(),on=B&&G.phase==='oct'&&!overview&&!parkCam&&innerHeight>innerWidth,want=on?B.top+.62*(B.bot-B.top)-innerHeight/2:0;
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
   if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
-function resize(){GA.band=undefined;renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight);if(_gal&&scene&&scene.background===_gal)scene.background=galTex()}
+function resize(){GA.band=undefined;renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight);if(scene&&scene.background&&(scene.background===_gal||scene.background===_galImg))scene.background=galTex()}
 
 /* ---------- 教室三隻天竺鼠：嘎逼（老大）、卡布、摩卡。10 月在扭蛋廣場、11–12 月在走格子島散步，點牠們看照片 ---------- */
 const PETD={
