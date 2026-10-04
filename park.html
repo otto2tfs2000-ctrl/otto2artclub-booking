@@ -2549,15 +2549,18 @@ function gStairs(){return new Promise(res=>{
 })}
 
 /* ---------- board flow ---------- */
-async function rollDie(v){
+async function rollDie(vp){
   /* 小熊把骰子往前丟出去：拋物線飛出、在格子上彈三下邊滾邊轉，最後停在點數那一面（2026-10-03） */
-  const E={1:[0,0],6:[Math.PI,0],2:[-Math.PI/2,0],5:[Math.PI/2,0],3:[0,Math.PI/2],4:[0,-Math.PI/2]}[v];
   const b=bear.position.clone(),gy=b.y+.36;
   // 往小熊接下來要走的方向丟（沿著格子），不會丟進中間的大聖誕樹
   const N=LEVELS[G.cur].path.length,cur=G.lv[G.cur].pos,nx=tilePos(G.cur,(cur+2)%N),cp=tilePos(G.cur,cur);
   let dx=nx.x-cp.x,dz=nx.z-cp.z;const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;
   bear.rotation.y=Math.atan2(dx,dz);
-  await tween(160,p=>{bearBody.rotation.x=-.35*p});                          // 小熊往後蓄力
+  await tween(160,p=>{bearBody.rotation.x=-.35*p});                          // 小熊往後蓄力（按下去馬上動，點數同時跟伺服器拿）
+  let v=null;vp.then(x=>{v=x});while(v===null)await tween(180,p=>{bearBody.rotation.x=-.35-.08*Math.sin(p*Math.PI);bear.position.y=b.y+.06*Math.sin(p*Math.PI)}); /* 網路慢就原地小跳等一下，不會整個停住 */
+  bear.position.y=b.y;
+  if(v<0){await tween(150,p=>{bearBody.rotation.x=-.35*(1-p)});return v}
+  const E={1:[0,0],6:[Math.PI,0],2:[-Math.PI/2,0],5:[Math.PI/2,0],3:[0,Math.PI/2],4:[0,-Math.PI/2]}[v];
   const P0=new THREE.Vector3(b.x+dx*.35,b.y+1.25,b.z+dz*.35);
   // 每一段：往前多少、彈多高、花多久
   const seg=[[.75,1.35,420],[.45,.55,290],[.26,.22,210],[.1,0,220]],T=seg.reduce((a,q)=>a+q[2],0);
@@ -2574,7 +2577,7 @@ async function rollDie(v){
   die.rotation.set(E[0],0,E[1]);
   await tween(160,p=>{const s=Math.sin(p*Math.PI);dieG.scale.set(1+.12*s,1-.12*s,1+.12*s)});
   const f=$('flash');f.textContent=v;f.classList.add('on');await sleep(800);f.classList.remove('on');
-  await tween(220,p=>dieG.scale.setScalar(1-p));dieG.visible=false;dieG.scale.setScalar(1);bearBody.rotation.x=0;
+  await tween(220,p=>dieG.scale.setScalar(1-p));dieG.visible=false;dieG.scale.setScalar(1);bearBody.rotation.x=0;return v;
 }
 async function hop(to){
   const lv=G.cur,from=G.lv[lv].pos,a=tilePos(lv,from),b=tilePos(lv,to),y=bear.position.y;
@@ -2725,12 +2728,13 @@ async function donate(){
 }
 async function doRoll(){
   const L=G.lv[G.cur];if(G.phase==='oct')return;if(busy||(!G.test&&L.left<=0)||(G.cur===1&&!G.booked))return;
-  busy=true;zmReset();hud();
-  let v=0;
-  if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1]}
-    catch(e){if(e.code){toast(e.message);xmasPull();busy=false;hud();return}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
-  if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6)}
-  passedStart=false;await rollDie(v);await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}await lightTree(LIGHTS_PER_ROLL,null,false,true);
+  busy=true;zmReset();hud();sfx('tap');
+  /* 2026-10-04 大熊說按了會停頓一下：原本先等伺服器回點數才開始動畫。改成按下去小熊馬上蓄力，點數同時去拿 */
+  const vp=(async()=>{let v=0;
+    if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1]}
+      catch(e){if(e.code){toast(e.message);xmasPull();return -1}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
+    if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6)}return v})();
+  passedStart=false;const v=await rollDie(vp);if(v<0){busy=false;hud();return}await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}await lightTree(LIGHTS_PER_ROLL,null,false,true);
   busy=false;hud();
   if(!G.test&&L.left<=0)toast(G.cur===0&&G.booked&&G.lv[1].left>0?'第二層還可以擲一次喔':'今天的次數用完了，明天再來');
 }
