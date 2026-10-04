@@ -297,8 +297,8 @@ body.oct .gpanel small{font-size:14px; color:#5b5f6b; letter-spacing:.1em}
 body.oct #zmBack{bottom:auto!important; top:calc(env(safe-area-inset-top,0px) + 205px)}
 body.oct .tapme{top:33%}
 body.oct .toast{top:31%}
-body.oct,body.octload{background:#f6efe3}
-body.octload{background:#f6efe3 url(gacha/gallery_bg.webp?v=20261004e) center/cover no-repeat}
+body.oct,body.octload{background:linear-gradient(180deg,#86cdf5 0%,#bfe6fb 42%,#fff1d9 78%,#ffe0bf 100%)}
+body.octload{background:linear-gradient(180deg,#86cdf5 0%,#bfe6fb 42%,#fff1d9 78%,#ffe0bf 100%)}
 body.octload .loading{color:#1d2a44; text-shadow:0 0 8px #fff}
 @media (max-height:640px){.oh-s{display:none}}
 body.oct .oxtra,body.oct .places,body.oct .octinfo{transition:opacity .25s}
@@ -406,7 +406,7 @@ body.oct #spin::before{margin-left:-4px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004i';
+const PARK_VER='20261004j';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -884,7 +884,7 @@ function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
 /* 天空：10 月白天、11–12 月夜景。開門走過橋時 SKYHOLD 先維持白天底色，再用 #nightVeil 淡入夜空 */
 let SKYHOLD=false,SKY=0;
 function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v=$('nightVeil');if(v)v.style.opacity=SKYHOLD?SKY:0;
-  if(!scene)return;const day=oct||SKYHOLD,gal=oct&&!SKYHOLD;scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
+  if(!scene)return;const day=oct||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
   if(day){const fc=gal?'#f3ebdd':'#d9eef9';if(!scene.fog)scene.fog=new THREE.Fog(fc,40,85);scene.fog.color.set(fc).lerp(_fn.set('#16275a'),SKY)}else scene.fog=null;
   clouds.forEach(c=>c.visible=!gal);if(GA.mist&&oct)GA.mist.visible=!gal;
   /* 畫廊模式不用雲遮：廣場後面放一面看不見的牆（只寫深度），後面的走格子島、橋、鎖都不會畫出來，只看到畫廊背景 */
@@ -947,6 +947,7 @@ function buildPlaza(){
   P.add(mesh(new THREE.CylinderGeometry(PLAZA_R,PLAZA_R-.05,.55,64),[toon('#d0a26c'),toon('#fbf6ec',{map:cubistGround()}),toon('#d0a26c')],0,-.27,0));
   P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.12,PLAZA_R-.3,1.05,64),toon('#b98552'),0,-1.07,0));
   P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.3,PLAZA_R-.25,.12,64),toon('#9c6c40'),0,-1.62,0));
+  {const rock=mesh(new THREE.ConeGeometry(PLAZA_R*.66,3.6,9),toon('#8a6040',{flatShading:true}),0,-3.45,0);rock.rotation.x=Math.PI;P.add(rock)} /* 回到天空島：木台底下的岩石 */
   for(let k=0;k<84;k++){const a=k/84*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),new THREE.MeshBasicMaterial({color:['#e07a5f','#f2cc6b','#e9a35b','#fff4c2'][k%4]}));
     b.position.set(Math.cos(a)*(PLAZA_R-.12),.08,Math.sin(a)*(PLAZA_R-.12));b.userData.base=b.material.color.clone();b.userData.k=k%4;P.add(b);GA.bulbs.push(b)}
   [[-5.3,-4.6,'',.95],[3.6,-4.6,'',1.1],[5.4,-2.0,'',.85],[1.4,-5.6,'',.8]].forEach(([x,z,c,s])=>{const t=makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)});
@@ -1556,7 +1557,9 @@ function camGoal0(){
 function octBand(){if(GA.band!==undefined)return GA.band;let b=null;try{const h=$('ohead'),f=$('oxtra').hidden?$('places'):$('oxtra');
   if(document.body.classList.contains('oct')&&!$('hud').hidden&&h.offsetHeight){const t=h.getBoundingClientRect().bottom,u=f.getBoundingClientRect().top;if(u-t>120)b={top:t,bot:u}}}catch(e){}return GA.band=b}
 let VSH=0;
-function viewShift(dt){const B=octBand(),on=B&&G.phase==='oct'&&!overview&&!parkCam&&innerHeight>innerWidth,want=on?B.top+.45*(B.bot-B.top)-innerHeight/2:0;
+function viewShift(dt){const B=octBand(),on=B&&G.phase==='oct'&&!overview&&!parkCam&&innerHeight>innerWidth;let want=on?B.top+.45*(B.bot-B.top)-innerHeight/2:0;
+  /* 吉祥物島：島對到畫面頂端～下面按鈕之間，不被按鈕擋住（2026-10-04） */
+  if(parkCam==='mascot'&&MI.state==='on'&&innerHeight>innerWidth){const u=$('miUI').getBoundingClientRect().top,t=(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0)+20;if(u-t>150)want=t+(u-t)*.52-innerHeight/2}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
   if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
 function resize(){GA.band=undefined;renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight);if(scene&&scene.background&&(scene.background===_gal||scene.background===_galImg))scene.background=galTex()}
