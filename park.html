@@ -551,14 +551,21 @@ function makeMiniGacha(){const g=new THREE.Group();
   ['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a','#ff9ac0','#ffffff','#b79cff'].forEach((c,k)=>{const a=k*2.4;g.add(mesh(new THREE.SphereGeometry(.085,10,8),toon(c),Math.cos(a)*.15*(k%2?1:.55),.6+(k%3)*.1,Math.sin(a)*.15*(k%2?1:.55)))});
   g.add(mesh(new THREE.SphereGeometry(.2,14,8,0,Math.PI*2,0,Math.PI/2),toon('#d63a2f'),0,.93,0));
   g.scale.setScalar(.9);return g}
+/* 2026-10-04 雪地不要一片死白：藍灰陰影＋柔和起伏＋一點亮晶晶，邊緣稍暗（大熊說太白不舒服） */
+function snowTex(W,D){const N=1024,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d'),r=rng(31);
+  let g=x.createRadialGradient(N/2,N/2,N*.1,N/2,N/2,N*.72);g.addColorStop(0,'#e3ebf4');g.addColorStop(.65,'#d5e0ec');g.addColorStop(1,'#bccbdc');x.fillStyle=g;x.fillRect(0,0,N,N);
+  for(let k=0;k<70;k++){const cx=r()*N,cy=r()*N,rr=30+r()*110,gg=x.createRadialGradient(cx,cy,0,cx,cy,rr);const c=r()<.6?'160,182,210':'250,252,255';gg.addColorStop(0,`rgba(${c},${.3+r()*.3})`);gg.addColorStop(1,`rgba(${c},0)`);x.fillStyle=gg;x.beginPath();x.ellipse(cx,cy,rr,rr*.6,r()*3,0,Math.PI*2);x.fill()}
+  for(let k=0;k<260;k++){x.fillStyle=`rgba(255,255,255,${.5+r()*.5})`;x.fillRect(r()*N,r()*N,1.6,1.6)}
+  for(let k=0;k<60;k++){x.fillStyle=`rgba(150,175,205,${.15+r()*.15})`;x.beginPath();x.arc(r()*N,r()*N,1.5+r()*2,0,Math.PI*2);x.fill()}
+  const t=new THREE.CanvasTexture(cv);t.repeat.set(1/W,1/D);t.offset.set(.5,.5);t.anisotropy=4;return t}
 function buildIsland(lv){
   const L=LEVELS[lv],o=L.off,W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.pad||0);
   const g=new THREE.Group();g.position.copy(o);scene.add(g);
-  g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[toon('#f3f7fc'),toon('#8a5a3b')],0,-.62,0));
+  g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[toon('#b4c0cf',{map:snowTex(W,D)}) /* 顏色壓暗：夜景燈光很亮，太接近白色會整片曝成死白 */,toon('#8a5a3b')],0,-.62,0));
   g.add(mesh(roundedSlab(W-1.2,D-1.2,1.1,1,.1),[toon('#7a4c30'),toon('#7a4c30')],0,-1.85,0));
   const rock=mesh(new THREE.ConeGeometry(Math.min(W,D)*.4,3.2,7),toon('#6e4429'),0,-3.5,0);rock.rotation.x=Math.PI;g.add(rock);
   for(let k=0;k<18;k++){const a=k/18*Math.PI*2;const ic=mesh(new THREE.ConeGeometry(.08,.35+Math.random()*.3,6),toon('#cfeaff'),Math.cos(a)*(W/2-.3),-.8,Math.sin(a)*(D/2-.3));ic.rotation.x=Math.PI;g.add(ic)}
-  rrShape(W+.1,D+.1,1.15).getSpacedPoints(lv?44:60).forEach((p,k)=>{const b=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),new THREE.MeshBasicMaterial({color:['#ff5a4a','#ffd84a','#5ee08a','#6ab8ff'][k%4]}));b.position.set(p.x,.02,-p.y);b.userData.base=b.material.color.clone();b.userData.k=k%4;g.add(b);bulbs.push(b)});
+  rrShape(W+.1,D+.1,1.15).getSpacedPoints(lv?44:60).forEach((p,k)=>{const b=new THREE.Mesh(new THREE.SphereGeometry(.085,8,6),new THREE.MeshBasicMaterial({color:['#ffd98a','#fff1c4','#ffd98a','#ff8f6a'][k%4]}));b.position.set(p.x,.02,-p.y);b.userData.base=b.material.color.clone();b.userData.k=k%4;g.add(b);bulbs.push(b)});
   L.path.forEach((k,i)=>{
     const t=T[k],p=tilePos(lv,i);
     const tex=tileTexture(t);tex.repeat.set(1/TILE,1/TILE);tex.offset.set(.5,.5);
@@ -640,14 +647,15 @@ function makeBear(fur,s,statue,noHat){
   if(!noHat)g.add(santaHat(1.04,1));g.scale.setScalar(s);return g;
 }
 function makeXmasTree(s){const community=false;
-  const g=new THREE.Group(),gm=toon('#2f8f58'),sm=toon('#f3f7fc');
-  g.add(mesh(new THREE.CylinderGeometry(.14,.18,.4,8),toon('#7a4c30'),0,.2,0));
-  [[.95,1.1,.85],[.75,.95,1.45],[.52,.8,1.98]].forEach(([r,h,y])=>{g.add(mesh(new THREE.ConeGeometry(r,h,10),gm,0,y,0));g.add(mesh(new THREE.ConeGeometry(r*.55,h*.45,10),sm,0,y+h*.3,0))});
-  const cols=['#ff5a4a','#ffd84a','#6ab8ff','#ffffff','#5ee08a'],nb=community?40:14;
-  for(let k=0;k<nb;k++){const t=k/nb,a=k*2.4,y=.5+t*1.75,r=.95*(1-t*.72)+.02;
-    const b=new THREE.Mesh(new THREE.SphereGeometry(community?.06:.07,8,6),community?new THREE.MeshBasicMaterial({color:'#4a5060'}):toon(cols[k%4]));
+  /* 2026-10-04 照大熊的參考圖：深一點的綠、四層、每層有雪帽，掛暖黃小燈（像串燈）＋幾顆彩球 */
+  const g=new THREE.Group(),gm=[toon('#1f6b45',{flatShading:true}),toon('#2a7d50',{flatShading:true})],sm=toon('#eef4fa');
+  g.add(mesh(new THREE.CylinderGeometry(.14,.18,.4,8),toon('#6b4128'),0,.2,0));
+  [[1.0,1.0,.75],[.82,.9,1.25],[.62,.8,1.72],[.42,.7,2.13]].forEach(([r,h,y],i)=>{g.add(mesh(new THREE.ConeGeometry(r,h,9),gm[i%2],0,y,0));const c=mesh(new THREE.ConeGeometry(r*1.01,h*.22,9,1,true),sm,0,y+h*.06-h*.39,0);g.add(c);g.add(mesh(new THREE.ConeGeometry(r*.42,h*.3,9),sm,0,y+h*.36,0))});
+  const cols=['#ffe9a3','#fff4cf','#ffe9a3','#ff6a5a','#ffe9a3','#6ab8ff'],nb=community?40:20;
+  for(let k=0;k<nb;k++){const t=k/nb,a=k*2.4,y=.45+t*1.9,r=1.0*(1-t*.72)+.03;
+    const b=new THREE.Mesh(new THREE.SphereGeometry(community?.06:.065,8,6),community?new THREE.MeshBasicMaterial({color:'#4a5060'}):new THREE.MeshBasicMaterial({color:cols[k%6]}));
     b.position.set(Math.cos(a)*r,y,Math.sin(a)*r);g.add(b);if(community){b.userData.on=new THREE.Color(cols[k%5]);treeBulbs.push(b)}}
-  const st=new THREE.Mesh(new THREE.OctahedronGeometry(.2),new THREE.MeshBasicMaterial({color:community?'#8a8f9a':'#ffd84a'}));st.position.y=2.55;g.add(st);
+  const st=new THREE.Mesh(new THREE.OctahedronGeometry(.22),new THREE.MeshBasicMaterial({color:community?'#8a8f9a':'#ffd84a'}));st.position.y=2.62;g.add(st);
   g.scale.setScalar(s);return g;
 }
 const TREE={tiers:[],bulbs:[],flash:[0,0,0,0,0],pct:0,shown:0,pulse:0};
