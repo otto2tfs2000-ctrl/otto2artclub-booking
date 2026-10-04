@@ -448,7 +448,7 @@ body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!im
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004m';
+const PARK_VER='20261004n';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -481,7 +481,7 @@ const LEVELS=[
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
    path:['start','big','star','memo','santa','fwd', 'big','again','ginger', 'simon','santa','bell','big','fwd', 'sock','catch']},
 ];
-const GAP=1.25,TILE=1.08,TILE_H=.3;
+const GAP=1.25,TILE=1.08,TILE_H=.3,TILE_GLOW=.45;
 function cell(L,i){const{w,h}=L;
   if(i<w)return[i,h-1]; if(i<w+h-2)return[w-1,h-1-(i-w+1)]; if(i<2*w+h-3)return[w-1-(i-(w+h-2)),0]; return[0,i-(2*w+h-3)];}
 function tilePos(lv,i){const L=LEVELS[lv],[c,r]=cell(L,i);return new THREE.Vector3((c-(L.w-1)/2)*GAP,0,(r-(L.h-1)/2)*GAP).add(L.off)}
@@ -573,7 +573,7 @@ function buildIsland(lv){
   L.path.forEach((k,i)=>{
     const t=T[k],p=tilePos(lv,i);
     const tex=tileTexture(t);tex.repeat.set(1/TILE,1/TILE);tex.offset.set(.5,.5);
-    const m=mesh(roundedSlab(TILE,TILE,TILE_H,.2,.05),[toon('#ffffff',{map:tex}),toon(shade(t.c,.75))],p.x,o.y-.12,p.z);
+    const m=mesh(roundedSlab(TILE,TILE,TILE_H,.2,.05),[toon('#ffffff',{map:tex,emissive:'#ffffff',emissiveMap:tex,emissiveIntensity:TILE_GLOW}),toon(shade(t.c,.75))],p.x,o.y-.12,p.z); /* 格子表面自己發一點光：晚上燈光暗，長輩也看得清楚格子上的字（2026-10-04） */
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
     if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
@@ -928,7 +928,7 @@ const _gc=new THREE.Color();
 function dimObj(o,k){o.traverse(m=>{
   const ms=m.material?(Array.isArray(m.material)?m.material:[m.material]):[];
   ms.forEach(mt=>{if(!mt.color)return;const u=mt.userData;if(!u.c0)u.c0=mt.color.clone();const l=u.c0.r*.3+u.c0.g*.59+u.c0.b*.11;_gc.setRGB(.6+l*.26,.64+l*.25,.72+l*.22);mt.color.copy(u.c0).lerp(_gc,k)});
-  if(m.userData.gtex){const mt=m.material[0],want=k>.5?m.userData.gtex:m.userData.tex;if(mt.map!==want){mt.map=want;mt.needsUpdate=true}}})}
+  if(m.userData.gtex){const mt=m.material[0],want=k>.5?m.userData.gtex:m.userData.tex;if(mt.map!==want){mt.map=want;if(mt.emissiveMap)mt.emissiveMap=want;mt.needsUpdate=true}}})}
 const boardParts=()=>[...ISL,...Object.values(lotDeco),...Object.values(gachaDeco),lock2,...Object.values(FOREST.parts),FOREST.mine].filter(Boolean);
 function setDim(k){DIM=k;boardParts().forEach(o=>dimObj(o,k));if(!k)setTreeVisual(G.tree)}
 function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
