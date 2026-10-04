@@ -448,7 +448,7 @@ body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!im
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261004n';
+const PARK_VER='20261004o';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -481,7 +481,7 @@ const LEVELS=[
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
    path:['start','big','star','memo','santa','fwd', 'big','again','ginger', 'simon','santa','bell','big','fwd', 'sock','catch']},
 ];
-const GAP=1.25,TILE=1.08,TILE_H=.3,TILE_GLOW=.45;
+const GAP=1.25,TILE=1.08,TILE_H=.3,TILE_GLOW=.22; /* 雪地調亮後格子不用那麼亮，.45 會太刺眼 */
 function cell(L,i){const{w,h}=L;
   if(i<w)return[i,h-1]; if(i<w+h-2)return[w-1,h-1-(i-w+1)]; if(i<2*w+h-3)return[w-1-(i-(w+h-2)),0]; return[0,i-(2*w+h-3)];}
 function tilePos(lv,i){const L=LEVELS[lv],[c,r]=cell(L,i);return new THREE.Vector3((c-(L.w-1)/2)*GAP,0,(r-(L.h-1)/2)*GAP).add(L.off)}
@@ -565,7 +565,7 @@ function snowTex(W,D){const N=1024,cv=document.createElement('canvas');cv.width=
 function buildIsland(lv){
   const L=LEVELS[lv],o=L.off,W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.pad||0);
   const g=new THREE.Group();g.position.copy(o);scene.add(g);
-  g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[toon('#cfd8e6',{map:snowTex(W,D)}) /* 2026-10-04 走格子改夜晚月光後，雪用這個亮度剛好（原本白天燈光要壓到 #b4c0cf） */,toon('#8a5a3b')],0,-.62,0));
+  const stx=snowTex(W,D);g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[toon('#f2f5fa',{map:stx,emissive:'#dfe7f3',emissiveMap:stx,emissiveIntensity:.3}) /* 2026-10-04 夜晚月光下雪地要亮：底色接近白＋自己發一點光，貼圖的藍灰陰影還在 */,toon('#8a5a3b')],0,-.62,0));
   g.add(mesh(roundedSlab(W-1.2,D-1.2,1.1,1,.1),[toon('#7a4c30'),toon('#7a4c30')],0,-1.85,0));
   const rock=mesh(new THREE.ConeGeometry(Math.min(W,D)*.4,3.2,7),toon('#6e4429'),0,-3.5,0);rock.rotation.x=Math.PI;g.add(rock);
   for(let k=0;k<18;k++){const a=k/18*Math.PI*2;const ic=mesh(new THREE.ConeGeometry(.08,.35+Math.random()*.3,6),toon('#cfeaff'),Math.cos(a)*(W/2-.3),-.8,Math.sin(a)*(D/2-.3));ic.rotation.x=Math.PI;g.add(ic)}
