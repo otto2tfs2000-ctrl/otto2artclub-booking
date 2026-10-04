@@ -525,9 +525,10 @@ function tileTexture(t){
   const cv=document.createElement('canvas');cv.width=cv.height=512;const x=cv.getContext('2d');x.scale(2,2); /* 畫布加倍解析度，斜角看格子字才不糊 */
   x.fillStyle=t.c;x.fillRect(0,0,256,256);
   x.fillStyle='rgba(255,255,255,.4)';rr(18,18,220,220,34,x);x.fill();
-  icon(x,t.ic,128,104,124);
-  x.font=`${t.lbl.length>3?40:50}px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.lineWidth=10;x.strokeStyle='#fff';x.lineJoin='round';
-  x.strokeText(t.lbl,128,206);x.fillStyle='#2b2320';x.fillText(t.lbl,128,206);
+  icon(x,t.ic,128,92,104);
+  /* 2026-10-04 大熊說格子字看不清楚：改用粗體黑體、字放大、白邊加粗（原本 Huninn 細圓體斜著看會糊） */
+  x.font=`900 ${t.lbl.length>3?50:t.lbl.length>2?60:68}px "PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif`;x.textAlign='center';x.textBaseline='middle';x.lineWidth=14;x.strokeStyle='#fff';x.lineJoin='round';
+  x.strokeText(t.lbl,128,198);x.fillStyle='#1d1814';x.fillText(t.lbl,128,198);
   const tex=new THREE.CanvasTexture(cv);tex.anisotropy=renderer?renderer.capabilities.getMaxAnisotropy():8;return tex;
 }
 
