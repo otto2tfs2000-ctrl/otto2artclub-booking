@@ -84,6 +84,11 @@ body.tour .tourstop{display:block}
 .toast.on{opacity:1}
 .loading{position:fixed; inset:0; display:grid; place-items:center; color:#fff; letter-spacing:.3em; font-size:15px; font-family:var(--serif); text-shadow:0 2px 10px rgba(40,70,90,.4)}
 @media (prefers-reduced-motion:reduce){.toast,.hud{transition:none}}
+/* 2026-10-04 大熊要的版面：導覽搬到右上跟小屋數放一起，我的小屋／上傳作品／大樹相簿排成一排，島往上移 */
+.topR{display:flex; flex-direction:column; align-items:stretch; gap:8px}
+.tourpill{padding:8px 14px; font-size:14px}
+.btns,.btns{grid-template-columns:repeat(3,1fr)!important; width:100%; gap:8px}
+.btns .pill{padding:11px 4px; font-size:14.5px; letter-spacing:.04em}
 </style>
 
 <div id="stage"></div>
@@ -91,7 +96,8 @@ body.tour .tourstop{display:block}
 <div class="hud" id="hud" hidden>
   <div class="top">
     <div class="title"><h1>OTTO2 作品島</h1><p>12 位藝術家島民，和大家的小屋</p></div>
-    <div class="stats"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div></div>
+    <div class="topR"><div class="stats"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div></div>
+      <button class="pill tourpill" id="tourBtn" type="button">導覽</button></div>
   </div>
   <div class="bottom">
     <div class="hint" id="hint">點藝術家、小屋或中間的大樹看看・拖曳可以轉動島嶼</div>
@@ -99,7 +105,6 @@ body.tour .tourstop{display:block}
       <button class="pill main" id="myBtn" type="button">我的小屋</button>
       <button class="pill" id="upBtn" type="button">上傳作品</button>
       <button class="pill" id="albumBtn" type="button">大樹相簿</button>
-      <button class="pill" id="tourBtn" type="button">導覽</button>
       <button class="pill" id="homeBtn" type="button" style="grid-column:1/-1">🎈 搭熱氣球回遊戲島</button>
     </div>
   </div>
@@ -689,7 +694,7 @@ function build(){
   buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();
   addEventListener('resize',resize);resize();
 }
-function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight)}
 /* 手機跑不動時自動降畫質：連續 2 秒每格超過 1/30 秒，解析度降一級（2→1.5→1.25），再不行就關影子 */
 const PERF={acc:0,n:0};
 function perfTick(raw){if(document.hidden||!(raw>0&&raw<1))return;PERF.acc+=raw;PERF.n++;if(PERF.acc<2)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;if(avg<=1/30)return;
@@ -706,6 +711,11 @@ function camGoal(){
     if(portrait()&&!$('sheet').hidden)at.y-=d*.16}
   return{at,pos:at.clone().add(new THREE.Vector3(Math.sin(y)*Math.cos(p)*d,Math.sin(p)*d,Math.cos(y)*Math.cos(p)*d))};
 }
+/* 直式：島的中心對到「上方標題下緣～下方提示字上緣」中間偏上，藍天不會空一大塊（2026-10-04） */
+let VSH=0;
+function viewShift(dt){let want=0;if(portrait()&&!focus&&!$('hud').hidden){const t=document.querySelector('.top').getBoundingClientRect().bottom,b=$('hint').getBoundingClientRect().top;if(b-t>100)want=t+(b-t)*.3-innerHeight/2}
+  const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*4);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
+  if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
 function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition(w);w.y+=h;focus={pos:w,d,yaw:Math.atan2(w.x,w.z)+.25,pitch:pitch??.3,obj,h}}
 /* ================= loop ================= */
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
@@ -724,7 +734,7 @@ function loop(now){
     artists.forEach(a=>artistTick(a,dt,now));movers.forEach(w=>animalTick(w,dt,now));
     idleT+=dt;if(!dragging&&!focus&&!touring&&idleT>5)yaw+=dt*.03;
   }
-  const g=camGoal(),k=1-Math.pow(.05,dt);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
+  viewShift(dt);const g=camGoal(),k=1-Math.pow(.05,dt);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
   renderer.render(scene,camera);requestAnimationFrame(loop);
 }
 
@@ -769,7 +779,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261004h';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261004i';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -908,7 +918,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261004h';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261004i';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label)};
