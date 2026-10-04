@@ -373,6 +373,8 @@ body:not(.oct) .mainbtns .roombtn{flex:1; min-width:0; background:#fffaf2; borde
 body:not(.oct) .roombtn img{width:32px; height:32px}
 body:not(.oct) .roombtn small{color:#7a6d5a; font-size:10.5px}
 body:not(.oct) #zmBack{left:auto!important; right:14px; transform:none!important; bottom:calc(env(safe-area-inset-bottom,0px) + 140px)!important}
+body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!important}
+#skipOpen{position:fixed; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 24px); z-index:7; font:inherit; font-size:16px; color:#fff; background:rgba(20,28,50,.55); border:1.5px solid rgba(255,255,255,.7); border-radius:99px; padding:9px 20px; cursor:pointer; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
 </style>
 
 <div id="nightVeil"></div>
@@ -435,6 +437,7 @@ body:not(.oct) #zmBack{left:auto!important; right:14px; transform:none!important
   <div class="acts"><button type="button" class="btn ghost" id="menuX">關閉</button></div>
 </div></div>
 <div class="tapme" id="tapme" hidden></div>
+<button type="button" id="skipOpen" hidden>略過 ›</button>
 <div class="tour" id="tour" hidden></div>
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast"></div>
@@ -1156,6 +1159,7 @@ function signLook(oct){drawSign(oct?'世界藝術日':'十月活動結束・明�
 async function openPark(){ // 11/1: the gate opens and the board lights up tile by tile
   if(busy||G.phase!=='oct')return;
   busy=true;overview=false;parkCam='open';SKYHOLD=true;SKY=0;hud();ISL.forEach(o=>o.visible=true);
+  document.body.classList.add('opening');$('skipOpen').hidden=false; /* 2026-10-04 播動畫時藏起上下介面（原本把橋和小熊擋住），可以按「略過」 */
   const xp=window.PROD?xmasPull():null;
   await sleep(RM?100:450);
   await tween(450,p=>{GA.bar.rotation.z=easeOut(p)*Math.PI*.48});gateLook(true);
@@ -1176,7 +1180,7 @@ async function openPark(){ // 11/1: the gate opens and the board lights up tile 
     const A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);gateSink();
     await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=-easeIO(p)*Math.PI*2});
     bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10)}
-  bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;hud();confetti(40);
+  bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;FAST=false;document.body.classList.remove('opening');$('skipOpen').hidden=true;hud();confetti(40);
   await popup('start','聖誕走格子開放了！','11/1～12/25：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
   if(xp){await xp;placeBear()}
   await dailyOpen();busy=false;hud();
@@ -2174,8 +2178,9 @@ function mergePlaza(){if(!GA.PR)return 0;const refs=staticRefs();let n=0;GA.PR.c
 /* ---------- tween engine ---------- */
 const tweens=[];
 /* 動畫一律照原本長度播（不縮短）：之前 11–12 月把擲骰子、走格子縮到 0.1 秒，看起來「太快」 */
-const tween=(d,f)=>new Promise(r=>{tweens.push({t0:performance.now(),d,f,r})});
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let FAST=false; /* 開門動畫按「略過」：剩下的動畫一瞬間跑完 */
+const tween=(d,f)=>new Promise(r=>{tweens.push({t0:performance.now(),d:FAST?1:d,f,r})});
+const sleep=ms=>new Promise(r=>setTimeout(r,FAST?0:ms));
 const easeIn=p=>p*p*p, easeOut=p=>1-Math.pow(1-p,3), easeIO=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
 const bounce=p=>{const n=7.5625,d=2.75;if(p<1/d)return n*p*p;if(p<2/d)return n*(p-=1.5/d)*p+.75;if(p<2.5/d)return n*(p-=2.25/d)*p+.9375;return n*(p-=2.625/d)*p+.984375};
 let busy=false,tPrev=performance.now();
@@ -2824,6 +2829,7 @@ async function start(data){
   if(window.PROD&&XOPEN&&G.phase==='oct')setTimeout(()=>{openPark().then(()=>{try{localStorage.setItem('otto2-park-opened','1')}catch(e){}})},1800);
 }
 $('roll').addEventListener('click',doRoll);
+$('skipOpen').addEventListener('click',()=>{FAST=true;$('skipOpen').hidden=true;tweens.forEach(w=>w.d=1)});
 $('zmBack').addEventListener('click',zmReset);
 $('spin').addEventListener('click',spin);
 $('muteBtn').addEventListener('click',toggleMute);muteLook();
