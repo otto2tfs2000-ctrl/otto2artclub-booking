@@ -134,12 +134,15 @@ body.tour .tourstop{display:block}
 .asaid span{font-size:13.5px; line-height:1.5}
 .asaid small{display:block; color:var(--ink2); font-size:12px}
 .empty{text-align:center; color:var(--ink2); font-size:14px; padding:18px 0}
-.lb{position:fixed; inset:0; background:rgba(251,246,236,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; z-index:6}
-.lb img{max-width:min(90vw,540px); max-height:62vh; border-radius:8px; box-shadow:0 20px 60px rgba(40,70,90,.25)}
-.lb .cap{text-align:center}
+/* 2026-10-05 有留言時內容比螢幕高會上下被切、不能滑、按不到關閉 → 可捲動＋按鈕列黏在底部 */
+.lb{position:fixed; inset:0; background:rgba(251,246,236,.96); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:14px; padding:max(16px,env(safe-area-inset-top)) 16px 0; z-index:6; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+.lb img{max-width:min(92vw,540px); max-height:52vh; border-radius:8px; box-shadow:0 20px 60px rgba(40,70,90,.25); margin-top:auto; flex:none}
+.lb .cap{text-align:center; max-width:540px; flex:none}
+.lb .nav{position:sticky; bottom:0; margin-bottom:auto; flex:none; flex-wrap:wrap; justify-content:center; width:calc(100% + 32px); padding:10px 12px max(12px,env(safe-area-inset-bottom)); background:linear-gradient(rgba(251,246,236,0),rgba(251,246,236,.97) 28%)}
+.lb .nav .pill{padding:9px 13px; font-size:14px}
 .lb .cap h3{margin:0; font-family:var(--serif); font-weight:600; font-size:18px; letter-spacing:.06em}
 .lb .cap p{margin:4px 0 0; font-size:13px; color:var(--ink2)}
-.lb .nav{display:flex; gap:8px}
+.lb .nav{display:flex; gap:6px}
 .lb .nav .pill{box-shadow:none}
 .toast{position:fixed; left:50%; top:18%; transform:translateX(-50%); background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:99px; padding:8px 18px; font-size:14px; opacity:0; transition:opacity .4s; pointer-events:none; white-space:nowrap; z-index:7; box-shadow:0 8px 24px rgba(0,0,0,.08)}
 .toast.on{opacity:1}
