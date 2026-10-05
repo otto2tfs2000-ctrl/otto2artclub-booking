@@ -1300,7 +1300,7 @@ function uploadTo(target,files0){
       toast(ids.length>1?`${ids.length} 件作品收進小屋了，現在有 ${nm.works.length} 件`:`第 ${nm.works.length} 件作品收進小屋了`);
       if(tooFast)setTimeout(()=>tooFastAlert(ids.length),2600);
       if(before<PetLife.GP_WORKS&&nm.works.length>=PetLife.GP_WORKS&&!nm.pet&&nm.id===G.me)setTimeout(()=>toast('小屋蓋到三樓了！點小屋可以認養天竺鼠和青蛙'),2600);
-      if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id,fixed:true})}catch(e){}}})(); /* 其他幾張用固定台詞（不花錢），只有最後一張請 AI（2026-10-06 省錢） */
+      if(ids.length){ /* 一次多張只有最後一張請藝術家（AI）留言，其他張不留言；屋主之後可以自己按「請藝術家來看看」（2026-10-06 大熊） */
         await sleep(1200);artistVisit(nm,ids[ids.length-1])}
       return}
     if(album){items.forEach(it=>G.album.push({img:it.data,title:it.title||'上課花絮',date}));save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
