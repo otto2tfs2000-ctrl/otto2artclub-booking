@@ -893,10 +893,10 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005s';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005t';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
-  const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=canRen&&n>=PetLife.GP_WORKS,gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」・親密度 ♥ ${m.pet.love||0}。${m.id===G.me?'點牠摸摸、點碗餵牠。':''}`:'';
+  const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」・親密度 ♥ ${m.pet.love||0}。${m.id===G.me?'點牠摸摸、點碗餵牠。':''}`:'';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m),!m.pet&&m.id===G.me]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 改門牌名字（2026-10-05）：屋主改自己家，老師可以改任何一間 */
 function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫在小屋門牌上，大家逛到都看得到。</p><label for="rn">門牌名字（最多 8 個字）</label><input type="text" id="rn" maxlength="8" value="${esc(m.name)}">
@@ -1101,7 +1101,7 @@ function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(
   $('gaX').onclick=closeModal;$('gaO').onclick=()=>gpPanel(m)}
 /* 認養／修改視窗：上面 3D 預覽慢慢轉，下面選品種（只能選一次）、花色、名字 */
 let gpView=null;
-function gpPanel(m){const had=!!m.pet,B=PetLife.GP_BREEDS,Cs=PetLife.GP_COLORS,locked=!!(m.pet&&m.pet.b)&&!ME.staff;let b=(m.pet&&m.pet.b)||B[0].id,c=(m.pet&&m.pet.c)||Cs[0].id;
+function gpPanel(m){const had=!!m.pet,B=PetLife.GP_BREEDS,Cs=PetLife.GP_COLORS,locked=!!(m.pet&&m.pet.b);let b=(m.pet&&m.pet.b)||B[0].id,c=(m.pet&&m.pet.c)||Cs[0].id;
   const lv=m.pet?(m.pet.love||0):0,nx=GP_LV.find(x=>x.at>lv);
   modal(`<h2>${m.pet?'我的天竺鼠':'認養一隻天竺鼠'}</h2>${m.pet?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small></p>`:''}<div class="gpv" id="gpv"></div>
     <label>品種${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
@@ -1220,8 +1220,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005s';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005s&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005t';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005t&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
