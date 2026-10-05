@@ -757,12 +757,16 @@ function loop(now){
 
 /* ================= interaction ================= */
 const pointers=new Map();let down=null,pinch0=null;const cvEl=()=>renderer.domElement;
-function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);const h=rc.intersectObjects(picks,false)[0];return h&&h.object.userData}
+function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);const h=rc.intersectObjects(picks,false)[0];if(h)return h.object.userData;
+  /* 2026-10-05 大熊說點不到別人家：整座島看的時候小屋只有指甲大，沒點中就找手指附近（約 34px 內）最近的小屋或藝術家 */
+  const tx=e.clientX-r.left,ty=e.clientY-r.top,w=new THREE.Vector3();let best=null,bd=34*34;
+  const near=(obj,ud,lift)=>{obj.getWorldPosition(w);w.y+=lift;w.project(camera);if(w.z>1)return;const x=(w.x+1)/2*r.width,y=(1-w.y)/2*r.height,d=(x-tx)**2+(y-ty)**2;if(d<bd){bd=d;best=ud}};
+  houses.forEach((hh,i)=>near(hh,{house:G.members[i]},.5));artists.forEach(a=>near(a,{artist:a.userData.A},.6));return best}
 function onDown(e){if(touring)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});cvEl().setPointerCapture(e.pointerId);idleT=0;
   if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom};if(down)down.moved=true}}
 function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});idleT=0;
   if(pointers.size===2&&pinch0){const [a,b]=[...pointers.values()];zoom=Math.max(.5,Math.min(1.3,pinch0.zoom*pinch0.d/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))));return}
-  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>6){down.moved=true;dragging=true;if(focus)closeSheet();yaw=down.yaw-dx*.006;pitch=Math.max(.22,Math.min(1.2,down.pitch+dy*.004))}}
+  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>10){down.moved=true;dragging=true;if(focus)closeSheet();yaw=down.yaw-dx*.006;pitch=Math.max(.22,Math.min(1.2,down.pitch+dy*.004))}}
 function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(pointers.size)return;dragging=false;if(!down)return;const moved=down.moved;down=null;if(moved)return;
   const u=pick(e);if(!u){if(focus)closeSheet();return}
   if(u.airship)return openAirship();
@@ -796,7 +800,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005a';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005b';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -956,7 +960,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005a';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005b';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
