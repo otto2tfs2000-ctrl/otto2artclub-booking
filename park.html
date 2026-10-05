@@ -435,6 +435,42 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 .miknow b{display:block; font-weight:400; font-size:16px}
 .miknow small{display:block; font-size:12px; color:#7a6d5a}
 .mishot img{display:block; width:auto; max-width:100%; max-height:56vh; border-radius:14px; margin:6px auto 2px; box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.toast{white-space:normal!important; max-width:calc(100vw - 40px); text-align:center; box-sizing:border-box} /* 長的提示要能換行，不要超出畫面 */
+.miknow .tg{white-space:nowrap; font-style:normal; font-size:11px; color:#c4553b; background:#fde9e4; border-radius:99px; padding:1px 7px; margin-left:4px; vertical-align:2px}
+.miknow .tg.run{color:#7a5a1a; background:#fbefd6}
+.miknow .hh{display:block; font-style:normal; color:#e0607a; font-size:13px; letter-spacing:1px; margin-top:1px}
+#card .acts{flex-wrap:wrap}
+.plcards{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0}
+.plcards button{font:inherit; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; border:2px solid var(--line); border-radius:14px; background:#fffaf2; color:var(--ink); cursor:pointer}
+.plcards img{width:64px; height:64px; border-radius:12px; object-fit:cover}
+.plcards .lock img{filter:grayscale(1) opacity(.45)}
+.plcards b{font-weight:400; font-size:15px}
+.plcards small{font-size:11.5px; color:#7a6d5a}
+.plcards .got small{color:#2f8f58}
+.plbig{border:3px solid #e2b24a; border-radius:20px; overflow:hidden; background:#fffaf2; margin:6px 0; box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.plbig img{display:block; width:100%; max-height:42vh; object-fit:cover}
+.plbig .pb{padding:10px 14px 12px; text-align:left}
+.plbig b{font-weight:400; font-size:22px; margin-right:8px}
+.plbig span{font-size:13px; color:#7a6d5a}
+.plbig p{margin:6px 0; font-size:14px; line-height:1.6}
+.plbig i{font-style:normal; font-size:12.5px; color:#e0607a}
+.pldiary{display:flex; flex-direction:column; gap:8px; max-height:52vh; overflow:auto; margin:6px 0; text-align:left}
+.pldiary .di{display:flex; gap:10px; align-items:flex-start; padding:8px; border:1.5px solid var(--line); border-radius:14px; background:#fffaf2}
+.pldiary img{width:78px; height:78px; border-radius:10px; object-fit:cover; flex:none; cursor:pointer}
+.pldiary img.big{width:100%; height:auto; max-height:46vh; object-fit:contain}
+.pldiary .di:has(img.big){flex-direction:column}
+.pldiary b{display:block; font-weight:400; font-size:15px}
+.pldiary span{font-size:14px; line-height:1.55}
+.pldiary .dd{display:block; margin-top:4px; font:inherit; font-size:12px; color:#7a6d5a; background:none; border:0; text-decoration:underline; padding:0; cursor:pointer}
+.pldiary .none{color:#7a6d5a; font-size:14px; padding:12px; text-align:center}
+.plpick{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:8px 0}
+.plpick button{font:inherit; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; border:2px solid var(--line); border-radius:12px; background:#fffaf2; color:var(--ink); cursor:pointer}
+.plpick button.on{border-color:#c4553b; background:#fde9e4}
+.plpick img{width:40px; height:40px; border-radius:10px; object-fit:cover}
+.plfile{display:block; position:relative; overflow:hidden; text-align:center; padding:11px; border:2px dashed #d9c8a8; border-radius:14px; color:var(--navy); cursor:pointer}
+.plfile input{position:absolute; inset:0; opacity:0; cursor:pointer}
+.plpv{display:block; max-width:100%; max-height:30vh; border-radius:12px; margin:8px auto 0}
+.plt{display:block; width:100%; box-sizing:border-box; margin-top:8px; font:inherit; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:12px}
 </style>
 
 <div id="nightVeil"></div>
@@ -511,11 +547,12 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261005j"></script>
+<script src="petlife.js?v=20261005n"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005m';
+const PARK_VER='20261005n';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1159,7 +1196,8 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
-  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
+  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
+  if(plTripTap(rc))return true;
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
@@ -1792,7 +1830,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005m',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005n',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2011,7 +2049,7 @@ async function mascotGo(){
   await miWaitAll();
   parkCam='mascot';await sleep(500);
   PET.A=A2;MI.A=A2;PET.loc='mascot';MI.state='on';
-  $('miUI').hidden=false;mzLook();
+  $('miUI').hidden=false;mzLook();plArrive();
   let tip=false;try{tip=!localStorage.getItem('otto2-mi-tip');localStorage.setItem('otto2-mi-tip','1')}catch(e){}
   if(tip){$('miTip').hidden=false;setTimeout(()=>{$('miTip').hidden=true},6000)} /* 操作說明只在第一次出現 */
 }
@@ -2035,11 +2073,11 @@ function miSeat(id){const f=MI.food?MI.food.position:MI.A.food;return new THREE.
 function miGroundY(w){const l=MI.g.worldToLocal(w.clone());let h=0;
   if(Math.hypot(l.x-FW.x,l.z-FW.z)<.75)h=.18;else if(l.x>-4.4&&l.x<-2.2&&l.z>.15&&l.z<1.65)h=.16;else if(Math.hypot(l.x-FH.x,l.z-FH.z)<1.15)h=.09;else if(Math.hypot(l.x-XH.x,l.z-XH.z)<XR)h=.07;
   return MI.A.y+h*MIK}
-function miGot(id){if(MI.got[id])return;MI.got[id]=1;MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.25,1-MI.eaten/MI.need*.6));toast(MI.eaten===1?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}
+function miGot(id){if(MI.got[id])return;MI.got[id]=1;plLove(id);MI.eaten++;if(MI.food)MI.food.scale.setScalar(Math.max(.25,1-MI.eaten/MI.need*.6));toast(MI.eaten===1?PNAME[id]+'第一個搶到！':PNAME[id]+'也來搶了')}
 function miAte(){if(++MI.done>=MI.need){MI.feedWho=null;if(MI.food){scene.remove(MI.food);MI.food=null}MI.hold=false;$('miHint').hidden=true;$('miFeed').disabled=false}}
 function miFeed(kind,who){
   if(MI.state!=='on'||MI.food)return;$('miFood').hidden=true;
-  const FD0=who||FEEDERS[kind]||['gabi','kabu','moka'],P=FD0.filter(id=>PET.g[id]),frog=FD0.includes('frog');
+  const FD0=(who||FEEDERS[kind]||['gabi','kabu','moka']).filter(id=>id!=='xiong'||!plAway());if(!FD0.length){toast(`小熊翹家去「${PetLife.tripPlaceName()}」了！`);return}const P=FD0.filter(id=>PET.g[id]),frog=FD0.includes('frog');
   let f=MI.A.food.clone();if(frog&&MI.frog){const l=MI.frog.g.position,a0=Math.PI/2,T=FH.clone().add(FT);let v=null; /* 先試牠前面（鏡頭這邊），再往兩邊找空地 */
     for(const da of [0,1,-1,2,-2,3,-3,5]){const a=a0+da*.6,q=new THREE.Vector3(l.x+Math.cos(a)*1.2,0,l.z+Math.sin(a)*1.2);
       if(Math.hypot(q.x-FW.x,q.z-FW.z)>1&&!(q.x>-4.6&&q.x<-2&&q.z>0&&q.z<1.85)&&Math.hypot(q.x-T.x,q.z-T.z)>1&&Math.hypot(q.x,q.z)<5.6){v=q;break}}
@@ -2186,15 +2224,15 @@ function fStep(f,dt,now){const u=f.g.userData,pos=f.g.position,K=FRS/MIK;let a=f
       else f.wt=0}}
   else if(a.k==='snap'){const k=f.e;u.P.position.z=k<.3?Math.sin(k/.3*Math.PI)*.35:0;
     if(MI.food&&k<.14){const m=new THREE.Vector3(0,.3,.6);f.g.localToWorld(m);MI.food.position.lerpVectors(f.snap.from,m,k/.14);MI.food.scale.setScalar(1-k/.14*.7)}
-    else if(MI.food){MI.got.frog=1;MI.eaten=1;sfx('pop');toast('啪！蛙蛙叫一口吞掉了');f.gulp=.8;miAte()}
+    else if(MI.food){MI.got.frog=1;MI.eaten=1;sfx('pop');toast('啪！蛙蛙叫一口吞掉了');plLove('frog');f.gulp=.8;miAte()}
     if(k>.7){f.snap=null;u.P.position.z=0;f.cur=null;f.q.push({k:'wait',t:1.5})}}
   if(f.gulp>0)f.gulp-=dt;const gp=f.gulp>0?1+Math.sin((1-f.gulp/.8)*Math.PI)*.16:1;
   u.P.scale.set(gp,sq*(1+Math.sin(now/260)*.02),gp);  /* 喉嚨一鼓一鼓 */
   f.bl-=dt;if(f.bl<=0)f.bl=2.5+Math.random()*3.5;u.eyes.forEach(e=>e.scale.y=f.bl<.13?.2:1)}
-function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);
+function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;MI.xiong.g.visible=!plAway();if(MI.xiong.g.visible)xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);
   if(MI.fish)MI.fish.forEach(f=>{const u=f.userData;u.ph+=dt*u.sp;const c=Math.cos(u.ph),s=Math.sin(u.ph),sg=u.sp<0?-1:1;f.position.set(u.cx+c*u.rx,u.cy+Math.sin(u.ph*2.3)*.04,s*u.rz);f.rotation.y=Math.atan2(-c*u.rz*sg,-s*u.rx*sg)})}
 function frTap(rc){if(!MI.xiong)return false;const hit=rc.intersectObjects([MI.xiong.g,MI.frog.g],true)[0];if(!hit)return false;
-  let o=hit.object;while(o&&!(o.userData&&o.userData.fr))o=o.parent;if(!o)return false;const id=o.userData.id,d=FRD[id];sfx('tap');
+  let o=hit.object;while(o&&!(o.userData&&o.userData.fr))o=o.parent;if(!o)return false;const id=o.userData.id,d=FRD[id];if(id==='xiong'&&plAway())return false;sfx('tap');
   if(id==='xiong'){if(FR.lost){xFound();return true}MI.xiong.hop=.35}
   else{const f=MI.frog;if(f.cur&&f.cur.k==='bury'&&f.g.position.y<FSOIL-.2){f.t=Math.min(f.t,.8);toast('找到蛙蛙叫了！他又把自己埋在土裡');return true}
     if(f.cur&&f.cur.k==='hop')return true;toast(f.st==='soak'?'蛙蛙叫在泡澡':f.st==='stare'?'蛙蛙叫在看魚缸裡的魚':'蛙蛙叫')}
@@ -2211,16 +2249,100 @@ $('miPl0').addEventListener('click',mascotBack);
 $('miPl2').addEventListener('click',()=>{if(MI.state!=='on')return;Ferry.go({to:'art.html?v='+PARK_VER,place:'art',from:'park'})});
 $('miMute').addEventListener('click',toggleMute);
 $('miMenu').addEventListener('click',()=>{if(MI.state!=='on')return;$('menu').hidden=false;$('menuX').focus()});
-/* 認識牠們：五隻的照片＋一句話，點了鏡頭跟著那隻 */
-$('miKnow').addEventListener('click',async()=>{if(MI.state!=='on')return;sfx('tap');
-  const L=[...['gabi','kabu','moka'].map(id=>({id,d:PETD[id],o:PET.g[id]&&PET.g[id].g})),{id:'xiong',d:FRD.xiong,o:MI.xiong&&MI.xiong.g},{id:'frog',d:FRD.frog,o:MI.frog&&MI.frog.g}];
-  const v=await popup(null,'認識牠們','點一隻，鏡頭就會跟著牠。',[{t:'關閉',v:null,cls:'ghost'}],
-    `<div class="miknow">${L.map((x,i)=>`<button type="button" data-i="${i}"><img alt="" src="${x.d.img}"><span><b>${esc(x.d.name)}</b><small>${esc(x.d.role)}</small></span></button>`).join('')}</div>`);
-  void v});
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.miknow button');if(!b)return;
-  const L=[PET.g.gabi,PET.g.kabu,PET.g.moka].map(p=>p&&p.g).concat([MI.xiong&&MI.xiong.g,MI.frog&&MI.frog.g]),D=[PETD.gabi,PETD.kabu,PETD.moka,FRD.xiong,FRD.frog],i=+b.dataset.i;
-  $('pop').hidden=true;$('card').querySelector('.acts .btn')&&$('card').querySelector('.acts .btn').click();
-  if(L[i]){MZ.follow=L[i];MZ.z=Math.max(MZ.z,2.6);mzLook()}toast(`${D[i].name}：${D[i].line}`)});
+$('miKnow').addEventListener('click',()=>{if(MI.state!=='on')return;sfx('tap');plKnow()});
+
+/* ================= 小動物生活（2026-10-05）：愛心小卡、小熊每天翹家、動物日記。共用資料在 petlife.js ================= */
+const PL={diary:[],staff:false,trip:null,spr:{}};
+const plName=id=>(PETD[id]||FRD[id]||{}).name||id,plData=id=>PETD[id]||FRD[id];
+const plAway=()=>!PetLife.tripFound(); /* 今天還沒找到 → 小熊不在吉祥物島 */
+function plObj(id){return id==='xiong'?MI.xiong&&MI.xiong.g:id==='frog'?MI.frog&&MI.frog.g:PET.g[id]&&PET.g[id].g}
+/* 餵到了：每隻每天第一次 +1 顆愛心，集滿 5 顆解鎖小卡 */
+function plLove(id){const r=PetLife.love(id,'feed');if(!r.added)return;
+  setTimeout(()=>toast(`${plName(id)}的愛心 +1（${Math.min(r.n,PetLife.CARD_AT)}/${PetLife.CARD_AT}）`),1100);
+  if(r.card)setTimeout(()=>plCardBig(id,true),2600)}
+/* ---- 認識牠們：五隻的照片、愛心、新日記／翹家標記；點一隻鏡頭跟著牠 ---- */
+function plNewDiary(id){const d=PL.diary.find(x=>x.a===id);return d&&d.ts>PetLife.diarySeen(id)?d:null}
+function plKnow(){const ids=PetLife.ANIMALS.map(a=>a.id),got=ids.filter(id=>PetLife.cardDay(id)).length;
+  $('card').innerHTML=`<h2>認識牠們</h2><p>點一隻，鏡頭就會跟著牠。每天餵一次會多一顆愛心，集滿 ${PetLife.CARD_AT} 顆解鎖牠的小卡。</p>
+    <div class="miknow">${ids.map(id=>{const d=plData(id),away=id==='xiong'&&plAway(),nd=plNewDiary(id);
+      return`<button type="button" data-id="${id}"><img alt="" src="${d.img}"><span><b>${esc(d.name)}${nd?' <em class="tg">新日記</em>':''}${away?' <em class="tg run">翹家中</em>':''}</b><small>${esc(d.role)}</small><i class="hh">${PetLife.heartsHtml(id)}</i></span></button>`}).join('')}</div>
+    <div class="acts"><button type="button" class="btn" id="plCards">我的小卡 ${got}/5</button><button type="button" class="btn" id="plDiary">動物日記</button>${PL.staff?'<button type="button" class="btn" id="plWrite">寫日記</button>':''}<button type="button" class="btn ghost" id="plX">關閉</button></div>`;
+  $('pop').hidden=false;
+  $('card').querySelectorAll('.miknow button').forEach(b=>b.onclick=()=>{const id=b.dataset.id;$('pop').hidden=true;
+    if(id==='xiong'&&plAway()){toast(`小熊翹家去「${PetLife.tripPlaceName()}」了，快去找找！`);return}
+    if(plNewDiary(id)){plDiaryOf(id);return}
+    const o=plObj(id);if(o){MZ.follow=o;MZ.z=Math.max(MZ.z,2.6);mzLook()}toast(`${plName(id)}：${plData(id).line}`)});
+  $('plCards').onclick=plCards;$('plDiary').onclick=()=>plDiaryOf(null);$('plX').onclick=()=>{$('pop').hidden=true};if($('plWrite'))$('plWrite').onclick=plWrite}
+/* ---- 小卡 ---- */
+function plCards(){const ids=PetLife.ANIMALS.map(a=>a.id);
+  $('card').innerHTML=`<h2>我的小卡</h2><p>每天來餵牠們，集滿 ${PetLife.CARD_AT} 顆愛心就能收到那隻的小卡。</p><div class="plcards">${ids.map(id=>{const d=plData(id),day=PetLife.cardDay(id),n=PetLife.hearts(id);
+    return`<button type="button" data-id="${id}" class="${day?'got':'lock'}"><img alt="" src="${d.img}"><b>${esc(d.name)}</b><small>${day?'已收集':'還差 '+(PetLife.CARD_AT-n)+' 顆♥'}</small></button>`}).join('')}</div>
+    <div class="acts"><button type="button" class="btn ghost" id="plBack">回上一頁</button></div>`;$('pop').hidden=false;
+  $('card').querySelectorAll('.plcards button').forEach(b=>b.onclick=()=>{const id=b.dataset.id;if(PetLife.cardDay(id))plCardBig(id,false);else toast(`再餵 ${PetLife.CARD_AT-PetLife.hearts(id)} 天就能收到${plName(id)}的小卡`)});
+  $('plBack').onclick=plKnow}
+function plCardBig(id,isNew){const d=plData(id);sfx('pop');
+  $('card').innerHTML=`${isNew?'<h2>收到新的小卡！</h2>':''}<div class="plbig"><img alt="${esc(d.name)}" src="${d.img}"><div class="pb"><b>${esc(d.name)}</b><span>${esc(d.role)}</span><p>${esc(d.line)}</p><i>${PetLife.heartsHtml(id)}・${esc(PetLife.cardDay(id).replace(/-/g,'/'))} 收集</i></div></div>
+    <div class="acts"><button type="button" class="btn" id="plCB">${isNew?'好開心':'回小卡'}</button></div>`;$('pop').hidden=false;
+  $('plCB').onclick=()=>{if(isNew)$('pop').hidden=true;else plCards()}}
+/* ---- 小熊每天翹家：今天跑來遊樂島的話，躲在扭蛋廣場或走格子島的某個角落，點到就找到 ---- */
+const PL_OCT=[[3.6,2.2],[4.2,-1.0],[1.6,3.8],[-1.6,4.2],[2.6,-3.4],[-3.0,-2.8]]; /* 直式手機也看得到的位置（實測投影在 x 100～315px） */
+function plTripPos(){const t=PetLife.trip(),k=t.spot;
+  if(G.phase==='oct'){const o=PL_OCT[k%PL_OCT.length];return new THREE.Vector3(PLAZA.x+o[0],0,PLAZA.z+o[1])}
+  const L=LEVELS[0],n=L.path.length,i=k%n,p=tilePos(0,i),c=L.off||new THREE.Vector3(),d=new THREE.Vector3(p.x-c.x,0,p.z-c.z).normalize();
+  return p.clone().addScaledVector(d,1.15).setY(-.12)}
+function plTick(dt,now){
+  const want=PetLife.trip().place==='park'&&!PetLife.tripFound()&&MI.state==='off'&&!document.body.classList.contains('opening');
+  if(want&&!PL.trip){const g=makeXiong();g.scale.setScalar(.62);const hit=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=.5;g.add(hit);g.userData.trip=true;scene.add(g);PL.trip=g;PL.tripPh=null}
+  if(!PL.trip)return;PL.trip.visible=want;if(!want)return;
+  if(PL.tripPh!==G.phase){PL.tripPh=G.phase;PL.trip.position.copy(plTripPos());const c=camera.position;PL.trip.rotation.y=Math.atan2(c.x-PL.trip.position.x,c.z-PL.trip.position.z)}
+  const u=PL.trip.userData,ph=now/1000;u.head.rotation.y=Math.sin(ph*1.7)*.5;u.P.position.y=Math.max(0,Math.sin(ph*3.1))**8*.25}
+function plTripTap(rc){if(!PL.trip||!PL.trip.visible)return false;if(!rc.intersectObject(PL.trip,true).length)return false;
+  const g=PL.trip,w=new THREE.Vector3();g.getWorldPosition(w);sparkle(w.add(new THREE.Vector3(0,.6,0)),10);sfx('pop');
+  const r=PetLife.love('xiong','find');g.visible=false;scene.remove(g);PL.trip=null;
+  try{localStorage.setItem('otto2-xiong-found',String(xFoundN()+1))}catch(e){}
+  popup(null,'找到小熊了！',`小熊今天翹家跑來${G.phase==='oct'?'扭蛋廣場':'走格子島'}，被你抓到了。小熊的愛心 +1（${Math.min(r.n,PetLife.CARD_AT)}/${PetLife.CARD_AT}），牠已經乖乖回吉祥物島了。明天不知道又會跑去哪裡…`,[{t:'好',v:true}],
+    `<img alt="小熊" src="pets/xiong.webp" style="display:block;width:130px;height:130px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(()=>{if(r.card)plCardBig('xiong',true)});
+  return true}
+/* ---- 到吉祥物島：拿日記、問是不是老師、提醒小熊翹家 ---- */
+async function plArrive(){
+  if(plAway())setTimeout(()=>{if(MI.state==='on')toast(`小熊不在家！今天翹家去「${PetLife.tripPlaceName()}」了`)},1200);
+  try{const r=await fetch(NOTIFY_URL+'/pets/diary?t='+Date.now()).then(r=>r.json());if(r&&r.ok)PL.diary=r.list||[]}catch(e){}
+  if(token()&&token()!=='kiosk')gcall('/pets/me').then(j=>{PL.staff=!!j.staff}).catch(()=>{})}
+/* 有新日記的動物頭上冒一個小牌子；點牌子或那隻動物就打開日記 */
+function plSpr(){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;rr(6,6,244,84,40,x);x.fill();x.stroke();
+  x.fillStyle='#c4553b';x.font=`44px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText('📔 新日記',128,52);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false}));s.scale.set(1.4,.52,1);s.renderOrder=9;return s}
+function plDiaryTick(){if(MI.state!=='on'){Object.values(PL.spr).forEach(s=>s.visible=false);return}
+  PetLife.ANIMALS.forEach(({id})=>{const nd=plNewDiary(id),o=plObj(id),show=!!(nd&&o&&o.visible);let s=PL.spr[id];
+    if(show&&!s){s=PL.spr[id]=plSpr();s.userData.did=id;scene.add(s)}if(!s)return;s.visible=show;if(show){o.getWorldPosition(s.position);s.position.y+=id==='frog'||id==='xiong'?.75:1.15}})}
+function plDiaryTap(rc){const ss=Object.values(PL.spr).filter(s=>s.visible);const h=ss.length&&rc.intersectObjects(ss,false)[0];if(h){plDiaryOf(h.object.userData.did);return true}
+  for(const {id} of PetLife.ANIMALS){const o=plObj(id);if(o&&o.visible&&plNewDiary(id)&&rc.intersectObject(o,true).length){plDiaryOf(id);return true}}return false}
+const _plTick0=plTick;plTick=function(dt,now){_plTick0(dt,now);plDiaryTick()};
+/* ---- 日記清單（id＝那一隻；null＝全部） ---- */
+function plDiaryOf(id){const L=PL.diary.filter(d=>!id||d.a===id).slice(0,40);
+  if(id&&L[0])PetLife.diaryMark(id,L[0].ts);else if(!id)PetLife.ANIMALS.forEach(a=>{const f=PL.diary.find(d=>d.a===a.id);if(f)PetLife.diaryMark(a.id,f.ts)});
+  const day=ts=>{const d=new Date(ts+8*3600e3);return`${d.getUTCMonth()+1}/${d.getUTCDate()}`};
+  $('card').innerHTML=`<h2>${id?esc(plName(id))+'的日記':'動物日記'}</h2><p>老師在教室幫牠們拍的日常。</p>
+    <div class="pldiary">${L.length?L.map(d=>`<div class="di"><img alt="" src="${NOTIFY_URL}/island/img/${d.id}/t" data-full="${NOTIFY_URL}/island/img/${d.id}/f"><div><b>${esc(plName(d.a))}・${day(d.ts)}</b><span>${esc(d.t)}</span>${PL.staff?`<button type="button" class="dd" data-id="${d.id}">刪除</button>`:''}</div></div>`).join(''):'<div class="none">還沒有日記，老師拍了照就會出現在這裡。</div>'}</div>
+    <div class="acts">${PL.staff?'<button type="button" class="btn" id="plWrite2">寫日記</button>':''}<button type="button" class="btn ghost" id="plDX">關閉</button></div>`;$('pop').hidden=false;
+  $('card').querySelectorAll('.pldiary img').forEach(im=>im.onclick=()=>{im.src=im.dataset.full;im.classList.toggle('big')});
+  $('card').querySelectorAll('.pldiary .dd').forEach(b=>b.onclick=async()=>{if(!confirm('刪掉這篇日記？'))return;try{await gcall('/pets/diary/del',{id:b.dataset.id});PL.diary=PL.diary.filter(d=>d.id!==b.dataset.id);plDiaryOf(id)}catch(e){toast(e.message)}});
+  $('plDX').onclick=()=>{$('pop').hidden=true};if($('plWrite2'))$('plWrite2').onclick=plWrite}
+/* ---- 老師寫日記：選動物、拍照或選照片、寫一句話 ---- */
+function plJpeg(file,max,q){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(u);res(cv.toDataURL('image/jpeg',q))};im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
+function plWrite(){let pick='',full=null,thumb=null;
+  $('card').innerHTML=`<h2>寫動物日記</h2><p>拍一張牠們今天的樣子，大家在吉祥物島都看得到。</p>
+    <div class="plpick">${PetLife.ANIMALS.map(a=>`<button type="button" data-id="${a.id}"><img alt="" src="${a.img}">${esc(a.name)}</button>`).join('')}</div>
+    <label class="plfile">選照片<input type="file" accept="image/*" id="plF"></label><img id="plPv" class="plpv" alt="" hidden>
+    <input type="text" id="plT" maxlength="60" placeholder="寫一句話（例如：摩卡今天躲在乾草裡）" class="plt">
+    <div class="acts"><button type="button" class="btn ghost" id="plWX">取消</button><button type="button" class="btn red" id="plWO" disabled>放上去</button></div>`;$('pop').hidden=false;
+  const ok=()=>{$('plWO').disabled=!(pick&&full)};
+  $('card').querySelectorAll('.plpick button').forEach(b=>b.onclick=()=>{pick=b.dataset.id;$('card').querySelectorAll('.plpick button').forEach(x=>x.classList.toggle('on',x===b));ok()});
+  $('plF').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{full=await plJpeg(f,1280,.82);thumb=await plJpeg(f,360,.78);$('plPv').src=full;$('plPv').hidden=false;ok()}catch(err){toast('這張照片讀不到，換一張試試')}};
+  $('plWX').onclick=()=>{$('pop').hidden=true};
+  $('plWO').onclick=async()=>{$('plWO').disabled=true;$('plWO').textContent='上傳中…';
+    try{const j=await gcall('/pets/diary/add',{a:pick,t:$('plT').value.trim(),full,thumb});PL.diary.unshift({id:j.id,a:pick,t:$('plT').value.trim(),ts:Date.now()});toast('日記放上去了');plDiaryOf(pick)}
+    catch(e){toast(e.message);$('plWO').disabled=false;$('plWO').textContent='放上去'}}}
 /* 拍張照：把現在的畫面存成一張圖（下面加 OTTO2 吉祥物島＋日期），長按就能存到手機或分享 */
 $('miShot').addEventListener('click',()=>{if(MI.state!=='on')return;sfx('tap');
   try{renderer.render(scene,camera);const src=renderer.domElement,w=src.width,h=src.height,bar=Math.round(w*.12),cv=document.createElement('canvas');cv.width=w;cv.height=h+bar;const x=cv.getContext('2d');
@@ -2289,7 +2411,7 @@ function loop(now){
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>22)c.position.x=-22});
   if(!RM){const a=snow.geometry.attributes.position;for(let k=0;k<a.count;k++){let y=a.getY(k)-dt*(.6+(k%5)*.12);if(y<-6)y=16;a.setY(k,y);a.setX(k,a.getX(k)+Math.sin(now/900+k)*dt*.15)}a.needsUpdate=true}
   const ph=Math.floor(now/450)%4;bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar((b.userData.k===ph&&DIM<.5?1:.45)*(1-DIM*.8)));
-  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);frTick(dt,now);
+  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);frTick(dt,now);plTick(dt,now);
   treeTick(dt,now);treeFade(dt);
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
