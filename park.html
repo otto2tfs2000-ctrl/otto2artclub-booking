@@ -381,6 +381,31 @@ body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!im
 body.oct .bottom,body:not(.oct) .bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px)*.45 + 8px)}
 body:not(.oct) .bottom{background:linear-gradient(180deg,rgba(16,29,70,0),rgba(16,29,70,.55) 46px,rgba(16,29,70,.9))}
 body:not(.oct) .mainbtns{margin-bottom:0}
+/* 2026-10-05 走格子上方收成一條＋玩的時候自動收起（大熊嫌上面四排遮住格子）：
+   標題縮成一行；聖誕樹、吊飾、禮物併成一張兩行的細卡；第一層/第二層搬到下方島切換上面（JS 搬 DOM） */
+body:not(.oct) .oh-logo,body:not(.oct) .oh-bar,body:not(.oct) .oh-s{display:none}
+body:not(.oct) .oh-t{font-size:24px; margin:4px 0 0}
+body:not(.oct) .oh-t .oh-demo{vertical-align:4px; font-size:11px; padding:2px 10px}
+body:not(.oct) .ohb{font-size:0; gap:0}
+body:not(.oct) .ohb i{width:38px; height:38px}
+body:not(.oct) .ohb svg{width:19px; height:19px}
+body:not(.oct) .top{flex-direction:column; gap:0; margin-top:8px; padding:5px 12px 6px; background:rgba(255,253,248,.95); border:1.5px solid var(--line); border-radius:16px; box-shadow:0 3px 12px rgba(0,0,0,.15)}
+body:not(.oct) .tree{grid-template-columns:auto 1fr auto auto; gap:8px; padding:2px 0 5px; border:0; border-radius:0; background:none; box-shadow:none; font-size:13px}
+body:not(.oct) .tree .bar{height:9px}
+body:not(.oct) .tree b{font-size:12px}
+body:not(.oct) .tree .tt em{font-size:12px; padding:3px 10px}
+body:not(.oct) .colR{padding:5px 0 0; border:0; border-top:1.5px solid var(--line); border-radius:0; background:none; box-shadow:none; gap:8px}
+body:not(.oct) .mat{width:22px; height:22px}
+body:not(.oct) .colR .matlbl{font-size:13px; text-align:left}
+.matlbl b{font-size:16px}
+body:not(.oct) .colR .gchip{font-size:13px; padding-left:10px}
+body:not(.oct) .gchip img{width:22px; height:22px}
+body:not(.oct) .gchip b{font-size:16px}
+body:not(.oct) .levels{order:1; margin:0 auto; width:min(230px,62%)}
+body:not(.oct) .levels button{padding:5px 12px; font-size:14px}
+body:not(.oct) .hud > div:first-child{transition:opacity .3s}
+body.busy:not(.oct) .hud > div:first-child{opacity:0; pointer-events:none}
+body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
 </style>
 
 <div id="nightVeil"></div>
@@ -454,7 +479,7 @@ body:not(.oct) .mainbtns{margin-bottom:0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005e';
+const PARK_VER='20261005f';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1624,7 +1649,7 @@ function islBP(B){if(B){const v=Math.round(innerHeight-B.bot+22);try{localStorag
 function bottomWant(pt){_bv.copy(pt).project(camera);const y0=(1-_bv.y)/2*innerHeight-VSH;return innerHeight-islBP(octBand())-y0}
 function viewShift(dt){const B=octBand(),pt=innerHeight>innerWidth;let want=0;
   if(B&&G.phase==='oct'&&!overview&&!parkCam&&pt)want=bottomWant(_bh.set(PLAZA.x,-1.68,PLAZA.z+PLAZA_R-.2));
-  else if(G.phase!=='oct'&&!parkCam&&!overview&&!treeCam&&!focusAt&&pt&&!$('hud').hidden){const t=document.querySelector('.levels').getBoundingClientRect().bottom,b=$('places').getBoundingClientRect().top;if(b-t>120)want=(t+b)/2-innerHeight/2} /* 走格子：小黑熊放在上面卡片和下面按鈕中間 */
+  else if(G.phase!=='oct'&&!parkCam&&!overview&&!treeCam&&!focusAt&&pt&&!$('hud').hidden){const t=document.querySelector('.top').getBoundingClientRect().bottom,b=Math.min($('places').getBoundingClientRect().top,document.querySelector('.levels').getBoundingClientRect().top);if(b-t>120)want=(t+b)/2-innerHeight/2} /* 走格子：小黑熊放在上面卡片和下面按鈕中間 */
   else if(parkCam==='mascot'&&MI.state==='on'&&pt&&MI.g){const g=MI.g,k=g.scale.x,d=camera.position.clone().sub(g.position);d.y=0;d.normalize(); /* 島底座沙土層下緣（base 的 -1.9、半徑 .92R） */
     want=bottomWant(_bh.copy(g.position).addScaledVector(d,7*.92*k).setY(g.position.y-1.9*k))}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
@@ -2861,6 +2886,7 @@ $('book').addEventListener('click',()=>{
 $('nextday').addEventListener('click',nextDay);
 $('classBtn').addEventListener('click',classCheckin);
 $('treeBtn').addEventListener('click',donate);
+{const lv=document.querySelector('.levels');$('places').before(lv)} /* 2026-10-05 第一層/第二層搬到下方（十月本來就藏起來） */
 $('test').addEventListener('click',()=>{if(busy)return;G.test=!G.test;hud();toast(G.test?'測試模式：可以一直擲':'改回正式規則：每層每天一次')});
 $('room').addEventListener('click',gameRoom);
 $('menuBtn').addEventListener('click',()=>{if(busy)return;$('menu').hidden=false;$('menuX').focus()});
