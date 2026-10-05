@@ -6,7 +6,7 @@
 <title>吉祥物島</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@600&family=Cormorant+Garamond:ital,wght@1,500&display=swap">
 <style>
-/* 版面：全螢幕淺色天空的小島，左上標題、下方三個分頁和一個動作鈕。色調沿用作品島的橄欖綠、砂岩和霧感天空，但更圓、更柔 */
+/* 版面：全螢幕淺色天空的小島，左上標題、下方三個分頁和一個動作鈕。色調沿用作品小屋的橄欖綠、砂岩和霧感天空，但更圓、更柔 */
 :root{--sky1:#e2eee8;--sky2:#f4e8de;--ink:#294136;--ink2:#4c6656;--paper:#fffaf0;--line:rgba(41,65,54,.22);--gold:#e8b94a;color-scheme:light}
 html,body{height:100%}
 body{margin:0;background:#e2eee8;color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
@@ -52,7 +52,7 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div id="game"></div>
-<div id="head"><a id="back" href="park.html?v=20261005h">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
+<div id="head"><a id="back" href="park.html?v=20261005i">← 回遊戲</a><h1>OTTO2 吉祥物島</h1><em>little friends of the classroom</em><p id="capD"></p></div>
 <div id="bar">
   <div id="food" hidden role="group" aria-label="選食物"></div>
   <div id="dest" role="group" aria-label="選一個地方出發"></div>
@@ -61,11 +61,11 @@ button:disabled{opacity:.5;cursor:default}
 <div id="toast" role="status"></div>
 <div id="err">這個瀏覽器打不開 3D 畫面，請換 Safari 或 Chrome 試試。</div>
 
-<script src="ferry.js?v=20261002x"></script>
+<script src="ferry.js?v=20261005i"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261005h';
+const IMG={kabu:'pets/kabu.webp',gabi:'pets/gabi.webp',moka:'pets/moka.webp'};const PARK='park.html?v=20261005i';
 const $=id=>document.getElementById(id);
 if(!window.THREE){$('err').style.display='flex';return}
 const V3=THREE.Vector3;
@@ -335,13 +335,13 @@ function loop(now){
   renderer.render(scene,camera);requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 
-/* ---------- 選一個地方出發：本月活動＋常駐的作品島；管理者可以直接進所有地方 ---------- */
+/* ---------- 選一個地方出發：本月活動＋常駐的作品小屋；管理者可以直接進所有地方 ---------- */
 const NOTIFY='https://otto2-notify-production.up.railway.app',VER='20261005c';
 const DEST={
   gacha:{t:'畢卡索扭扭樂',s:'十月・扭蛋機，到 10/31',u:'park.html?v='+VER+'&phase=oct'},
   xmas:{t:'聖誕走格子',s:'11/1 起・擲骰子走格子',u:'park.html?v='+VER+'&phase=nov'},
-  art:{t:'作品島',s:'15 週年・大家的作品',u:'art.html?v=20261005c'}};
-const ART_PUBLIC=true; /* 2026-10-03 作品島雲端版正式開放給所有人 */
+  art:{t:'作品小屋',s:'15 週年・大家的作品',u:'art.html?v=20261005i'}};
+const ART_PUBLIC=true; /* 2026-10-03 作品小屋雲端版正式開放給所有人 */
 const taipei=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 let CUR=(t=>t<'2026-11-01'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
 function isAdmin(){try{return sessionStorage.getItem('otto2-park-staff')==='1'||localStorage.getItem('otto2-park-demo')==='1'}catch(e){return false}}

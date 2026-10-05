@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>OTTO2 作品島</title>
+<title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&display=swap">
@@ -90,6 +90,16 @@ body.tour .tourstop{display:block}
 .btns,.btns{grid-template-columns:repeat(3,1fr)!important; width:100%; gap:8px}
 .btns .pill{padding:11px 4px; font-size:14.5px; letter-spacing:.04em}
 /* 藝術家島民看作品說話（2026-10-05） */
+/* 訪客按讚／愛心／小花（2026-10-05） */
+.lbrx{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px}
+.rxb{font:inherit; display:flex; align-items:center; gap:5px; padding:6px 14px; border-radius:99px; border:1.5px solid var(--line); background:#fffdf7; color:var(--ink); font-size:15px; cursor:pointer}
+.rxb span{font-size:18px; line-height:1}
+.rxb b{font-weight:600; min-width:1ch}
+.rxb.on{background:#fde9e4; border-color:#e8a597}
+.rxb:active{transform:scale(.93)}
+.rxwho{flex-basis:100%; background:none; border:0; color:var(--ink2); font:inherit; font-size:13px; text-decoration:underline; cursor:pointer; padding:2px}
+.rxlist{max-height:50vh; overflow:auto; text-align:left; margin:8px 0}
+.rxlist div{display:flex; justify-content:space-between; gap:10px; padding:8px 4px; border-bottom:1px solid var(--line); font-size:15px}
 .lbcm{margin-top:10px; background:#fbf6ea; border:1px solid var(--line); border-radius:14px; padding:9px 12px; text-align:left; font-size:14px; line-height:1.6; color:var(--ink)}
 .lbcm b{font-family:var(--serif); color:var(--accent); font-weight:600; margin-right:4px}
 .lbcm .pill{padding:7px 14px; font-size:13px; box-shadow:none; margin-top:6px}
@@ -123,7 +133,7 @@ body.tour #tags{display:none}
 <div class="loading" id="loading">島嶼正在浮上來…</div>
 <div class="hud" id="hud" hidden>
   <div class="top">
-    <div class="title"><h1>OTTO2 作品島</h1><p>12 位藝術家島民，和大家的小屋</p></div>
+    <div class="title"><h1>OTTO2 作品小屋</h1><p>12 位藝術家島民，和大家的小屋</p></div>
     <div class="topR"><button class="stats" id="findBtn" type="button" aria-label="找小屋"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div><div class="findl">找小屋 ›</div></button>
       <button class="pill tourpill" id="tourBtn" type="button">導覽</button></div>
   </div>
@@ -147,12 +157,12 @@ body.tour #tags{display:none}
 <div class="modal" id="modal" hidden><div class="panel" id="panel"></div></div>
 <div class="lb" id="lb" hidden>
   <img id="lbImg" alt="">
-  <div class="cap"><h3 id="lbT"></h3><p id="lbP"></p><div class="lbcm" id="lbCm" hidden></div></div>
+  <div class="cap"><h3 id="lbT"></h3><p id="lbP"></p><div class="lbrx" id="lbRx" hidden></div><div class="lbcm" id="lbCm" hidden></div></div>
   <div class="nav"><button class="pill" id="lbPrev" type="button">上一張</button><button class="pill main" id="lbX" type="button">關閉</button><button class="pill" id="lbDel" type="button" hidden>刪除</button><button class="pill" id="lbNext" type="button">下一張</button></div>
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="ferry.js?v=20261002x"></script>
+<script src="ferry.js?v=20261005i"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -815,16 +825,16 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005h';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005i';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* ================= walls, album, lightbox ================= */
 function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
-const closeModal=()=>{$('modal').hidden=true;if(!touring)artists.forEach(a=>a.userData.hold=false)};
+const closeModal=()=>{$('modal').hidden=true;$('modal').style.zIndex='';if(!touring)artists.forEach(a=>a.userData.hold=false)};
 let lb=null;
-function openImage(src,t,p){lb=null;$('lbDel').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
-function openList(list,i,label,del,house){lb={list,i,label,del,house};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;lbComment(w,house);$('lb').hidden=false}
+function openImage(src,t,p){lb=null;$('lbDel').hidden=true;$('lbRx').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
+function openList(list,i,label,del,house){lb={list,i,label,del,house};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;lbComment(w,house);lbRx(w,house);$('lb').hidden=false}
 function groupByMonth(list){const out=new Map();list.forEach((w,i)=>{const k=w.date||'未標日期';if(!out.has(k))out.set(k,[]);out.get(k).push(i)});return[...out.entries()]}
 function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[i];return`<button type="button" data-i="${i}" aria-label="${esc(w.title||'作品')}"><img alt="" src="${w.img||demoPhoto(w.seed,160).toDataURL()}"></button>`}).join('')}</div>`}
 function houseWall(m){
@@ -865,7 +875,7 @@ function joinPanel(){
     const h=houses[houses.length-1];h.scale.setScalar(.01);openHouseSheet(m);await sleep(800);await tween(1200,q=>h.scale.setScalar(Math.max(.01,q<.7?q/.7*1.08:1.08-(q-.7)/.3*.08)));toast('小屋蓋好了，放第一件作品吧')};
 }
 function upPanel(){
-  if(!DEMO){if(!ME.ok){toast(ME.err||'請從 LINE 的 OTTO2 預約頁打開作品島，才能上傳');return}
+  if(!DEMO){if(!ME.ok){toast(ME.err||'請從 LINE 的 OTTO2 預約頁打開作品小屋，才能上傳');return}
     if(!ME.staff){const mine=G.members.find(m=>m.id===G.me);if(mine)uploadTo(mine);else joinPanel();return}}
   modal(`<h2>上傳</h2><p>${DEMO?'示範版：照片只存在這支手機。':'老師身分：可以放大樹相簿，也可以幫學員放作品。'}</p><div class="acts" style="flex-direction:column">
     <button class="pill main" type="button" id="asMe">我是學員：放進我的小屋</button><button class="pill" type="button" id="asAl">我是老師：上課照片放進大樹相簿</button><button class="pill" type="button" id="asTm">我是老師：幫學員放作品</button><button class="pill" type="button" id="asX">取消</button></div>`);
@@ -896,11 +906,11 @@ function uploadTo(target){
 async function tour(){
   touring=true;document.body.classList.add('tour');closeSheet();closeModal();
   const cap=(a,b)=>{$('tourName').textContent=a;$('tourInfo').textContent=b};
-  cap('OTTO2 作品島',`${G.members.length} 間小屋・${G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length} 件作品`);focus=null;await sleep(5000);
+  cap('OTTO2 作品小屋',`${G.members.length} 間小屋・${G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length} 件作品`);focus=null;await sleep(5000);
   if(!touring)return;focusOn(bigTree,12,4.2);cap('大樹','上課的點點滴滴都收在這裡');await sleep(5000);
   for(let i=0;touring&&i<ARTISTS.length;i++){const A=ARTISTS[i];await summon(artists[i]);if(!touring)break;focusOn(artists[i],4,1.1);cap(A.n,`正在畫《${A.work}》`);await sleep(4200);artists[i].userData.hold=false}
   const order=[...G.members].sort((a,b)=>b.works.length-a.works.length);
-  if(!order.length){cap('OTTO2 作品島','等你搬進來');await sleep(5000);stopTour();return}
+  if(!order.length){cap('OTTO2 作品小屋','等你搬進來');await sleep(5000);stopTour();return}
   for(let i=0;touring;i=(i+1)%order.length){const m=order[i];focusOn(houses[G.members.indexOf(m)],5.6+floorsOf(m.works.length)*1.15,.6+floorsOf(m.works.length)*.6,.6);cap(`${m.name}的小屋`,m.works.length?`${m.works.length} 件作品`:'新搬來的鄰居');await sleep(4200)}
 }
 /* ===== 藝術家島民來看作品：走到小屋前面、說一兩句話（伺服器挑風格最像的藝術家，AI 看圖寫的） ===== */
@@ -924,6 +934,21 @@ function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.
   if(canAsk&&w&&w.id){el.innerHTML='<button class="pill" type="button" id="cmAsk">請藝術家來看看這件作品</button>';el.hidden=false;
     $('cmAsk').onclick=async()=>{$('cmAsk').disabled=true;$('cmAsk').textContent='藝術家正在看…';try{const r=await api('/island/comment',{id:w.id,house:house.id});w.cm={a:r.a,t:r.t};lbComment(w,house);reload().catch(()=>{})}catch(e){toast(e.message);$('cmAsk').disabled=false;$('cmAsk').textContent='請藝術家來看看這件作品'}};return}
   el.hidden=true;el.innerHTML=''}
+/* ===== 訪客按讚／愛心／小花：有 LINE 登入就能按，每種一次、再按取消；屋主（和老師）看得到誰按的 ===== */
+const RXI={l:'👍',h:'❤️',f:'🌸'},RXN={l:'讚',h:'愛心',f:'小花'};
+function lbRx(w,house){const el=$('lbRx');if(DEMO||!w||!w.id||!house||!house.id){el.hidden=true;el.innerHTML='';return}
+  const cur=()=>lb&&lb.list[lb.i]===w;
+  const draw=d=>{const c=d.rx||{},m=d.mine||{};
+    el.innerHTML=['l','h','f'].map(k=>`<button type="button" class="rxb${m[k]?' on':''}" data-k="${k}" aria-label="${RXN[k]}" aria-pressed="${!!m[k]}"><span>${RXI[k]}</span><b>${c[k]||0}</b></button>`).join('')+
+      (d.who&&d.who.length?`<button type="button" class="rxwho" id="rxWho">看是誰按的（${d.who.length} 人）</button>`:'');
+    el.hidden=false;
+    el.querySelectorAll('.rxb').forEach(b=>b.onclick=async()=>{if(!token()){toast('從 LINE 的 OTTO2 預約頁打開，才能按讚');return}
+      if(el.dataset.busy)return;el.dataset.busy='1';const k=b.dataset.k,on=!b.classList.contains('on'),n=b.querySelector('b');
+      b.classList.toggle('on',on);n.textContent=Math.max(0,(+n.textContent||0)+(on?1:-1)); /* 先在畫面上變，伺服器回來再對齊 */
+      try{const r=await api('/island/rx',{id:w.id,house:house.id,k});w.rx=r.rx;if(cur())draw(r)}catch(e){toast(e.message);if(cur())draw(d)}finally{delete el.dataset.busy}});
+    const wb=$('rxWho');if(wb)wb.onclick=()=>{modal(`<h2>誰喜歡這件作品</h2><div class="rxlist">${d.who.map(x=>`<div><span>${esc(x.n)}</span><span>${['l','h','f'].filter(k=>x[k]).map(k=>RXI[k]).join(' ')}</span></div>`).join('')}</div><div class="acts"><button class="pill" type="button" id="rxX">關閉</button></div>`);$('rxX').onclick=closeModal;$('modal').style.zIndex=7}};
+  draw({rx:w.rx});
+  if(token())api('/island/rx/get',{id:w.id,house:house.id}).then(d=>{w.rx=d.rx;if(cur())draw(d)}).catch(()=>{})}
 /* ===== 找小屋：名單可以打字找名字，點了鏡頭飛過去 ===== */
 function findHouse(){const rows=q=>{const k=q.trim().toLowerCase(),list=G.members.map((m,i)=>({m,i})).filter(o=>!k||o.m.name.toLowerCase().includes(k))
     .sort((a,b)=>(b.m.id===G.me)-(a.m.id===G.me)||b.m.works.length-a.m.works.length);
@@ -965,12 +990,12 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null}))})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}}))})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
   try{if(!ssTok()&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),sleep(4000)])}}catch(e){}
-  if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品島，才能搬家、上傳'};return}
+  if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品小屋，才能搬家、上傳'};return}
   try{const j=await api('/island/me');ME=Object.assign({ok:true},j);if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
 function save(){if(!DEMO)return;try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
 async function start(data){
@@ -979,7 +1004,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品島，請稍後重新打開');whoAmI()}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI()}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
@@ -992,7 +1017,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005h';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005i';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};

@@ -6,7 +6,7 @@
    角色造型（makeBear / makePet / 畢卡索）是從 park.html 原樣搬來的，park.html 改了造型這裡要跟著改。 */
 (function(){
 if(window.Ferry)return;
-var KEY='otto2-ferry',PLACE={art:'作品島',park:'歡樂島'};
+var KEY='otto2-ferry',PLACE={art:'作品小屋',park:'歡樂島'};
 /* 每個月的交通工具與乘客；沒列到的月份用預設（熱氣球、不帶畢卡索）。畢卡索是十月生日才出場 */
 var VEH={'10':{stripes:['#cfa94f','#ece3cc','#c0705a','#ece3cc'],picasso:true},def:{stripes:['#7d9e90','#efe6cf','#8a9bbd','#efe6cf'],picasso:false}};
 function month(){return new Date(Date.now()+8*3600e3).toISOString().slice(5,7)}
@@ -248,7 +248,7 @@ function go(opt){
     var jobs=[];
     S.cast.forEach(function(c,i){jobs.push(sleep(i*330).then(function(){if(S.dead)return;return hop(S,c,function(){return S.slotPos(c)},750,true)}))});
     await Promise.all(jobs);if(S.dead)return;
-    cap(S,'出發！去'+(PLACE[opt.place]||'作品島'));await sleep(550);if(S.dead)return;
+    cap(S,'出發！去'+(PLACE[opt.place]||'作品小屋'));await sleep(550);if(S.dead)return;
     await tween(S,2100,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=S.landX+Math.sin(p*5)*.5+p*1.2;S.veil.style.opacity=p>.55?(p-.55)/.45:0});
     if(S.dead)return;leave()})()}
 
@@ -269,9 +269,9 @@ function arrive(){
   var pre=el('div','','');pre.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#f2f7f6';document.documentElement.appendChild(pre);
   waitThree(function(ok){
     if(!ok){pre.remove();return}
-    var S;try{S=build('l',d.list,PLACE[d.place]||'作品島')}catch(e){console.error(e);pre.remove();return}
+    var S;try{S=build('l',d.list,PLACE[d.place]||'作品小屋')}catch(e){console.error(e);pre.remove();return}
     active=S;document.documentElement.appendChild(S.root);pre.remove();S.veil.style.opacity=1;
-    var home=PLACE[d.place]||'作品島';
+    var home=PLACE[d.place]||'作品小屋';
     S.skip.onclick=function(){S.dead=true;waitReady({dead:false},12000).then(function(){S.destroy();active=null})};
     S.cast.forEach(function(c){c.on=true});
     S.bal.y=18;
