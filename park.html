@@ -448,7 +448,7 @@ body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!im
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005c';
+const PARK_VER='20261005d';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -935,7 +935,7 @@ function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
 /* 天空：10 月白天、11–12 月夜景。開門走過橋時 SKYHOLD 先維持白天底色，再用 #nightVeil 淡入夜空 */
 let SKYHOLD=false,SKY=0;
 function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v=$('nightVeil');if(v)v.style.opacity=SKYHOLD?SKY:0;
-  if(!scene)return;const day=oct||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
+  if(!scene)return;document.body.classList.remove('octload'); /* 2026-10-05 載入完就拿掉十月載入底色，不然十月切到走格子背景會一直是亮藍天空 */const day=oct||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
   if(day){const fc=gal?'#f3ebdd':'#d9eef9';if(!scene.fog)scene.fog=new THREE.Fog(fc,40,85);scene.fog.color.set(fc).lerp(_fn.set('#16275a'),SKY)}else scene.fog=null;
   /* 2026-10-04 走格子是晚上：燈光改成偏藍的月光、暗一點，聖誕樹和串燈的暖黃才亮得起來（原本白天燈光，雪地整片很亮） */
   if(GA.hemi){const n=day?SKY:1;GA.hemi.intensity=.8-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
