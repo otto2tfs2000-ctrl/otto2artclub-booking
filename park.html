@@ -547,12 +547,13 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261005j"></script>
-<script src="petlife.js?v=20261005z"></script>
+<script src="petlife.js?v=20261005za"></script>
+<script src="anniv26.js?v=20261005a"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005z';
+const PARK_VER='20261005za';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -718,6 +719,9 @@ function buildScene(){
   lock2.position.copy(LEVELS[1].off).add(new THREE.Vector3(0,3.4,1));scene.add(lock2);
 
   for(let k=0;k<8;k++){const c=makeCloud();c.position.set(-18+k*5,-5-Math.random()*3+(k%2?2:0),-18+Math.random()*22);c.userData.v=.12+Math.random()*.15;scene.add(c);clouds.push(c)}
+  /* 2026-10-05 集團 26 週年慶熱氣球（到 11 月底，anniv26.js）：A 款固定在畫面右上角白雲那邊（遊樂島、吉祥物島主畫面都在），另外 B 款拖布條＋小 A 款繞廣場飄 */
+  if(window.Anniv26&&Anniv26.on()){GA.an={fix:Anniv26.A(1,true),fl:[]};scene.add(GA.an.fix);
+    [[Anniv26.B(1.5),15,12,.05],[Anniv26.A(1.1),19,10,-.04]].forEach(([b,rad,y,sp],i)=>{b.userData.o={cx:MACH.x,cz:MACH.z-4,rad,y,a:i*2.6+1,sp,bob:i*2};scene.add(b);GA.an.fl.push(b)})}
   const n=RM?150:700,pos=new Float32Array(n*3);
   for(let k=0;k<n;k++){pos[k*3]=(Math.random()-.5)*34;pos[k*3+1]=Math.random()*22-6;pos[k*3+2]=Math.random()*30-22}
   const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
@@ -1830,7 +1834,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005z',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005za',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2460,6 +2464,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,FAST?0:ms));
 const easeIn=p=>p*p*p, easeOut=p=>1-Math.pow(1-p,3), easeIO=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
 const bounce=p=>{const n=7.5625,d=2.75;if(p<1/d)return n*p*p;if(p<2/d)return n*(p-=1.5/d)*p+.75;if(p<2.5/d)return n*(p-=2.25/d)*p+.9375;return n*(p-=2.625/d)*p+.984375};
 let busy=false,tPrev=performance.now();
+/* 26 週年慶固定氣球：遊樂島/吉祥物島的主畫面才出現（點進扭蛋、公仔、樹、格子時先藏起來，免得擋到東西） */
+function annivTick(dt,now,g){const A=GA.an,d=camera.position.distanceTo(look),
+    show=(!parkCam||/^mascot/.test(parkCam)&&MI.state==='on')&&!treeCam&&!focusAt&&!$('hud').hidden&&camera.position.distanceTo(g.pos)<d*.06; /* 鏡頭飛到定點才出現，飛行途中會擋到扭蛋機 */
+  A.fix.visible=show;
+  if(show)Anniv26.pin(A.fix,camera,.68,.46,.2,d*.92,now);const mi=/^mascot/.test(parkCam||'');A.fl.forEach(b=>{b.visible=!mi;if(!RM&&!mi)Anniv26.drift(b,dt,now)})} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
 function loop(now){
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
@@ -2472,7 +2481,7 @@ function loop(now){
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
   viewShift(dt);const g=camGoal(),a=ZM.live||MZ.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
-  billboardHead();
+  billboardHead();if(GA.an)annivTick(dt,now,g);
   renderer.render(scene,camera);requestAnimationFrame(loop);
 }
 
