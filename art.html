@@ -1258,6 +1258,8 @@ function upPanel(){
 }
 /* 2026-10-05 大熊：一張一張傳太慢 → 一次最多選 4 張，每張可以有自己的名字，依序上傳；藝術家會走過來看最後一張，其他幾張在背景請藝術家留言 */
 const UP_MAX=4;
+/* 2026-10-06 大熊：一人一天最多 12 張，超過就跳這個（伺服器回 TOO_FAST） */
+function tooFastAlert(n){modal(`<h2>🏗️ 蓋太快了！</h2><p>${n?`這次放好了 ${n} 張，其他的先留著。`:''}你的房子蓋得這麼快很危險！今天先休息，明天再繼續蓋吧。</p><p style="color:#9a8466;font-size:13px">每個人一天最多放 12 張作品。</p><div class="acts"><button class="pill main" type="button" id="tfOk">好，明天再來</button></div>`);$('tfOk').onclick=closeModal}
 /* 按「上傳作品」就直接打開手機相簿（少一步），選好才跳出取名字、放上去的視窗 */
 function quickPick(m){const q=$('quickUp');q.value='';q.onchange=()=>{const fs=[...q.files];q.value='';if(fs.length)uploadTo(m,fs)};q.click()}
 function uploadTo(target,files0){
@@ -1285,18 +1287,20 @@ function uploadTo(target,files0){
     $('ul').querySelectorAll('input').forEach(x=>{items[+x.dataset.i].title=x.value.trim()});
     if(!DEMO){$('uo').disabled=true;$('uc').disabled=true;const ids=[];
       /* 兩張同時傳，比一張一張快；照原本順序記 id（藝術家最後看最後一張） */
-      let done=0,fail=null;const out=new Array(items.length),show=()=>{$('uo').textContent=items.length>1?`上傳中… ${done}/${items.length}`:'上傳中…'};show();
-      const one=async i=>{try{const up=await api('/island/upload',{target:album?'album':m.id,title:items[i].title,full:items[i].data,thumb:items[i].thumb});if(up&&up.id)out[i]=up.id}catch(e){fail=fail||e}done++;show()};
+      let done=0,fail=null,tooFast=null;const out=new Array(items.length),show=()=>{$('uo').textContent=items.length>1?`上傳中… ${done}/${items.length}`:'上傳中…'};show();
+      const one=async i=>{try{const up=await api('/island/upload',{target:album?'album':m.id,title:items[i].title,full:items[i].data,thumb:items[i].thumb});if(up&&up.id)out[i]=up.id}catch(e){if(e.code==='TOO_FAST')tooFast=e;else fail=fail||e}done++;show()};
       for(let i=0;i<items.length;i+=2)await Promise.all([one(i),i+1<items.length?one(i+1):null]);
       ids.push(...out.filter(Boolean));
+      if(tooFast&&!ids.length){closeModal();tooFastAlert();return}
       if(fail){toast(ids.length?`${ids.length} 張放好了，有 ${items.length-ids.length} 張沒傳成功：${fail.message}`:fail.message);if(!ids.length){$('uo').disabled=false;$('uc').disabled=false;$('uo').textContent='再試一次';return}}
       try{await reload()}catch(e){}
       if(album){closeModal();rebuildHouses();openAlbum();toast(`${ids.length} 張照片放進大樹相簿了`);return}
       const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
       const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));
       toast(ids.length>1?`${ids.length} 件作品收進小屋了，現在有 ${nm.works.length} 件`:`第 ${nm.works.length} 件作品收進小屋了`);
+      if(tooFast)setTimeout(()=>tooFastAlert(ids.length),2600);
       if(before<PetLife.GP_WORKS&&nm.works.length>=PetLife.GP_WORKS&&!nm.pet&&nm.id===G.me)setTimeout(()=>toast('小屋蓋到三樓了！點小屋可以認養天竺鼠和青蛙'),2600);
-      if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id})}catch(e){}}})(); /* 其他幾張在背景請藝術家留言 */
+      if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id,fixed:true})}catch(e){}}})(); /* 其他幾張用固定台詞（不花錢），只有最後一張請 AI（2026-10-06 省錢） */
         await sleep(1200);artistVisit(nm,ids[ids.length-1])}
       return}
     if(album){items.forEach(it=>G.album.push({img:it.data,title:it.title||'上課花絮',date}));save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
