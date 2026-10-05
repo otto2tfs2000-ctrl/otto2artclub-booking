@@ -890,7 +890,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005q';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005r';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=canRen&&n>=PetLife.GP_WORKS,gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」。`:'';
@@ -1044,7 +1044,9 @@ function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.
 
 /* ===== 小屋認養天竺鼠（2026-10-05）：蓋到 3 樓（8 件作品）可以認養一隻住在門口；品種只選一次，花色、名字可以改。造型在 petlife.js 的 makeGP ===== */
 let gpPets=[];
-function rebuildGP(){gpPets.forEach(o=>{scene.remove(o.g);o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
+/* 自己的天竺鼠記在手機，遊樂島的吉祥物島會讀它，讓牠跟著主人過去玩 */
+function gpRemember(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me);try{m&&m.pet&&m.works.length>=PetLife.GP_WORKS?localStorage.setItem('otto2-mypet',JSON.stringify(m.pet)):localStorage.removeItem('otto2-mypet')}catch(e){}}
+function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
   if(!window.PetLife)return;
   G.members.forEach((m,i)=>{if(!m.pet||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
     const pd=normStyle(m.style,i)==='wing'?2:1.5,g=PetLife.makeGP(THREE,c=>toon(c),m.pet.b,m.pet.c);g.scale.setScalar(.42);
@@ -1166,7 +1168,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>setTimeout(gpAsk,1500))}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();setTimeout(gpAsk,1500)})}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
@@ -1179,8 +1181,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005q';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005q&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005r';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005r&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};

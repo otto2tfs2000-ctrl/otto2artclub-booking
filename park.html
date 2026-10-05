@@ -552,7 +552,7 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005q';
+const PARK_VER='20261005r';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1196,7 +1196,7 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
-  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
+  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(plMyTap(rc))return true;if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
   if(plTripTap(rc))return true;
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
@@ -1830,7 +1830,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005q',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005r',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2304,10 +2304,29 @@ function plTripTap(rc){if(!PL.trip||!PL.trip.visible)return false;if(!rc.interse
     `<img alt="小熊" src="pets/xiong.webp" style="display:block;width:130px;height:130px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(()=>{if(r.card)plCardBig('xiong',true)});
   return true}
 /* ---- 到吉祥物島：拿日記、問是不是老師、提醒小熊翹家 ---- */
+/* ---- 自己小屋認養的天竺鼠（2026-10-05 大熊：主人到吉祥物島時，牠也會跟過來玩）。art.html 把資料存在 otto2-mypet，這裡也會跟伺服器確認一次 ---- */
+function plMyLoad(){try{return JSON.parse(localStorage.getItem('otto2-mypet')||'null')}catch(e){return null}}
+function plMySpawn(pet){if(!pet||!pet.b||PL.my||MI.state!=='on')return;const g=PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);g.scale.setScalar(.8);
+  const h=MI.A.home.kabu.clone().add(new THREE.Vector3(.9,0,.7));g.position.copy(h);g.position.y=MI.A.y;scene.add(g);PL.my={g,pet,tgt:null,t:0,hop:0};
+  setTimeout(()=>{if(MI.state==='on')toast(`${pet.n}也跟著你來吉祥物島玩了！`)},plAway()?4200:1500)}
+function plMyTick(dt){const o=PL.my;if(!o)return;if(MI.state!=='on'){scene.remove(o.g);PL.my=null;return}
+  const g=o.g,p=g.position,b=MI.A.box;let to=null,near=.15;
+  if(MI.food){to=MI.food.position;near=.75}else{o.t-=dt;if(!o.tgt||o.t<=0){o.tgt=new THREE.Vector3(b[0]+Math.random()*(b[1]-b[0]),MI.A.y,b[2]+Math.random()*(b[3]-b[2]));o.t=3+Math.random()*4}to=o.tgt}
+  const d=new THREE.Vector3(to.x-p.x,0,to.z-p.z),L=d.length(),walk=L>near;
+  if(walk){const sp=(MI.food?2.4:1.1)*dt;p.addScaledVector(d.normalize(),Math.min(sp,L-near));let a=Math.atan2(d.x,d.z)-g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));g.rotation.y+=a*Math.min(1,dt*8)}
+  o.hop=Math.max(0,o.hop-dt);p.y=MI.A.y+(walk?Math.abs(Math.sin(performance.now()/80))*.04:0)+Math.sin(Math.min(1,o.hop/.4)*Math.PI)*.3;
+  const hd=g.userData.head;if(hd)hd.rotation.y=walk?0:Math.sin(performance.now()/500)*.35}
+function plMyTap(rc){const o=PL.my;if(!o||!rc.intersectObject(o.g,true).length)return false;o.hop=.4;sfx('tap');
+  const br=PetLife.gpFind(PetLife.GP_BREEDS,o.pet.b).n,co=PetLife.gpFind(PetLife.GP_COLORS,o.pet.c).n;
+  toast(`${o.pet.n}（${co}${br}）從你的作品小屋跑來玩`);return true}
 async function plArrive(){
   if(plAway())setTimeout(()=>{if(MI.state==='on')toast(`小熊不在家！今天翹家去「${PetLife.tripPlaceName()}」了`)},1200);
   try{const r=await fetch(NOTIFY_URL+'/pets/diary?t='+Date.now()).then(r=>r.json());if(r&&r.ok)PL.diary=r.list||[]}catch(e){}
-  if(token()&&token()!=='kiosk')gcall('/pets/me').then(j=>{PL.staff=!!j.staff}).catch(()=>{})}
+  if(token()&&token()!=='kiosk')gcall('/pets/me').then(j=>{PL.staff=!!j.staff}).catch(()=>{});
+  plMySpawn(plMyLoad());
+  if(token()&&token()!=='kiosk')gcall('/island/me').then(async j=>{if(!j.house){try{localStorage.removeItem('otto2-mypet')}catch(e){}return}
+    const d=await fetch(NOTIFY_URL+'/island/data?t='+Date.now()).then(r=>r.json());const h=d&&d.houses&&d.houses.find(x=>x.id===j.house),pet=h&&h.pet&&h.works.length>=PetLife.GP_WORKS?h.pet:null;
+    try{pet?localStorage.setItem('otto2-mypet',JSON.stringify(pet)):localStorage.removeItem('otto2-mypet')}catch(e){}if(pet)plMySpawn(pet)}).catch(()=>{})}
 /* 有新日記的動物頭上冒一個小牌子；點牌子或那隻動物就打開日記 */
 function plSpr(){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;rr(6,6,244,84,40,x);x.fill();x.stroke();
   x.fillStyle='#c4553b';x.font=`44px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText('📔 新日記',128,52);
@@ -2317,7 +2336,7 @@ function plDiaryTick(){if(MI.state!=='on'){Object.values(PL.spr).forEach(s=>s.vi
     if(show&&!s){s=PL.spr[id]=plSpr();s.userData.did=id;scene.add(s)}if(!s)return;s.visible=show;if(show){o.getWorldPosition(s.position);s.position.y+=id==='frog'||id==='xiong'?.75:1.15}})}
 function plDiaryTap(rc){const ss=Object.values(PL.spr).filter(s=>s.visible);const h=ss.length&&rc.intersectObjects(ss,false)[0];if(h){plDiaryOf(h.object.userData.did);return true}
   for(const {id} of PetLife.ANIMALS){const o=plObj(id);if(o&&o.visible&&plNewDiary(id)&&rc.intersectObject(o,true).length){plDiaryOf(id);return true}}return false}
-const _plTick0=plTick;plTick=function(dt,now){_plTick0(dt,now);plDiaryTick()};
+const _plTick0=plTick;plTick=function(dt,now){_plTick0(dt,now);plDiaryTick();plMyTick(dt)};
 /* ---- 日記清單（id＝那一隻；null＝全部） ---- */
 function plDiaryOf(id){const L=PL.diary.filter(d=>!id||d.a===id).slice(0,40);
   if(id&&L[0])PetLife.diaryMark(id,L[0].ts);else if(!id)PetLife.ANIMALS.forEach(a=>{const f=PL.diary.find(d=>d.a===a.id);if(f)PetLife.diaryMark(a.id,f.ts)});
