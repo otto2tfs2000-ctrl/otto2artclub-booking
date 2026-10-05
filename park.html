@@ -241,6 +241,7 @@ input,textarea{-webkit-user-select:text; user-select:text}
 .ohead{display:none}
 .ohead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none}
 body.oct .ohead > *{pointer-events:auto}
+.ohead .oh-r{pointer-events:auto} /* 2026-10-05 走格子右上音效/選單原本按不到（.ohead 是 none，只有十月有打開） */
 .oh-l{min-width:0; color:var(--navy); text-shadow:0 0 10px rgba(255,250,242,.9),0 0 3px rgba(255,250,242,.9)}
 .oh-logo{font:900 30px/1 "Avenir Next","Helvetica Neue",Arial,sans-serif; letter-spacing:.02em}
 .oh-bar{display:block; width:32px; height:4px; border-radius:2px; background:var(--gold); margin:9px 0 10px}
@@ -482,7 +483,7 @@ body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005g';
+const PARK_VER='20261005h';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
