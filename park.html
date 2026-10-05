@@ -552,7 +552,7 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005r';
+const PARK_VER='20261005s';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1830,7 +1830,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005r',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005s',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2313,6 +2313,9 @@ function plMyTick(dt){const o=PL.my;if(!o)return;if(MI.state!=='on'){scene.remov
   const g=o.g,p=g.position,b=MI.A.box;let to=null,near=.15;
   if(MI.food){to=MI.food.position;near=.75}else{o.t-=dt;if(!o.tgt||o.t<=0){o.tgt=new THREE.Vector3(b[0]+Math.random()*(b[1]-b[0]),MI.A.y,b[2]+Math.random()*(b[3]-b[2]));o.t=3+Math.random()*4}to=o.tgt}
   const d=new THREE.Vector3(to.x-p.x,0,to.z-p.z),L=d.length(),walk=L>near;
+  /* 跟大家一起吃到食物＝一起玩：每天 +1 親密度（伺服器記，每天一次） */
+  if(MI.food&&!walk&&PL.playDay!==PetLife.today()&&token()&&token()!=='kiosk'){PL.playDay=PetLife.today();o.hop=.4;
+    gcall('/island/pet/love',{why:'play'}).then(r=>{if(r.added)setTimeout(()=>toast(`${o.pet.n}跟大家一起吃，好開心！親密度 +1（♥ ${r.love}）`),1800)}).catch(()=>{})}
   if(walk){const sp=(MI.food?2.4:1.1)*dt;p.addScaledVector(d.normalize(),Math.min(sp,L-near));let a=Math.atan2(d.x,d.z)-g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));g.rotation.y+=a*Math.min(1,dt*8)}
   o.hop=Math.max(0,o.hop-dt);p.y=MI.A.y+(walk?Math.abs(Math.sin(performance.now()/80))*.04:0)+Math.sin(Math.min(1,o.hop/.4)*Math.PI)*.3;
   const hd=g.userData.head;if(hd)hd.rotation.y=walk?0:Math.sin(performance.now()/500)*.35}

@@ -1139,9 +1139,9 @@ function artOpenNotice(){
   const close=()=>w.remove();
   w.addEventListener("click",e=>{if(e.target===w)close()});
   document.getElementById("artOpenNo").onclick=close;
-  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005r" };
+  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005s" };
 }
-function openGacha(){ parkToken(); location.href="park.html?v=20261005r" }
+function openGacha(){ parkToken(); location.href="park.html?v=20261005s" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
@@ -1943,7 +1943,7 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005r") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005s") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);
