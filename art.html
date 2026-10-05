@@ -645,6 +645,11 @@ function figDone(f,A,s=1.05){f.g.traverse(o=>{if(o.isMesh)o.material=muteMat(o.m
 function beard(head,c,{y=-.17,z=.12,w=1.1,h=.9,lumps=6,long=0}={}){
   head.add(ball(c,.24,0,y,z,w,h+long,.8));
   for(let k=0;k<lumps;k++){const a=Math.PI*(.15+k/(lumps-1)*.7);head.add(ball(c,.075,Math.cos(a)*.2*w,y-Math.sin(a)*(.14+long*.2),z+.1,1,1.2,.8,true))}}
+// hair round the back of the head (2026-10-05 大熊：後腦不能是光的). from/to = how far down from the crown (0 top, 1 chin),
+// wide = also wraps forward past the ears; a bumpy row of tufts along the lower edge
+function backHair(head,c,from,to,wide=0){const m=toon(c),a=wide?Math.PI-.35:Math.PI+.12,L=wide?Math.PI+.7:Math.PI-.24;
+  const b=new THREE.Mesh(new THREE.SphereGeometry(.322,28,14,a,L,Math.PI*from,Math.PI*(to-from)),m);b.scale.set(1,1.06,.97);b.castShadow=true;head.add(b);
+  const t=Math.PI*to;for(let k=0;k<11;k++){const ph=a+.1+k/10*(L-.2);head.add(ball(c,.055,-Math.cos(ph)*Math.sin(t)*.31,Math.cos(t)*.33,Math.sin(ph)*Math.sin(t)*.3,1,.9,1,true))}}
 function sideHair(head,c,n=3,r=.09,top=.08){[-1,1].forEach(s=>{for(let k=0;k<n;k++)head.add(ball(c,r,.25*s,top-k*.1,-.06-k*.03,1,1,1,true))})}
 function sunflower(){const f=new THREE.Group();f.add(cyl('#4f8f3a',.012,.012,.55,0,-.35,0,6));
   const L=ball('#4f8f3a',.06,.05,-.15,0,1.5,.5,.8,true);L.rotation.z=.6;f.add(L);
@@ -691,7 +696,7 @@ const FIG={
 '梵谷'(A){const f=figBase({coat:'#2f5fb8',sleeve:'#2f5fb8',legs:'#2b56ad',cuff:'#2b56ad',shoe:'#3a2a20',cuffArm:'#cfe6f0',skin:'#f6d6bc',mouth:'frown'}),h=f.head,R='#c46a2c';
   [0,1,2].forEach(i=>f.body.add(ball('#e9c35a',.018,0,.66-i*.1,.185,1,1,.5,true)));f.body.add(ball('#cfe6f0',.07,0,.78,.11,1.6,.8,.8,true));
   [-1,1].forEach(s=>{const lp=fbox('#2a50a4',.06,.14,.03,.07*s,.72,.165);lp.rotation.z=-.4*s;f.body.add(lp)});
-  sideHair(h,R,3,.09);beard(h,R,{y:-.2,lumps:7});brow(h,R,1,.35,.14);
+  backHair(h,R,.05,.8,1);sideHair(h,R,3,.09);beard(h,R,{y:-.2,lumps:7});brow(h,R,1,.35,.14);
   const mm=new THREE.Mesh(new THREE.TorusGeometry(.03,.007,4,10,Math.PI),toon('#5a2a22'));mm.position.set(0,-.15,.29);h.add(mm);
   const hat=new THREE.Group();hat.position.y=.2;h.add(hat);const S='#e0b35c';
   hat.add(cyl(S,.5,.5,.03,0,0,0,28));const rim=new THREE.Mesh(new THREE.TorusGeometry(.49,.035,6,28),toon(S));rim.rotation.x=Math.PI/2;rim.position.y=.03;rim.scale.z=1;hat.add(rim);
@@ -699,14 +704,14 @@ const FIG={
   const sf=sunflower();sf.scale.setScalar(1.5);sf.position.set(-.04,-.3,.1);sf.rotation.set(.35,0,.35);f.armL.add(sf);f.armL.rotation.set(-.75,0,-.6);return figDone(f,A)},
 '莫內'(A){const f=figBase({coat:'#8a72b4',legs:'#2f4a6a',cuff:'#2f4a6a',shoe:'#3a2a20',cuffArm:'#f2ede0',skin:'#f6d6bc',mouth:'none'}),h=f.head,G='#dcdcd8',D='#a8a8a6';
   f.body.add(fbox('#3a3d44',.16,.34,.06,0,.58,.17));[0,1,2].forEach(i=>f.body.add(ball('#8a8a8a',.016,0,.66-i*.08,.205,1,1,.5,true)));f.body.add(ball('#f2ede0',.06,0,.78,.13,1.4,.8,.8,true));
-  sideHair(h,G,3,.1);beard(h,G,{y:-.2,lumps:8});brow(h,D,1,-.2,.13,.1,.026);
+  backHair(h,G,.32,.76);sideHair(h,G,3,.1);beard(h,G,{y:-.2,lumps:8});brow(h,D,1,-.2,.13,.1,.026);
   [-1,1].forEach(s=>{const m=ball(D,.05,.05*s,-.1,.27,1.5,.7,.7,true);m.rotation.z=.3*s;h.add(m)});
   const b=new THREE.Group();b.position.set(-.04,.22,0);b.rotation.z=.18;h.add(b);b.add(ball('#7a62a8',.36,0,0,0,1,.32,1));b.add(cyl('#6c5598',.27,.28,.06,0,-.08,0,22));b.add(ball('#7a62a8',.04,0,.12,0,1,1,1,true));
   const wl=waterLily();wl.scale.setScalar(1.6);wl.position.set(-.04,-.3,.1);wl.rotation.set(.5,0,.35);f.armL.add(wl);f.armL.rotation.set(-.75,0,-.6);return figDone(f,A)},
 '克林姆'(A){const f=figBase({robe:T('klimt'),sleeve:T('klimt'),wide:1,feet:'sandal',skin:'#f6d6bc',mouth:'none',
     robeProf:[[0,.04],[.25,.04],[.27,.1],[.26,.4],[.22,.62],[.17,.76],[.13,.82],[0,.84]]}),h=f.head,B='#5a3420';
   [-1,1].forEach(s=>{for(let k=0;k<4;k++)h.add(ball(B,.085,.24*s,.18-k*.08,-.08-k*.02,1,1,1,true))});
-  h.add(ball(B,.08,0,.3,.06,1.3,.6,1,true));beard(h,B,{y:-.19,lumps:7});brow(h,B,1,-.05,.13,.09,.024);
+  backHair(h,B,.34,.76);h.add(ball(B,.08,0,.3,.06,1.3,.6,1,true));beard(h,B,{y:-.19,lumps:7});brow(h,B,1,-.05,.13,.09,.024);
   [-1,1].forEach(s=>{const m=ball(B,.05,.05*s,-.11,.27,1.6,.7,.7,true);m.rotation.z=-.25*s;h.add(m)});
   const c=cat();c.position.set(.06,.46,.3);c.rotation.y=-.15;c.scale.setScalar(1.5);f.body.add(c);f.pet=c;
   f.armL.rotation.set(-1.0,0,-.7);f.armR.rotation.z=-.5;return figDone(f,A)},
@@ -757,7 +762,7 @@ const FIG={
   const belt=new THREE.Mesh(new THREE.TorusGeometry(.215,.02,6,20),toon('#5a3a22'));belt.rotation.x=Math.PI/2;belt.position.y=.48;f.body.add(belt);
   [-1,1].forEach(s=>{const o=flathe([[.0,.0],[.12,0],[.13,.4],[.1,.64],[0,.66]].map(([r,y])=>[r,y+.14]),toon('#5e2558',{side:THREE.DoubleSide}),10);o.position.set(.14*s,0,.05);o.scale.z=.6;f.body.add(o)});
   [-1,1].forEach(s=>{for(let k=0;k<6;k++)h.add(ball(G,.09,.24*s,.06-k*.1,-.08-k*.02,1,1.2,1,true))});
-  beard(h,G,{y:-.24,lumps:9,long:.5,w:1.15});brow(h,'#b4b4b2',1,-.15,.13,.09,.026);
+  backHair(h,G,.24,.86,1);beard(h,G,{y:-.24,lumps:9,long:.5,w:1.15});brow(h,'#b4b4b2',1,-.15,.13,.09,.026);
   [-1,1].forEach(s=>{const m=ball('#c4c4c2',.05,.05*s,-.1,.27,1.6,.7,.7,true);m.rotation.z=.25*s;h.add(m)});
   const cap=new THREE.Group();cap.position.y=.22;h.add(cap);cap.add(ball('#6a2c66',.36,0,.04,-.02,1,.42,1));cap.add(cyl('#5e2558',.32,.33,.06,0,-.07,0,22));
   for(let k=0;k<6;k++){const a=k/6*6.28;cap.add(ball('#7a3676',.12,Math.cos(a)*.2,.08,Math.sin(a)*.2,1,.6,1,true))}
@@ -772,7 +777,7 @@ const FIG={
   const sh=flathe([[.24,.52],[.27,.56],[.24,.68],[.19,.78],[.15,.83],[.12,.85]],toon('#6b4a32',{side:THREE.DoubleSide}));sh.rotation.y=.6;f.body.add(sh);
   const cape=flathe([[.0,.2],[.25,.2],[.25,.8],[0,.8]],toon('#5b3e2a',{side:THREE.DoubleSide}),14);cape.scale.set(1.05,1,.7);cape.position.z=-.06;f.body.add(cape);
   [-1,1].forEach(s=>{for(let k=0;k<4;k++)h.add(ball(H,.1,.25*s,.06-k*.08,-.06-k*.02,1,1,1,true))});
-  brow(h,H,1,-.1,.13,.09,.026);
+  backHair(h,H,.05,.8,1);brow(h,H,1,-.1,.13,.09,.026);
   [-1,1].forEach(s=>{const m=ball(H,.05,.05*s,-.1,.27,1.6,.7,.7,true);m.rotation.z=.3*s;h.add(m)});h.add(ball(H,.04,0,-.22,.25,1,1.5,.7,true));
   const b=new THREE.Group();b.position.set(.02,.24,0);b.rotation.z=-.1;h.add(b);b.add(ball('#ece2c8',.36,0,0,0,1,.3,1));b.add(cyl('#e0d4b6',.29,.3,.07,0,-.09,0,22));
   const st=cyl('#6b4429',.016,.016,.72,0,-.95,.04,8);f.armL.add(st);f.armL.rotation.z=.15;f.body.position.y=0;
@@ -797,7 +802,7 @@ const FIG={
   f.body.add(fbox('#f2ede0',.12,.3,.04,0,.6,.18));[0,1,2].forEach(i=>f.body.add(ball('#e6e0d0',.012,0,.7-i*.07,.205,1,1,.5,true)));
   [-1,1].forEach(s=>{const lp=fbox('#e8c228',.07,.2,.03,.08*s,.68,.18);lp.rotation.z=-.3*s;f.body.add(lp)});
   [-1,1].forEach(s=>{for(let k=0;k<4;k++)h.add(ball(G,.09,.25*s,.14-k*.09,-.06-k*.03,1,1.1,1,true))});
-  h.add(ball(G,.1,0,.08,-.2,1.8,1.2,1,true));brow(h,'#a8a8a6',1,-.1,.13,.09,.026);
+  backHair(h,G,.33,.76);brow(h,'#a8a8a6',1,-.1,.13,.09,.026);
   [0,1].forEach(k=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.08,.004,4,10,Math.PI*.4),toon('#e2b496'));w.rotation.z=Math.PI*.3;w.position.set(0,.18+k*.03,.24-k*.02);h.add(w)});
   // the blue creature from his paintings, lying across his head
   const c=new THREE.Group();c.position.set(.02,.3,0);c.rotation.y=-.3;h.add(c);const B='#2340b8';
@@ -813,7 +818,7 @@ const FIG={
   const obi=new THREE.Mesh(new THREE.CylinderGeometry(.215,.225,.12,20),toon('#2f3f6e'));obi.position.y=.5;f.body.add(obi);
   [-1,1].forEach(s=>{const c=fbox(s>0?'#2f3f6e':'#f6f1e7',.035,.26,.02,.04*s,.7,.17);c.rotation.z=.45*s;f.body.add(c)});
   [-1,1].forEach(s=>{for(let k=0;k<3;k++)h.add(ball(G,.08,.25*s,.02-k*.07,-.08-k*.03,1,1.2,1,true))});
-  brow(h,G,1,.1,.13,.09,.026);
+  backHair(h,G,.38,.76);brow(h,G,1,.1,.13,.09,.026);
   [0,1,2].forEach(k=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.1,.004,4,12,Math.PI*.5),toon('#d9a888'));w.rotation.z=Math.PI*.25;w.position.set(0,.13+k*.035,.235-k*.02);h.add(w)});
   const lg=lanternGhost();lg.position.set(0,-.4,.05);f.armL.add(lg);f.armL.rotation.set(-.35,0,-.55);lg.rotation.z=.55;
   return figDone(f,A)},
@@ -1156,7 +1161,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005u';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005v';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」・親密度 ♥ ${m.pet.love||0}。${m.id===G.me?'點牠摸摸、點碗餵牠。':''}`:'';
@@ -1483,8 +1488,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005u';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005u&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005v';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005v&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 作品上傳後可以再改名稱（2026-10-05 大熊要的）：屋主改自己家、老師改任何一間和大樹相簿 */
 $('lbRen').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];const t=prompt('作品名稱（最多 14 個字，空白就是不取名）',w.title&&w.title!=='作品'&&w.title!=='上課花絮'?w.title:'');if(t===null)return;
