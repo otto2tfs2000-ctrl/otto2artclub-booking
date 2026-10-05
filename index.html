@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.62</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.63</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1141,11 +1141,11 @@ function artOpenNotice(){
   document.getElementById("artOpenNo").onclick=close;
   document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005zc" };
 }
-function openGacha(){ parkToken(); location.href="park.html?v=20261005za" }
+function openGacha(){ parkToken(); location.href="park.html?v=20261005zd" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
-  s.src="gacha.js?v=20261003l";
+  s.src="gacha.js?v=20261005a";
   s.onload=()=>window.Gacha&&Gacha.open();
   s.onerror=()=>alert("扭蛋載入失敗，請檢查網路後再試一次");
   document.head.appendChild(s);
@@ -1931,6 +1931,40 @@ function showSkeleton(){
   v.innerHTML=h;
 }
 
+/* 家人共用的同意視窗（彈窗不在 #bkRoot 底下，顏色一律寫死） */
+function famOpen(code){
+  const box=document.createElement("div");
+  box.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(20,24,40,.55);display:flex;align-items:center;justify-content:center;padding:16px";
+  box.innerHTML='<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;padding:22px 20px;text-align:center;font-size:15px;line-height:1.7;color:#1F2A44"><div id="famBody">讀取中…</div></div>';
+  document.body.appendChild(box);
+  const body=box.querySelector("#famBody");
+  const btn=(id,t,bg,fg)=>`<button id="${id}" style="flex:1;padding:12px 0;border-radius:10px;border:1.5px solid #1F2A44;background:${bg};color:${fg};font-size:15px;font-family:inherit">${t}</button>`;
+  const done=(msg)=>{ body.innerHTML=msg+'<div style="margin-top:16px;display:flex">'+btn("famClose","關閉","#fff","#1F2A44")+'</div>'; box.querySelector("#famClose").onclick=()=>box.remove(); };
+  let tk=""; try{ tk=window.liff&&liff.isLoggedIn&&liff.isLoggedIn()?liff.getAccessToken():"" }catch(e){}
+  if(!tk) return done("請從 OTTO2 的 LINE 官方帳號裡點連結打開，才能確認是你本人喔。");
+  const esc=(t)=>String(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  api("/gacha/family/info",{accessToken:tk,code}).then(j=>{
+    if(j.st==="ok") return done("✅ 已經同意過了，對方可以一起玩囉！");
+    if(j.st==="no") return done("這個邀請已經拒絕了。");
+    if(j.st!=="wait") return done("這個邀請已經處理過了。");
+    const who=(j.lineName?`LINE「${esc(j.lineName)}」`:"有人")+(j.name?`（填的名字：${esc(j.name)}）`:"");
+    body.innerHTML=`<div style="font-size:17px;font-weight:700;margin-bottom:8px">🎨 家人一起玩</div>
+      <div style="text-align:left">${who}想用你的電話 <b>${esc(j.phone)}</b> 一起玩遊樂島的扭蛋、走格子。</div>
+      <div style="text-align:left;font-size:13px;color:#5A6378;margin-top:8px">同意後全家共用同一份：每天的次數一起算，抽到的紅利、票券一樣存進你的帳戶。不認識這個人請按「不同意」。</div>
+      <div style="margin-top:16px;display:flex;gap:10px">${btn("famNo","不同意","#fff","#1F2A44")}${btn("famYes","同意","#1F2A44","#fff")}</div>`;
+    const ans=(yes)=>{
+      box.querySelectorAll("button").forEach(b=>b.disabled=true);
+      api("/gacha/family/answer",{accessToken:tk,code,yes}).then(r=>{
+        if(r.st==="ok") done("✅ 好了！我們已經傳 LINE 通知對方，現在可以一起玩囉。");
+        else if(r.st==="other") done("對方的 LINE 已經綁了別支電話，沒辦法加入。需要的話請私訊小編。");
+        else done("已經拒絕了，對方不會綁上你的電話。");
+      }).catch(e=>done(esc(e.message||"連線不穩，請稍後再試")));
+    };
+    box.querySelector("#famYes").onclick=()=>ans(true);
+    box.querySelector("#famNo").onclick=()=>ans(false);
+  }).catch(e=>done(esc(e.message||"連線不穩，請稍後再試")));
+}
+
 function boot(){
   syncChrome(step);   // 一開始就是 step=0，把頁首同步成「想做什麼？」，不要停在 HTML 寫死的步驟1樣子
   const liffReady=initLiff().catch(()=>{});   // 認人失敗不影響預約
@@ -1938,12 +1972,17 @@ function boot(){
      圖文選單、群發訊息的按鈕用這個網址，打開就直接進扭蛋，不用再點首頁卡片。
      LIFF 第一次轉進來時參數會包在 liff.state 裡，所以兩種都認。 */
   let q=location.search+location.hash; try{ q=decodeURIComponent(q) }catch(e){}
-  if(!boot._gc && /go(=|%3D)gacha2d/i.test(q)){
+  if(!boot._gc && /go(=|%3D)family/i.test(q)){
+    /* 家人共用（2026-10-05）：孩子用自己的 LINE 輸入家長電話，家長收到 LINE 點進來同意 */
+    boot._gc=true;
+    const fc=(q.match(/[?&]c(?:=|%3D)([a-z0-9]+)/i)||[])[1]||"";
+    liffReady.then(()=>famOpen(fc));
+  } else if(!boot._gc && /go(=|%3D)gacha2d/i.test(q)){
     boot._gc=true;
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005za") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005zd") });
   } else if(!boot._gc && /go(=|%3D)art/i.test(q)){
     /* 直達作品小屋（2026-10-05 會員推播用）：https://liff.line.me/2010906803-FMDYktUN?go=art */
     boot._gc=true;

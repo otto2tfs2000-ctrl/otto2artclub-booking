@@ -417,7 +417,7 @@ async function load(extra){
     if (j.needPhone) { st = j; return renderPhone(j.guess) }
     st = j; render(false);
   } catch(e) {
-    if (e.code === "PHONE_TAKEN" || e.code === "BAD_PHONE") { renderPhone(extra && extra.phone, e.message); return }
+    if (e.code === "PHONE_TAKEN" || e.code === "BAD_PHONE" || e.code === "FAMILY_FULL" || e.code === "FAMILY_SENT") { renderPhone(extra && extra.phone, e.message, e.code === "FAMILY_SENT"); return }
     ov.innerHTML = shell('<div class="gc-msg">' + esc(e.message) + '<br><br><button class="gc-btn sec" id="gcRe" style="max-width:200px;margin:0 auto">再試一次</button></div>');
     bindShell(); $("gcRe").onclick = function(){ load() };
   }
@@ -429,22 +429,22 @@ function renderNoLine(){
   bindShell();
   if (canLogin) $("gcLogin").onclick = function(){ try { liff.login({ redirectUri: location.href }) } catch(e){} };
 }
-function renderPhone(guess, err){
+function renderPhone(guess, err, sent){
   var c = window.customer || {};
   ov.innerHTML = shell('<div class="gc-form"><h3>先告訴我們你是誰 🎨</h3>' +
     '<p>輸入上課留的手機號碼，抽到的紅利和票券會直接存進這支電話的帳戶，順便幫你查點數還剩多少。</p>' +
     (new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10) <= "2026-10-14" ? '<div class="gc-banner" style="margin:8px 0 10px">🎁 <b>登錄禮（10/14 前）</b>：會員登錄電話多送 <b>1 次必中扭蛋</b>，新朋友也多送 1 次扭蛋！</div>' : '') +
     '<label for="gcName">姓名</label><input id="gcName" autocomplete="name" value="' + esc(c.name || (st && st.lineName) || "") + '">' +
     '<label for="gcPhone">手機號碼</label><input id="gcPhone" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxx" value="' + esc(guess || c.phone || "") + '">' +
-    '<div class="gc-err" id="gcErr">' + esc(err || "") + '</div>' +
+    '<div class="gc-err" id="gcErr"' + (sent ? ' style="color:#2E7D32"' : '') + '>' + esc(err || "") + '</div>' +
     '<button class="gc-btn pri" id="gcBind" style="margin-top:6px">開始玩</button>' +
-    '<p style="margin:12px 0 0;font-size:11.5px">一個 LINE 帳號只能綁一支電話，綁好之後就不能自己更改，打錯請私訊小編。</p></div>');
+    '<p style="margin:12px 0 0;font-size:11.5px">一個 LINE 帳號只能綁一支電話，綁好之後就不能自己更改，打錯請私訊小編。<br>孩子有自己的手機？輸入家長的電話，我們會傳 LINE 請家長同意，同意後就能一起玩。</p></div>');
   bindShell();
   $("gcBind").onclick = function(){
     var ph = $("gcPhone").value.replace(/\D/g, "").replace(/^886/, "0");
     var nm = $("gcName").value.trim();
-    if (!/^09\d{8}$/.test(ph)) { $("gcErr").textContent = "手機號碼格式不對，請輸入 09 開頭的 10 碼"; return }
-    if (!nm) { $("gcErr").textContent = "請填姓名，小編才知道是誰中獎"; return }
+    if (!/^09\d{8}$/.test(ph)) { $("gcErr").style.color = ""; $("gcErr").textContent = "手機號碼格式不對，請輸入 09 開頭的 10 碼"; return }
+    if (!nm) { $("gcErr").style.color = ""; $("gcErr").textContent = "請填姓名，小編才知道是誰中獎"; return }
     $("gcBind").disabled = true; $("gcBind").textContent = "確認中…";
     load({ phone: ph, name: nm });
   };
