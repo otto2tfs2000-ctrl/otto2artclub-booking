@@ -101,15 +101,30 @@ body.tour .tourstop{display:block}
 .say .pill{padding:8px 18px; font-size:14px; box-shadow:none}
 .say .dots::after{content:'…'; animation:sayd 1.2s steps(4) infinite}
 @keyframes sayd{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+/* 找小屋名單＋拉近時小屋頭上飄名字（2026-10-05） */
+button.stats{font:inherit; cursor:pointer; color:var(--ink2)}
+.stats .findl{margin-top:2px; font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.06em}
+#tags{position:fixed; inset:0; pointer-events:none; z-index:2}
+#tags button{position:absolute; transform:translate(-50%,-100%); pointer-events:auto; font:inherit; font-size:12.5px; color:var(--ink); background:rgba(255,253,247,.94); border:1px solid var(--line); border-radius:99px; padding:3px 10px; white-space:nowrap; box-shadow:0 3px 10px rgba(40,70,90,.18); cursor:pointer; transition:opacity .2s}
+#tags button::after{content:''; position:absolute; left:50%; bottom:-5px; margin-left:-5px; border:5px solid transparent; border-bottom:0; border-top-color:rgba(255,253,247,.94)}
+#tags button.me{background:var(--accent); color:#fff; border-color:transparent}
+#tags button.me::after{border-top-color:var(--accent)}
+body.tour #tags{display:none}
+.flist{display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow:auto; margin:10px 0 4px; text-align:left}
+.flist button{font:inherit; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:#fff; color:var(--ink); cursor:pointer; font-size:15px}
+.flist button small{color:var(--ink2); font-size:12px; white-space:nowrap}
+.flist button.me{border-color:var(--accent)}
+.flist .none{color:var(--ink2); font-size:14px; padding:10px; text-align:center}
 </style>
 
 <div id="stage"></div>
 <div class="say" id="say" hidden></div>
+<div id="tags" aria-hidden="false"></div>
 <div class="loading" id="loading">島嶼正在浮上來…</div>
 <div class="hud" id="hud" hidden>
   <div class="top">
     <div class="title"><h1>OTTO2 作品島</h1><p>12 位藝術家島民，和大家的小屋</p></div>
-    <div class="topR"><div class="stats"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div></div>
+    <div class="topR"><button class="stats" id="findBtn" type="button" aria-label="找小屋"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div><div class="findl">找小屋 ›</div></button>
       <button class="pill tourpill" id="tourBtn" type="button">導覽</button></div>
   </div>
   <div class="bottom">
@@ -620,7 +635,7 @@ function makeHouse(m,i){
 }
 function rebuildHouses(){
   const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>{all.add(o);if(o.userData.mg){o.geometry.dispose();o.material.dispose()}})});picks=picks.filter(p=>!all.has(p));
-  houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();
+  houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();tagEls.forEach(b=>b.dataset.i='');
   $('nHouses').textContent=G.members.length;$('nWorks').textContent=G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length;
 }
 /* ================= animals ================= */
@@ -752,7 +767,7 @@ function loop(now){
     idleT+=dt;if(!dragging&&!focus&&!touring&&idleT>5)yaw+=dt*.03;
   }
   viewShift(dt);const g=camGoal(),k=1-Math.pow(.05,dt);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
-  renderer.render(scene,camera);requestAnimationFrame(loop);
+  renderer.render(scene,camera);try{updateTags()}catch(e){}requestAnimationFrame(loop);
 }
 
 /* ================= interaction ================= */
@@ -800,7 +815,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005b';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005c';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -909,6 +924,23 @@ function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.
   if(canAsk&&w&&w.id){el.innerHTML='<button class="pill" type="button" id="cmAsk">請藝術家來看看這件作品</button>';el.hidden=false;
     $('cmAsk').onclick=async()=>{$('cmAsk').disabled=true;$('cmAsk').textContent='藝術家正在看…';try{const r=await api('/island/comment',{id:w.id,house:house.id});w.cm={a:r.a,t:r.t};lbComment(w,house);reload().catch(()=>{})}catch(e){toast(e.message);$('cmAsk').disabled=false;$('cmAsk').textContent='請藝術家來看看這件作品'}};return}
   el.hidden=true;el.innerHTML=''}
+/* ===== 找小屋：名單可以打字找名字，點了鏡頭飛過去 ===== */
+function findHouse(){const rows=q=>{const k=q.trim().toLowerCase(),list=G.members.map((m,i)=>({m,i})).filter(o=>!k||o.m.name.toLowerCase().includes(k))
+    .sort((a,b)=>(b.m.id===G.me)-(a.m.id===G.me)||b.m.works.length-a.m.works.length);
+    return list.length?list.map(o=>`<button type="button" data-i="${o.i}" class="${o.m.id===G.me?'me':''}"><span>${esc(o.m.name)}${o.m.id===G.me?'（我的）':''}${o.m.staff?'・老師':''}</span><small>${o.m.works.length} 件作品</small></button>`).join(''):'<div class="none">找不到這個名字</div>'};
+  modal(`<h2>找小屋</h2><div class="meta">${G.members.length} 間小屋・點名字就會飛過去</div><input type="text" id="fq" placeholder="打名字搜尋" autocomplete="off"><div class="flist" id="fl">${rows('')}</div><div class="acts"><button class="pill" type="button" id="fx">關閉</button></div>`);
+  const bind=()=>$('fl').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=G.members[+b.dataset.i];closeModal();openHouseSheet(m)});
+  bind();$('fq').oninput=()=>{$('fl').innerHTML=rows($('fq').value);bind()};$('fx').onclick=closeModal}
+/* ===== 拉近時，附近小屋頭上飄名字（點名字就打開那間）；拉遠看整座島時自動隱藏，免得滿版都是字 ===== */
+const TAG_D=64,_tv=new THREE.Vector3();let tagEls=[];
+function updateTags(){const box=$('tags');if(!box)return;if(touring||!$('modal').hidden||!$('lb').hidden||!houses.length){box.style.display='none';return}box.style.display='';
+  const cand=[];houses.forEach((h,i)=>{h.getWorldPosition(_tv);const d=_tv.distanceTo(camera.position);if(d>TAG_D)return;const m=G.members[i],FF=floorsOf(m.works.length);_tv.y+=1.5+FF*.62;_tv.project(camera);
+    if(_tv.z>1||Math.abs(_tv.x)>1.05||Math.abs(_tv.y)>1.05)return;cand.push({i,d,x:(_tv.x+1)/2*innerWidth,y:(1-_tv.y)/2*innerHeight})});
+  cand.sort((a,b)=>a.d-b.d);const placed=[];
+  cand.forEach(c=>{if(placed.length>=10)return;if(placed.some(p=>Math.abs(p.x-c.x)<70&&Math.abs(p.y-c.y)<24))return;placed.push(c)});
+  while(tagEls.length<placed.length){const b=document.createElement('button');b.type='button';b.onclick=()=>{const m=G.members[+b.dataset.i];if(m)openHouseSheet(m)};box.appendChild(b);tagEls.push(b)}
+  tagEls.forEach((b,k)=>{const c=placed[k];if(!c){b.style.display='none';return}const m=G.members[c.i];b.style.display='';if(b.dataset.i!==String(c.i)){b.dataset.i=c.i;b.textContent=m.name;b.className=m.id===G.me?'me':''}
+    b.style.left=c.x+'px';b.style.top=c.y+'px';b.style.opacity=Math.max(.35,Math.min(1,(TAG_D-c.d)/12))})}
 async function summon(art){const u=art.userData;u.hold=true;
   if(u.state==='walk'&&u.next==='paint'){}else{u.state='walk';u.tgt=u.home.clone();u.next='paint'}
   if(!clearWalk(art.position,[u.home.x,u.home.z])){art.position.set(u.home.x,heightAt(u.home.x,u.home.z),u.home.z);u.state='paint';u.t=6;art.rotation.y=u.face}
@@ -960,7 +992,7 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005b';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
