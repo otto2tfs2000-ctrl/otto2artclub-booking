@@ -1139,9 +1139,9 @@ function artOpenNotice(){
   const close=()=>w.remove();
   w.addEventListener("click",e=>{if(e.target===w)close()});
   document.getElementById("artOpenNo").onclick=close;
-  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005y" };
+  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005z" };
 }
-function openGacha(){ parkToken(); location.href="park.html?v=20261005y" }
+function openGacha(){ parkToken(); location.href="park.html?v=20261005z" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
@@ -1943,11 +1943,11 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005y") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005z") });
   } else if(!boot._gc && /go(=|%3D)art/i.test(q)){
     /* 直達作品小屋（2026-10-05 會員推播用）：https://liff.line.me/2010906803-FMDYktUN?go=art */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261005y") });
+    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261005z") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);
