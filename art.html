@@ -1,8 +1,39 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}/* 2026-10-05 介面跟遊樂島一致（照 park.html 的 .ohead／.ohb／.places／主按鈕） */
+:root{--navy:#1d2a44; --gold2:#f2c14e; --terra:#c4553b; --terraD:#8e3826; --pline:#e4d9c6; --round:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.hud{font-family:var(--round); padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0}
+.ohead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none!important}
+.ohead .oh-r{pointer-events:auto}
+.oh-l{min-width:0; color:var(--navy); text-shadow:0 0 10px rgba(255,250,242,.9),0 0 3px rgba(255,250,242,.9)}
+.oh-logo{font:900 30px/1 "Avenir Next","Helvetica Neue",Arial,sans-serif; letter-spacing:.02em}
+.oh-bar{display:block; width:32px; height:4px; border-radius:2px; background:var(--gold2); margin:9px 0 10px}
+.oh-k{font-size:16px; letter-spacing:.12em}
+.oh-t{margin:3px 0 5px; font:900 38px/1.12 "PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; letter-spacing:.02em; white-space:nowrap}
+.oh-s{margin:0; font-size:14px; letter-spacing:.06em}
+.oh-r{display:flex; gap:12px; flex:none}
+.ohb{font:inherit; font-size:12px; color:var(--navy); background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; text-shadow:0 0 6px rgba(255,250,242,.9)}
+.ohb i{width:46px; height:46px; border-radius:50%; background:rgba(255,253,248,.92); border:1.5px solid rgba(29,42,68,.22); box-shadow:0 2px 8px rgba(60,40,10,.10); display:grid; place-items:center}
+.ohb svg{width:22px; height:22px}
+.ohb:active i{transform:scale(.94)}
+@media (max-height:800px){.oh-logo{font-size:25px} .oh-bar{margin:6px 0 7px; height:3.5px} .oh-k{font-size:14px} .oh-t{font-size:32px; margin:1px 0 3px} .oh-s{font-size:13px} .ohb i{width:42px; height:42px}}
+.bottom{gap:10px; margin:0 -16px; padding:28px 16px calc(env(safe-area-inset-bottom,0px)*.45 + 8px); background:linear-gradient(180deg,rgba(250,245,236,0),rgba(250,245,236,.94) 34px)}
+.places{display:flex; width:100%; box-sizing:border-box; padding:6px; background:rgba(255,253,248,.96); border:1.5px solid var(--pline); border-radius:20px; box-shadow:0 3px 12px rgba(60,40,10,.06)}
+.places button{position:relative; flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; font:inherit; font-size:16px; white-space:nowrap; padding:10px 2px; border:0; border-radius:14px; background:transparent; color:var(--navy); min-width:0; cursor:pointer}
+.places button+button{border-left:1.5px solid var(--pline); border-radius:0}
+.places button.on{background:#fbefd6; border-radius:14px; cursor:default}
+.places button.on::before{content:''; position:absolute; left:14%; right:14%; bottom:5px; height:4px; border-radius:2px; background:var(--gold2)}
+.places button.on+button{border-left-color:transparent}
+.places .pi{display:block; width:27px; height:27px; flex:none}
+.places .chev{display:none}
+.btns,.btns{display:flex!important; width:100%; gap:8px}
+.btns .pill{flex:1; min-width:0; font-family:var(--round); font-size:16px; letter-spacing:.04em; padding:12px 4px; border-radius:16px; color:var(--navy); background:#fffaf2; border:2px solid #d9c8a8; box-shadow:0 4px 0 #d9c8a8; backdrop-filter:none; -webkit-backdrop-filter:none}
+.btns .pill.main{flex:1.25; color:#fff; background:var(--terra); border-color:var(--terraD); box-shadow:0 4px 0 var(--terraD); font-size:18px}
+.btns .pill:active{transform:translateY(3px); box-shadow:0 1px 0 #d9c8a8}
+.btns .pill.main:active{box-shadow:0 1px 0 var(--terraD)}
+</style></head><body>
 <title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=Huninn&display=swap">
 <style>
 :root{
   --ink:#2f3a34; --ink2:#5d6a62; --line:rgba(47,58,52,.14); --glass:rgba(255,255,252,.74); --accent:#c07a45; --cream:#fbf8f0;
@@ -72,6 +103,16 @@ body.tour .tourstop{display:block}
 .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
 .grid button{padding:0; border:0; background:#fff; border-radius:10px; overflow:hidden; cursor:pointer; aspect-ratio:1; box-shadow:0 3px 10px rgba(0,0,0,.08)}
 .grid img{width:100%; height:100%; object-fit:cover; display:block}
+.grid button{position:relative}
+.cmdot{position:absolute; right:4px; top:4px; font-size:15px; line-height:1; background:rgba(255,253,247,.92); border-radius:99px; padding:3px 5px; box-shadow:0 1px 4px rgba(0,0,0,.15)} /* 有藝術家留言的作品（2026-10-05） */
+.asaid{margin:12px 0 4px; text-align:left}
+.asaid h3{margin:0 0 6px; font-family:var(--serif); font-weight:600; font-size:16px; color:var(--accent); letter-spacing:.06em}
+.asaid .none{font-size:13px; color:var(--ink2)}
+.asaid .list{display:flex; flex-direction:column; gap:6px; max-height:34vh; overflow:auto}
+.asaid button{font:inherit; display:flex; gap:10px; align-items:center; text-align:left; padding:8px; border:1px solid var(--line); border-radius:14px; background:#fbf6ea; color:var(--ink); cursor:pointer}
+.asaid img{width:46px; height:46px; border-radius:8px; object-fit:cover; flex:none}
+.asaid span{font-size:13.5px; line-height:1.5}
+.asaid small{display:block; color:var(--ink2); font-size:12px}
 .empty{text-align:center; color:var(--ink2); font-size:14px; padding:18px 0}
 .lb{position:fixed; inset:0; background:rgba(251,246,236,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; z-index:6}
 .lb img{max-width:min(90vw,540px); max-height:62vh; border-radius:8px; box-shadow:0 20px 60px rgba(40,70,90,.25)}
@@ -132,19 +173,20 @@ body.tour #tags{display:none}
 <div id="tags" aria-hidden="false"></div>
 <div class="loading" id="loading">島嶼正在浮上來…</div>
 <div class="hud" id="hud" hidden>
-  <div class="top">
-    <div class="title"><h1>OTTO2 作品小屋</h1><p>12 位藝術家島民，和大家的小屋</p></div>
-    <div class="topR"><button class="stats" id="findBtn" type="button" aria-label="找小屋"><div><b id="nHouses">0</b>間小屋</div><div><b id="nWorks">0</b>件作品</div><div class="findl">找小屋 ›</div></button>
-      <button class="pill tourpill" id="tourBtn" type="button">導覽</button></div>
+  <!-- 2026-10-05 大熊要跟遊樂島（扭蛋/走格子）介面一致：左上大標題、右上圓形小按鈕、下方三島切換＋一排主按鈕 -->
+  <div class="top ohead">
+    <div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">15 週年・大家的作品</div><h1 class="oh-t">作品小屋</h1><p class="oh-s"><span id="nHouses">0</span> 間小屋・<span id="nWorks">0</span> 件作品</p></div>
+    <div class="oh-r"><button class="ohb" id="findBtn" type="button" aria-label="找小屋"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></i>找小屋</button><button class="ohb" id="tourBtn" type="button" aria-label="導覽"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg></i>導覽</button></div>
   </div>
   <div class="bottom">
-    <div class="hint" id="hint">點藝術家、小屋或中間的大樹看看・拖曳可以轉動島嶼</div>
+    <div class="hint" id="hint" hidden></div>
+    <div class="places" id="places"><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋<span class="chev" aria-hidden="true">›</span></button></div>
     <div class="btns">
       <button class="pill main" id="myBtn" type="button">我的小屋</button>
       <button class="pill" id="upBtn" type="button">上傳作品</button>
       <button class="pill" id="albumBtn" type="button">大樹相簿</button>
-      <button class="pill" id="homeBtn" type="button" style="grid-column:1/-1">🎈 搭熱氣球回遊戲島</button>
     </div>
+    <button id="homeBtn" type="button" hidden></button>
   </div>
 </div>
 <div class="sheet" id="sheet" hidden>
@@ -162,7 +204,7 @@ body.tour #tags{display:none}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="ferry.js?v=20261005i"></script>
+<script src="ferry.js?v=20261005j"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -815,17 +857,24 @@ const INFO={
   '奈良美智':{full:'奈良美智 Yoshitomo Nara',life:'1959–・日本',style:'當代藝術',works:'大頭小女孩系列',fact:'畫裡的小孩常常一臉倔強，很多大人說看了像看到小時候的自己。'},
   '葛飾北齋':{full:'葛飾北齋 Katsushika Hokusai',life:'1760–1849・日本',style:'浮世繪',works:'神奈川沖浪裏、富嶽三十六景',fact:'一生搬家九十多次、換了三十多個名字，到九十歲還在畫。'},
 };
+/* 藝術家介紹卡下面：他到過哪幾家、留過什麼話（2026-10-05 大熊說留言很可愛，要找得回來） */
+function saidHtml(A){const L=[];G.members.forEach(m=>m.works.forEach(w=>{if(w.cm&&w.cm.a===A.n)L.push({m,w})}));
+  if(!L.length)return`<div class="asaid"><h3>我留過的話</h3><div class="none">還沒去看過大家的作品，等你上傳喔</div></div>`;
+  L.reverse();
+  return`<div class="asaid"><h3>我留過的話（${L.length}）</h3><div class="list">${L.slice(0,30).map(({m,w})=>`<button type="button" data-h="${esc(m.id)}" data-w="${esc(w.id)}"><img alt="" src="${w.img||''}"><span><small>🏠 ${esc(m.name)}${w.title?'・'+esc(w.title):''}</small>${esc(w.cm.t)}</span></button>`).join('')}</div></div>`}
 function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEach(a=>a.userData.hold=false);art.userData.hold=true;closeSheet();focusOn(art,4.2,1.1);
   const I=INFO[A.n]||{},img=FIGS[A.n],paint=paintWork(A.kind,480).toDataURL(),k=ARTISTS.indexOf(A);
   modal(`<div class="acard"><div class="afig${img?'':' paint'}"><img alt="${esc(A.n)}" src="${img||paint}"></div>
     <h2>${esc(A.n)}</h2><div class="meta">${esc(I.full||'')}<br>${esc(I.life||'')}</div>
-    <dl><dt>風格</dt><dd>${esc(I.style||'')}</dd><dt>代表作</dt><dd>${esc(I.works||'')}</dd><dt>小故事</dt><dd>${esc(I.fact||A.say)}</dd><dt>在島上</dt><dd>${esc(A.care)}，正在畫《${esc(A.work)}》</dd></dl>
+    <dl><dt>風格</dt><dd>${esc(I.style||'')}</dd><dt>代表作</dt><dd>${esc(I.works||'')}</dd><dt>小故事</dt><dd>${esc(I.fact||A.say)}</dd><dt>在島上</dt><dd>${esc(A.care)}，正在畫《${esc(A.work)}》</dd></dl>${saidHtml(A)}
     <div class="acts"><button class="pill" type="button" id="arP">看他正在畫的畫</button><button class="pill" type="button" id="arN">下一位</button><button class="pill main" type="button" id="arX">關閉</button></div></div>`);
+  $('panel').querySelectorAll('.asaid button').forEach(b=>b.onclick=()=>{const m=G.members.find(x=>x.id===b.dataset.h);if(!m)return;const i=m.works.findIndex(w=>w.id===b.dataset.w);if(i<0)return;
+    closeModal();focus=null;const can=!DEMO&&(m.id===G.me||ME.staff);openList(m.works,i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can?{house:m.id}:null,m)});
   $('arX').onclick=()=>{closeModal();focus=null};$('arN').onclick=()=>openArtist(ARTISTS[(k+1)%ARTISTS.length]);
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005i';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005j';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -836,7 +885,7 @@ let lb=null;
 function openImage(src,t,p){lb=null;$('lbDel').hidden=true;$('lbRx').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
 function openList(list,i,label,del,house){lb={list,i,label,del,house};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;lbComment(w,house);lbRx(w,house);$('lb').hidden=false}
 function groupByMonth(list){const out=new Map();list.forEach((w,i)=>{const k=w.date||'未標日期';if(!out.has(k))out.set(k,[]);out.get(k).push(i)});return[...out.entries()]}
-function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[i];return`<button type="button" data-i="${i}" aria-label="${esc(w.title||'作品')}"><img alt="" src="${w.img||demoPhoto(w.seed,160).toDataURL()}"></button>`}).join('')}</div>`}
+function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[i];return`<button type="button" data-i="${i}" aria-label="${esc(w.title||'作品')}"><img alt="" src="${w.img||demoPhoto(w.seed,160).toDataURL()}">${w.cm?'<span class="cmdot" title="有藝術家留言">💬</span>':''}</button>`}).join('')}</div>`}
 function houseWall(m){
   const mine=m.id===G.me,can=mine||ME.staff,list=m.works;
   modal(`<h2>${esc(m.name)}的小屋</h2><div class="meta">${list.length} 件作品・照時間排列</div><div class="wall">${list.length?groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join(''):`<div class="empty">${mine?'還沒有作品，上傳第一件吧':'還沒有作品'}</div>`}</div>
@@ -1017,7 +1066,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005i';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005j';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005j&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
