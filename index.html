@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.61</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.62</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1119,7 +1119,7 @@ function parkToken(){ try{ if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){ 
 function artOpenNotice(){
   if(!lineUser||!lineUser.userId||document.getElementById("artOpen"))return;
   const key="otto2-artopen-"+lineUser.userId;
-  try{ if(localStorage.getItem(key)||localStorage.getItem("otto2-artopen"))return; localStorage.setItem(key,"1"); localStorage.setItem("otto2-artopen","1") }catch(e){ return }
+  try{ if(localStorage.getItem(key))return; localStorage.setItem(key,"1") }catch(e){ return }  /* 2026-10-05 大熊要預約頁、扭蛋頁各跳一次，不共用 */
   const w=document.createElement("div");w.id="artOpen";
   w.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(30,36,50,.5);display:grid;place-items:center;padding:20px";
   w.innerHTML=`<div style="width:min(340px,100%);background:#fffdf7;border-radius:22px;padding:22px 20px 18px;box-shadow:0 18px 50px rgba(0,0,0,.25);color:#2b2320;font-family:inherit;text-align:center">
@@ -1139,9 +1139,9 @@ function artOpenNotice(){
   const close=()=>w.remove();
   w.addEventListener("click",e=>{if(e.target===w)close()});
   document.getElementById("artOpenNo").onclick=close;
-  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005k" };
+  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261005l" };
 }
-function openGacha(){ parkToken(); location.href="park.html?v=20261005k" }
+function openGacha(){ parkToken(); location.href="park.html?v=20261005l" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
@@ -1943,7 +1943,7 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005k") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261005l") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);

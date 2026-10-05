@@ -483,7 +483,7 @@ body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005k';
+const PARK_VER='20261005l';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1760,7 +1760,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005k',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005l',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2878,15 +2878,15 @@ $('spin').addEventListener('click',spin);
 $('muteBtn').addEventListener('click',toggleMute);muteLook();
 $('tourBtn').addEventListener('click',()=>setTimeout(startTour,250));
 setTimeout(maybeTour,1800);
-/* 2026-10-05 「作品小屋開放了」公告：從圖文選單直接進扭蛋的家長不會經過預約頁，這裡也跳一次（跟預約頁共用 otto2-artopen，看過一邊另一邊不跳；店內平板不跳）。
+/* 2026-10-05 「作品小屋開放了」公告：從圖文選單直接進扭蛋的家長不會經過預約頁，這裡也跳一次（大熊要預約頁、扭蛋頁各跳一次：這裡用 otto2-artopen-park；店內平板不跳）。
    ?isl=mascot：從作品小屋點「吉祥物島」回來，直接開吉祥物島 */
 (function artNotice(){const W=()=>!G||busy||document.body.classList.contains('touring')||!$('pop').hidden||!$('hud')||$('hud').hidden;
   const isl=/[?&]isl=mascot/.test(location.search);
   const go=()=>{if(W())return setTimeout(go,700);
     if(isl&&!go._m){go._m=1;mascotGo();return}
-    if(window.KIOSK)return;let seen=false,tour=false;try{seen=!!localStorage.getItem('otto2-artopen');tour=localStorage.getItem('otto2-park-tour')==='1'}catch(e){return}
+    if(window.KIOSK)return;let seen=false,tour=false;try{seen=!!localStorage.getItem('otto2-artopen-park');tour=localStorage.getItem('otto2-park-tour')==='1'}catch(e){return}
     if(seen)return;if(!tour&&G.phase==='oct')return setTimeout(go,1500); /* 第一次來先看完導覽 */
-    try{localStorage.setItem('otto2-artopen','1')}catch(e){}
+    try{localStorage.setItem('otto2-artopen-park','1')}catch(e){}
     popup(null,'🏡 作品小屋正式開放了！','',[{t:'去看看',v:1,cls:'red'},{t:'下次再說',v:0,cls:'ghost'}],
       '<div style="text-align:left;font-size:15px;line-height:1.65;background:#f6f0e2;border-radius:14px;padding:12px 14px;margin:6px 0 4px"><div>📷 會員上傳作品照片，就能蓋一間自己的小屋，作品越多小屋越高</div><div style="margin-top:6px">🎨 島上的藝術家會到你家看作品、留言給你</div><div style="margin-top:6px">👍 ❤️ 🌸 逛別人的小屋，喜歡的作品可以按一下</div></div>')
       .then(v=>{if(v===1)$('plArt').click()})};
