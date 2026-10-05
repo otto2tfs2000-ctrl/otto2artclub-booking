@@ -410,6 +410,31 @@ body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
 /* 2026-10-05 小遊戲中途可以離開（大熊：不想玩時按 LINE 的 X 會整個關掉） */
 #mgX{position:fixed; top:calc(env(safe-area-inset-top,0px) + 12px); right:14px; z-index:6; font:inherit; font-size:15px; color:#2b2320; background:#fffaf2; border:2px solid #2b2320; border-radius:99px; padding:7px 16px; box-shadow:0 3px 0 #2b2320; cursor:pointer}
 #mgX:active{transform:translateY(2px); box-shadow:0 1px 0 #2b2320}
+/* 2026-10-05 吉祥物島新版面（跟另外兩座一致） */
+#miUI{top:0; bottom:0; justify-content:space-between; align-items:stretch; gap:0; padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0; box-sizing:border-box}
+#miUI>*{pointer-events:none}
+#miUI .mitop .oh-r,#miUI .mimid>*,#miUI .mibot{pointer-events:auto}
+#miUI .mitop .oh-r{gap:10px}
+#miUI .mimid{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:8px; padding-bottom:10px}
+#miUI .mibot{display:flex; flex-direction:column; gap:10px; margin:0 -16px; padding:28px 16px calc(env(safe-area-inset-bottom,0px)*.45 + 8px); background:linear-gradient(180deg,rgba(250,245,236,0),rgba(250,245,236,.94) 34px)}
+body:not(.oct) #miUI .mibot{background:linear-gradient(180deg,rgba(16,29,70,0),rgba(16,29,70,.55) 46px,rgba(16,29,70,.9))}
+body:not(.oct) #miUI .oh-l,body:not(.oct) #miUI .ohb{color:#fff; text-shadow:0 2px 10px rgba(10,20,50,.6)}
+body:not(.oct) #miUI .ohb i{color:var(--navy)}
+#miUI .places{order:0; flex:none; opacity:1!important; pointer-events:auto!important} /* 吉祥物島時 busy 一直是 true，十月 busy 會把 .places 藏起來，這裡要蓋掉 */
+#miUI .mirow{order:1}
+#miUI .places button{display:inline-flex; align-items:center; position:relative}
+#miUI .places .chev{display:inline}
+#miUI .mirow{width:100%; gap:8px}
+#miUI .mirow button{flex:1; min-width:0; font-size:18px; letter-spacing:.06em; padding:11px 6px; border-radius:16px; color:var(--navy); background:#fffaf2; border:2px solid #d9c8a8; box-shadow:0 4px 0 #d9c8a8}
+#miUI .mirow button.red{flex:1.4; color:#fff; background:var(--terra); border-color:var(--terraD); box-shadow:0 4px 0 var(--terraD); font-size:21px}
+#miUI .mirow button:active{transform:translateY(3px)}
+.miknow{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:6px 0 2px}
+.miknow button{font:inherit; display:flex; align-items:center; gap:8px; text-align:left; padding:7px; border:2px solid var(--line); border-radius:14px; background:#fffaf2; color:var(--ink); cursor:pointer}
+.miknow button:last-child:nth-child(odd){grid-column:1/-1}
+.miknow img{width:46px; height:46px; border-radius:12px; object-fit:cover; flex:none}
+.miknow b{display:block; font-weight:400; font-size:16px}
+.miknow small{display:block; font-size:12px; color:#7a6d5a}
+.mishot img{display:block; width:auto; max-width:100%; max-height:56vh; border-radius:14px; margin:6px auto 2px; box-shadow:0 4px 14px rgba(0,0,0,.18)}
 </style>
 
 <div id="nightVeil"></div>
@@ -447,7 +472,14 @@ body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
-<div id="miUI" hidden><div class="mich">吉祥物島・五隻的家<br><small>一根手指轉島・兩根手指放大移動・點動物跟著看</small></div><button type="button" id="miReset" class="mich" hidden>⟲ 回到原位</button><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div><div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miBack">回遊戲</button></div></div>
+<!-- 2026-10-05 吉祥物島介面跟扭蛋島、作品小屋一致：左上大標題、右上圓鈕（認識牠們／音效／選單）、下方三島切換＋餵食／拍張照 -->
+<div id="miUI" hidden>
+  <div class="ohead mitop"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">教室的小動物</div><h1 class="oh-t">吉祥物島</h1><p class="oh-s">五隻小動物的家</p></div>
+    <div class="oh-r"><button class="ohb" id="miKnow" type="button" aria-label="認識牠們"><i><svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="10" rx="2.1" ry="2.6"/><ellipse cx="10" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="14.5" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="18.3" cy="10" rx="2.1" ry="2.6"/><path d="M12.2 11.5c3 0 5.6 3.4 5.6 5.6 0 2-1.6 2.6-3 2.2-1-.3-1.7-.6-2.6-.6s-1.6.3-2.6.6c-1.4.4-3-.2-3-2.2 0-2.2 2.6-5.6 5.6-5.6z"/></svg></i>認識牠們</button><button class="ohb" id="miMute" type="button" aria-label="音效開關"></button><button class="ohb" id="miMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
+  <div class="mimid"><div class="mich" id="miTip" hidden>一根手指轉島・兩根手指放大移動・點動物跟著看</div><button type="button" id="miReset" class="mich" hidden>⟲ 回到原位</button><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div></div>
+  <div class="mibot"><div class="places"><button type="button" id="miPl0"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="miPl1" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="miPl2"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋<span class="chev" aria-hidden="true">›</span></button></div>
+    <div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miShot">拍張照</button></div><button type="button" id="miBack" hidden></button></div>
+</div>
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
 <div class="pop" id="menu" hidden><div class="card">
   <h2>選單</h2>
@@ -483,7 +515,7 @@ body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005l';
+const PARK_VER='20261005m';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1546,7 +1578,7 @@ function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;if(c.st
   else if(k==='sparkle')[1200,1600,2000].forEach((f,i)=>tone(f,.15,'sine',.08,0,i*.05))
   else if(k==='tap')tone(700,.05,'sine',.1)}
 addEventListener('pointerdown',()=>{sfxInit();if(SFX.ctx&&SFX.ctx.state==='suspended')SFX.ctx.resume()},{passive:true});
-function muteLook(){const b=document.getElementById('muteBtn');if(b)b.innerHTML=`<i>${SFX.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>'}</i>${SFX.on?'音效':'靜音'}`}
+function muteLook(){const H=`<i>${SFX.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>'}</i>${SFX.on?'音效':'靜音'}`;['muteBtn','miMute'].forEach(id=>{const b=document.getElementById(id);if(b)b.innerHTML=H})}
 function toggleMute(){SFX.on=!SFX.on;try{localStorage.setItem('otto2-park-mute',SFX.on?'0':'1')}catch(e){}muteLook();if(SFX.on)sfx('tap')}
 
 /* ---------- 第一次打開：鏡頭帶著走一圈 ---------- */
@@ -1760,7 +1792,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005l',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005m',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -1980,6 +2012,8 @@ async function mascotGo(){
   parkCam='mascot';await sleep(500);
   PET.A=A2;MI.A=A2;PET.loc='mascot';MI.state='on';
   $('miUI').hidden=false;mzLook();
+  let tip=false;try{tip=!localStorage.getItem('otto2-mi-tip');localStorage.setItem('otto2-mi-tip','1')}catch(e){}
+  if(tip){$('miTip').hidden=false;setTimeout(()=>{$('miTip').hidden=true},6000)} /* 操作說明只在第一次出現 */
 }
 async function mascotBack(){
   if(MI.state!=='on')return;mzReset();MI.state='returning';$('miUI').hidden=true;$('miFood').hidden=true;
@@ -2173,6 +2207,31 @@ function miMenu(gid){const t=$('miFood');t.innerHTML='';const btn=(html,fn,cls)=
   g.foods.forEach(k=>btn('<i style="background:'+FOODC[k]+'"></i>'+FOODN[k],()=>miFeed(k,g.who)))}
 $('miFeed').addEventListener('click',()=>{if(MI.food)return;const t=$('miFood');if(t.hidden){miMenu();t.hidden=false}else t.hidden=true});
 $('miBack').addEventListener('click',mascotBack);
+$('miPl0').addEventListener('click',mascotBack);
+$('miPl2').addEventListener('click',()=>{if(MI.state!=='on')return;Ferry.go({to:'art.html?v='+PARK_VER,place:'art',from:'park'})});
+$('miMute').addEventListener('click',toggleMute);
+$('miMenu').addEventListener('click',()=>{if(MI.state!=='on')return;$('menu').hidden=false;$('menuX').focus()});
+/* 認識牠們：五隻的照片＋一句話，點了鏡頭跟著那隻 */
+$('miKnow').addEventListener('click',async()=>{if(MI.state!=='on')return;sfx('tap');
+  const L=[...['gabi','kabu','moka'].map(id=>({id,d:PETD[id],o:PET.g[id]&&PET.g[id].g})),{id:'xiong',d:FRD.xiong,o:MI.xiong&&MI.xiong.g},{id:'frog',d:FRD.frog,o:MI.frog&&MI.frog.g}];
+  const v=await popup(null,'認識牠們','點一隻，鏡頭就會跟著牠。',[{t:'關閉',v:null,cls:'ghost'}],
+    `<div class="miknow">${L.map((x,i)=>`<button type="button" data-i="${i}"><img alt="" src="${x.d.img}"><span><b>${esc(x.d.name)}</b><small>${esc(x.d.role)}</small></span></button>`).join('')}</div>`);
+  void v});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.miknow button');if(!b)return;
+  const L=[PET.g.gabi,PET.g.kabu,PET.g.moka].map(p=>p&&p.g).concat([MI.xiong&&MI.xiong.g,MI.frog&&MI.frog.g]),D=[PETD.gabi,PETD.kabu,PETD.moka,FRD.xiong,FRD.frog],i=+b.dataset.i;
+  $('pop').hidden=true;$('card').querySelector('.acts .btn')&&$('card').querySelector('.acts .btn').click();
+  if(L[i]){MZ.follow=L[i];MZ.z=Math.max(MZ.z,2.6);mzLook()}toast(`${D[i].name}：${D[i].line}`)});
+/* 拍張照：把現在的畫面存成一張圖（下面加 OTTO2 吉祥物島＋日期），長按就能存到手機或分享 */
+$('miShot').addEventListener('click',()=>{if(MI.state!=='on')return;sfx('tap');
+  try{renderer.render(scene,camera);const src=renderer.domElement,w=src.width,h=src.height,bar=Math.round(w*.12),cv=document.createElement('canvas');cv.width=w;cv.height=h+bar;const x=cv.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,h);if(G.phase==='oct'){g.addColorStop(0,'#86cdf5');g.addColorStop(1,'#ffe0bf')}else{g.addColorStop(0,'#101d46');g.addColorStop(1,'#6f8fcf')}
+    x.fillStyle=g;x.fillRect(0,0,w,h);x.drawImage(src,0,0);x.fillStyle='#fffaf2';x.fillRect(0,h,w,bar);
+    const d=new Date(),ds=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    x.fillStyle='#1d2a44';x.textBaseline='middle';x.font=`900 ${Math.round(bar*.36)}px ${FONT}`;x.fillText('OTTO2 吉祥物島',bar*.4,h+bar/2);
+    x.font=`${Math.round(bar*.26)}px ${FONT}`;x.textAlign='right';x.fillStyle='#7a6d5a';x.fillText(ds,w-bar*.4,h+bar/2);
+    const url=cv.toDataURL('image/jpeg',.88);
+    popup(null,'拍好了！','長按照片，就可以存到手機或分享給家人。',[{t:'好',v:true}],`<div class="mishot"><img alt="吉祥物島照片" src="${url}"></div>`)}
+  catch(e){toast('這支手機拍不了，請用截圖')}});
 $('miReset').addEventListener('click',mzReset);
 
 /* ---------- 效能（2026-10-03 全盤檢查）----------
