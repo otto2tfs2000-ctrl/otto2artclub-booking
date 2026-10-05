@@ -375,6 +375,12 @@ body:not(.oct) .roombtn small{color:#7a6d5a; font-size:10.5px}
 body:not(.oct) #zmBack{left:auto!important; right:14px; transform:none!important; bottom:calc(env(safe-area-inset-bottom,0px) + 140px)!important}
 body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!important}
 #skipOpen{position:fixed; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 24px); z-index:7; font:inherit; font-size:16px; color:#fff; background:rgba(20,28,50,.55); border:1.5px solid rgba(255,255,255,.7); border-radius:99px; padding:9px 20px; cursor:pointer; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
+/* 2026-10-05 下方按鈕往下移、底色鋪到螢幕最下面：原本 .hud 留了 home 條高度＋14px 的空，按鈕下面會看到半截格子或一條空白 */
+#game canvas{width:100%!important; height:100%!important}
+.hud{padding-bottom:0}
+body.oct .bottom,body:not(.oct) .bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px)*.45 + 8px)}
+body:not(.oct) .bottom{background:linear-gradient(180deg,rgba(16,29,70,0),rgba(16,29,70,.55) 46px,rgba(16,29,70,.9))}
+body:not(.oct) .mainbtns{margin-bottom:0}
 </style>
 
 <div id="nightVeil"></div>
@@ -448,7 +454,7 @@ body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!im
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005d';
+const PARK_VER='20261005e';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1622,8 +1628,10 @@ function viewShift(dt){const B=octBand(),pt=innerHeight>innerWidth;let want=0;
   else if(parkCam==='mascot'&&MI.state==='on'&&pt&&MI.g){const g=MI.g,k=g.scale.x,d=camera.position.clone().sub(g.position);d.y=0;d.normalize(); /* 島底座沙土層下緣（base 的 -1.9、半徑 .92R） */
     want=bottomWant(_bh.copy(g.position).addScaledVector(d,7*.92*k).setY(g.position.y-1.9*k))}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*5);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
-  if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
-function resize(){GA.band=undefined;renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerHeight>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight);if(scene&&scene.background&&(scene.background===_gal||scene.background===_galImg))scene.background=galTex()}
+  if(Math.abs(v)<.5)camera.clearViewOffset();else {const H=scrH();camera.setViewOffset(innerWidth,H,0,-v,innerWidth,H)}}
+/* 2026-10-05 LINE 裡 innerHeight 有時比整個螢幕矮（少了最下面 home 條那段），畫布照 #game 實際大小畫，最下面才不會露出一條空白/色塊 */
+function scrH(){const g=document.getElementById('game');return Math.max(innerHeight,g?g.clientHeight:0)}
+function resize(){GA.band=undefined;const H=scrH();renderer.setPixelRatio(Math.min(devicePixelRatio,G&&G.phase!=='oct'?3:2,PERF.cap));renderer.setSize(innerWidth,H);camera.aspect=innerWidth/H;camera.fov=H>innerWidth?40:32;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,H,0,-VSH,innerWidth,H);if(scene&&scene.background&&(scene.background===_gal||scene.background===_galImg))scene.background=galTex()}
 
 /* ---------- 教室三隻天竺鼠：嘎逼（老大）、卡布、摩卡。10 月在扭蛋廣場、11–12 月在走格子島散步，點牠們看照片 ---------- */
 const PETD={
