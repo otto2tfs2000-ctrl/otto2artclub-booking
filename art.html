@@ -108,6 +108,8 @@ body.tour .tourstop{display:block}
 .panel input[type=text],.panel input[type=tel],.panel select{width:100%; box-sizing:border-box; font-family:var(--sans); font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink)}
 .panel .acts{display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap}
 .panel .pill{box-shadow:none}
+/* 2026-10-05 視窗內容很長時，最下面的按鈕（關閉等）黏在視窗底部，不用滑到底才按得到 */
+.panel > .acts:last-child{position:sticky; bottom:-18px; margin:16px -20px -18px; padding:12px 20px 14px; background:linear-gradient(rgba(251,246,236,0),var(--cream) 24%); border-radius:0 0 24px 24px; z-index:2}
 .filebtn{display:flex; align-items:center; justify-content:center; border:1.5px dashed rgba(45,59,58,.3); border-radius:14px; padding:18px; cursor:pointer; color:var(--ink2); font-size:15px; background:#fff; position:relative}
 .filebtn input{position:absolute; inset:0; opacity:0; cursor:pointer}
 .styles{display:flex; gap:6px}.styles .pill{flex:1; padding:9px 6px; font-size:14px}.panel p.sdesc{margin:6px 0 0; font-size:13px; text-align:left}
@@ -1128,10 +1130,13 @@ function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.c
   const near=(obj,ud,lift)=>{obj.getWorldPosition(w);w.y+=lift;w.project(camera);if(w.z>1)return;const x=(w.x+1)/2*r.width,y=(1-w.y)/2*r.height,d=(x-tx)**2+(y-ty)**2;if(d<bd){bd=d;best=ud}};
   if(tripG&&tripG.visible)near(tripG,{trip:true},.3);houses.forEach((hh,i)=>near(hh,{house:G.members[i]},.5));artists.forEach(a=>near(a,{artist:a.userData.A},.6));return best}
 function onDown(e){if(touring)return;if(e.isPrimary)pointers.clear(); /* 2026-10-05 第一根手指按下就清掉沒收到放開的舊手指，不然之後每一下都被當成兩指縮放、點不到小屋 */pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cvEl().setPointerCapture(e.pointerId)}catch(err){}idleT=0;
-  if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom};if(down)down.moved=true}}
+  if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,fy:focus&&focus.yaw!==undefined?focus.yaw:yaw,fp:focus?(focus.pitch??.35):pitch,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom,fd:focus?focus.d:0};if(down)down.moved=true}}
 function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});idleT=0;
-  if(pointers.size===2&&pinch0){const [a,b]=[...pointers.values()];zoom=Math.max(.5,Math.min(1.3,pinch0.zoom*pinch0.d/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))));return}
-  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>10){down.moved=true;dragging=true;if(focus)closeSheet();yaw=down.yaw-dx*.006;pitch=Math.max(.22,Math.min(1.2,down.pitch+dy*.004))}}
+  if(pointers.size===2&&pinch0){const [a,b]=[...pointers.values()];const r=pinch0.d/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));if(focus&&pinch0.fd){focus.d=Math.max(pinch0.fd*.6,Math.min(pinch0.fd*1.6,pinch0.fd*r));return}zoom=Math.max(.5,Math.min(1.3,pinch0.zoom*r));return}
+  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>10){down.moved=true;dragging=true;
+    /* 2026-10-05 大熊：看小屋時一滑就跳回整座島、又點又放大，一直縮放很不舒服 → 看小屋時滑動改成繞著小屋轉，點空白處或按關閉才回整座島 */
+    if(focus){focus.yaw=down.fy-dx*.006;focus.pitch=Math.max(.12,Math.min(1.2,down.fp+dy*.004));return}
+    yaw=down.yaw-dx*.006;pitch=Math.max(.22,Math.min(1.2,down.pitch+dy*.004))}}
 function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(pointers.size)return;dragging=false;if(!down)return;const moved=down.moved;down=null;if(moved)return;
   const u=pick(e);if(!u){if(focus)closeSheet();return}
   if(u.trip)return tripFound();
@@ -1522,6 +1527,12 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
 $('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005za';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
 $('plMascot').onclick=()=>{const u='park.html?v=20261005za&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
+/* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
+function armBack(){try{if(!(history.state&&history.state.otOv))history.pushState({otOv:1},'')}catch(e){}}
+const anyOv=()=>!$('lb').hidden||!$('modal').hidden||!$('sheet').hidden;
+new MutationObserver(()=>{if(anyOv())armBack()}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
+addEventListener('popstate',()=>{if(!$('lb').hidden)$('lb').hidden=true;else if(!$('modal').hidden){closeModal();focus=null}else if(!$('sheet').hidden)closeSheet();else{history.back();return}
+  if(anyOv())armBack()});
 /* 作品上傳後可以再改名稱（2026-10-05 大熊要的）：屋主改自己家、老師改任何一間和大樹相簿 */
 $('lbRen').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];const t=prompt('作品名稱（最多 14 個字，空白就是不取名）',w.title&&w.title!=='作品'&&w.title!=='上課花絮'?w.title:'');if(t===null)return;
   const title=t.trim().slice(0,14);try{await api('/island/retitle',Object.assign({id:w.id,title},lb.del));w.title=title;openList(lb.list,lb.i,lb.label,lb.del,lb.house);toast(title?'改好了':'名稱拿掉了');reload().catch(()=>{})}catch(e){toast(e.message)}};
