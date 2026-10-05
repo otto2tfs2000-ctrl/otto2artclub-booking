@@ -34,6 +34,14 @@
 .upi img{width:56px; height:56px; object-fit:cover; border-radius:8px; flex:none; box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .upi input{flex:1; min-width:0; box-sizing:border-box; font-family:var(--sans); font-size:16px; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:#fff}
 .upi .upx{flex:none; width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:18px; cursor:pointer}
+.gpv{width:100%; aspect-ratio:1.6; border-radius:16px; background:#fffaf2; overflow:hidden; margin:4px 0 6px}
+.gpv canvas{display:block; width:100%!important; height:100%!important}
+.gpb,.gpc{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.gpb button,.gpc button{font:inherit; font-size:14px; padding:8px 2px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px}
+.gpb button.on,.gpc button.on{border-color:var(--accent); background:#fbefe2; box-shadow:0 0 0 1.5px var(--accent) inset}
+.gpb button:disabled{opacity:.35}
+.gpc button{font-size:12px}
+.gpc i{width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.15); display:block}
 </style></head><body>
 <title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -211,7 +219,7 @@ body.tour #tags{display:none}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261005j"></script>
-<script src="petlife.js?v=20261005n"></script>
+<script src="petlife.js?v=20261005q"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -694,7 +702,7 @@ function makeHouse(m,i){
 }
 function rebuildHouses(){
   const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>{all.add(o);if(o.userData.mg){o.geometry.dispose();o.material.dispose()}})});picks=picks.filter(p=>!all.has(p));
-  houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();tagEls.forEach(b=>b.dataset.i='');
+  houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();tagEls.forEach(b=>b.dataset.i='');try{rebuildGP()}catch(e){console.warn('gp',e)}
   $('nHouses').textContent=G.members.length;$('nWorks').textContent=G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length;
 }
 /* ================= animals ================= */
@@ -822,7 +830,7 @@ function loop(now){
     turbines.forEach((t,k)=>t.userData.hub.rotation.z+=dt*(.7+k*.15));
     falls.forEach(f=>f.material.map.offset.y+=dt*.9);
     if(airship){airship.position.y=1.6+Math.sin(now/1800)*.18;airship.rotation.z=Math.sin(now/2300)*.03;airship.userData.prop.rotation.x+=dt*4}
-    artists.forEach(a=>artistTick(a,dt,now));tripTick(now);movers.forEach(w=>animalTick(w,dt,now));
+    artists.forEach(a=>artistTick(a,dt,now));tripTick(now);gpTick(dt,now);movers.forEach(w=>animalTick(w,dt,now));
     idleT+=dt;if(!dragging&&!focus&&!touring&&idleT>5)yaw+=dt*.03;
   }
   viewShift(dt);const g=camGoal(),k=1-Math.pow(.05,dt);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
@@ -882,11 +890,11 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005p';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005q';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
-  const canRen=!DEMO&&(m.id===G.me||ME.staff);
-  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+  const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=canRen&&n>=PetLife.GP_WORKS,gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」。`:'';
+  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m),!m.pet&&m.id===G.me]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 改門牌名字（2026-10-05）：屋主改自己家，老師可以改任何一間 */
 function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫在小屋門牌上，大家逛到都看得到。</p><label for="rn">門牌名字（最多 8 個字）</label><input type="text" id="rn" maxlength="8" value="${esc(m.name)}">
     <div class="acts"><button class="pill" type="button" id="rnX">取消</button><button class="pill main" type="button" id="rnO">改好了</button></div>`);
@@ -978,7 +986,7 @@ function uploadTo(target,files0){
     for(const it of add){try{const r=await prepImg(it.f);URL.revokeObjectURL(it.data);it.data=r.data;it.thumb=r.thumb;it.ready=true}catch(err){toast('有一張照片讀不到，換一張試試');items.splice(items.indexOf(it),1)}if($('ul'))draw()}};
   $('uf').onchange=e=>{const fs=[...e.target.files];e.target.value='';addFiles(fs)};
   if(files0&&files0.length)addFiles([...files0]);
-  $('uo').onclick=async()=>{if(!items.length)return;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  $('uo').onclick=async()=>{if(!items.length)return;const before=target&&target.works?target.works.length:0;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;
     const m=album?null:pickM?G.members.find(x=>x.id===$('um').value):target;
     $('ul').querySelectorAll('input').forEach(x=>{items[+x.dataset.i].title=x.value.trim()});
     if(!DEMO){$('uo').disabled=true;$('uc').disabled=true;const ids=[];
@@ -993,6 +1001,7 @@ function uploadTo(target,files0){
       const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
       const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));
       toast(ids.length>1?`${ids.length} 件作品收進小屋了，現在有 ${nm.works.length} 件`:`第 ${nm.works.length} 件作品收進小屋了`);
+      if(before<PetLife.GP_WORKS&&nm.works.length>=PetLife.GP_WORKS&&!nm.pet&&nm.id===G.me)setTimeout(()=>toast('小屋蓋到三樓了！點小屋可以認養一隻天竺鼠'),2600);
       if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id})}catch(e){}}})(); /* 其他幾張在背景請藝術家留言 */
         await sleep(1200);artistVisit(nm,ids[ids.length-1])}
       return}
@@ -1032,6 +1041,49 @@ function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.
   if(canAsk&&w&&w.id){el.innerHTML='<button class="pill" type="button" id="cmAsk">請藝術家來看看這件作品</button>';el.hidden=false;
     $('cmAsk').onclick=async()=>{$('cmAsk').disabled=true;$('cmAsk').textContent='藝術家正在看…';try{const r=await api('/island/comment',{id:w.id,house:house.id});w.cm={a:r.a,t:r.t};lbComment(w,house);reload().catch(()=>{})}catch(e){toast(e.message);$('cmAsk').disabled=false;$('cmAsk').textContent='請藝術家來看看這件作品'}};return}
   el.hidden=true;el.innerHTML=''}
+
+/* ===== 小屋認養天竺鼠（2026-10-05）：蓋到 3 樓（8 件作品）可以認養一隻住在門口；品種只選一次，花色、名字可以改。造型在 petlife.js 的 makeGP ===== */
+let gpPets=[];
+function rebuildGP(){gpPets.forEach(o=>{scene.remove(o.g);o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
+  if(!window.PetLife)return;
+  G.members.forEach((m,i)=>{if(!m.pet||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
+    const pd=normStyle(m.style,i)==='wing'?2:1.5,g=PetLife.makeGP(THREE,c=>toon(c),m.pet.b,m.pet.c);g.scale.setScalar(.42);
+    h.updateMatrixWorld(true);const home=h.localToWorld(new THREE.Vector3(-.45,0,pd/2+.55));home.y=heightAt(home.x,home.z);g.position.copy(home);
+    g.traverse(x=>{if(x.isMesh){x.userData.house=m;picks.push(x)}});scene.add(g);gpPets.push({g,home,yaw:h.rotation.y,ph:i*1.7,m})})}
+/* 在門口小範圍走來走去、偶爾停下來東張西望 */
+function gpTick(dt,now){gpPets.forEach(o=>{const t=now/1000+o.ph,s=Math.sin(t*.35),x=s*.38,walk=Math.abs(Math.cos(t*.35))>.25;
+  const lx=Math.cos(o.yaw)*x,lz=-Math.sin(o.yaw)*x,px=o.home.x+lx,pz=o.home.z+lz;o.g.position.set(px,heightAt(px,pz)+(walk?Math.abs(Math.sin(t*9))*.025:0),pz);
+  o.g.rotation.y=o.yaw+(walk?(Math.cos(t*.35)>0?Math.PI/2:-Math.PI/2):Math.sin(t*1.3)*.4);const hd=o.g.userData.head;if(hd)hd.rotation.y=walk?0:Math.sin(t*2.1)*.35})}
+/* 第一次打開作品小屋、自己的小屋已經三樓還沒認養 → 提醒一次 */
+function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(x=>x.id===G.me);if(!m||m.pet||m.works.length<PetLife.GP_WORKS)return;
+  const k='otto2-gp-ask-'+m.id;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}
+  modal(`<h2>你的小屋蓋到三樓了！</h2><p>可以認養一隻天竺鼠住在你家門口。<br>選品種、選花色、取名字，大家逛到你家都看得到。</p><div class="acts"><button class="pill" type="button" id="gaX">之後再說</button><button class="pill main" type="button" id="gaO">認養天竺鼠</button></div>`);
+  $('gaX').onclick=closeModal;$('gaO').onclick=()=>gpPanel(m)}
+/* 認養／修改視窗：上面 3D 預覽慢慢轉，下面選品種（只能選一次）、花色、名字 */
+let gpView=null;
+function gpPanel(m){const had=!!m.pet,B=PetLife.GP_BREEDS,Cs=PetLife.GP_COLORS,locked=!!(m.pet&&m.pet.b)&&!ME.staff;let b=(m.pet&&m.pet.b)||B[0].id,c=(m.pet&&m.pet.c)||Cs[0].id;
+  modal(`<h2>${m.pet?'我的天竺鼠':'認養一隻天竺鼠'}</h2><div class="gpv" id="gpv"></div>
+    <label>品種${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
+    <label>花色</label><div class="gpc" id="gpc">${Cs.map(x=>`<button type="button" data-id="${x.id}" title="${x.n}"><i style="background:${x.d?`linear-gradient(135deg,${x.m} 50%,${x.d} 50%)`:x.m}"></i>${x.n}</button>`).join('')}</div>
+    <label for="gpn">名字（最多 8 個字）</label><input type="text" id="gpn" maxlength="8" placeholder="例如：麻糬" value="${m.pet?esc(m.pet.n):''}">
+    <div class="acts"><button class="pill" type="button" id="gpX">取消</button><button class="pill main" type="button" id="gpO">${m.pet?'改好了':'認養牠'}</button></div>`);
+  const sel=()=>{$('gpb').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===b));$('gpc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===c));gpPreview(b,c)};
+  $('gpb').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(locked)return;b=x.dataset.id;sel()});
+  $('gpc').querySelectorAll('button').forEach(x=>x.onclick=()=>{c=x.dataset.id;sel()});
+  const close=()=>{gpStop();closeModal()};$('gpX').onclick=close;sel();
+  $('gpO').onclick=async()=>{const n=$('gpn').value.trim();if(!n){toast('幫牠取個名字吧');return}$('gpO').disabled=true;$('gpO').textContent='儲存中…';
+    try{await api('/island/pet',{b,c,n,house:m.id});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
+    catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
+function gpPreview(b,c){const el=$('gpv');if(!el)return;
+  if(!gpView){const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));const sc=new THREE.Scene();
+    sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.75));const sun=new THREE.DirectionalLight('#fff4e0',.6);sun.position.set(2,4,3);sc.add(sun);
+    const gr=new THREE.Mesh(new THREE.CircleGeometry(1.1,40),toon('#d9e6c6'));gr.rotation.x=-Math.PI/2;sc.add(gr);
+    const cam=new THREE.PerspectiveCamera(30,1.6,.1,30);cam.position.set(0,1.5,3.6);cam.lookAt(0,.42,0);gpView={r,sc,cam,g:null,raf:0}}
+  const V=gpView;if(V.r.domElement.parentNode!==el){el.innerHTML='';el.appendChild(V.r.domElement)}
+  const w=el.clientWidth||280,h=Math.round(w/1.6);V.r.setSize(w,h);V.cam.aspect=w/h;V.cam.updateProjectionMatrix();
+  if(V.g)V.sc.remove(V.g);V.g=PetLife.makeGP(THREE,cc=>toon(cc),b,c);V.sc.add(V.g);
+  cancelAnimationFrame(V.raf);const spin=t=>{if(!$('gpv')){gpStop();return}V.g.rotation.y=t/1600;V.r.render(V.sc,V.cam);V.raf=requestAnimationFrame(spin)};V.raf=requestAnimationFrame(spin)}
+function gpStop(){if(!gpView)return;cancelAnimationFrame(gpView.raf);try{gpView.r.dispose();gpView.r.forceContextLoss()}catch(e){}gpView=null}
 /* ===== 小熊每天翹家（2026-10-05）：今天跑來作品小屋的話，躲在某一間小屋旁邊，點到就找到（共用 petlife.js） ===== */
 let tripG=null;
 function tripSpawn(){if(DEMO||!window.PetLife||tripG)return;const t=PetLife.trip();if(t.place!=='art'||PetLife.tripFound()||!houses.length)return;
@@ -1100,7 +1152,7 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}}))})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
@@ -1114,7 +1166,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI()}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>setTimeout(gpAsk,1500))}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
@@ -1127,8 +1179,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005p';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005p&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005q';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005q&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
