@@ -221,7 +221,7 @@ body.tour #tags{display:none}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261005j"></script>
-<script src="petlife.js?v=20261005q"></script>
+<script src="petlife.js?v=20261005x"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1122,7 +1122,7 @@ function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId
 function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(pointers.size)return;dragging=false;if(!down)return;const moved=down.moved;down=null;if(moved)return;
   const u=pick(e);if(!u){if(focus)closeSheet();return}
   if(u.trip)return tripFound();
-  if(u.gp)return gpTap(u.gp);if(u.gpBowl)return gpFeed(u.gpBowl);
+  if(u.gp)return gpTap(u.gp,u.kind);if(u.gpBowl)return gpFeed(u.gpBowl,u.kind);
   if(u.airship)return openAirship();
   if(u.artist)return openArtist(u.artist);if(u.house)return openHouseSheet(u.house);if(u.album)return openAlbum()}
 function sheet(title,sub,text,btns){$('sName').textContent=title;$('sSub').textContent=sub||'';$('sText').textContent=text||'';$('sText').hidden=!text;
@@ -1161,11 +1161,12 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005w';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005x';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
-  const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */gpN=m.pet?` 門口住著天竺鼠「${m.pet.n}」・親密度 ♥ ${m.pet.love||0}。${m.id===G.me?'點牠摸摸、點碗餵牠。':''}`:'';
-  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m),!m.pet&&m.id===G.me]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+  const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
+    gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'');
+  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 改門牌名字（2026-10-05）：屋主改自己家，老師可以改任何一間 */
 function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫在小屋門牌上，大家逛到都看得到。</p><label for="rn">門牌名字（最多 8 個字）</label><input type="text" id="rn" maxlength="8" value="${esc(m.name)}">
     <div class="acts"><button class="pill" type="button" id="rnX">取消</button><button class="pill main" type="button" id="rnO">改好了</button></div>`);
@@ -1272,7 +1273,7 @@ function uploadTo(target,files0){
       const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
       const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));
       toast(ids.length>1?`${ids.length} 件作品收進小屋了，現在有 ${nm.works.length} 件`:`第 ${nm.works.length} 件作品收進小屋了`);
-      if(before<PetLife.GP_WORKS&&nm.works.length>=PetLife.GP_WORKS&&!nm.pet&&nm.id===G.me)setTimeout(()=>toast('小屋蓋到三樓了！點小屋可以認養一隻天竺鼠'),2600);
+      if(before<PetLife.GP_WORKS&&nm.works.length>=PetLife.GP_WORKS&&!nm.pet&&nm.id===G.me)setTimeout(()=>toast('小屋蓋到三樓了！點小屋可以認養天竺鼠和青蛙'),2600);
       if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id})}catch(e){}}})(); /* 其他幾張在背景請藝術家留言 */
         await sleep(1200);artistVisit(nm,ids[ids.length-1])}
       return}
@@ -1313,25 +1314,32 @@ function lbComment(w,house){const el=$('lbCm');const canAsk=!DEMO&&house&&house.
     $('cmAsk').onclick=async()=>{$('cmAsk').disabled=true;$('cmAsk').textContent='藝術家正在看…';try{const r=await api('/island/comment',{id:w.id,house:house.id});w.cm={a:r.a,t:r.t};lbComment(w,house);reload().catch(()=>{})}catch(e){toast(e.message);$('cmAsk').disabled=false;$('cmAsk').textContent='請藝術家來看看這件作品'}};return}
   el.hidden=true;el.innerHTML=''}
 
-/* ===== 小屋認養天竺鼠（2026-10-05）：蓋到 3 樓（8 件作品）可以認養一隻住在門口；品種只選一次，花色、名字可以改。造型在 petlife.js 的 makeGP ===== */
+/* ===== 小屋認養天竺鼠／青蛙（2026-10-05）：蓋到 3 樓（8 件作品）可以各認養一隻住在門口（天竺鼠在左、青蛙在右）；品種／種類只選一次，花色、名字可以改。
+   造型在 petlife.js 的 makeGP／makeFrogPet；資料 m.pet（天竺鼠）、m.frog（青蛙），kind 就是這兩個字 ===== */
 let gpPets=[];
-/* 自己的天竺鼠記在手機，遊樂島的吉祥物島會讀它，讓牠跟著主人過去玩 */
-function gpRemember(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me);try{m&&m.pet&&m.works.length>=PetLife.GP_WORKS?localStorage.setItem('otto2-mypet',JSON.stringify(m.pet)):localStorage.removeItem('otto2-mypet')}catch(e){}}
+const GP_LV=[{at:10,t:'看到主人會跑過來迎接'},{at:30,t:'會翻滾、轉圈圈'},{at:60,t:'開心時會原地蹦跳（天竺鼠跳）'},{at:100,t:'頭上戴小皇冠'}];
+const FR_LV=[{at:10,t:'看到主人會跳過來迎接'},{at:30,t:'會原地轉圈圈'},{at:60,t:'開心時會跳得高高的'},{at:100,t:'頭上戴小皇冠'}];
+const PK={pet:{nm:'天竺鼠',bl:'品種',cl:'花色',L:()=>PetLife.GP_BREEDS,C:()=>PetLife.GP_COLORS,make:(b,c)=>PetLife.makeGP(THREE,x=>toon(x),b,c),sc:.42,x:-.45,bx:-1.05,crown:[0,.98,.55],lv:GP_LV,ph:'例如：麻糬',walk:.025},
+  frog:{nm:'青蛙',bl:'種類',cl:'顏色',L:()=>PetLife.FR_SPECIES,C:()=>PetLife.FR_COLORS,make:(b,c)=>PetLife.makeFrogPet(THREE,x=>toon(x),b,c),sc:.36,x:.6,bx:1.15,crown:[0,.98,.12],lv:FR_LV,ph:'例如：呱呱',walk:.1}};
+/* 自己的寵物記在手機，遊樂島的吉祥物島會讀它，讓牠跟著主人過去玩 */
+function gpRemember(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me),ok=m&&m.works.length>=PetLife.GP_WORKS;
+  try{ok&&m.pet?localStorage.setItem('otto2-mypet',JSON.stringify(m.pet)):localStorage.removeItem('otto2-mypet');ok&&m.frog?localStorage.setItem('otto2-myfrog',JSON.stringify(m.frog)):localStorage.removeItem('otto2-myfrog')}catch(e){}}
 function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bw){scene.remove(o.bw);o.bw.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})}o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
   if(!window.PetLife)return;
-  G.members.forEach((m,i)=>{if(!m.pet||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
-    const pd=normStyle(m.style,i)==='wing'?2:1.5,g=PetLife.makeGP(THREE,c=>toon(c),m.pet.b,m.pet.c);g.scale.setScalar(.42);
-    h.updateMatrixWorld(true);const home=h.localToWorld(new THREE.Vector3(-.45,0,pd/2+.55));home.y=heightAt(home.x,home.z);g.position.copy(home);
-    if((m.pet.love||0)>=GP_LV[3].at){const cr=gpCrown();cr.position.set(0,.98,.55);g.add(cr)} /* 親密度 100：頭上小皇冠 */
-    g.traverse(x=>{if(x.isMesh){x.userData={gp:m};picks.push(x)}});scene.add(g);
-    const bw=gpBowl(),bp=h.localToWorld(new THREE.Vector3(-1.05,0,pd/2+.55));bp.y=heightAt(bp.x,bp.z);bw.position.copy(bp);bw.traverse(x=>{if(x.isMesh){x.userData={gpBowl:m};picks.push(x)}});scene.add(bw);
-    const front=h.localToWorld(new THREE.Vector3(-.2,0,pd/2+1.15));front.y=heightAt(front.x,front.z);
-    gpPets.push({g,bw,bp,front,home,yaw:h.rotation.y,ph:i*1.7,m,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6})})}
-/* 在門口小範圍走來走去、偶爾停下來東張西望；親密度越高會的動作越多（GP_LV） */
-const GP_LV=[{at:10,t:'看到主人會跑過來迎接'},{at:30,t:'會翻滾、轉圈圈'},{at:60,t:'開心時會原地蹦跳（天竺鼠跳）'},{at:100,t:'頭上戴小皇冠'}];
+  G.members.forEach((m,i)=>['pet','frog'].forEach(kind=>{const P=m[kind],K=PK[kind];if(!P||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
+    const pd=normStyle(m.style,i)==='wing'?2:1.5,g=K.make(P.b,P.c);g.scale.setScalar(K.sc);
+    h.updateMatrixWorld(true);const home=h.localToWorld(new THREE.Vector3(K.x,0,pd/2+.55));home.y=heightAt(home.x,home.z);g.position.copy(home);
+    if((P.love||0)>=K.lv[3].at){const cr=gpCrown();cr.position.set(...K.crown);g.add(cr)} /* 親密度 100：頭上小皇冠 */
+    g.traverse(x=>{if(x.isMesh){x.userData={gp:m,kind};picks.push(x)}});scene.add(g);
+    const bw=gpBowl(kind),bp=h.localToWorld(new THREE.Vector3(K.bx,0,pd/2+.55));bp.y=heightAt(bp.x,bp.z);bw.position.copy(bp);bw.traverse(x=>{if(x.isMesh){x.userData={gpBowl:m,kind};picks.push(x)}});scene.add(bw);
+    const front=h.localToWorld(new THREE.Vector3(kind==='frog'?.3:-.2,0,pd/2+1.15));front.y=heightAt(front.x,front.z);
+    gpPets.push({g,bw,bp,front,home,yaw:h.rotation.y,ph:i*1.7+(kind==='frog'?.9:0),m,kind,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6})}))}
+/* 在門口小範圍走來走去（青蛙用跳的）、偶爾停下來東張西望；親密度越高會的動作越多（GP_LV／FR_LV） */
 function gpCrown(){const g=new THREE.Group(),gold=toon('#e8b93a');const base=new THREE.Mesh(new THREE.CylinderGeometry(.16,.18,.1,10,1,true),gold);base.material.side=THREE.DoubleSide;g.add(base);
   for(let i=0;i<5;i++){const a=i/5*Math.PI*2,t=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,5),gold);t.position.set(Math.cos(a)*.16,.1,Math.sin(a)*.16);g.add(t);const j=new THREE.Mesh(new THREE.SphereGeometry(.025,6,5),toon(i%2?'#e0607a':'#6ab8ff'));j.position.set(Math.cos(a)*.17,.03,Math.sin(a)*.17);g.add(j)}return g}
-function gpBowl(){const g=new THREE.Group(),b=new THREE.Mesh(new THREE.CylinderGeometry(.14,.1,.08,14),toon('#d98a6a'));b.position.y=.04;g.add(b);
+/* 碗：天竺鼠吃菜、青蛙吃飼料（深色淺盤＋一顆顆咖啡色飼料） */
+function gpBowl(kind){const g=new THREE.Group(),fr=kind==='frog',b=new THREE.Mesh(new THREE.CylinderGeometry(.14,.1,fr?.05:.08,14),toon(fr?'#4a4a52':'#d98a6a'));b.position.y=fr?.025:.04;g.add(b);
+  if(fr){[[.04,.02],[-.05,.03],[0,-.05],[.06,-.04],[-.03,-.02]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.04,6),toon('#8a5a34'));l.position.set(x,.065,z);l.rotation.z=x*20;g.add(l)});return g}
   const f=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.02,14),toon('#8fbf5a'));f.position.y=.08;g.add(f);
   [[.04,.02],[-.05,.03],[0,-.05]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.SphereGeometry(.04,8,6),toon('#6fa64a'));l.position.set(x,.1,z);l.scale.set(1,.5,1.4);g.add(l)});return g}
 let gpHearts=[],_gpHT=null;
@@ -1339,58 +1347,64 @@ function gpHeart(at,n=5){if(!_gpHT){const c=cvs(64,64),x=c.getContext('2d');x.fi
   for(let i=0;i<n;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:_gpHT,transparent:true,depthWrite:false}));s.scale.setScalar(.22);s.position.copy(at).add(new THREE.Vector3((Math.random()-.5)*.4,.35,(Math.random()-.5)*.4));s.userData={t:0,d:.9+Math.random()*.4,v:.5+Math.random()*.4,dl:i*.12};scene.add(s);gpHearts.push(s)}}
 function gpTick(dt,now){
   gpHearts=gpHearts.filter(s=>{const u=s.userData;u.t+=dt;if(u.t<u.dl){s.visible=false;return true}s.visible=true;const k=(u.t-u.dl)/u.d;s.position.y+=u.v*dt;s.material.opacity=1-k;if(k>=1){scene.remove(s);s.material.dispose();return false}return true});
-  gpPets.forEach(o=>{const t=now/1000+o.ph,love=o.m.pet.love||0,g=o.g;let px,pz,ry,walk=false,lift=0;
-    const greet=love>=GP_LV[0].at&&o.m.id===G.me&&focus&&focus.obj===houses[G.members.indexOf(o.m)];
-    if(o.eat>0){o.eat-=dt;px=o.bp.x+Math.cos(o.yaw)*.32;pz=o.bp.z-Math.sin(o.yaw)*.32;ry=Math.atan2(o.bp.x-px,o.bp.z-pz);const hd=g.userData.head;if(hd)hd.rotation.x=Math.abs(Math.sin(now/120))*.35}
+  gpPets.forEach(o=>{const K=PK[o.kind],fr=o.kind==='frog',t=now/1000+o.ph,love=o.m[o.kind].love||0,g=o.g;let px,pz,ry,walk=false,lift=0;
+    const greet=love>=K.lv[0].at&&o.m.id===G.me&&focus&&focus.obj===houses[G.members.indexOf(o.m)];
+    if(o.eat>0){o.eat-=dt;px=o.bp.x+Math.cos(o.yaw)*(fr?-.32:.32);pz=o.bp.z-Math.sin(o.yaw)*(fr?-.32:.32);ry=Math.atan2(o.bp.x-px,o.bp.z-pz);const hd=g.userData.head;if(hd)hd.rotation.x=Math.abs(Math.sin(now/120))*.35}
     else if(greet){px=o.front.x;pz=o.front.z;ry=o.yaw;const hd=g.userData.head;if(hd){hd.rotation.x=0;hd.rotation.y=Math.sin(t*2)*.25}}
-    else{const s=Math.sin(t*.35),x=s*.38;walk=Math.abs(Math.cos(t*.35))>.25;px=o.home.x+Math.cos(o.yaw)*x;pz=o.home.z-Math.sin(o.yaw)*x;
+    else{const s=Math.sin(t*(fr?.25:.35)),x=s*(fr?.3:.38);walk=Math.abs(Math.cos(t*(fr?.25:.35)))>.25;px=o.home.x+Math.cos(o.yaw)*x;pz=o.home.z-Math.sin(o.yaw)*x;
       ry=o.yaw+(walk?(Math.cos(t*.35)>0?Math.PI/2:-Math.PI/2):Math.sin(t*1.3)*.4);const hd=g.userData.head;if(hd){hd.rotation.x=0;hd.rotation.y=walk?0:Math.sin(t*2.1)*.35}}
     /* 用走的過去，不要瞬間移動 */
     const cx=g.position.x,cz=g.position.z,dx=px-cx,dz=pz-cz,L=Math.hypot(dx,dz),mx=dt*(greet||o.eat>0?1.6:.9);
     const nx=L>mx?cx+dx/L*mx:px,nz=L>mx?cz+dz/L*mx:pz;if(L>mx){ry=Math.atan2(dx,dz);walk=true}
-    /* 小把戲：30 翻滾轉圈、60 天竺鼠跳 */
-    o.nextTrick-=dt;if(o.nextTrick<=0&&!walk&&o.eat<=0){o.nextTrick=7+Math.random()*8;if(love>=GP_LV[2].at&&Math.random()<.5)o.hop=.6;else if(love>=GP_LV[1].at)o.spin=1}
+    /* 小把戲：30 翻滾轉圈、60 跳 */
+    o.nextTrick-=dt;if(o.nextTrick<=0&&!walk&&o.eat<=0){o.nextTrick=7+Math.random()*8;if(love>=K.lv[2].at&&Math.random()<.5)o.hop=.6;else if(love>=K.lv[1].at)o.spin=1}
     if(o.spin>0){o.spin-=dt*1.2;ry+=(1-Math.max(0,o.spin))*Math.PI*2}
-    if(o.hop>0){o.hop-=dt;lift=Math.sin(Math.max(0,o.hop)/.6*Math.PI)*.22}
-    g.position.set(nx,heightAt(nx,nz)+(walk?Math.abs(Math.sin(t*9))*.025:0)+lift,nz);g.rotation.y=ry;g.rotation.z=o.hop>0?Math.sin(o.hop*20)*.15:0})}
-/* 點自己的天竺鼠＝摸摸（每天 +1）；點別人的只會跳一下 */
-async function gpTap(m){const o=gpPets.find(x=>x.m===m);if(!o)return;o.hop=.45;const w=o.g.position.clone();gpHeart(w,m.id===G.me?5:2);
-  if(m.id!==G.me||DEMO){toast(`${m.name}家的${m.pet.n}`);return}
-  try{const r=await api('/island/pet/love',{why:'pet'});m.pet.love=r.love;toast(r.added?`${m.pet.n}好開心！親密度 +1（♥ ${r.love}）`:`${m.pet.n}蹭蹭你（今天摸過了）`);gpUnlock(m,r)}catch(e){toast(e.message)}}
+    if(o.hop>0){o.hop-=dt;lift=Math.sin(Math.max(0,o.hop)/.6*Math.PI)*(fr?.4:.22)}
+    /* 青蛙走路＝一跳一跳 */
+    g.position.set(nx,heightAt(nx,nz)+(walk?Math.abs(Math.sin(t*(fr?5:9)))*K.walk:0)+lift,nz);g.rotation.y=ry;g.rotation.z=o.hop>0&&!fr?Math.sin(o.hop*20)*.15:0})}
+/* 點自己的寵物＝摸摸（每天 +1）；點別人的只會跳一下 */
+async function gpTap(m,kind='pet'){const o=gpPets.find(x=>x.m===m&&x.kind===kind),P=m[kind];if(!o||!P)return;o.hop=.45;const w=o.g.position.clone();gpHeart(w,m.id===G.me?5:2);
+  if(m.id!==G.me||DEMO){toast(`${m.name}家的${P.n}`);return}
+  try{const r=await api('/island/pet/love',{why:'pet',kind});P.love=r.love;toast(r.added?`${P.n}好開心！親密度 +1（♥ ${r.love}）`:`${P.n}${kind==='frog'?'眨眨眼看你':'蹭蹭你'}（今天摸過了）`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
 /* 點碗＝餵牠（每天 +1） */
-async function gpFeed(m){const o=gpPets.find(x=>x.m===m);if(!o)return;if(m.id!==G.me||DEMO){toast(`這是${m.name}家${m.pet.n}的碗`);return}
+async function gpFeed(m,kind='pet'){const o=gpPets.find(x=>x.m===m&&x.kind===kind),P=m[kind];if(!o||!P)return;if(m.id!==G.me||DEMO){toast(`這是${m.name}家${P.n}的碗`);return}
   o.eat=2.6;setTimeout(()=>gpHeart(o.g.position.clone(),4),1400);
-  try{const r=await api('/island/pet/love',{why:'feed'});m.pet.love=r.love;toast(r.added?`${m.pet.n}吃得好香！親密度 +1（♥ ${r.love}）`:`${m.pet.n}今天吃飽了，明天再餵`);gpUnlock(m,r)}catch(e){toast(e.message)}}
-function gpUnlock(m,r){if(!r.added)return;const lv=GP_LV.find(x=>x.at===r.love);if(lv)setTimeout(()=>{modal(`<h2>${esc(m.pet.n)}跟你更親了！</h2><p>親密度 ♥ ${r.love}：${lv.t}</p><div class="acts"><button class="pill main" type="button" id="ulX">好</button></div>`);$('ulX').onclick=()=>{closeModal();if(r.love>=GP_LV[3].at)rebuildGP()}},1600)}
-/* 第一次打開作品小屋、自己的小屋已經三樓還沒認養 → 提醒一次 */
-function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(x=>x.id===G.me);if(!m||m.pet||m.works.length<PetLife.GP_WORKS)return;
-  const k='otto2-gp-ask-'+m.id;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}
-  modal(`<h2>你的小屋蓋到三樓了！</h2><p>可以認養一隻天竺鼠住在你家門口。<br>選品種、選花色、取名字，大家逛到你家都看得到。</p><div class="acts"><button class="pill" type="button" id="gaX">之後再說</button><button class="pill main" type="button" id="gaO">認養天竺鼠</button></div>`);
-  $('gaX').onclick=closeModal;$('gaO').onclick=()=>gpPanel(m)}
+  try{const r=await api('/island/pet/love',{why:'feed',kind});P.love=r.love;toast(r.added?`${P.n}${kind==='frog'?'一口吞掉了':'吃得好香'}！親密度 +1（♥ ${r.love}）`:`${P.n}今天吃飽了，明天再餵`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
+function gpUnlock(m,r,kind='pet'){if(!r.added)return;const K=PK[kind],lv=K.lv.find(x=>x.at===r.love);if(lv)setTimeout(()=>{modal(`<h2>${esc(m[kind].n)}跟你更親了！</h2><p>親密度 ♥ ${r.love}：${lv.t}</p><div class="acts"><button class="pill main" type="button" id="ulX">好</button></div>`);$('ulX').onclick=()=>{closeModal();if(r.love>=K.lv[3].at)rebuildGP()}},1600)}
+/* 自己的小屋已經三樓、還有沒認養的 → 各提醒一次（已經養天竺鼠的人，青蛙上線時也會提醒一次） */
+function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(x=>x.id===G.me);if(!m||m.works.length<PetLife.GP_WORKS)return;
+  const kind=!m.pet?'pet':!m.frog?'frog':null;if(!kind)return;
+  const k=(kind==='frog'?'otto2-fr-ask-':'otto2-gp-ask-')+m.id;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1');if(kind==='pet')localStorage.setItem('otto2-fr-ask-'+m.id,'1')}catch(e){return}
+  const both=kind==='pet';
+  modal(both?`<h2>你的小屋蓋到三樓了！</h2><p>可以認養一隻天竺鼠、一隻青蛙住在你家門口。<br>選種類、選顏色、取名字，大家逛到你家都看得到。</p><div class="acts"><button class="pill" type="button" id="gaX">之後再說</button><button class="pill main" type="button" id="gaF">認養青蛙</button><button class="pill main" type="button" id="gaO">認養天竺鼠</button></div>`
+    :`<h2>青蛙也可以認養了！</h2><p>${esc(m.pet.n)}多了一個鄰居：8 種青蛙、9 種顏色，住在你家門口右邊。</p><div class="acts"><button class="pill" type="button" id="gaX">之後再說</button><button class="pill main" type="button" id="gaF">認養青蛙</button></div>`);
+  $('gaX').onclick=closeModal;$('gaF').onclick=()=>gpPanel(m,'frog');if($('gaO'))$('gaO').onclick=()=>gpPanel(m,'pet')}
 /* 認養／修改視窗：上面 3D 預覽慢慢轉，下面選品種（只能選一次）、花色、名字 */
 let gpView=null;
-function gpPanel(m){const had=!!m.pet,B=PetLife.GP_BREEDS,Cs=PetLife.GP_COLORS,locked=!!(m.pet&&m.pet.b);let b=(m.pet&&m.pet.b)||B[0].id,c=(m.pet&&m.pet.c)||Cs[0].id;
-  const lv=m.pet?(m.pet.love||0):0,nx=GP_LV.find(x=>x.at>lv);
-  modal(`<h2>${m.pet?'我的天竺鼠':'認養一隻天竺鼠'}</h2>${m.pet?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small></p>`:''}<div class="gpv" id="gpv"></div>
-    <label>品種${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
-    <label>花色</label><div class="gpc" id="gpc">${Cs.map(x=>`<button type="button" data-id="${x.id}" title="${x.n}"><i style="background:${x.d?`linear-gradient(135deg,${x.m} 50%,${x.d} 50%)`:x.m}"></i>${x.n}</button>`).join('')}</div>
-    <label for="gpn">名字（最多 8 個字）</label><input type="text" id="gpn" maxlength="8" placeholder="例如：麻糬" value="${m.pet?esc(m.pet.n):''}">
-    <div class="acts"><button class="pill" type="button" id="gpX">取消</button><button class="pill main" type="button" id="gpO">${m.pet?'改好了':'認養牠'}</button></div>`);
-  const sel=()=>{$('gpb').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===b));$('gpc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===c));gpPreview(b,c)};
-  $('gpb').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(locked)return;b=x.dataset.id;sel()});
+function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C(),locked=!!(P&&P.b),fr=kind==='frog';
+  let b=(P&&P.b)||B[0].id,c=(P&&P.c)||(fr?B[0].c:Cs[0].id);
+  const lv=P?(P.love||0):0,nx=K.lv.find(x=>x.at>lv);
+  modal(`<h2>${P?'我的'+K.nm:'認養一隻'+K.nm}</h2>${P?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small></p>`:''}<div class="gpv" id="gpv"></div>
+    <label>${K.bl}${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
+    <label>${K.cl}</label><div class="gpc" id="gpc">${Cs.map(x=>`<button type="button" data-id="${x.id}" title="${x.n}"><i style="background:${x.d?`linear-gradient(135deg,${x.m} 50%,${x.d} 50%)`:fr?`radial-gradient(circle at 70% 30%,${x.a} 18%,${x.m} 20%)`:x.m}"></i>${x.n}</button>`).join('')}</div>
+    <label for="gpn">名字（最多 8 個字）</label><input type="text" id="gpn" maxlength="8" placeholder="${K.ph}" value="${P?esc(P.n):''}">
+    <div class="acts"><button class="pill" type="button" id="gpX">取消</button><button class="pill main" type="button" id="gpO">${P?'改好了':'認養牠'}</button></div>`);
+  const sel=()=>{$('gpb').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===b));$('gpc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===c));gpPreview(b,c,kind)};
+  /* 青蛙換種類時，顏色跳到那種青蛙原本的顏色（之後還能自己改） */
+  $('gpb').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(locked)return;b=x.dataset.id;if(fr){const sp=B.find(q=>q.id===b);if(sp)c=sp.c}sel()});
   $('gpc').querySelectorAll('button').forEach(x=>x.onclick=()=>{c=x.dataset.id;sel()});
   const close=()=>{gpStop();closeModal()};$('gpX').onclick=close;sel();
   $('gpO').onclick=async()=>{const n=$('gpn').value.trim();if(!n){toast('幫牠取個名字吧');return}$('gpO').disabled=true;$('gpO').textContent='儲存中…';
-    try{await api('/island/pet',{b,c,n,house:m.id});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
+    try{await api('/island/pet',{b,c,n,house:m.id,kind});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
     catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
-function gpPreview(b,c){const el=$('gpv');if(!el)return;
+function gpPreview(b,c,kind='pet'){const el=$('gpv');if(!el)return;
   if(!gpView){const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));const sc=new THREE.Scene();
     sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.75));const sun=new THREE.DirectionalLight('#fff4e0',.6);sun.position.set(2,4,3);sc.add(sun);
     const gr=new THREE.Mesh(new THREE.CircleGeometry(1.1,40),toon('#d9e6c6'));gr.rotation.x=-Math.PI/2;sc.add(gr);
     const cam=new THREE.PerspectiveCamera(30,1.6,.1,30);cam.position.set(0,1.5,3.6);cam.lookAt(0,.42,0);gpView={r,sc,cam,g:null,raf:0}}
   const V=gpView;if(V.r.domElement.parentNode!==el){el.innerHTML='';el.appendChild(V.r.domElement)}
   const w=el.clientWidth||280,h=Math.round(w/1.6);V.r.setSize(w,h);V.cam.aspect=w/h;V.cam.updateProjectionMatrix();
-  if(V.g)V.sc.remove(V.g);V.g=PetLife.makeGP(THREE,cc=>toon(cc),b,c);V.sc.add(V.g);
+  if(V.g)V.sc.remove(V.g);V.g=PK[kind].make(b,c);if(kind==='frog')V.g.scale.setScalar(.85);V.sc.add(V.g);
   cancelAnimationFrame(V.raf);const spin=t=>{if(!$('gpv')){gpStop();return}V.g.rotation.y=t/1600;V.r.render(V.sc,V.cam);V.raf=requestAnimationFrame(spin)};V.raf=requestAnimationFrame(spin)}
 function gpStop(){if(!gpView)return;cancelAnimationFrame(gpView.raf);try{gpView.r.dispose();gpView.r.forceContextLoss()}catch(e){}gpView=null}
 /* ===== 小熊每天翹家（2026-10-05）：今天跑來作品小屋的話，躲在某一間小屋旁邊，點到就找到（共用 petlife.js） ===== */
@@ -1461,7 +1475,7 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
@@ -1488,8 +1502,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005w';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005w&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005x';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005x&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 作品上傳後可以再改名稱（2026-10-05 大熊要的）：屋主改自己家、老師改任何一間和大樹相簿 */
 $('lbRen').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];const t=prompt('作品名稱（最多 14 個字，空白就是不取名）',w.title&&w.title!=='作品'&&w.title!=='上課花絮'?w.title:'');if(t===null)return;

@@ -547,12 +547,12 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261005j"></script>
-<script src="petlife.js?v=20261005q"></script>
+<script src="petlife.js?v=20261005x"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005w';
+const PARK_VER='20261005x';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1830,7 +1830,7 @@ function isStaffNow(){try{return document.documentElement.classList.contains('de
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
   const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005w',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261005x',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2162,7 +2162,19 @@ function makeFrog(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>n
   const dirt=[[-.2,0],[.15,-.2],[.3,.1],[-.35,-.25],[.05,.25],[-.05,-.4]].map(([x,z])=>{const d=mesh(SGp(.05,6,4),toon('#3a2a20'),x,surf(x,z)+.01,z);d.visible=false;P.add(d);return d});
   g.userData={id:'frog',fr:true,P,eyes,mound,dirt};return g}
 function frBuild(g){const k=FRS/MIK,x=makeXiong(),f=makeFrog();x.scale.setScalar(k);f.scale.setScalar(k);g.add(x);g.add(f);
-  MI.xiong={g:x,q:[],cur:null,t:0,hop:0,ch:1};MI.frog={g:f,q:[],cur:null,t:0,e:0,bl:3,st:'stare'}}
+  MI.xiong={g:x,q:[],cur:null,t:0,hop:0,ch:1};MI.frog={g:f,q:[],cur:null,t:0,e:0,bl:3,st:'stare'};
+  /* 2026-10-05 大熊要多幾隻青蛙陪蛙蛙叫：住在蛙蛙叫家附近，偶爾跳一下、眨眨眼，點了會介紹自己。造型用 petlife.js 的 makeFrogPet（跟小屋認養的同一套） */
+  MI.frogs=[];if(window.PetLife&&PetLife.makeFrogPet)FRIENDS.forEach((d,i)=>{const o=PetLife.makeFrogPet(THREE,c=>toon(c),d.sp,d.c);o.scale.setScalar(k*.72);
+    const b=new THREE.Vector3(FH.x+d.x,0,FH.z+d.z);o.position.copy(b);o.rotation.y=d.ry;o.userData.fr=true;o.userData.id='fr'+i;g.add(o);MI.frogs.push({g:o,d,base:b,t:2+i*1.7,hop:0,from:null,to:null,bl:1+i})})}
+const FRIENDS=[{sp:'tomato',c:'tomato',n:'番茄',x:1.3,z:1.35,ry:.3,line:'圓滾滾的番茄蛙，緊張的時候會把自己鼓得更圓。'},
+  {sp:'redeye',c:'green',n:'紅豆',x:-.9,z:-1.3,ry:-.4,line:'紅眼樹蛙，白天都在睡覺，眼睛一張開紅通通的。'},
+  {sp:'dart',c:'sky',n:'藍莓',x:2.35,z:-.4,ry:.9,line:'藍色的箭毒蛙，小小一隻，最愛在水盆邊跳來跳去。'}];
+/* 小青蛙：每隔幾秒在自己的位置附近跳一小步（弧線），眨眨眼 */
+function frFriendsTick(dt,now){(MI.frogs||[]).forEach(f=>{const g=f.g,u=g.userData;
+  f.bl-=dt;if(u.eyes){const k=f.bl<0?.15:1;u.eyes.forEach(e=>e.scale.y=k)}if(f.bl<-.12)f.bl=2+Math.random()*4;
+  if(f.hop>0){f.hop-=dt;const q=1-Math.max(0,f.hop)/.5;g.position.lerpVectors(f.from,f.to,q);g.position.y=Math.sin(q*Math.PI)*.35;if(f.hop<=0)g.position.y=0;return}
+  f.t-=dt;if(f.t>0)return;f.t=2.5+Math.random()*5;const a=Math.random()*6.28,r=Math.random()*.7;
+  f.from=g.position.clone();f.to=new THREE.Vector3(f.base.x+Math.cos(a)*r,0,f.base.z+Math.sin(a)*r);g.rotation.y=Math.atan2(f.to.x-f.from.x,f.to.z-f.from.z);f.hop=.5})}
 const xIn=v=>Math.hypot(v.x-XH.x,v.z-XH.z)<XR-.05;
 const xGround=v=>Math.hypot(v.x-XH.x,v.z-XH.z)<XR?XFLOOR:0;
 const xAt=(x,z)=>new THREE.Vector3(XH.x+x,0,XH.z+z);
@@ -2245,10 +2257,11 @@ function fStep(f,dt,now){const u=f.g.userData,pos=f.g.position,K=FRS/MIK;let a=f
   if(f.gulp>0)f.gulp-=dt;const gp=f.gulp>0?1+Math.sin((1-f.gulp/.8)*Math.PI)*.16:1;
   u.P.scale.set(gp,sq*(1+Math.sin(now/260)*.02),gp);  /* 喉嚨一鼓一鼓 */
   f.bl-=dt;if(f.bl<=0)f.bl=2.5+Math.random()*3.5;u.eyes.forEach(e=>e.scale.y=f.bl<.13?.2:1)}
-function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;MI.xiong.g.visible=!plAway();if(MI.xiong.g.visible)xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);
+function frTick(dt,now){if(!MI.xiong||!MI.g||!MI.g.visible)return;MI.xiong.g.visible=!plAway();if(MI.xiong.g.visible)xStep(MI.xiong,dt,now);fStep(MI.frog,dt,now);frFriendsTick(dt,now);
   if(MI.fish)MI.fish.forEach(f=>{const u=f.userData;u.ph+=dt*u.sp;const c=Math.cos(u.ph),s=Math.sin(u.ph),sg=u.sp<0?-1:1;f.position.set(u.cx+c*u.rx,u.cy+Math.sin(u.ph*2.3)*.04,s*u.rz);f.rotation.y=Math.atan2(-c*u.rz*sg,-s*u.rx*sg)})}
-function frTap(rc){if(!MI.xiong)return false;const hit=rc.intersectObjects([MI.xiong.g,MI.frog.g],true)[0];if(!hit)return false;
+function frTap(rc){if(!MI.xiong)return false;const hit=rc.intersectObjects([MI.xiong.g,MI.frog.g,...(MI.frogs||[]).map(f=>f.g)],true)[0];if(!hit)return false;
   let o=hit.object;while(o&&!(o.userData&&o.userData.fr))o=o.parent;if(!o)return false;const id=o.userData.id,d=FRD[id];if(id==='xiong'&&plAway())return false;sfx('tap');
+  if(/^fr\d/.test(id)){const f=MI.frogs[+id.slice(2)];if(f){f.t=0;const sp=PetLife.gpFind(PetLife.FR_SPECIES,f.d.sp).n;toast(`${f.d.n}（${sp}）：${f.d.line}`)}return true}
   if(id==='xiong'){if(FR.lost){xFound();return true}MI.xiong.hop=.35}
   else{const f=MI.frog;if(f.cur&&f.cur.k==='bury'&&f.g.position.y<FSOIL-.2){f.t=Math.min(f.t,.8);toast('找到蛙蛙叫了！他又把自己埋在土裡');return true}
     if(f.cur&&f.cur.k==='hop')return true;toast(f.st==='soak'?'蛙蛙叫在泡澡':f.st==='stare'?'蛙蛙叫在看魚缸裡的魚':'蛙蛙叫')}
@@ -2320,32 +2333,37 @@ function plTripTap(rc){if(!PL.trip||!PL.trip.visible)return false;if(!rc.interse
     `<img alt="小熊" src="pets/xiong.webp" style="display:block;width:130px;height:130px;border-radius:16px;object-fit:cover;margin:8px auto">`).then(()=>{if(r.card)plCardBig('xiong',true)});
   return true}
 /* ---- 到吉祥物島：拿日記、問是不是老師、提醒小熊翹家 ---- */
-/* ---- 自己小屋認養的天竺鼠（2026-10-05 大熊：主人到吉祥物島時，牠也會跟過來玩）。art.html 把資料存在 otto2-mypet，這裡也會跟伺服器確認一次 ---- */
-function plMyLoad(){try{return JSON.parse(localStorage.getItem('otto2-mypet')||'null')}catch(e){return null}}
-function plMySpawn(pet){if(!pet||!pet.b||PL.my||MI.state!=='on')return;const g=PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);g.scale.setScalar(.8);
-  const h=MI.A.home.kabu.clone().add(new THREE.Vector3(.9,0,.7));g.position.copy(h);g.position.y=MI.A.y;scene.add(g);PL.my={g,pet,tgt:null,t:0,hop:0};
-  setTimeout(()=>{if(MI.state==='on')toast(`${pet.n}也跟著你來吉祥物島玩了！`)},plAway()?4200:1500)}
-function plMyTick(dt){const o=PL.my;if(!o)return;if(MI.state!=='on'){scene.remove(o.g);PL.my=null;return}
-  const g=o.g,p=g.position,b=MI.A.box;let to=null,near=.15;
+/* ---- 自己小屋認養的天竺鼠／青蛙（2026-10-05 大熊：主人到吉祥物島時，牠也會跟過來玩）。art.html 把資料存在 otto2-mypet／otto2-myfrog，這裡也會跟伺服器確認一次。
+   PL.my＝天竺鼠、PL.myf＝青蛙（青蛙一跳一跳的） ---- */
+const PL_KEY={pet:'otto2-mypet',frog:'otto2-myfrog'},PL_SLOT={pet:'my',frog:'myf'};
+function plMyLoad(kind='pet'){try{return JSON.parse(localStorage.getItem(PL_KEY[kind])||'null')}catch(e){return null}}
+function plMySpawn(pet,kind='pet'){const sl=PL_SLOT[kind];if(!pet||!pet.b||PL[sl]||MI.state!=='on')return;const fr=kind==='frog';
+  if(fr&&!PetLife.makeFrogPet)return;
+  const g=fr?PetLife.makeFrogPet(THREE,c=>toon(c),pet.b,pet.c):PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);g.scale.setScalar(fr?.5:.8);
+  const h=fr?MI.g.localToWorld(new THREE.Vector3(FH.x+2.6,0,FH.z+1.4)):MI.A.home.kabu.clone().add(new THREE.Vector3(.9,0,.7));g.position.copy(h);g.position.y=MI.A.y;scene.add(g);PL[sl]={g,pet,kind,tgt:null,t:0,hop:0};
+  setTimeout(()=>{if(MI.state==='on')toast(`${pet.n}也跟著你來吉祥物島玩了！`)},(plAway()?4200:1500)+(fr?2200:0))}
+function plMyTick(dt){['pet','frog'].forEach(kind=>{const sl=PL_SLOT[kind],o=PL[sl];if(!o)return;if(MI.state!=='on'){scene.remove(o.g);PL[sl]=null;return}
+  const fr=kind==='frog',g=o.g,p=g.position,b=MI.A.box;let to=null,near=.15;
   if(MI.food){to=MI.food.position;near=.75}else{o.t-=dt;if(!o.tgt||o.t<=0){o.tgt=new THREE.Vector3(b[0]+Math.random()*(b[1]-b[0]),MI.A.y,b[2]+Math.random()*(b[3]-b[2]));o.t=3+Math.random()*4}to=o.tgt}
   const d=new THREE.Vector3(to.x-p.x,0,to.z-p.z),L=d.length(),walk=L>near;
   /* 跟大家一起吃到食物＝一起玩：每天 +1 親密度（伺服器記，每天一次） */
-  if(MI.food&&!walk&&PL.playDay!==PetLife.today()&&token()&&token()!=='kiosk'){PL.playDay=PetLife.today();o.hop=.4;
-    gcall('/island/pet/love',{why:'play'}).then(r=>{if(r.added)setTimeout(()=>toast(`${o.pet.n}跟大家一起吃，好開心！親密度 +1（♥ ${r.love}）`),1800)}).catch(()=>{})}
-  if(walk){const sp=(MI.food?2.4:1.1)*dt;p.addScaledVector(d.normalize(),Math.min(sp,L-near));let a=Math.atan2(d.x,d.z)-g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));g.rotation.y+=a*Math.min(1,dt*8)}
-  o.hop=Math.max(0,o.hop-dt);p.y=MI.A.y+(walk?Math.abs(Math.sin(performance.now()/80))*.04:0)+Math.sin(Math.min(1,o.hop/.4)*Math.PI)*.3;
-  const hd=g.userData.head;if(hd)hd.rotation.y=walk?0:Math.sin(performance.now()/500)*.35}
-function plMyTap(rc){const o=PL.my;if(!o||!rc.intersectObject(o.g,true).length)return false;o.hop=.4;sfx('tap');
-  const br=PetLife.gpFind(PetLife.GP_BREEDS,o.pet.b).n,co=PetLife.gpFind(PetLife.GP_COLORS,o.pet.c).n;
-  toast(`${o.pet.n}（${co}${br}）從你的作品小屋跑來玩`);return true}
+  const pk='playDay'+kind;
+  if(MI.food&&!walk&&PL[pk]!==PetLife.today()&&token()&&token()!=='kiosk'){PL[pk]=PetLife.today();o.hop=.4;
+    gcall('/island/pet/love',{why:'play',kind}).then(r=>{if(r.added)setTimeout(()=>toast(`${o.pet.n}跟大家一起吃，好開心！親密度 +1（♥ ${r.love}）`),1800)}).catch(()=>{})}
+  if(walk){const sp=(MI.food?2.4:fr?.9:1.1)*dt;p.addScaledVector(d.normalize(),Math.min(sp,L-near));let a=Math.atan2(d.x,d.z)-g.rotation.y;a=Math.atan2(Math.sin(a),Math.cos(a));g.rotation.y+=a*Math.min(1,dt*8)}
+  o.hop=Math.max(0,o.hop-dt);p.y=MI.A.y+(walk?Math.abs(Math.sin(performance.now()/(fr?140:80)))*(fr?.18:.04):0)+Math.sin(Math.min(1,o.hop/.4)*Math.PI)*.3;
+  const hd=g.userData.head;if(hd)hd.rotation.y=walk?0:Math.sin(performance.now()/500)*.35})}
+function plMyTap(rc){for(const kind of ['pet','frog']){const o=PL[PL_SLOT[kind]];if(!o||!rc.intersectObject(o.g,true).length)continue;o.hop=.4;sfx('tap');
+    const fr=kind==='frog',br=PetLife.gpFind(fr?PetLife.FR_SPECIES:PetLife.GP_BREEDS,o.pet.b).n,co=PetLife.gpFind(fr?PetLife.FR_COLORS:PetLife.GP_COLORS,o.pet.c).n;
+    toast(`${o.pet.n}（${co}${br}）從你的作品小屋${fr?'跳':'跑'}來玩`);return true}return false}
 async function plArrive(){
   if(plAway())setTimeout(()=>{if(MI.state==='on')toast(`小熊不在家！今天翹家去「${PetLife.tripPlaceName()}」了`)},1200);
   try{const r=await fetch(NOTIFY_URL+'/pets/diary?t='+Date.now()).then(r=>r.json());if(r&&r.ok)PL.diary=r.list||[]}catch(e){}
   if(token()&&token()!=='kiosk')gcall('/pets/me').then(j=>{PL.staff=!!j.staff}).catch(()=>{});
-  plMySpawn(plMyLoad());
-  if(token()&&token()!=='kiosk')gcall('/island/me').then(async j=>{if(!j.house){try{localStorage.removeItem('otto2-mypet')}catch(e){}return}
-    const d=await fetch(NOTIFY_URL+'/island/data?t='+Date.now()).then(r=>r.json());const h=d&&d.houses&&d.houses.find(x=>x.id===j.house),pet=h&&h.pet&&h.works.length>=PetLife.GP_WORKS?h.pet:null;
-    try{pet?localStorage.setItem('otto2-mypet',JSON.stringify(pet)):localStorage.removeItem('otto2-mypet')}catch(e){}if(pet)plMySpawn(pet)}).catch(()=>{})}
+  plMySpawn(plMyLoad('pet'),'pet');plMySpawn(plMyLoad('frog'),'frog');
+  if(token()&&token()!=='kiosk')gcall('/island/me').then(async j=>{if(!j.house){try{localStorage.removeItem(PL_KEY.pet);localStorage.removeItem(PL_KEY.frog)}catch(e){}return}
+    const d=await fetch(NOTIFY_URL+'/island/data?t='+Date.now()).then(r=>r.json());const h=d&&d.houses&&d.houses.find(x=>x.id===j.house),ok=h&&h.works.length>=PetLife.GP_WORKS;
+    ['pet','frog'].forEach(kind=>{const pet=ok&&h[kind]?h[kind]:null;try{pet?localStorage.setItem(PL_KEY[kind],JSON.stringify(pet)):localStorage.removeItem(PL_KEY[kind])}catch(e){}if(pet)plMySpawn(pet,kind)})}).catch(()=>{})}
 /* 有新日記的動物頭上冒一個小牌子；點牌子或那隻動物就打開日記 */
 function plSpr(){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;rr(6,6,244,84,40,x);x.fill();x.stroke();
   x.fillStyle='#c4553b';x.font=`44px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText('📔 新日記',128,52);

@@ -102,5 +102,59 @@ function makeGP(THREE,mat,breed,color){var p=gpParams(breed,color);
   if(p.fringe)[-.12,0,.12].forEach(function(x,j){var f=M(S(.13,10,8),j===1?p.hair2:p.hair,x,.18,.22);f.scale.set(.8,1.3,.6);f.rotation.x=.5;H.add(f)});
   [[-.2,.34],[.2,.34],[-.24,-.34],[.24,-.34]].forEach(function(a){var f=M(S(.085,10,8),'#eab3a6',a[0],.07,a[1]);f.scale.set(1,.6,1.35);g.add(f)});
   g.userData={head:H,body:body};return g}
-window.PetLife={ANIMALS:ANIMALS,CARD_AT:CARD_AT,today:today,trip:trip,tripFound:tripFound,tripPlaceName:tripPlaceName,love:love,hearts:hearts,cardDay:cardDay,fedToday:fedToday,heartsHtml:heartsHtml,diarySeen:diarySeen,diaryMark:diaryMark,makeXiong:makeXiong,GP_FLOOR:GP_FLOOR,GP_WORKS:GP_WORKS,GP_BREEDS:GP_BREEDS,GP_COLORS:GP_COLORS,gpFind:gpFind,makeGP:makeGP};
+/* ===== 小屋認養青蛙（2026-10-05）：跟天竺鼠一樣蓋到 3 樓才能認養；種類只選一次，顏色、名字可以改 =====
+   種類決定身形（樹蛙坐得比較挺、有吸盤；角蛙扁扁大嘴有小角…），顏色是八種調色盤，花紋跟著種類走 */
+var FR_SPECIES=[{id:'horned',n:'角蛙',c:'gold'},{id:'tomato',n:'番茄蛙',c:'tomato'},{id:'redeye',n:'紅眼樹蛙',c:'green'},{id:'dart',n:'箭毒蛙',c:'sky'},
+  {id:'whites',n:'老爺樹蛙',c:'mint'},{id:'painted',n:'亞洲錦蛙',c:'caramel'},{id:'moltrecht',n:'莫氏樹蛙',c:'green'},{id:'milk',n:'牛奶蛙',c:'snow'}];
+var FR_COLORS=[{id:'green',n:'翠綠',m:'#7cc35a',l:'#eef5cf',a:'#3f7f35'},{id:'gold',n:'黃金',m:'#f3d43a',l:'#f6e5d8',a:'#ee8a4c'},{id:'strawberry',n:'草莓粉',m:'#f29ab0',l:'#fde6ec',a:'#d9546f'},
+  {id:'snow',n:'雪白',m:'#f4f1e8',l:'#ffffff',a:'#5a4a3e'},{id:'sky',n:'天空藍',m:'#4fa3e8',l:'#dff0fc',a:'#1d2f55'},{id:'caramel',n:'焦糖',m:'#c98a4e',l:'#f1dcc0',a:'#5a3a24'},
+  {id:'grape',n:'紫葡萄',m:'#9a74c9',l:'#efe6f8',a:'#3f2a66'},{id:'tomato',n:'番茄紅',m:'#e8583a',l:'#fbd9c8',a:'#a8321f'},{id:'mint',n:'薄荷',m:'#8fd6c0',l:'#eefaf5',a:'#3f8f7a'}];
+function frParams(sp){var b=gpFind(FR_SPECIES,sp).id;
+  var P={bw:1.15,bh:.66,bd:1.05,eye:.15,ex:.25,ez:.2,iris:null,pupil:'#1a0e0a',tilt:0,pads:false,leg:1,pat:null,horn:false,brow:false,mouth:.52,head:0};
+  if(b==='horned'){P.horn=true;P.pat='spots'}
+  else if(b==='tomato'){P.bw=1.05;P.bh=.92;P.bd=1.0;P.eye=.11;P.ex=.2;P.ez=.32;P.mouth=.38;P.leg=.7}
+  else if(b==='redeye'){P.bw=.8;P.bh=.62;P.bd=1.0;P.eye=.17;P.ex=.27;P.ez=.38;P.iris='#e8322a';P.tilt=.32;P.pads=true;P.leg=1.15;P.pat='sides';P.mouth=.36}
+  else if(b==='dart'){P.bw=.78;P.bh=.6;P.bd=.95;P.eye=.12;P.ex=.22;P.ez=.36;P.tilt=.2;P.pat='net';P.mouth=.34;P.leg=.9}
+  else if(b==='whites'){P.bw=1.1;P.bh=.8;P.bd=1.0;P.eye=.13;P.ex=.27;P.ez=.33;P.iris='#e6c45a';P.tilt=.18;P.pads=true;P.brow=true;P.mouth=.44}
+  else if(b==='painted'){P.bw=1.08;P.bh=.84;P.bd=1.08;P.eye=.1;P.ex=.17;P.ez=.42;P.pat='stripe';P.mouth=.3;P.leg=.75}
+  else if(b==='moltrecht'){P.bw=.82;P.bh=.62;P.bd=1.0;P.eye=.14;P.ex=.25;P.ez=.38;P.iris='#e8b04a';P.tilt=.28;P.pads=true;P.pat='thigh';P.mouth=.36}
+  else if(b==='milk'){P.bw=.92;P.bh=.68;P.bd=1.0;P.eye=.16;P.ex=.26;P.ez=.36;P.iris='#3a2a20';P.tilt=.26;P.pads=true;P.pat='bands';P.mouth=.4}
+  return P}
+/* 做出 3D 青蛙：大小跟蛙蛙叫（park makeFrog）差不多。userData.eyes 給眨眼、P 給跳 */
+function makeFrogPet(THREE,mat,sp,color){var P=frParams(sp),C=gpFind(FR_COLORS,color||gpFind(FR_SPECIES,sp).c);
+  function S(r,a,b){return new THREE.SphereGeometry(r,a||18,b||12)}
+  function M(geo,c,x,y,z){var o=new THREE.Mesh(geo,mat(c));o.position.set(x||0,y||0,z||0);o.castShadow=true;return o}
+  var g=new THREE.Group(),Q=new THREE.Group(),B=new THREE.Group();g.add(Q);Q.add(B);
+  var R=.55,by=.2+R*P.bh;B.position.y=by;B.rotation.x=-P.tilt;
+  var sx=R*P.bw,sy=R*P.bh,sz=R*P.bd;
+  function top(x,z){return sy*Math.sqrt(Math.max(0,1-(x/sx)*(x/sx)-(z/sz)*(z/sz)))}
+  var body=M(S(R,24,16),C.m);body.scale.set(P.bw,P.bh,P.bd);B.add(body);
+  var bel=M(S(R*.92,18,10),C.l,0,-sy*.38,.06);bel.scale.set(P.bw,P.bh*.6,P.bd*.95);B.add(bel);
+  var mx=Math.min(P.mouth,sx*.97),mo=M(new THREE.TorusGeometry(mx,.028,6,30,Math.PI),'#8a5040',0,-sy*.12,0);mo.rotation.x=Math.PI/2;mo.scale.set(1,sz*.985/mx,1);B.add(mo); /* 大嘴巴線：貼著身體前緣 */
+  /* 花紋 */
+  function dot(x,z,r,c,fl){var d=M(S(r,10,6),c,x,top(x,z)-r*.35,z);d.scale.set(1.15,fl||.4,1.15);B.add(d)}
+  if(P.pat==='spots')[[-.18,-.05],[.2,-.12],[0,.08],[-.38,.08],[.4,.06],[-.1,-.32],[.25,-.35],[.45,-.2],[-.42,-.18]].forEach(function(a,i){dot(a[0]*P.bw,a[1]*P.bd,.075+(i%3)*.02,C.a)});
+  if(P.pat==='net')[[-.15,0],[.17,-.1],[0,-.3],[-.28,-.25],[.3,-.33],[.08,.14],[-.25,.16],[.28,.12],[0,-.05]].forEach(function(a,i){dot(a[0],a[1],.07+(i%2)*.03,C.a)});
+  if(P.pat==='stripe'){[-1,1].forEach(function(d){for(var k=0;k<7;k++){var z=.32-k*.12;dot(d*.2*P.bw,z*P.bd,.085,C.a,.35)}})}
+  if(P.pat==='bands')[.1,-.12,-.34].forEach(function(z){for(var k=-3;k<=3;k++)dot(k*.075*P.bw*1.3,z*P.bd,.07,C.a,.3)});
+  if(P.pat==='sides')[-1,1].forEach(function(d){var s1=M(S(.2,12,8),C.a==='#3f7f35'?'#3b6fc4':C.a,d*sx*.92,-sy*.05,-.02);s1.scale.set(.25,.55,1.3);B.add(s1);var s2=M(S(.08,8,6),'#f2f2e8',d*sx*.95,-sy*.05,.12);s2.scale.set(.4,.5,.4);B.add(s2)});
+  /* 眼睛：鼓在頭頂兩側 */
+  var eyes=[-1,1].map(function(d){var e=new THREE.Group(),x=d*P.ex*P.bw,z=P.ez*P.bd;e.position.set(x,top(x,z)-P.eye*.25,z);
+    e.add(M(S(P.eye,14,10),C.m));var ir=M(S(P.eye*.72,12,9),P.iris||'#f6e47a',d*P.eye*.28,P.eye*.22,P.eye*.5);e.add(ir);
+    e.add(M(S(P.eye*.36,8,6),P.pupil,d*P.eye*.36,P.eye*.3,P.eye*1.02));
+    var hl=new THREE.Mesh(S(P.eye*.14,6,5),new THREE.MeshBasicMaterial({color:0xffffff}));hl.position.set(d*P.eye*.2,P.eye*.55,P.eye*1.0);e.add(hl);
+    if(P.horn){var h=M(new THREE.ConeGeometry(P.eye*.4,P.eye*.95,6),C.m,0,P.eye*1.0,-P.eye*.3);h.rotation.x=-.3;e.add(h)}
+    if(P.brow){var bw=M(S(P.eye*1.05,12,8),C.m,0,P.eye*.55,-P.eye*.15);bw.scale.set(1.15,.45,1.05);e.add(bw)}
+    B.add(e);return e});
+  /* 腳：前腳小、後腳折起來；樹蛙腳趾有圓圓的吸盤 */
+  var L=P.leg,fy=.08;
+  [-1,1].forEach(function(d){
+    var fl=M(S(.1*L,10,8),C.m,d*sx*.72,fy+.04,sz*.55);fl.scale.set(.8,.7,1.2);Q.add(fl);
+    if(P.pads){var arm=M(new THREE.CylinderGeometry(.055,.07,.34,8),C.m,d*sx*.6,.2,sz*.62);arm.rotation.z=d*.25;arm.rotation.x=-.2;Q.add(arm)} /* 樹蛙坐得挺，看得到前腳撐著 */
+    var bl=M(S(.18*L,12,9),C.m,d*sx*.95,.16*L,-sz*.35);bl.scale.set(.75,.7,1.45);Q.add(bl);
+    var ft=M(S(.09*L,8,6),C.m,d*sx*.85,fy,-sz*.05);ft.scale.set(1.2,.5,1.8);Q.add(ft);
+    if(P.pat==='thigh'){var th=M(S(.1*L,8,6),'#f08a3a',d*sx*1.02,.12*L,-sz*.48);th.scale.set(.5,.6,1.1);Q.add(th)}
+    if(P.pads)[[sx*.72,sz*.7],[sx*.95,.05]].forEach(function(a,j){for(var k=-1;k<=1;k++){var t=M(S(.035,6,5),C.l,d*a[0]+k*.06*d,.03,a[1]+(j?-.0:.08)+Math.abs(k)*-.03);Q.add(t)}})});
+  g.userData={P:Q,body:B,eyes:eyes,frog:true};return g}
+window.PetLife={ANIMALS:ANIMALS,CARD_AT:CARD_AT,today:today,trip:trip,tripFound:tripFound,tripPlaceName:tripPlaceName,love:love,hearts:hearts,cardDay:cardDay,fedToday:fedToday,heartsHtml:heartsHtml,diarySeen:diarySeen,diaryMark:diaryMark,makeXiong:makeXiong,GP_FLOOR:GP_FLOOR,GP_WORKS:GP_WORKS,GP_BREEDS:GP_BREEDS,GP_COLORS:GP_COLORS,gpFind:gpFind,makeGP:makeGP,FR_SPECIES:FR_SPECIES,FR_COLORS:FR_COLORS,makeFrogPet:makeFrogPet};
 })();
