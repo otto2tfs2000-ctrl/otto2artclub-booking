@@ -29,6 +29,11 @@
 .btns .pill.main{flex:1.25; color:#fff; background:var(--terra); border-color:var(--terraD); box-shadow:0 4px 0 var(--terraD); font-size:18px}
 .btns .pill:active{transform:translateY(3px); box-shadow:0 1px 0 #d9c8a8}
 .btns .pill.main:active{box-shadow:0 1px 0 var(--terraD)}
+.uplist{display:flex; flex-direction:column; gap:8px; margin-top:8px}
+.upi{display:flex; align-items:center; gap:8px}
+.upi img{width:56px; height:56px; object-fit:cover; border-radius:8px; flex:none; box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.upi input{flex:1; min-width:0; box-sizing:border-box; font-family:var(--sans); font-size:16px; padding:9px 10px; border:1px solid var(--line); border-radius:10px; background:#fff}
+.upi .upx{flex:none; width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:18px; cursor:pointer}
 </style></head><body>
 <title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -874,7 +879,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005j';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005k';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next,[['走進小屋',()=>houseWall(m),true],['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
@@ -931,24 +936,44 @@ function upPanel(){
   $('asMe').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(!mine){joinPanel();toast('先搬進一間小屋，才能放作品');return}uploadTo(mine)};
   $('asAl').onclick=()=>uploadTo('album');$('asTm').onclick=()=>uploadTo(null);$('asX').onclick=closeModal;
 }
+/* 2026-10-05 大熊：一張一張傳太慢 → 一次最多選 4 張，每張可以有自己的名字，依序上傳；藝術家會走過來看最後一張，其他幾張在背景請藝術家留言 */
+const UP_MAX=4;
 function uploadTo(target){
-  let data=null,thumb=null;const pickM=target===null,album=target==='album';
-  modal(`<h2>${album?'放進大樹相簿':'放作品'}</h2><p>${album?'照片會放進中間大樹的相簿，可以複製連結分享到 LINE。':'作品會照時間收進小屋，小屋也會跟著慢慢變漂亮。'}</p>
+  let items=[];const pickM=target===null,album=target==='album';
+  modal(`<h2>${album?'放進大樹相簿':'放作品'}</h2><p>${album?'照片會放進中間大樹的相簿，可以複製連結分享到 LINE。':'作品會照時間收進小屋，小屋也會跟著慢慢變漂亮。'}一次最多選 ${UP_MAX} 張。</p>
     ${pickM?`<label for="um">這是誰的作品</label><select id="um">${G.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>`:''}
-    <label>照片</label><div class="filebtn">選擇照片<input type="file" accept="image/*" id="uf"></div><img class="preview" id="upv" alt="" hidden>
-    <label for="ut">${album?'說明（例如：流體熊課）':'作品名稱（可以不填）'}</label><input type="text" id="ut" maxlength="14">${DEMO?'':'<p class="sdesc">放上去之後，所有人逛到這間小屋都看得到。</p>'}
+    <label>照片</label><div class="filebtn">選擇照片（最多 ${UP_MAX} 張）<input type="file" accept="image/*" multiple id="uf"></div>
+    <div class="uplist" id="ul"></div>
+    ${DEMO?'':'<p class="sdesc">放上去之後，所有人逛到這間小屋都看得到。</p>'}
     <div class="acts"><button class="pill" type="button" id="uc">取消</button><button class="pill main" type="button" id="uo" disabled>放上去</button></div>`);
+  const ph=album?'說明（例如：流體熊課）':'作品名稱（可以不填）';
+  const draw=()=>{$('ul').innerHTML=items.map((it,i)=>`<div class="upi"><img alt="" src="${it.data}"><input type="text" maxlength="14" data-i="${i}" placeholder="${ph}" value="${esc(it.title||'')}"><button type="button" class="upx" data-i="${i}" aria-label="拿掉這張">×</button></div>`).join('');
+    $('ul').querySelectorAll('input').forEach(x=>x.oninput=()=>{items[+x.dataset.i].title=x.value});
+    $('ul').querySelectorAll('.upx').forEach(x=>x.onclick=()=>{items.splice(+x.dataset.i,1);draw()});
+    $('uo').disabled=!items.length;$('uo').textContent=items.length>1?`放上去（${items.length} 張）`:'放上去'};
   $('uc').onclick=closeModal;
-  $('uf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{data=await fileTo(f,DEMO?900:1280);thumb=DEMO?null:await fileTo(f,360,.78);$('upv').src=data;$('upv').hidden=false;$('uo').disabled=false}catch(err){toast('這張照片讀不到，換一張試試')}};
-  $('uo').onclick=async()=>{if(!data)return;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`,title=$('ut').value.trim();
+  $('uf').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+    const room=UP_MAX-items.length;if(fs.length>room)toast(room>0?`一次最多 ${UP_MAX} 張，先放前 ${room} 張`:`一次最多 ${UP_MAX} 張`);
+    $('uo').disabled=true;$('uo').textContent='讀取照片…';
+    for(const f of fs.slice(0,Math.max(0,room))){try{const data=await fileTo(f,DEMO?900:1280),thumb=DEMO?null:await fileTo(f,360,.78);items.push({data,thumb,title:''})}catch(err){toast('有一張照片讀不到，換一張試試')}}
+    draw()};
+  $('uo').onclick=async()=>{if(!items.length)return;const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;
     const m=album?null:pickM?G.members.find(x=>x.id===$('um').value):target;
-    if(!DEMO){$('uo').disabled=true;$('uo').textContent='上傳中…';
-      let up=null;try{up=await api('/island/upload',{target:album?'album':m.id,title,full:data,thumb});await reload()}catch(e){$('uo').disabled=false;$('uo').textContent='放上去';toast(e.message);return}
-      if(album){closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
+    $('ul').querySelectorAll('input').forEach(x=>{items[+x.dataset.i].title=x.value.trim()});
+    if(!DEMO){$('uo').disabled=true;$('uc').disabled=true;const ids=[];
+      for(let i=0;i<items.length;i++){$('uo').textContent=items.length>1?`上傳中… ${i+1}/${items.length}`:'上傳中…';
+        try{const up=await api('/island/upload',{target:album?'album':m.id,title:items[i].title,full:items[i].data,thumb:items[i].thumb});if(up&&up.id)ids.push(up.id)}
+        catch(e){toast(ids.length?`前 ${ids.length} 張放好了，第 ${i+1} 張失敗：${e.message}`:e.message);if(!ids.length){$('uo').disabled=false;$('uc').disabled=false;$('uo').textContent='再試一次';return}break}}
+      try{await reload()}catch(e){}
+      if(album){closeModal();rebuildHouses();openAlbum();toast(`${ids.length} 張照片放進大樹相簿了`);return}
       const nm=G.members.find(x=>x.id===m.id)||m;closeModal();rebuildHouses();openHouseSheet(nm);
-      const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${nm.works.length} 件作品收進小屋了`);if(up&&up.id){await sleep(1200);artistVisit(nm,up.id)}return}
-    if(album){G.album.push({img:data,title:title||'上課花絮',date});save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
-    m.works.push({img:data,title:title||'作品',date,by:pickM?'老師':'本人'});save();closeModal();rebuildHouses();openHouseSheet(m);
+      const h=houses[G.members.indexOf(nm)];await sleep(700);if(h)await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));
+      toast(ids.length>1?`${ids.length} 件作品收進小屋了，現在有 ${nm.works.length} 件`:`第 ${nm.works.length} 件作品收進小屋了`);
+      if(ids.length){(async()=>{for(const id of ids.slice(0,-1)){try{await api('/island/comment',{id,house:nm.id})}catch(e){}}})(); /* 其他幾張在背景請藝術家留言 */
+        await sleep(1200);artistVisit(nm,ids[ids.length-1])}
+      return}
+    if(album){items.forEach(it=>G.album.push({img:it.data,title:it.title||'上課花絮',date}));save();closeModal();rebuildHouses();openAlbum();toast('照片放進大樹相簿了');return}
+    items.forEach(it=>m.works.push({img:it.data,title:it.title||'作品',date,by:pickM?'老師':'本人'}));save();closeModal();rebuildHouses();openHouseSheet(m);
     const h=houses[G.members.indexOf(m)];await sleep(700);await tween(900,q=>h.scale.setScalar(1+Math.sin(q*Math.PI)*.08));toast(`第 ${m.works.length} 件作品收進小屋了`)};
 }
 /* ================= tour (12/12 dinner) ================= */
@@ -1066,8 +1091,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005j';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005j&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005k';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
+$('plMascot').onclick=()=>{const u='park.html?v=20261005k&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
