@@ -71,7 +71,8 @@ html,body{height:100%;background:#2a1a10;font-family:"Noto Sans TC","PingFang TC
 <script>document.write('<script src="picasso.js?t='+Date.now()+'"><\/script>')</script>
 <script>
 /* 試用版：問答樹＋故事/功課/猜謎/每日一句全部固定；自己打字先用關鍵字配對，配不到才交給 AI（一次聊天最多 3 次，試用版先用示範句） */
-const D=window.ARTIST,N=D.nodes,MAX=15,AI_MAX=LIVE?0:3;
+const D=window.ARTIST,N=D.nodes,MAX=15,AI_MAX=5,NOTIFY='https://otto2-notify-production.up.railway.app',hist=[];
+async function askAI(q){try{let tk='';try{tk=parent.token()}catch(e){}if(!tk)return null;const r=await fetch(NOTIFY+'/island/artist-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:tk,artist:'picasso',q,hist:hist.slice(-3)})});const j=await r.json();return j&&j.ok&&!j.fixed&&j.t?j:null}catch(e){return null}}
 function goBack(){if(LIVE&&parent!==window)parent.postMessage('closeArtistChat','*');else history.back()}
 ['smile','laugh','look','awkward','hesitant'].forEach(n=>{new Image().src='pc-'+n+'.webp'});
 const MOVE={smile:'tilt',laugh:'hop',look:'hop',awkward:'tilt',hesitant:'turn'},POP={smile:'嗯～',laugh:'哈！',look:'喔？',awkward:'嘿嘿',hesitant:'嗯……'};
@@ -94,12 +95,14 @@ function reply(r,kind){let t=r.t,m=r.m;if(used===MAX-2){m='hesitant';t=D.lines.t
 function after(){busy=false;bubble(1800);if(used>=MAX)setTimeout(()=>close(D.lines.end,'hesitant',D.short+'去忙了，3 天後可以再來聊'),1400)}
 function think(ms,fn){const t=add('<div class="dots"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();fn()},ms)}
 function ask(q,id,how){if(busy||!q.trim())return;busy=true;used++;hideTb();clearTimeout(idle);add(`<div class="me">${q.replace(/</g,'&lt;')}</div>`);
-  if(!id&&how==='打字'){const isQ=/[?？嗎呢]|什麼|為什麼|為何|怎麼|哪|誰|幾|可以|能不能|是不是|有沒有|教我|告訴|多少|好不好|要不要/.test(q);
-    if(!isQ&&/^(我|俺|本人)/.test(q.trim())){think(750,()=>{const l=split(pick(D.lines.ack));face(pick(['smile','laugh','look']));add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('你在說自己的事 → 固定回應（不花錢）')}`);chips(cur);after()});return}
-    id=match(q)}
+  if(!id&&how==='打字'){id=match(q)}
   if(id){seen.add(id);think(650,()=>{reply(N[id],how==='打字'?'自己打的・關鍵字配對（不花錢）':'預設題（不花錢）');chips(N[id].next||[]);after()});return}
-  if(aiUsed<AI_MAX){aiUsed++;think(1400,()=>{reply(pick(AI_DEMO),`自己打的・配不到 → 交給 AI（這次第 ${aiUsed}/${AI_MAX} 次）`);chips(cur);after()});return}
-  think(650,()=>{const l=split(pick(D.lines.unknown));face('awkward');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('AI 次數用完 → 固定台詞（不花錢）')}`);chips(cur);after()})}
+  const fixedEnd=()=>{const stmt=!/[?？嗎呢]|什麼|為什麼|為何|怎麼|哪|誰|幾|可以|能不能|是不是|有沒有|教我|告訴|多少|好不好|要不要/.test(q)&&/^(我|俺|本人)/.test(q.trim());
+    const l=split(pick(stmt?D.lines.ack:D.lines.unknown));face(stmt?pick(['smile','laugh','look']):'awkward');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('固定回應（不花錢）')}`);chips(cur);after()};
+  if(aiUsed<AI_MAX){const t=add('<div class="dots"><i></i><i></i><i></i></div>');
+    askAI(q).then(j=>{t.remove();if(j){aiUsed++;hist.push({q,a:j.a+j.t});face(['smile','laugh','look','awkward','hesitant'].includes(j.m)?j.m:'smile');
+      add(`<div class="act">${j.a.replace(/</g,'&lt;')}</div><div class="bb">${j.t.replace(/</g,'&lt;')}</div>${tagHtml('AI 回答（第 '+aiUsed+'/'+AI_MAX+' 次）')}`);chips(cur);after()}else{aiUsed=AI_MAX;fixedEnd()}});return}
+  think(650,fixedEnd)}
 function tool(k){if(busy)return;busy=true;used++;hideTb();clearTimeout(idle);const lab={story:'說個故事給我聽',hw:'給我一個畫畫功課',quiz:'考考我！',tip:'今天的一句話？'}[k];add(`<div class="me">${lab}</div>`);
   think(600,()=>{
     if(k==='story'){const l=split(D.stories[draw('s',D.stories)]);face('smile');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('固定故事（不花錢）')}`)}

@@ -186,6 +186,11 @@ button.stats{font:inherit; cursor:pointer; color:var(--ink2)}
 #tags button.me{background:var(--accent); color:#fff; border-color:transparent}
 #tags button.me::after{border-top-color:var(--accent)}
 body.tour #tags{display:none}
+.pcTag{position:fixed; z-index:3; transform:translate(-50%,-100%); font:inherit; font-size:16px; font-weight:700; color:#5a3a12; background:#fff3c4; border:2px solid #e8b94a; border-radius:99px; padding:8px 18px; white-space:nowrap; box-shadow:0 4px 14px rgba(120,80,10,.3); cursor:pointer; animation:pcBob 1.8s ease-in-out infinite}
+.pcTag::after{content:''; position:absolute; left:50%; bottom:-8px; margin-left:-7px; border:7px solid transparent; border-bottom:0; border-top-color:#e8b94a}
+@keyframes pcBob{0%,100%{margin-top:0}50%{margin-top:-5px}}
+body.tour .pcTag{display:none!important}
+
 .flist{display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow:auto; margin:10px 0 4px; text-align:left}
 .flist button{font:inherit; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:#fff; color:var(--ink); cursor:pointer; font-size:15px}
 .flist button small{color:var(--ink2); font-size:12px; white-space:nowrap}
@@ -881,6 +886,7 @@ const POIS=(()=>{const out=[];PONDS.forEach(p=>{for(let k=0;k<5;k++){const a=p.a
   for(let k=0;k<6;k++){const a=k/6*6.28+.2;out.push([Math.cos(a)*4.3,Math.sin(a)*4.3])}PATHS.forEach(P=>P.slice(1).forEach(q=>out.push(q)));
   return out.filter(([x,z])=>onIsland(x,z,.85)&&!inPond(x,z,.6))})();
 function clearWalk(a,b){for(let t=0;t<=1;t+=.05){const x=a.x+(b[0]-a.x)*t,z=a.z+(b[1]-a.z)*t;if(inPond(x,z,.5)||Math.hypot(x,z)<2.6||!onIsland(x,z,.9))return false}return true}
+const CHAT_ARTISTS={'畢卡索':'picasso'};
 function buildArtists(){
   ARTISTS.forEach((A,i)=>{
     const [ex,ez]=ESPOTS[i%ESPOTS.length],a=Math.atan2(ez,ex);
@@ -888,12 +894,22 @@ function buildArtists(){
     const inX=ex+Math.cos(a)*.75-Math.sin(a)*.5,inZ=ez+Math.sin(a)*.75+Math.cos(a)*.5;
     const art=makeArtist(A);art.position.set(inX,heightAt(inX,inZ),inZ);art.rotation.y=Math.atan2(ex-inX,ez-inZ);scene.add(art);
     Object.assign(art.userData,{home:new THREE.Vector3(inX,0,inZ),face:art.rotation.y,state:'paint',t:6+hash(i,4)*14,i,easel:e});
+    /* 2026-10-06 能聊天的藝術家（畢卡索）：放大、站到廣場前面（鏡頭看過去不會被大樹擋）、腳下一圈光，不再亂走 */
+    if(CHAT_ARTISTS[A.n]){const u=art.userData,cx=Math.sin(.6)*5.6,cz=Math.cos(.6)*5.6;art.scale.setScalar(3);u.chat=CHAT_ARTISTS[A.n];u.chatPos=new THREE.Vector3(cx,0,cz);u.state='chat';
+      art.position.set(cx,heightAt(cx,cz),cz);
+      const ring=new THREE.Mesh(new THREE.RingGeometry(1.9,2.6,48),new THREE.MeshBasicMaterial({color:'#ffe9a8',transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide}));
+      ring.rotation.x=-Math.PI/2;ring.position.set(cx,heightAt(cx,cz)+.06,cz);scene.add(ring);u.ring=ring}
     artists.push(art)});
 }
 // paint for a while, wander somewhere nice, linger, maybe wander on, then come back to the easel
 function artistTick(art,dt,now){
   const u=art.userData,b=u.body,p=art.position;
   const goTo=(x,z,next)=>{u.state='walk';u.tgt=new THREE.Vector3(x,0,z);u.next=next};
+  if(u.chat&&u.state!=='walk'){const c=u.chatPos;
+    if(!u.hold&&Math.hypot(c.x-p.x,c.z-p.z)>.15){goTo(c.x,c.z,'chat');return}
+    u.state='chat';const want=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);let dr=want-art.rotation.y;while(dr>Math.PI)dr-=6.283;while(dr<-Math.PI)dr+=6.283;art.rotation.y+=dr*Math.min(1,dt*3);
+    b.position.y=Math.abs(Math.sin(now/520))*.05;u.armR.rotation.z=-.5+Math.sin(now/300)*.35;u.armR.rotation.x=-.3;
+    if(u.ring){const k=1+Math.sin(now/600)*.08;u.ring.scale.set(k,k,1);u.ring.material.opacity=.45+Math.sin(now/600)*.15}return}
   if(u.hold&&u.state!=='walk')u.t=Math.max(u.t,5);
   if(u.state==='paint'){u.armR.rotation.z=-.25+Math.sin(now/260+u.i)*.25;u.armR.rotation.x=-.4+Math.sin(now/410+u.i)*.2;b.position.y=0;u.t-=dt;
     if(u.t<=0){for(let k=0;k<8;k++){const q=POIS[Math.floor(Math.random()*POIS.length)];if(clearWalk(p,q)){goTo(q[0],q[1],'linger');return}}u.t=5}}
@@ -1053,7 +1069,7 @@ function buildAnimals(){
   // trees: round broccoli trees, tall Solarpunk trees and a few autumn ones, kept off paths, lakes and easels
   const tr=rng(44),KINDS=['pine','round','pine','blossom','round','pine','autumn','round','pine','blossom','round','pine','round','autumn','pine'],trees=[];let placed=0;
   for(let k=0;k<1500&&placed<KINDS.length;k++){const a=tr()*6.28,d=5+tr()*(R0*.78-5),x=Math.cos(a)*d,z=Math.sin(a)*d;
-    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||usedSpots().some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
+    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||Math.hypot(x-3.16,z-4.62)<5||ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||usedSpots().some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
     if(Math.abs(((a-PIER_A+Math.PI*3)%(2*Math.PI))-Math.PI)<.3)continue;
     const kind=KINDS[placed++];trees.push([x,z]);lpTree(x,z,(kind==='pine'?1.15:1)*(1+tr()*.35),kind,k+1)}
 }
@@ -1119,7 +1135,7 @@ function loop(now){
   }
   viewShift(dt);const g=camGoal(),k=1-Math.pow(.05,dt);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
   if(annFix){annFix.visible=!focus&&!$('hud').hidden;if(annFix.visible)Anniv26.pin(annFix,camera,.66,.42,.21,camPos.distanceTo(look)*.92,now)}
-  renderer.render(scene,camera);try{updateTags()}catch(e){}requestAnimationFrame(loop);
+  renderer.render(scene,camera);try{updateTags();updatePcTag()}catch(e){}requestAnimationFrame(loop);
 }
 
 /* ================= interaction ================= */
@@ -1473,6 +1489,14 @@ function findHouse(){const rows=q=>{const k=q.trim().toLowerCase(),list=G.member
   modal(`<h2>找小屋</h2><div class="meta">${G.members.length} 間小屋・點名字就會飛過去</div><input type="text" id="fq" placeholder="打名字搜尋" autocomplete="off"><div class="flist" id="fl">${rows('')}</div><div class="acts"><button class="pill" type="button" id="fx">關閉</button></div>`);
   const bind=()=>$('fl').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=G.members[+b.dataset.i];closeModal();openHouseSheet(m)});
   bind();$('fq').oninput=()=>{$('fl').innerHTML=rows($('fq').value);bind()};$('fx').onclick=closeModal}
+/* 能聊天的藝術家頭上固定飄一顆「在等你聊天」泡泡，點了直接進畫室 */
+let pcEl=null;const _pv=new THREE.Vector3();
+function updatePcTag(){const art=artists.find(a=>a.userData.chat);if(!art)return;
+  if(!pcEl){pcEl=document.createElement('button');pcEl.type='button';pcEl.className='pcTag';pcEl.innerHTML='💬 畢卡索在等你聊天';pcEl.onclick=()=>{if(!touring)openArtistChat(art.userData.chat)};document.body.appendChild(pcEl)}
+  const hide=touring||!$('modal').hidden||!$('lb').hidden||!$('sheet').hidden||document.getElementById('chatov');
+  art.getWorldPosition(_pv);_pv.y+=4.6;_pv.project(camera);
+  if(hide||_pv.z>1||Math.abs(_pv.x)>1.1||Math.abs(_pv.y)>1.1){pcEl.style.display='none';return}
+  pcEl.style.display='';pcEl.style.left=(_pv.x+1)/2*innerWidth+'px';pcEl.style.top=(1-_pv.y)/2*innerHeight+'px'}
 /* ===== 拉近時，附近小屋頭上飄名字（點名字就打開那間）；拉遠看整座島時自動隱藏，免得滿版都是字 ===== */
 const TAG_D=64,_tv=new THREE.Vector3();let tagEls=[];
 function updateTags(){const box=$('tags');if(!box)return;if(touring||!$('modal').hidden||!$('lb').hidden||!houses.length){box.style.display='none';return}box.style.display='';
