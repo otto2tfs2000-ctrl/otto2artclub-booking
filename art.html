@@ -1172,11 +1172,17 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   modal(`<div class="acard"><div class="afig${img?'':' paint'}"><img alt="${esc(A.n)}" src="${img||paint}"></div>
     <h2>${esc(A.n)}</h2><div class="meta">${esc(I.full||'')}<br>${esc(I.life||'')}</div>
     <dl><dt>風格</dt><dd>${esc(I.style||'')}</dd><dt>代表作</dt><dd>${esc(I.works||'')}</dd><dt>小故事</dt><dd>${esc(I.fact||A.say)}</dd><dt>在島上</dt><dd>${esc(A.care)}，正在畫《${esc(A.work)}》</dd></dl>${saidHtml(A)}
-    <div class="acts"><button class="pill" type="button" id="arP">看他正在畫的畫</button><button class="pill" type="button" id="arN">下一位</button><button class="pill main" type="button" id="arX">關閉</button></div></div>`);
+    ${A.n==='畢卡索'?'<div class="acts" style="margin-bottom:8px"><button class="pill main" type="button" id="arC" style="flex:1">🚪 走進畢卡索的畫室聊天</button></div>':''}<div class="acts"><button class="pill" type="button" id="arP">看他正在畫的畫</button><button class="pill" type="button" id="arN">下一位</button><button class="pill main" type="button" id="arX">關閉</button></div></div>`);
   $('panel').querySelectorAll('.asaid button').forEach(b=>b.onclick=()=>{const m=G.members.find(x=>x.id===b.dataset.h);if(!m)return;const i=m.works.findIndex(w=>w.id===b.dataset.w);if(i<0)return;
     closeModal();focus=null;const can=!DEMO&&(m.id===G.me||ME.staff);openList(m.works,i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can?{house:m.id}:null,m)});
+  if($('arC'))$('arC').onclick=()=>openArtistChat('picasso');
   $('arX').onclick=()=>{closeModal();focus=null};$('arN').onclick=()=>openArtist(ARTISTS[(k+1)%ARTISTS.length]);
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
+/* 藝術家聊天：全螢幕蓋一層 iframe（artist-chat/*.html），裡面按「回作品小屋」會 postMessage 關掉 */
+function openArtistChat(id){closeModal();focus=null;let o=document.getElementById('chatov');if(o)o.remove();
+  o=document.createElement('div');o.id='chatov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#2a1a10';
+  o.innerHTML='<iframe src="artist-chat/'+id+'.html?live=1&v=20261006c" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
   const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005zd';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}

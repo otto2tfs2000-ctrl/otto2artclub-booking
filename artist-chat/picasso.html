@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>畢卡索的畫室</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#2a1a10;font-family:"Noto Sans TC","PingFang TC",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+#app{position:relative;height:100%;max-width:480px;margin:0 auto;overflow:hidden}
+#bg{position:absolute;inset:0 0 50% 0;background:url(picasso-studio.webp) center 30%/cover}
+#fig{position:absolute;left:50%;bottom:42%;height:46%;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(-4px 2px 6px rgba(90,45,10,.22))}
+#shadow{display:none;position:absolute;left:50%;bottom:calc(50% + 2px);width:120px;height:18px;margin-left:-60px;border-radius:50%;background:rgba(60,25,5,.42);filter:blur(5px)}
+.hop{animation:hop .5s}.shake{animation:shake .5s}.tilt{animation:tilt .6s}.turn{animation:turn .6s}
+@keyframes hop{0%,100%{transform:translateX(-50%)}30%{transform:translateX(-50%) translateY(-14px) scaleY(1.03)}60%{transform:translateX(-50%) translateY(0) scaleY(.97)}}
+@keyframes shake{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-52%) rotate(-3deg)}75%{transform:translateX(-48%) rotate(3deg)}}
+@keyframes tilt{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) rotate(-5deg)}}
+@keyframes turn{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) scaleX(.92) rotate(4deg)}}
+#back{position:absolute;top:14px;left:14px;background:rgba(255,248,236,.92);border:1.5px solid #e2c9a4;border-radius:20px;padding:6px 14px;font-size:14px;color:#6b4a2b}
+#pop{position:absolute;top:14%;left:8%;background:#fff8ec;border:1.5px solid #e2c9a4;border-radius:14px;padding:5px 12px;font-size:16px;color:#9a4a22;font-family:"Noto Serif TC","Songti TC",serif;opacity:0;transition:opacity .3s}
+#tb{position:absolute;top:5%;left:56%;max-width:42%;background:#fff8ec;border:1.5px solid #e2c9a4;border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:14px;line-height:1.5;color:#3e2a18;box-shadow:0 3px 10px rgba(80,40,10,.2);opacity:0;transform:translateY(6px) scale(.96);transition:opacity .35s,transform .35s;pointer-events:none;cursor:pointer}
+#tb.on{opacity:1;transform:none;pointer-events:auto;animation:bob 2.6s ease-in-out infinite .4s}
+#tb small{display:block;font-size:11px;color:#9a8466;margin-bottom:2px}#tb b{font-weight:600;color:#2d4f8f}
+@keyframes bob{0%,100%{margin-top:0}50%{margin-top:-3px}}
+#sheet{position:absolute;left:0;right:0;bottom:0;height:52%;background:#fff8ec;border-radius:24px 24px 0 0;box-shadow:0 -8px 28px rgba(80,40,10,.28);display:flex;flex-direction:column}
+.hd{display:flex;align-items:center;gap:10px;padding:12px 18px 9px;border-bottom:1px solid #f0e0c6}
+.nm{font-size:18px;font-weight:700;color:#3e2a18}.sub{font-size:12px;color:#9a8466}
+.ai{margin-left:auto;font-size:11px;background:#e8eefa;color:#2d4f8f;border-radius:8px;padding:3px 8px}
+#log{flex:1;overflow-y:auto;padding:8px 16px 4px}
+.me{margin:8px 0 0 auto;width:max-content;max-width:78%;background:#2d4f8f;color:#fff;border-radius:16px 16px 4px 16px;padding:8px 13px;font-size:15px;line-height:1.5}
+.act{text-align:center;font-size:13px;color:#9a8466;font-family:"Noto Serif TC","Songti TC",serif;margin:10px 0 5px}
+.bb{max-width:88%;background:#f6e7cf;color:#3e2a18;border-radius:16px 16px 16px 4px;padding:10px 13px;font-size:15px;line-height:1.65}
+.lk{display:flex;gap:16px;margin:6px 2px 2px;font-size:13px}.lk b{font-weight:400;color:#2f7a5a;cursor:pointer}
+.fact{margin:6px 0 2px;background:#eaf3ea;color:#2f5a44;border-radius:10px;padding:8px 11px;font-size:13px;line-height:1.6}
+.dots{display:inline-flex;gap:4px;padding:12px 14px;background:#f6e7cf;border-radius:16px 16px 16px 4px;margin-top:8px}.dots i{width:7px;height:7px;border-radius:50%;background:#b39a78;animation:d 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes d{0%,100%{opacity:.3}50%{opacity:1}}
+.tag{display:inline-block;font-size:11px;color:#9a8466;border:1px dashed #d8c3a0;border-radius:6px;padding:1px 6px;margin-top:4px}
+#chips{display:flex;gap:8px;padding:6px 16px 8px;overflow-x:auto;scrollbar-width:none}#chips::-webkit-scrollbar{display:none}
+#chips button{flex:none;font:inherit;font-size:13px;border:1.5px solid #e2c9a4;border-radius:16px;padding:6px 12px;color:#6b4a2b;background:#fff;cursor:pointer}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 16px 12px;border-top:1px solid #f0e0c6}
+#q{flex:1;height:40px;border-radius:20px;border:0;background:#f6e7cf;color:#3e2a18;font:inherit;font-size:15px;padding:0 14px;outline:none}
+#q::placeholder{color:#b39a78}
+#send{width:40px;height:40px;border-radius:50%;border:0;background:#2d4f8f;color:#fff;font-size:17px;cursor:pointer}
+#closed{display:none;padding:10px 16px 14px;text-align:center;font-size:13px;color:#9a8466;border-top:1px solid #f0e0c6}
+#closed button{margin-top:8px;font:inherit;font-size:13px;border:1.5px solid #e2c9a4;border-radius:16px;padding:6px 14px;background:#fff;color:#6b4a2b}
+#demo{position:absolute;top:58px;left:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+#demo button{font:inherit;font-size:11px;border:0;border-radius:10px;padding:4px 9px;background:rgba(45,79,143,.85);color:#fff}
+#tools{display:flex;gap:6px;padding:0 16px 6px;overflow-x:auto;scrollbar-width:none}#tools::-webkit-scrollbar{display:none}
+#tools button{flex:none;font:inherit;font-size:12px;border:0;border-radius:14px;padding:5px 10px;color:#2d4f8f;background:#e8eefa;cursor:pointer}
+.opts{display:flex;flex-direction:column;gap:6px;margin:8px 0 2px;max-width:88%}.opts button{font:inherit;font-size:14px;text-align:left;border:1.5px solid #e2c9a4;border-radius:12px;padding:7px 12px;background:#fff;color:#3e2a18}
+.opts button.right{border-color:#3d8a5f;background:#eaf3ea}.opts button.wrong{border-color:#c46a4a;background:#fbeee8}
+.hw{background:#fff;border:1.5px dashed #e2c9a4;border-radius:12px;padding:10px 12px;margin-top:6px;font-size:14px;color:#3e2a18;max-width:88%}
+.live #demo,.live .tag,.live .ai{display:none}
+.intro #chips,.intro #tools,.intro #bar{visibility:hidden}
+#tb.lock{pointer-events:none;cursor:default}
+</style></head><body>
+<script>var LIVE=/[?&]live=1/.test(location.search);if(LIVE)document.body.className="live";document.body.classList.add("intro")</script>
+<div id="app">
+  <div id="bg"></div>
+  <img id="fig" src="pc-smile.webp" alt="畢卡索">
+  <span id="back" onclick="goBack()">‹ 回作品小屋</span>
+  <div id="pop"></div>
+  <div id="tb"></div>
+  <div id="demo"><button id="dCool">示範：三天內又來</button><button id="dReset">重新開始</button></div>
+  <div id="sheet">
+    <div class="hd"><div><div class="nm" id="nm"></div><div class="sub" id="sub"></div></div><span class="ai">AI 扮演</span></div>
+    <div id="log"></div>
+    <div id="chips"></div>
+    <div id="tools"><button data-k="story">📖 說個故事</button><button data-k="hw">🎨 畫畫功課</button><button data-k="quiz">❓ 猜猜看</button><button data-k="tip">💡 每日一句</button></div>
+    <div id="bar"><input id="q" placeholder="自己打字問…" maxlength="60"><button id="send" aria-label="送出">➤</button></div>
+    <div id="closed"></div>
+  </div>
+</div>
+<script src="picasso.js?v=2"></script>
+<script>
+/* 試用版：問答樹＋故事/功課/猜謎/每日一句全部固定；自己打字先用關鍵字配對，配不到才交給 AI（一次聊天最多 3 次，試用版先用示範句） */
+const D=window.ARTIST,N=D.nodes,MAX=15,AI_MAX=LIVE?0:3;
+function goBack(){if(LIVE&&parent!==window)parent.postMessage('closeArtistChat','*');else history.back()}
+['smile','laugh','look','awkward','hesitant'].forEach(n=>{new Image().src='pc-'+n+'.webp'});
+const MOVE={smile:'tilt',laugh:'hop',look:'hop',awkward:'tilt',hesitant:'turn'},POP={smile:'嗯～',laugh:'哈！',look:'喔？',awkward:'嘿嘿',hesitant:'嗯……'};
+const AI_DEMO=[{m:'look',a:'（他放下陶盤，湊過來看著你）',t:'這個問題有意思！<br>（正式版這裡會由 AI 照畢卡索的個性當場回答）'}];
+let used=0,aiUsed=0,busy=false,seen=new Set(),cur=D.root.slice(),bag={};
+const $=s=>document.querySelector(s),log=$('#log'),fig=$('#fig'),pop=$('#pop');
+$('#nm').textContent=D.name;$('#sub').textContent=D.sub;$('#q').placeholder='自己打字問'+D.short+'…';
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function draw(k,arr){bag[k]=bag[k]&&bag[k].length?bag[k]:arr.map((_,i)=>i).sort(()=>Math.random()-.5);return bag[k].pop()} /* 不重複地輪流抽 */
+function face(m){fig.src='pc-'+m+'.webp';fig.className='';void fig.offsetWidth;fig.className=MOVE[m];pop.textContent=POP[m];pop.style.opacity=1;clearTimeout(face.t);face.t=setTimeout(()=>pop.style.opacity=0,1800)}
+function add(h){const d=document.createElement('div');d.innerHTML=h;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+const split=l=>{const k=l.indexOf('）');return{a:l.slice(0,k+1),t:l.slice(k+1)}};
+function chips(ids){cur=ids.filter(i=>N[i]&&!seen.has(i));if(cur.length<3)cur=cur.concat(Object.keys(N).filter(i=>!seen.has(i)&&!cur.includes(i)&&i!=='real').slice(0,3-cur.length));
+  const c=$('#chips');c.innerHTML='';cur=cur.sort(()=>Math.random()-.5);cur.slice(0,3).forEach(i=>{const b=document.createElement('button');b.textContent=N[i].q;b.onclick=()=>ask(N[i].q,i,'按鈕');c.appendChild(b)})}
+function match(q){const s=q.toLowerCase().replace(/\s+/g,'');let best=null,score=0;for(const [id,n] of Object.entries(N)){let sc=0;for(const k of n.kw||[])if(s.includes(k.toLowerCase()))sc+=k.length;if(sc>score){score=sc;best=id}}return best}
+function tagHtml(kind){return kind?`<span class="tag">${kind}</span>`:''}
+function reply(r,kind){let t=r.t,m=r.m;if(used===MAX-2){m='hesitant';t=D.lines.tired+'<br>'+t.split('<br>').pop()}
+  face(m);const d=add(`<div class="act">${r.a}</div><div class="bb">${t}</div><div class="lk">${r.f?'<b>📜 真的嗎？</b>':''}</div>${tagHtml(kind)}`);
+  if(r.f)d.querySelector('b').onclick=e=>{e.target.remove();d.querySelector('.lk').insertAdjacentHTML('beforeend',`<div class="fact">${r.f}</div>`);log.scrollTop=log.scrollHeight};return d}
+function after(){busy=false;bubble(1800);if(used>=MAX)setTimeout(()=>close(D.lines.end,'hesitant',D.short+'去忙了，3 天後可以再來聊'),1400)}
+function think(ms,fn){const t=add('<div class="dots"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();fn()},ms)}
+function ask(q,id,how){if(busy||!q.trim())return;busy=true;used++;hideTb();clearTimeout(idle);add(`<div class="me">${q.replace(/</g,'&lt;')}</div>`);
+  if(!id&&how==='打字'){id=match(q)}
+  if(id){seen.add(id);think(650,()=>{reply(N[id],how==='打字'?'自己打的・關鍵字配對（不花錢）':'預設題（不花錢）');chips(N[id].next||[]);after()});return}
+  if(aiUsed<AI_MAX){aiUsed++;think(1400,()=>{reply(pick(AI_DEMO),`自己打的・配不到 → 交給 AI（這次第 ${aiUsed}/${AI_MAX} 次）`);chips(cur);after()});return}
+  think(650,()=>{const l=split(pick(D.lines.unknown));face('awkward');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('AI 次數用完 → 固定台詞（不花錢）')}`);chips(cur);after()})}
+function tool(k){if(busy)return;busy=true;used++;hideTb();clearTimeout(idle);const lab={story:'說個故事給我聽',hw:'給我一個畫畫功課',quiz:'考考我！',tip:'今天的一句話？'}[k];add(`<div class="me">${lab}</div>`);
+  think(600,()=>{
+    if(k==='story'){const l=split(D.stories[draw('s',D.stories)]);face('smile');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('固定故事（不花錢）')}`)}
+    if(k==='tip'){face('smile');add(`<div class="act">（他想了想，豎起一根手指）</div><div class="bb">${pick(D.tips)}</div>${tagHtml('每日一句（不花錢）')}`)}
+    if(k==='hw'){face('awkward');add(`<div class="act">（他從桌上撕下一張紙遞給你）</div><div class="bb">今天的功課：</div><div class="hw">🎨 ${D.homework[draw('h',D.homework)]}</div><div class="bb" style="margin-top:6px">畫好上傳到你的小屋，我去看！</div>${tagHtml('畫畫功課（不花錢）')}`)}
+    if(k==='quiz'){const z=D.quiz[draw('z',D.quiz)];face('look');const d=add(`<div class="act">（他神秘地眨眨眼）</div><div class="bb">${z.q}</div><div class="opts">${z.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div>${tagHtml('猜猜看（不花錢）')}`);
+      d.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;const ok=+b.dataset.i===z.ans;b.classList.add(ok?'right':'wrong');d.querySelectorAll('.opts button')[z.ans].classList.add('right');face(ok?'laugh':'awkward');add(`<div class="act">${ok?'（他用力拍手）':'（他哈哈笑）'}</div><div class="bb">${ok?z.ok:z.no}</div>`)})}
+    after()})}
+function close(lines,mood,note){hideTb();clearTimeout(idle);$('#bar').style.display='none';$('#chips').style.display='none';$('#tools').style.display='none';const l=split(pick(lines));face(mood);add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>`);const c=$('#closed');c.style.display='block';c.innerHTML=note+'<br><button onclick="goBack()">回作品小屋</button>'}
+$('#send').onclick=()=>{const v=$('#q').value;$('#q').value='';ask(v,null,'打字')};
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();$('#send').click()}});
+document.querySelectorAll('#tools button').forEach(b=>b.onclick=()=>tool(b.dataset.k));
+$('#dCool').onclick=()=>{log.innerHTML='';close(D.lines.cool,'hesitant','還要等 2 天才能再聊')};
+$('#dReset').onclick=()=>location.reload();
+
+/* 頭上話題泡泡：藝術家自己開口帶話題，可點；沒人動會自己換一個 */
+const tb=$('#tb'),LEAD=['我剛在想……','欸，你知道嗎？','對了——','說到這個……','你有沒有想過……'];let tbId=null,idle=null;
+function bubble(delay){clearTimeout(idle);hideTb();idle=setTimeout(()=>{if(busy||used>=MAX)return;
+  const shown=cur.slice(0,3),pool=Object.keys(N).filter(i=>!seen.has(i)&&!shown.includes(i)&&i!=='real');if(!pool.length)return;
+  tbId=pick(pool);tb.innerHTML='<small>'+pick(LEAD)+'</small><b>'+N[tbId].q+'</b>';tb.classList.add('on');
+  idle=setTimeout(()=>bubble(1200),8000)},delay)}
+function hideTb(){tb.classList.remove('on')}
+tb.onclick=()=>{const i=tbId;hideTb();clearTimeout(idle);if(i)ask(N[i].q,i,'泡泡')};
+['input','keydown'].forEach(e=>$('#q').addEventListener(e,()=>{hideTb();clearTimeout(idle)}));
+/* 開場：他自己在想事情（頭上冒泡泡），突然發現你來了 → 才開始可以點泡泡 */
+const MUSE=[['我剛剛在想……','今天這個陶盤，要畫牛，還是畫鴿子呢？'],['你有沒有想過……','為什麼小孩畫的畫，我花了一輩子才學會？'],['我剛剛在想……','窗外那隻鴿子，是不是又想偷吃我的顏料？'],['你有沒有想過……','一張臉，如果同時看得到正面和側面，會是什麼樣子？'],['欸，你知道嗎？','我昨天做了一個壞掉的罐子，結果比好的還好看。']];
+function showTb(l,t,lock){tb.innerHTML='<small>'+l+'</small><b>'+t+'</b>';tb.classList.toggle('lock',!!lock);tb.classList.add('on')}
+function intro(){const ms=MUSE.slice().sort(()=>Math.random()-.5).slice(0,3);let i=0;
+  const step=()=>{if(i<ms.length){face(i%2?'hesitant':'look');showTb(ms[i][0],ms[i][1],true);i++;setTimeout(()=>{hideTb();setTimeout(step,500)},3400);return}
+    face('laugh');const hi=split(pick(D.lines.greet));add(`<div class="act">（他突然回過神，發現你站在門口）</div><div class="bb">你來啦！想問我啥事？</div>`);
+    document.body.classList.remove('intro');chips(D.root);tb.classList.remove('lock');bubble(1800)};
+  setTimeout(step,900)}
+intro();
+</script>
+</body></html>
