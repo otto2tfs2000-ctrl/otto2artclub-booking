@@ -49,6 +49,7 @@ html,body{height:100%;background:#f3e6cf;font-family:"Noto Sans TC","PingFang TC
 .opts{display:flex;flex-direction:column;gap:6px;margin:8px 0 2px;max-width:88%}.opts button{font:inherit;font-size:14px;text-align:left;border:1.5px solid #e2c9a4;border-radius:12px;padding:7px 12px;background:#fff;color:#3e2a18}
 .opts button.right{border-color:#3d8a5f;background:#eaf3ea}.opts button.wrong{border-color:#c46a4a;background:#fbeee8}
 .art{margin:6px 0 2px;background:#fff;border:1.5px solid #e2c9a4;border-radius:12px;padding:8px;max-width:78%}.art canvas{width:100%;display:block;border-radius:6px}.art div{text-align:center;font-size:12px;color:#9a8466;margin-top:4px}
+.pad{margin:6px 0 2px;width:100%;background:#fff;border:1.5px solid #e2c9a4;border-radius:12px;padding:8px;max-width:92%}.pad .tp{font-size:13px;color:#6b4a2b;margin-bottom:6px;text-align:center}.pad canvas{width:100%;aspect-ratio:16/10;display:block;border-radius:8px;background:#fffdf7;border:1px dashed #e2c9a4;touch-action:none}.pad .pal{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px}.pad .pal i{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px #d8c3a0;cursor:pointer}.pad .pal i.on{box-shadow:0 0 0 3px #2d4f8f}.pad .go{display:flex;gap:8px;margin-top:8px}.pad .go button{flex:1;font:inherit;font-size:14px;border:1.5px solid #e2c9a4;border-radius:12px;padding:8px;background:#fdf3de;color:#6b4a2b}.pad .go button.main{background:#2d4f8f;color:#fff;border-color:#2d4f8f}.quit{margin-top:6px;font:inherit;font-size:12px;border:0;background:none;color:#9a8466;text-decoration:underline;cursor:pointer}
 .stars{display:flex;gap:6px;margin:8px 0 2px}.stars button{font:inherit;font-size:24px;border:0;background:none;padding:2px;cursor:pointer;filter:grayscale(1);opacity:.55}.stars button.on{filter:none;opacity:1}
 .intro .row,.intro #bar,.intro #log{visibility:hidden}
 </style></head><body>
@@ -124,31 +125,35 @@ function game(k){if(busy||ended)return;busy=true;tb.classList.remove('on');clear
   const lab={story:'說個藝術小故事給我聽',draw:'我們來玩畫畫遊戲！',quiz:'考考我藝術小知識！'}[k];add(`<div class="me">${lab}</div>`);
   think(600,()=>{if(k==='story')story();else if(k==='draw')drawGame();else quiz(0)})}
 function story(){say(D.stories[draw('s',D.stories)],'smile','');after()}
-/* 畫畫遊戲：他現場亂數畫一張立體派風格的畫（程式生成），你給 1~5 顆星，他有 20 種回應（每個星數 4 種）隨機回 */
-const TITLES=['《藍色的鴿子》','《歪臉先生》','《三隻眼睛的貓》','《跳舞的吉他》','《海邊的午餐》','《會笑的盤子》','《方形的太陽》','《兩個鼻子的女孩》','《快樂的公牛》','《窗外的魚》'];
-function paintPic(){const c=document.createElement('canvas');c.width=360;c.height=360;const x=c.getContext('2d');
-  const P=[['#2d4f8f','#e9c46a','#d97a5a','#5a8f7b'],['#1f3a5f','#f2cc8f','#e07a5f','#81b29a'],['#6b4a8f','#f4d35e','#ee964b','#3d8a8a']][Math.floor(Math.random()*3)],R=(a,b)=>a+Math.random()*(b-a);
-  x.fillStyle='#f6ecd8';x.fillRect(0,0,360,360);
-  for(let i=0;i<6;i++){x.fillStyle=pick(P);x.globalAlpha=.85;x.beginPath();const bx=R(0,300),by=R(0,300);x.moveTo(bx,by);for(let k=0;k<3;k++)x.lineTo(bx+R(-90,150),by+R(-90,150));x.closePath();x.fill()}
-  x.globalAlpha=1;x.lineWidth=5;x.strokeStyle='#1f1f22';
-  const fx=R(120,180),fy=R(130,170);x.fillStyle=pick(['#f3cfb4','#eec7a6']);x.beginPath();x.moveTo(fx,fy-90);x.lineTo(fx+80,fy-20);x.lineTo(fx+55,fy+90);x.lineTo(fx-45,fy+95);x.lineTo(fx-85,fy-10);x.closePath();x.fill();x.stroke();
-  [[-35,-25],[30,-35]].forEach(([dx,dy],i)=>{x.fillStyle='#fff';x.beginPath();x.ellipse(fx+dx,fy+dy,i?16:12,i?12:16,R(-.4,.4),0,7);x.fill();x.stroke();x.fillStyle='#1f1f22';x.beginPath();x.arc(fx+dx+R(-3,3),fy+dy+R(-3,3),4,0,7);x.fill()});
-  x.fillStyle=pick(P);x.beginPath();x.moveTo(fx+5,fy-10);x.lineTo(fx+28,fy+30);x.lineTo(fx-8,fy+32);x.closePath();x.fill();x.stroke();
-  x.beginPath();x.moveTo(fx-30,fy+62);x.quadraticCurveTo(fx+5,fy+R(48,85),fx+42,fy+55);x.stroke();return c}
-function drawGame(){face('look');const t=pick(TITLES),cv=paintPic();
-  const d=add(`<div class="act">（他拿起炭筆，唰唰唰地畫了一張，然後舉起來給你看）</div><div class="bb">畫好了！這張叫${t}。<br>幫我打個分數吧！</div><div class="art"><div>${t}</div></div><div class="stars">${[1,2,3,4,5].map(n=>`<button data-n="${n}">⭐</button>`).join('')}</div>`);
-  d.querySelector('.art').insertBefore(cv,d.querySelector('.art div'));
-  d.querySelectorAll('.stars button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;const n=+b.dataset.n;d.querySelectorAll('.stars button').forEach(e=>e.classList.toggle('on',+e.dataset.n<=n));
-    face(n>=4?'laugh':n===3?'smile':'awkward');setTimeout(()=>{say(pick(D.lines.rate[n-1]),n>=4?'laugh':n===3?'smile':'awkward','');after()},500)});
+/* 畫畫遊戲：他出題，你在畫紙上用手指畫，畫好了按「畫好了」，他看了就稱讚（20 句，依你畫的樣子挑：顏色多／線條多／很簡單／畫很大／一般，每種 4 句隨機） */
+function drawGame(){face('look');const topic=pick(D.lines.topics),COL=['#1f1f22','#2d4f8f','#d9534f','#e9a23b','#3d8a5f'];
+  const d=add(`<div class="act">（他撕下一張紙遞給你，又塞給你一支炭筆）</div><div class="bb">今天的題目：${topic}。<br>你畫，我來看！</div><div class="pad"><canvas width="480" height="300"></canvas><div class="pal">${COL.map((c,i)=>`<i data-c="${c}" style="background:${c}" class="${i?'':'on'}"></i>`).join('')}</div><div class="go"><button data-a="clr">清掉重畫</button><button class="main" data-a="ok">畫好了</button></div></div>`);
+  const cv=d.querySelector('canvas'),x=cv.getContext('2d');x.lineWidth=7;x.lineCap='round';x.lineJoin='round';let col=COL[0],strokes=0,on=false,colors=new Set(),ink=0,lx=0,ly=0;
+  const pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
+  cv.onpointerdown=e=>{if(d.dataset.done)return;on=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}const[px,py]=pos(e);lx=px;ly=py;x.strokeStyle=col;x.beginPath();x.moveTo(px,py);x.lineTo(px+.1,py+.1);x.stroke();strokes++;colors.add(col)};
+  cv.onpointermove=e=>{if(!on)return;const[px,py]=pos(e);x.beginPath();x.moveTo(lx,ly);x.lineTo(px,py);x.stroke();ink+=Math.hypot(px-lx,py-ly);lx=px;ly=py};
+  cv.onpointerup=cv.onpointercancel=()=>{on=false};
+  d.querySelectorAll('.pal i').forEach(i=>i.onclick=()=>{col=i.dataset.c;d.querySelectorAll('.pal i').forEach(o=>o.classList.toggle('on',o===i))});
+  d.querySelector('[data-a=clr]').onclick=()=>{if(d.dataset.done)return;x.clearRect(0,0,cv.width,cv.height);strokes=0;colors=new Set();ink=0};
+  d.querySelector('[data-a=ok]').onclick=()=>{if(d.dataset.done)return;
+    if(strokes<1){face('awkward');add(`<div class="act">（他笑著把紙推回來）</div><div class="bb">紙還是白的喔，隨便畫幾筆就好，我不會笑你。</div>`);return}
+    d.dataset.done=1;d.querySelector('.go').style.display='none';d.querySelector('.pal').style.display='none';
+    const cat=[];if(colors.size>=3)cat.push('colors');if(strokes>=10||ink>1800)cat.push('busy');if(strokes<=3&&ink<500)cat.push('simple');if(ink>2600)cat.push('big');if(!cat.length)cat.push('normal');
+    think(900,()=>{face('laugh');say(pick(D.lines.praise[pick(cat)]),'laugh','');after()})};
   log.scrollTop=log.scrollHeight;busy=false}
-/* 藝術小知識：10 題小謎語，答對就繼續下一題，答錯就結束這一輪 */
-let qz=null;
-function quiz(n){if(n===0)qz=D.quiz.slice().sort(()=>Math.random()-.5).slice(0,10);
-  if(n>=qz.length){face('laugh');add(`<div class="act">（他用力鼓掌，白鴿也飛起來繞了一圈）</div><div class="bb">十題全部答對！你是真正的小小藝術家！</div>`);after();return}
-  const z=qz[n];face('look');const d=add(`<div class="act">（第 ${n+1} / ${qz.length} 題）</div><div class="bb">${z.q}</div><div class="opts">${z.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div>`);
-  d.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;const ok=+b.dataset.i===z.ans;b.classList.add(ok?'right':'wrong');d.querySelectorAll('.opts button')[z.ans].classList.add('right');face(ok?'laugh':'awkward');
-    if(ok){add(`<div class="act">（他拍拍手）</div><div class="bb">${z.ok}</div>`);setTimeout(()=>quiz(n+1),1500)}
-    else{add(`<div class="act">（他哈哈笑）</div><div class="bb">${z.no}<br>這一輪答對了 ${n} 題，下次再來挑戰！</div>`);after()}});
+/* 藝術小知識：10 題小謎語。猜錯不會結束：他給提示、拿掉一個錯的選項，再猜一次；猜兩次還不對就公佈答案，繼續下一題。隨時可以「先不玩了」，最後算你拿到幾顆星 */
+let qz=null,stars=0;
+function quiz(n){if(n===0){qz=D.quiz.slice().sort(()=>Math.random()-.5).slice(0,10);stars=0}
+  if(n>=qz.length){face('laugh');add(`<div class="act">（他用力鼓掌，白鴿也飛起來繞了一圈）</div><div class="bb">十題都玩完了！你拿到 ${stars} 顆星 ${'⭐'.repeat(stars)}${stars>=8?'<br>你是真正的小小藝術家！':'<br>很棒，下次再來拿更多星星！'}</div>`);after();return}
+  const z=qz[n];face('look');let tries=0;
+  const d=add(`<div class="act">（第 ${n+1} / ${qz.length} 題・目前 ${stars} 顆星）</div><div class="bb">${z.q}</div><div class="opts">${z.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div><button class="quit">先不玩了</button>`);
+  const bs=d.querySelectorAll('.opts button');
+  d.querySelector('.quit').onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;add(`<div class="act">（他點點頭）</div><div class="bb">好，休息一下也很好！這一輪你拿到 ${stars} 顆星。</div>`);after()};
+  bs.forEach(b=>b.onclick=()=>{if(d.dataset.done||b.disabled)return;const ok=+b.dataset.i===z.ans;
+    if(ok){d.dataset.done=1;if(tries===0)stars++;b.classList.add('right');d.querySelector('.quit').remove();face('laugh');add(`<div class="act">（他拍拍手）</div><div class="bb">${z.ok}${tries===0?'<br>⭐ +1':''}</div>`);setTimeout(()=>quiz(n+1),1600);return}
+    tries++;b.classList.add('wrong');b.disabled=true;
+    if(tries>=2){d.dataset.done=1;bs[z.ans].classList.add('right');d.querySelector('.quit').remove();face('awkward');add(`<div class="act">（他笑著說）</div><div class="bb">${z.no}</div>`);setTimeout(()=>quiz(n+1),1800);return}
+    face('hesitant');add(`<div class="act">（他眨眨眼）</div><div class="bb">不是那個喔，再猜一次，我偷偷告訴你：不是${b.textContent}。</div>`);log.scrollTop=log.scrollHeight});
   log.scrollTop=log.scrollHeight}
 /* ---------- 事件 ---------- */
 $('#send').onclick=()=>{const v=$('#q').value;$('#q').value='';ask(v)};
