@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.63</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.64</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -888,13 +888,13 @@ function renderBalance(){
     '<div class="balnote">現場結帳可折抵，1 點 = 1 元</div></div>';
 }
 
-async function loadBookings(){
+async function loadBookings(fresh){
   bookedMap={};
   if(FIREBASE_URL){
     /* 伺服器已經算好每個時段幾位（連堂的第二格、取消與逾期都處理過），
        這裡只是把它攤平成 "日期|時段" 的形狀。 */
     try{
-      const j=await api("/liff/slots",{});
+      const j=await api("/liff/slots",fresh?{fresh:true}:{}); /* fresh：送出前最後確認，伺服器不用快取 */
       for(const d in (j.used||{}))
         for(const s in j.used[d])
           bookedMap[d+"|"+s]=j.used[d][s];
@@ -1839,7 +1839,7 @@ async function submitBooking(){
      還是舊的、還沒關閉那份 schedule，這一關就攔不住，等於白做了
      這個「最後再確認一次」的檢查。兩個都要重抓，才會用到當下
      真正的班表跟容量，不是客人打開頁面那一刻的舊資料。 */
-  await Promise.all([loadSchedule(),loadBookings()]);
+  await Promise.all([loadSchedule(),loadBookings(true)]);
   const occ=occupiedNow(), p2=pairSlot();
   if(occ.some(x=>leftOf(selDate,x)<totalSeats())){
     alert("這個時段名額剛被約走，請重新選時段。");setStep(3);return;
