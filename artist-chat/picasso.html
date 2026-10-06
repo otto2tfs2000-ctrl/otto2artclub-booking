@@ -157,21 +157,22 @@ $('#q').addEventListener('input',()=>{tb.classList.remove('on');clearTimeout(mur
 document.querySelectorAll('#games button').forEach(b=>b.onclick=()=>game(b.dataset.k));
 /* ---------- 開場 ---------- */
 function loadImgs(){const u=['picasso-studio.webp','pc-smile.webp'];return Promise.all(u.map(s=>new Promise(r=>{const i=new Image();i.onload=i.onerror=r;i.src=s})))}
-function intro(){const ms=D.lines.murmur.slice().sort(()=>Math.random()-.5).slice(0,3);let i=0;
-  const step=()=>{if(i<ms.length){face(i%2?'hesitant':'look');tb.innerHTML=esc(ms[i]);tb.classList.add('on');i++;setTimeout(()=>{tb.classList.remove('on');setTimeout(step,500)},2800);return}
-    face('laugh');add(`<div class="act">（他突然回過神，發現你站在門口）</div><div class="bb">你來啦！想問我啥事？</div>`);
-    if(!member)add('<div class="note">這間畫室的 AI 聊天只給會員朋友，你可以用下面的按鈕和他玩。</div>');
-    document.body.classList.remove('intro');chips(D.root);murmur(2600)};
-  setTimeout(step,700)}
-function start(st){document.getElementById('app').classList.add('ready');
-  if(st&&st.cool>0){document.body.classList.remove('intro');say(pick(D.lines.cool),'hesitant','');lock('還要等 '+Math.max(1,Math.ceil(st.cool/86400000))+' 天才能再聊');return}
-  intro()}
+function intro(){document.body.classList.remove('intro');chips(D.root);
+  face('look');tb.innerHTML=esc(pick(D.lines.murmur));tb.classList.add('on');
+  setTimeout(()=>{tb.classList.remove('on');if(used>0||ended)return;face('laugh');add(`<div class="act">（他突然回過神，發現你站在門口）</div><div class="bb">你來啦！想問我啥事？</div>`);murmur(3000)},1500)}
+function applyStatus(st){if(!st||!st.ok)return;
+  if(st.cool>0){clearTimeout(murT);tb.classList.remove('on');say(pick(D.lines.cool),'hesitant','');lock('還要等 '+Math.max(1,Math.ceil(st.cool/86400000))+' 天才能再聊');return}
+  member=!!st.member;aiMax=member?(st.aiLeft||0):0;
+  if(!member)add('<div class="note">這間畫室的 AI 聊天只給會員朋友，你可以用下面的按鈕和他玩。</div>')}
 (async()=>{
-  const st=await Promise.race([api({act:'status'}),new Promise(r=>setTimeout(()=>r(null),6000))]);
-  if(st&&st.ok){member=!!st.member;aiMax=member?(st.aiLeft||0):0}
-  await Promise.race([loadImgs(),new Promise(r=>setTimeout(r,8000))]);
+  const stP=api({act:'status'});
+  await Promise.race([loadImgs(),new Promise(r=>setTimeout(r,5000))]);
+  document.getElementById('app').classList.add('ready');
   ['laugh','look','awkward','hesitant'].forEach(n=>{new Image().src='pc-'+n+'.webp'});
-  start(st);
+  const st=await Promise.race([stP,new Promise(r=>setTimeout(()=>r(null),1200))]);
+  if(st&&st.ok&&st.cool>0){document.body.classList.remove('intro');applyStatus(st);return}
+  intro();
+  if(st)applyStatus(st);else stP.then(applyStatus);
 })();
 </script>
 </body></html>
