@@ -68,7 +68,7 @@ html,body{height:100%;background:#2a1a10;font-family:"Noto Sans TC","PingFang TC
     <div id="closed"></div>
   </div>
 </div>
-<script src="picasso.js?v=3"></script>
+<script>document.write('<script src="picasso.js?t='+Date.now()+'"><\/script>')</script>
 <script>
 /* 試用版：問答樹＋故事/功課/猜謎/每日一句全部固定；自己打字先用關鍵字配對，配不到才交給 AI（一次聊天最多 3 次，試用版先用示範句） */
 const D=window.ARTIST,N=D.nodes,MAX=15,AI_MAX=LIVE?0:3;
@@ -94,7 +94,9 @@ function reply(r,kind){let t=r.t,m=r.m;if(used===MAX-2){m='hesitant';t=D.lines.t
 function after(){busy=false;bubble(1800);if(used>=MAX)setTimeout(()=>close(D.lines.end,'hesitant',D.short+'去忙了，3 天後可以再來聊'),1400)}
 function think(ms,fn){const t=add('<div class="dots"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();fn()},ms)}
 function ask(q,id,how){if(busy||!q.trim())return;busy=true;used++;hideTb();clearTimeout(idle);add(`<div class="me">${q.replace(/</g,'&lt;')}</div>`);
-  if(!id&&how==='打字'){id=match(q)}
+  if(!id&&how==='打字'){const isQ=/[?？嗎呢]|什麼|為什麼|為何|怎麼|哪|誰|幾|可以|能不能|是不是|有沒有|教我|告訴|多少|好不好|要不要/.test(q);
+    if(!isQ&&/^(我|俺|本人)/.test(q.trim())){think(750,()=>{const l=split(pick(D.lines.ack));face(pick(['smile','laugh','look']));add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('你在說自己的事 → 固定回應（不花錢）')}`);chips(cur);after()});return}
+    id=match(q)}
   if(id){seen.add(id);think(650,()=>{reply(N[id],how==='打字'?'自己打的・關鍵字配對（不花錢）':'預設題（不花錢）');chips(N[id].next||[]);after()});return}
   if(aiUsed<AI_MAX){aiUsed++;think(1400,()=>{reply(pick(AI_DEMO),`自己打的・配不到 → 交給 AI（這次第 ${aiUsed}/${AI_MAX} 次）`);chips(cur);after()});return}
   think(650,()=>{const l=split(pick(D.lines.unknown));face('awkward');add(`<div class="act">${l.a}</div><div class="bb">${l.t}</div>${tagHtml('AI 次數用完 → 固定台詞（不花錢）')}`);chips(cur);after()})}

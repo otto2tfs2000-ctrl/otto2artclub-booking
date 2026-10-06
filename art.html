@@ -1181,7 +1181,7 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
 /* 藝術家聊天：全螢幕蓋一層 iframe（artist-chat/*.html），裡面按「回作品小屋」會 postMessage 關掉 */
 function openArtistChat(id){closeModal();focus=null;let o=document.getElementById('chatov');if(o)o.remove();
   o=document.createElement('div');o.id='chatov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#2a1a10';
-  o.innerHTML='<iframe src="artist-chat/'+id+'.html?live=1&v=20261006d" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="artist-chat/'+id+'.html?live=1&t='+Date.now()+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
