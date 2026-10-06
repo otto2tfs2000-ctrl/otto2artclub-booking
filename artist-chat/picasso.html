@@ -123,7 +123,7 @@ function ask(q,id){if(busy||ended||!q.trim())return;busy=true;tb.classList.remov
 /* ---------- 三個小遊戲 ---------- */
 function game(k){if(busy||ended)return;busy=true;tb.classList.remove('on');clearTimeout(murT);
   const lab={story:'說個藝術小故事給我聽',draw:'我們來玩畫畫遊戲！',quiz:'考考我藝術小知識！'}[k];add(`<div class="me">${lab}</div>`);
-  think(600,()=>{if(k==='story')story();else if(k==='draw')drawGame();else quiz(0)})}
+  think(600,()=>{if(k==='story')story();else if(k==='draw')drawGame();else{busy=false;quiz(0,++qid)}})}
 function story(){say(D.stories[draw('s',D.stories)],'smile','');after()}
 /* 畫畫遊戲：他出題，你在畫紙上用手指畫，畫好了按「畫好了」，他看了就稱讚（20 句，依你畫的樣子挑：顏色多／線條多／很簡單／畫很大／一般，每種 4 句隨機） */
 function drawGame(){face('look');const topic=pick(D.lines.topics),COL=['#1f1f22','#2d4f8f','#d9534f','#e9a23b','#3d8a5f'];
@@ -142,17 +142,17 @@ function drawGame(){face('look');const topic=pick(D.lines.topics),COL=['#1f1f22'
     think(900,()=>{face('laugh');say(pick(D.lines.praise[pick(cat)]),'laugh','');after()})};
   log.scrollTop=log.scrollHeight;busy=false}
 /* 藝術小知識：10 題小謎語。猜錯不會結束：他給提示、拿掉一個錯的選項，再猜一次；猜兩次還不對就公佈答案，繼續下一題。隨時可以「先不玩了」，最後算你拿到幾顆星 */
-let qz=null,stars=0;
-function quiz(n){if(n===0){qz=D.quiz.slice().sort(()=>Math.random()-.5).slice(0,10);stars=0}
+let qz=null,stars=0,qid=0;
+function quiz(n,id){if(id!==qid)return;if(n===0){qz=D.quiz.slice().sort(()=>Math.random()-.5).slice(0,10);stars=0}
   if(n>=qz.length){face('laugh');add(`<div class="act">（他用力鼓掌，白鴿也飛起來繞了一圈）</div><div class="bb">十題都玩完了！你拿到 ${stars} 顆星 ${'⭐'.repeat(stars)}${stars>=8?'<br>你是真正的小小藝術家！':'<br>很棒，下次再來拿更多星星！'}</div>`);after();return}
   const z=qz[n];face('look');let tries=0;
   const d=add(`<div class="act">（第 ${n+1} / ${qz.length} 題・目前 ${stars} 顆星）</div><div class="bb">${z.q}</div><div class="opts">${z.o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div><button class="quit">先不玩了</button>`);
   const bs=d.querySelectorAll('.opts button');
-  d.querySelector('.quit').onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;add(`<div class="act">（他點點頭）</div><div class="bb">好，休息一下也很好！這一輪你拿到 ${stars} 顆星。</div>`);after()};
+  d.querySelector('.quit').onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;qid++;add(`<div class="act">（他點點頭）</div><div class="bb">好，休息一下也很好！這一輪你拿到 ${stars} 顆星。</div>`);after()};
   bs.forEach(b=>b.onclick=()=>{if(d.dataset.done||b.disabled)return;const ok=+b.dataset.i===z.ans;
-    if(ok){d.dataset.done=1;if(tries===0)stars++;b.classList.add('right');d.querySelector('.quit').remove();face('laugh');add(`<div class="act">（他拍拍手）</div><div class="bb">${z.ok}${tries===0?'<br>⭐ +1':''}</div>`);setTimeout(()=>quiz(n+1),1600);return}
+    if(ok){d.dataset.done=1;if(tries===0)stars++;b.classList.add('right');d.querySelector('.quit').remove();face('laugh');add(`<div class="act">（他拍拍手）</div><div class="bb">${z.ok}${tries===0?'<br>⭐ +1':''}</div>`);setTimeout(()=>quiz(n+1,id),1600);return}
     tries++;b.classList.add('wrong');b.disabled=true;
-    if(tries>=2){d.dataset.done=1;bs[z.ans].classList.add('right');d.querySelector('.quit').remove();face('awkward');add(`<div class="act">（他笑著說）</div><div class="bb">${z.no}</div>`);setTimeout(()=>quiz(n+1),1800);return}
+    if(tries>=2){d.dataset.done=1;bs[z.ans].classList.add('right');d.querySelector('.quit').remove();face('awkward');add(`<div class="act">（他笑著說）</div><div class="bb">${z.no}</div>`);setTimeout(()=>quiz(n+1,id),1800);return}
     face('hesitant');add(`<div class="act">（他眨眨眼）</div><div class="bb">不是那個喔，再猜一次，我偷偷告訴你：不是${b.textContent}。</div>`);log.scrollTop=log.scrollHeight});
   log.scrollTop=log.scrollHeight}
 /* ---------- 事件 ---------- */
