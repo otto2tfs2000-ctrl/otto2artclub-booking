@@ -666,7 +666,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <!-- 2026-10-07 藝享選品館（紅利商店）店門口：點廣場上的店面先看到這一頁，店員說歡迎光臨，選「進去逛逛」或「下次再考慮」 -->
 <div id="shopGate" hidden aria-label="藝享選品館">
   <div class="sg-stage"><img class="sg-bg" src="shop-gate-bg.webp?v=20261008a" alt="">
-    <div class="sg-keeper"><div class="sg-bubble" id="sgBubble"><b>歡迎光臨！</b><span>今天有新的好禮，<br>要不要進來逛逛？</span></div><img class="sg-man" id="sgMan" src="shop-keeper-last.webp?v=20261007e" alt="店員"><audio id="sgAud" src="shop-keeper.wav?v=20261007e" preload="none"></audio></div>
+    <div class="sg-keeper"><div class="sg-bubble" id="sgBubble"><b>歡迎光臨！</b><span>今天有新的好禮，<br>要不要進來逛逛？</span></div><img class="sg-man" id="sgMan" src="shop-keeper-last.webp?v=20261007e" alt="店員"><audio id="sgAud" src="shop-keeper.m4a?v=20261008i" preload="none"></audio></div>
   </div>
   <button type="button" class="sg-x" id="sgX" aria-label="關閉">✕</button>
   <div class="sg-btns"><button type="button" class="sg-in" id="sgIn">進去逛逛</button><button type="button" class="sg-later" id="sgLater">下次再考慮</button></div>
@@ -676,7 +676,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
   <div class="sp-head"><button type="button" class="sp-x" id="spX" aria-label="關閉">✕</button>
     <div class="sp-title"><small>OTTO2</small><h2 id="spName">藝享選品館</h2><p id="spSub">把累積的美好，換成喜歡的收藏</p></div>
     <div class="sp-bal" id="spBal" hidden><i class="sp-coin"></i><span>我的紅利</span><b id="spBalN">0</b></div>
-    <div class="sp-girl" id="spGirl" hidden><div class="sp-gb">你好啊！好久不見</div><img id="spGirlImg" alt="店員" src="shop-girl-last.webp?v=20261008b"><audio id="spGirlAud" src="shop-girl.wav?v=20261008b" preload="none"></audio></div></div>
+    <div class="sp-girl" id="spGirl" hidden><div class="sp-gb">你好啊！好久不見</div><img id="spGirlImg" alt="店員" src="shop-girl-last.webp?v=20261008b"><audio id="spGirlAud" src="shop-girl.m4a?v=20261008i" preload="none"></audio></div></div>
   <div class="sp-tabs" id="spTabs"></div>
   <div class="sp-count" id="spCount"></div>
   <div class="sp-grid" id="spGrid"></div>
@@ -703,7 +703,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008h';
+const PARK_VER='20261008i';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1397,7 +1397,7 @@ function shopGreet(){if(!SHOP)return;const b=$('sgBubble'),c=SHOP.cfg;
   if(c.pending){if(b)b.innerHTML=`<b>${esc(c.closedLine||'還沒開店喔！')}</b><span>${esc(c.closedSub||'')}</span>`;return}
   if(b)b.innerHTML=`<b>${esc(c.greeting||'歡迎光臨！')}</b><span>${esc(c.greetingSub||'')}</span>`}
 /* 店員動畫檔 1.4～1.7MB：先用靜態圖站在那裡，動畫載好才換上去（不然圖片框會縮成 0，人物和泡泡位置都跑掉） */
-const SHOPA={open:{anim:'shop-keeper-anim.webp?v=20261007e',still:'shop-keeper-last.webp?v=20261007e',wav:'shop-keeper.wav?v=20261007e'},closed:{anim:'shop-closed-anim.webp?v=20261008c',still:'shop-closed-last.webp?v=20261008c',wav:'shop-closed.wav?v=20261008c'}};
+const SHOPA={open:{anim:'shop-keeper-anim.webp?v=20261008i',still:'shop-keeper-last.webp?v=20261007e',wav:'shop-keeper.m4a?v=20261008i'},closed:{anim:'shop-closed-anim.webp?v=20261008i',still:'shop-closed-last.webp?v=20261008i',wav:'shop-closed.m4a?v=20261008i'}};
 const _shopImg={};
 function shopImgReady(u){return _shopImg[u]||(_shopImg[u]=new Promise(r=>{const i=new Image();i.onload=()=>r(true);i.onerror=()=>{delete _shopImg[u];r(false)};i.src=u}))}
 /* 進遊樂島幾秒後，趁閒置先把店員動畫和聲音抓好，點店面時就能馬上動 */
@@ -1430,7 +1430,7 @@ function showShopPage(){const pg=$('shopPage');pg.hidden=false;void pg.offsetWid
 /* 進商品頁：另一位店員出來說「你好啊！好久不見」並揮手，播完淡出（大熊給的綠幕影片去背成透明動畫＋聲音） */
 function shopGirlHi(){const g=$('spGirl');if(!g)return;clearTimeout(_girlT);g.classList.remove('out');g.hidden=false;
   const gb=g.querySelector('.sp-gb');gb.style.animation='none';void gb.offsetWidth;gb.style.animation='';
-  $('spGirlImg').src='shop-girl-anim.webp?v=20261008b&t='+Date.now();
+  $('spGirlImg').src='shop-girl-anim.webp?v=20261008i&t='+Date.now();
   const a=$('spGirlAud');if(a&&SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}
   /* 她一直站在原位；播完（約 8 秒）只收起對話框，點她可以再打一次招呼 */
   gb.classList.remove('off');_girlT=setTimeout(()=>gb.classList.add('off'),8400)}
