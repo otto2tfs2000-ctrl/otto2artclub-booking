@@ -666,7 +666,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <!-- 2026-10-07 藝享選品館（紅利商店）店門口：點廣場上的店面先看到這一頁，店員說歡迎光臨，選「進去逛逛」或「下次再考慮」 -->
 <div id="shopGate" hidden aria-label="藝享選品館">
   <div class="sg-stage"><img class="sg-bg" src="shop-gate-bg.webp?v=20261008a" alt="">
-    <div class="sg-keeper"><div class="sg-bubble" id="sgBubble"><b>歡迎光臨！</b><span>今天有新的好禮，<br>要不要進來逛逛？</span></div><img class="sg-man" id="sgMan" src="shop-keeper-last.webp?v=20261007e" alt="店員"><audio id="sgAud" src="shop-keeper.wav?v=20261007e" preload="auto"></audio></div>
+    <div class="sg-keeper"><div class="sg-bubble" id="sgBubble"><b>歡迎光臨！</b><span>今天有新的好禮，<br>要不要進來逛逛？</span></div><img class="sg-man" id="sgMan" src="shop-keeper-last.webp?v=20261007e" alt="店員"><audio id="sgAud" src="shop-keeper.wav?v=20261007e" preload="none"></audio></div>
   </div>
   <button type="button" class="sg-x" id="sgX" aria-label="關閉">✕</button>
   <div class="sg-btns"><button type="button" class="sg-in" id="sgIn">進去逛逛</button><button type="button" class="sg-later" id="sgLater">下次再考慮</button></div>
@@ -676,7 +676,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
   <div class="sp-head"><button type="button" class="sp-x" id="spX" aria-label="關閉">✕</button>
     <div class="sp-title"><small>OTTO2</small><h2 id="spName">藝享選品館</h2><p id="spSub">把累積的美好，換成喜歡的收藏</p></div>
     <div class="sp-bal" id="spBal" hidden><i class="sp-coin"></i><span>我的紅利</span><b id="spBalN">0</b></div>
-    <div class="sp-girl" id="spGirl" hidden><div class="sp-gb">你好啊！好久不見</div><img id="spGirlImg" alt="店員" src="shop-girl-last.webp?v=20261008b"><audio id="spGirlAud" src="shop-girl.wav?v=20261008b" preload="auto"></audio></div></div>
+    <div class="sp-girl" id="spGirl" hidden><div class="sp-gb">你好啊！好久不見</div><img id="spGirlImg" alt="店員" src="shop-girl-last.webp?v=20261008b"><audio id="spGirlAud" src="shop-girl.wav?v=20261008b" preload="none"></audio></div></div>
   <div class="sp-tabs" id="spTabs"></div>
   <div class="sp-count" id="spCount"></div>
   <div class="sp-grid" id="spGrid"></div>
@@ -703,7 +703,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008g';
+const PARK_VER='20261008h';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1314,7 +1314,7 @@ const GG_DEMO=[{ic:'🌟',nm:'紅利 3 點',tx:'已經加進你的紅利點數',
 let GGBUSY=false,GGPRIZE=null;
 function ggSparkles(){const sp=$('ggSp');sp.innerHTML='';for(let k=0;k<18;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=18+Math.random()*30;
   i.style.cssText=`left:${50+Math.cos(a)*r*.9}%;top:${46+Math.sin(a)*r*.72}%;--s:${14+Math.random()*22}px;--d:${1.4+Math.random()*1.6}s;--l:${(Math.random()*2).toFixed(2)}s`;sp.appendChild(i)}}
-function goldGachaOpen(n){if(GGBUSY)return;const g=$('goldG');$('ggN').textContent=n||1;$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
+function goldGachaOpen(n){ggLoadImgs();if(GGBUSY)return;const g=$('goldG');$('ggN').textContent=n||1;$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
   g.hidden=false;void g.offsetWidth;g.classList.add('show');try{sfx('chime')}catch(e){}ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold)}
 function ggIdle(){if(GGBUSY)return;const cv=$('ggCv'),ctx=cv.getContext('2d'),st=performance.now();const f=now=>{if(GGBUSY||$('goldG').hidden)return;ggDraw(ctx,GGT.pop,false,now-st,GGCFG.gold);GGR=requestAnimationFrame(f)};GGR=requestAnimationFrame(f)}
 function goldGachaClose(){const g=$('goldG');g.classList.remove('show');setTimeout(()=>{g.hidden=true},400)}
@@ -1323,7 +1323,9 @@ function ggPick(){const t=GG_DEMO.reduce((a,b)=>a+b.w,0);let r=Math.random()*t;f
 /* 金色扭蛋（畫布版，2026-10-08）：大熊給的去背素材＋純綠背景。每一格都由時間算出來，所以順、可以輸出成影片。
    時間軸：0～400 機台彈出；400～3200 OTTO2 轉盤轉兩圈、玻璃球裡的扭蛋同步轉一圈；3500～4700 金白膠囊掉出來（比機台還寬）；
    5200～5900 膠囊打開 */
-const GGI={};['gold-m','gold-cluster','gold-knob','gold-cap','std-m','std-cluster','std-knob'].forEach(n=>{const i=new Image();i.src=n+'.webp?v=20261008e';GGI[n]=i});
+/* 金色／標準扭蛋的素材（約 400KB）只有真的要用才下載，一般客人進遊樂島不會載 */
+const GGI={},GGN=['gold-m','gold-cluster','gold-knob','gold-cap','std-m','std-cluster','std-knob'];GGN.forEach(n=>{GGI[n]=new Image()});
+function ggLoadImgs(){if(ggLoadImgs.d)return;ggLoadImgs.d=1;GGN.forEach(n=>{GGI[n].src=n+'.webp?v=20261008e'})}
 const GGT={pop:400,dial0:400,dial1:3200,cap0:3500,cap1:4700,open0:5200,open1:5900};
 const ggE={io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,out:t=>1-Math.pow(1-t,3),back:t=>{const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)},
   bounce:t=>{const n=7.5625,d=2.75;if(t<1/d)return n*t*t;if(t<2/d)return n*(t-=1.5/d)*t+.75;if(t<2.5/d)return n*(t-=2.25/d)*t+.9375;return n*(t-=2.625/d)*t+.984375}};
@@ -1380,7 +1382,7 @@ $('ggGo').addEventListener('click',goldGachaSpin);$('ggX').addEventListener('cli
   const tick=()=>{let on=GOLDQ;try{on=on||isStaffNow()||(typeof PL!=='undefined'&&PL.staff)}catch(e){}
     on=on&&document.body.classList.contains('oct')&&$('shopGate').hidden;
     if(!on){if(gb)gb.style.display='none';return}
-    if(!gb){gb=document.createElement('button');gb.type='button';gb.id='ggStaffBtn';gb.innerHTML='🪙 黃金扭蛋<small style="display:block;font-size:10px;opacity:.7">工作人員試玩</small>';
+    if(!gb){ggLoadImgs();gb=document.createElement('button');gb.type='button';gb.id='ggStaffBtn';gb.innerHTML='🪙 黃金扭蛋<small style="display:block;font-size:10px;opacity:.7">工作人員試玩</small>';
       gb.style.cssText='position:fixed;left:10px;z-index:45;font:inherit;font-size:14px;line-height:1.15;padding:6px 12px;border-radius:14px;border:2px solid #7a4c00;background:#ffe9a8;color:#6b4300;box-shadow:0 3px 0 #b88a2a;text-align:center';
       gb.onclick=()=>{if(!busy)goldGachaOpen(1)};document.body.appendChild(gb)}
     const oi=document.querySelector('.octinfo'),r=oi&&oi.getBoundingClientRect();gb.style.display='';gb.style.bottom=((r&&r.height?innerHeight-r.top:200)+8)+'px'};
@@ -1600,7 +1602,7 @@ let spunJ=null;
 /* ---------- 2026-10-08 試做：廣場上的扭蛋機改用大熊給的去背圖（網址加 ?art=1 才開，原本的 3D 機台完全沒動） ----------
    機台、球群、OTTO2 轉盤是三張圖，畫在一張畫布上貼在廣場裡；spin() 原本就在轉 GA.knob／GA.swirl，這裡每格照那兩個角度重畫，
    所以鏡頭拉近、膠囊滾出來、小畢卡索去拿……全部維持原本的流程，只是機台長得跟你的圖一樣、轉盤會真的轉、球群會真的跟著轉 */
-function artBuild(){if(GA.art)return;const cfg=GGCFG.std,CW=512,CH=Math.round(512*cfg.mh/cfg.mw),cv=document.createElement('canvas');cv.width=CW;cv.height=CH;
+function artBuild(){if(GA.art)return;ggLoadImgs();const cfg=GGCFG.std,CW=512,CH=Math.round(512*cfg.mh/cfg.mw),cv=document.createElement('canvas');cv.width=CW;cv.height=CH;
   const tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;const h=10.2,w=h*cfg.mw/cfg.mh;
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.04}));m.position.set(MACH.x,h/2-.05,MACH.z+.2);scene.add(m);
   GA.g.visible=false;GA.art={cv,tex,m,last:null,k:CW/cfg.mw};
