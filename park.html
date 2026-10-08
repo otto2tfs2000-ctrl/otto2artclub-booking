@@ -703,7 +703,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008f';
+const PARK_VER='20261008g';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1272,9 +1272,16 @@ function makePlantPot(sc){const g=new THREE.Group();g.add(mesh(new THREE.Cylinde
   for(let k=0;k<6;k++){const a=k/6*6.28,l=mesh(new THREE.ConeGeometry(.1,.62,4),toon(k%2?'#4f7f40':'#628f4c',{flatShading:true}),Math.cos(a)*.1,.7,Math.sin(a)*.1);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);g.add(l)}
   g.add(mesh(new THREE.ConeGeometry(.1,.7,4),toon('#5a8a47',{flatShading:true}),0,.78,0));g.scale.setScalar(sc);return g}
 function buildGreenery(P){
-  /* 後面的森林：大熊給的去背成品圖，立在廣場後方，跟廣場一起沉下去 */
-  {const w=27,h=w*485/1400,tex=new THREE.TextureLoader().load('forest-back.png?v=20261007c');tex.anisotropy=4;
-    const f=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));f.position.set(-.4,h/2-.6,-8.2);P.add(f);GA.forest=f}
+  /* 森林：大熊給的去背成品圖切成 5 段（邊緣羽化），沿著廣場邊緣圍一圈，種在木台上；每一段都會轉向鏡頭，從任何角度看都是正面。
+     後方正中間（走到聖誕入口的路）留一個缺口。2026-10-08 大熊：不要一大片飄在半空中 */
+  {const tex=new THREE.TextureLoader().load('forest-ring.webp?v=20261008g');tex.anisotropy=4;
+    const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.02,depthWrite:false,side:THREE.DoubleSide}),ring=new THREE.Group(),geo=[];
+    for(let k=0;k<5;k++){const g=new THREE.PlaneGeometry(1,1),uv=g.attributes.uv;for(let v=0;v<uv.count;v++)uv.setX(v,(uv.getX(v)+k)/5);geo.push(g)}
+    const R=PLAZA_R-.9,N=13;let n=0;
+    for(let k=0;k<N;k++){const a=(-190+k*(200/(N-1)))*Math.PI/180,x=Math.cos(a)*R,z=Math.sin(a)*R;
+      if(x>-2.6&&x<1.6&&z<-1)continue;                       /* 通往聖誕入口的路口，不擋 */
+      const hh=4.3+((k*37)%10)/10*1.1,m=new THREE.Mesh(geo[(k*3+1)%5],mat);m.scale.set(hh*400/485,hh,1);m.position.set(x,hh/2-.3,z);m.renderOrder=2;ring.add(m);n++}
+    P.add(ring);GA.forest=ring}
   /* 縫隙用灌木叢和盆栽填：房子旁邊、入口石階旁、扭蛋機腳邊、前排邊角 */
   const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];
   [[-1.6,-1.0,.9],[-6.0,.9,.9],[1.7,-3.7,.85],[2.0,-0.6,.7],[-2.4,-4.4,.8],[0.4,-5.6,.7],[5.3,-1.8,.8],[-5.0,4.0,.7]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
@@ -1283,7 +1290,7 @@ function buildGreenery(P){
 }
 function buildShop(P){
   const S=new THREE.Group();S.position.set(-4.3,0,-2.0);S.rotation.y=.16;P.add(S);GA.shop=S;
-  const w=4.6,h=w*797/760,tex=new THREE.TextureLoader().load('shop-front.png?v=20261007c');tex.anisotropy=4;
+  const w=4.6,h=w*797/760,tex=new THREE.TextureLoader().load('shop-front.webp?v=20261008g');tex.anisotropy=4;
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));m.position.set(0,h/2-.05,0);S.add(m);
   const sh=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.14,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(2.5,.6,1);sh.position.set(0,.03,.15);S.add(sh);
   /* 2026-10-08 店員站在店門口，頭上冒泡泡「來參觀選購！」；放在 S 底下，所以點她＝點店面＝進店 */
@@ -1294,7 +1301,7 @@ function buildShop(P){
     x.fillStyle='#fffdf8';x.strokeStyle='#1e2b4f';x.lineWidth=7;rr(8,8,464,118,36,x);x.fill();x.stroke();
     x.beginPath();x.moveTo(205,124);x.lineTo(240,164);x.lineTo(268,124);x.closePath();x.fillStyle='#fffdf8';x.fill();x.beginPath();x.moveTo(203,122);x.lineTo(240,165);x.lineTo(270,122);x.stroke();x.fillRect(209,119,57,9);
     x.font=`bold 58px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillStyle='#1e2b4f';x.fillText('來參觀選購！',240,68);
-    const b=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthWrite:false}));b.scale.set(2.1,.744,1);b.position.set(cx,ch+.5,cz);b.userData.y0=b.position.y;S.add(b);GA.clerkB=b}
+    const b=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthWrite:false}));b.scale.set(2.1,.744,1);b.position.set(cx,ch+.5,cz);b.userData.y0=b.position.y;b.renderOrder=6;S.add(b);GA.clerkB=b}
   S.userData.shop=true}
 function buildPath(P){
   /* 2026-10-07 大熊：不要階梯、顏色灰一點。從廣場中間到入口鋪一條淺灰米色的石板路（幾塊石板、細縫），不要一整塊空白 */
@@ -1542,7 +1549,7 @@ function buildPlaza(){
   [BR_Z0,BR_Z1-.1].forEach(z=>[-1,1].forEach(d=>B.add(mesh(new THREE.CylinderGeometry(.06,.07,.7,8),toon('#7a4c30'),BRIDGE_X+d*.72,.3,z))));
   const gate=new THREE.Group();gate.position.set(BRIDGE_X,0,PLAZA.z-5.2);gate.rotation.y=.08;scene.add(gate);GA.gate=gate;
   /* 2026-10-07 聖誕走格子入口：大熊給的成品圖（已去背）直接貼在路口，小黑熊會走進拱門裡；還沒開放時圖片變灰、掛「x/x 開放」小牌 */
-  {const w=4.2,h=w*924/760,tex=new THREE.TextureLoader().load('xmas-gate.png?v=20261007c',t=>{ /* 還沒開放用的灰階版：圖片載入後轉成灰階貼圖 */
+  {const w=4.2,h=w*924/760,tex=new THREE.TextureLoader().load('xmas-gate.webp?v=20261008g',t=>{ /* 還沒開放用的灰階版：圖片載入後轉成灰階貼圖 */
       try{const im=t.image,cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const x=cv.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;
         for(let i=0;i<a.length;i+=4){const l=(a[i]*.3+a[i+1]*.59+a[i+2]*.11)+30,k=.72; /* 霧面：保留一半顏色、整體提亮，不要灰灰的不吉利 */
           a[i]=Math.min(255,a[i]*(1-k)+l*k+10);a[i+1]=Math.min(255,a[i+1]*(1-k)+l*k+10);a[i+2]=Math.min(255,a[i+2]*(1-k)+l*k+8)}x.putImageData(d,0,0);GA.gGray=new THREE.CanvasTexture(cv);GA.gGray.anisotropy=4;GA.gColor=t;if(GA.gimg&&!walkOpen()){GA.gimg.material.map=GA.gGray;GA.gimg.material.needsUpdate=true}}catch(e){}});tex.anisotropy=4;
@@ -2916,9 +2923,10 @@ function annivTick(dt,now,g){const A=GA.an,d=camera.position.distanceTo(look),
    這裡讓它們慢慢轉向鏡頭（正面附近維持原本角度，只有鏡頭偏很多才轉，且有上限）。 */
 const _fv=new THREE.Vector3();
 function faceTick(dt){if(!camera)return;const k=Math.min(1,dt*5);
-  [[GA.shop,.16,1.0],[GA.forest,0,.55],[GA.gate,.08,.8]].forEach(([o,b,lim])=>{if(!o||!o.visible)return;o.getWorldPosition(_fv);
+  [[GA.shop,.16,1.0],[GA.gate,.08,.8]].forEach(([o,b,lim])=>{if(!o||!o.visible)return;o.getWorldPosition(_fv);
     let d=Math.atan2(camera.position.x-_fv.x,camera.position.z-_fv.z)-b;const dz=.22;d=Math.sign(d)*Math.max(0,Math.abs(d)-dz);d=Math.max(-lim,Math.min(lim,d));
-    o.rotation.y+=(b+d-o.rotation.y)*k})}
+    o.rotation.y+=(b+d-o.rotation.y)*k});
+  if(GA.forest&&GA.forest.visible)GA.forest.children.forEach(m=>{m.getWorldPosition(_fv);m.rotation.y=Math.atan2(camera.position.x-_fv.x,camera.position.z-_fv.z)})}
 function loop(now){if(GA.art)artTick();
   if(GA.clerkB){const k=Math.sin(now/520);GA.clerkB.position.y=GA.clerkB.userData.y0+k*.07;GA.clerkB.scale.set(2.1*(1+k*.025),.744*(1+k*.025),1)}
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);faceTick(dt);
