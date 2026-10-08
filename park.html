@@ -705,7 +705,21 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008k';
+const PARK_VER='20261008l';
+/* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
+   three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
+const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
+function glGuard(r){
+  const cv=r.domElement;let t=0;
+  const reload=()=>{try{const k='otto2-gl-reload',l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000){
+      if(!document.getElementById('glRetry')){const b=document.createElement('div');b.id='glRetry';b.textContent='畫面被手機暫停了，點這裡重新載入';
+        b.style.cssText='position:fixed;left:50%;top:45%;transform:translateX(-50%);z-index:99999;background:#fff;color:#333;padding:14px 20px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.25);font:600 15px sans-serif';
+        b.onclick=()=>location.reload();document.body.appendChild(b)}
+      return}sessionStorage.setItem(k,Date.now())}catch(e){}location.reload()};
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();try{localStorage.setItem('otto2-gl-lost',Date.now())}catch(_){}clearTimeout(t);t=setTimeout(reload,3000)});
+  cv.addEventListener('webglcontextrestored',()=>clearTimeout(t));
+  const chk=()=>{if(!document.hidden&&r.getContext().isContextLost()){clearTimeout(t);t=setTimeout(reload,1500)}};
+  document.addEventListener('visibilitychange',chk);addEventListener('pageshow',chk)}
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -839,13 +853,13 @@ function buildIsland(lv){
   return g;
 }
 function buildScene(){
-  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});glGuard(renderer);if(LOWMEM)PERF.cap=Math.min(PERF.cap,1.5);
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
   $('game').appendChild(renderer.domElement);
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(32,1,.1,200);
   GA.hemi=new THREE.HemisphereLight(0xdfe9ff,0x5a6a9a,.8);scene.add(GA.hemi);
   const sun=new THREE.DirectionalLight(0xfff1dc,.8);GA.sun=sun;sun.position.set(-6,16,8);sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-18,right:18,top:14,bottom:-32,near:1,far:70});sun.shadow.bias=-.0008;
+  sun.shadow.mapSize.set(LOWMEM?1024:2048,LOWMEM?1024:2048);Object.assign(sun.shadow.camera,{left:-18,right:18,top:14,bottom:-32,near:1,far:70});sun.shadow.bias=-.0008;
   scene.add(sun);
 
   const i1=buildIsland(0),i2=buildIsland(1);ISL=[i1,i2];
@@ -2306,7 +2320,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261006g',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261008l',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}

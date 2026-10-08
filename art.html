@@ -1082,12 +1082,26 @@ function animalTick(w,dt,now){
   if(w.tgt){const dx=w.tgt.x-o.position.x,dz=w.tgt.z-o.position.z,d=Math.hypot(dx,dz);if(d<.05){w.tgt=null}else{const s=Math.min(d,w.sp*dt);o.position.x+=dx/d*s;o.position.z+=dz/d*s;o.rotation.y=Math.atan2(dx,dz)-Math.PI/2*(w.kind!=='monkey');
     if(w.kind!=='monkey')o.position.y=heightAt(o.position.x,o.position.z)+Math.abs(Math.sin(now/180))*.03}}
 }
+/* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
+   three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
+const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
+function glGuard(r){
+  const cv=r.domElement;let t=0;
+  const reload=()=>{try{const k='otto2-gl-reload',l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000){
+      if(!document.getElementById('glRetry')){const b=document.createElement('div');b.id='glRetry';b.textContent='畫面被手機暫停了，點這裡重新載入';
+        b.style.cssText='position:fixed;left:50%;top:45%;transform:translateX(-50%);z-index:99999;background:#fff;color:#333;padding:14px 20px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.25);font:600 15px sans-serif';
+        b.onclick=()=>location.reload();document.body.appendChild(b)}
+      return}sessionStorage.setItem(k,Date.now())}catch(e){}location.reload()};
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();try{localStorage.setItem('otto2-gl-lost',Date.now())}catch(_){}clearTimeout(t);t=setTimeout(reload,3000)});
+  cv.addEventListener('webglcontextrestored',()=>clearTimeout(t));
+  const chk=()=>{if(!document.hidden&&r.getContext().isContextLost()){clearTimeout(t);t=setTimeout(reload,1500)}};
+  document.addEventListener('visibilitychange',chk);addEventListener('pageshow',chk)}
 function build(){
-  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0,0);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});glGuard(renderer);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWMEM?1.5:2));renderer.setClearColor(0,0);
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;$('stage').appendChild(renderer.domElement);
   scene=new THREE.Scene();scene.fog=new THREE.Fog('#b3d5e7',90,240);camera=new THREE.PerspectiveCamera(38,1,.1,400);
   scene.add(new THREE.HemisphereLight('#ffffff','#9db27f',.95));
-  const sun=new THREE.DirectionalLight('#fff0d4',.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(3072,3072);
+  const sun=new THREE.DirectionalLight('#fff0d4',.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
   const sc=sun.shadow.camera;sc.left=-19*K;sc.right=19*K;sc.top=19*K;sc.bottom=-19*K;sc.near=1;sc.far=90;sun.shadow.bias=-.0006;sun.shadow.radius=4;scene.add(sun);
   buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();
   addEventListener('resize',resize);resize();
@@ -1204,7 +1218,7 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261008k';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261008l';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
@@ -1561,8 +1575,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261008k';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261008k&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261008k&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
-$('plMascot').onclick=()=>{const u='park.html?v=20261008k&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261008l';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261008l&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261008l&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
+$('plMascot').onclick=()=>{const u='park.html?v=20261008l&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
 function armBack(){try{if(!(history.state&&history.state.otOv))history.pushState({otOv:1},'')}catch(e){}}
