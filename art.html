@@ -24,6 +24,9 @@
 .places button.on+button{border-left-color:transparent}
 .places .pi{display:block; width:27px; height:27px; flex:none}
 .places .chev{display:none}
+.places button{flex-direction:column; gap:1px; font-size:13.5px; padding:7px 0 9px; line-height:1.2}
+.places .pi{width:26px; height:26px}
+.places button.on::before{bottom:3px; height:3px}
 .btns,.btns{display:flex!important; width:100%; gap:8px}
 .btns .pill{flex:1; min-width:0; font-family:var(--round); font-size:16px; letter-spacing:.04em; padding:12px 4px; border-radius:16px; color:var(--navy); background:#fffaf2; border:2px solid #d9c8a8; box-shadow:0 4px 0 #d9c8a8; backdrop-filter:none; -webkit-backdrop-filter:none}
 .btns .pill.main{flex:1.25; color:#fff; background:var(--terra); border-color:var(--terraD); box-shadow:0 4px 0 var(--terraD); font-size:18px}
@@ -210,7 +213,7 @@ body.tour .pcTag{display:none!important}
   </div>
   <div class="bottom">
     <div class="hint" id="hint" hidden></div>
-    <div class="places" id="places"><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋<span class="chev" aria-hidden="true">›</span></button></div>
+    <div class="places" id="places"><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button></div>
     <div class="btns">
       <button class="pill main" id="myBtn" type="button">我的小屋</button>
       <button class="pill" id="upBtn" type="button">上傳作品</button>
@@ -1201,7 +1204,7 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261005zd';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261008d';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
@@ -1558,8 +1561,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261005zd';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>$('homeBtn').click();
-$('plMascot').onclick=()=>{const u='park.html?v=20261005zd&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261008d';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261008d&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261008d&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
+$('plMascot').onclick=()=>{const u='park.html?v=20261008d&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
 function armBack(){try{if(!(history.state&&history.state.otOv))history.pushState({otOv:1},'')}catch(e){}}

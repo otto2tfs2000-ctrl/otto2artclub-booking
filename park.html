@@ -471,6 +471,125 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 .plfile input{position:absolute; inset:0; opacity:0; cursor:pointer}
 .plpv{display:block; max-width:100%; max-height:30vh; border-radius:12px; margin:8px auto 0}
 .plt{display:block; width:100%; box-sizing:border-box; margin-top:8px; font:inherit; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:12px}
+/* 2026-10-07 底部分頁改四個（扭蛋島／走格子島／吉祥物島／作品小屋）：圖示在上、字在下，一排放得下 */
+body .places button,#miUI .places button{flex-direction:column; gap:1px; font-size:13.5px; padding:7px 0 9px; line-height:1.2}
+body .places .pi{width:26px; height:26px}
+body .places button.on::before{bottom:3px; height:3px}
+body .places button.dot::after{top:3px; right:10px}
+.octinfo{cursor:pointer}
+body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那行小字拿掉 */
+#hopVeil{position:fixed; inset:0; background:#eef6fb; opacity:0; pointer-events:none; z-index:60; transition:opacity .35s}
+#hopVeil.on{opacity:1; pointer-events:auto}
+/* 藝享選品館店門口 */
+#shopGate{position:fixed; inset:0; z-index:70; background:#66c0ff; overflow:hidden; opacity:0; transition:opacity .32s}
+#shopGate.show{opacity:1}
+#shopGate{--gw:min(max(100vw,calc(100dvh*.5628)),520px)}
+#shopGate .sg-stage{position:absolute; left:max(0px,calc((100vw - var(--gw))/2)); bottom:0; width:var(--gw); aspect-ratio:941/1672} /* 電腦寬螢幕：限制成手機寬度置中，字不會被切掉 */
+#shopGate .sg-bg{position:absolute; inset:0; width:100%; height:100%; display:block; user-select:none; -webkit-user-drag:none}
+#shopGate .sg-keeper{position:absolute; left:26%; margin-left:-14.5%; bottom:17.5%; width:29%; pointer-events:none} /* 不能有 opacity／transform，不然疊底只在自己這一層生效、背景不會消失 */
+#shopGate .sg-man{opacity:0; transition:opacity .3s .15s; filter:drop-shadow(0 6px 8px rgba(40,36,28,.25))}
+#shopGate.show .sg-man{opacity:1}
+#shopGate .sg-man{display:block; width:100%}
+/* 還沒開幕：換成另一位店員（大熊公仔）說「還沒開店」，只留一顆按鈕 */
+#shopGate.closed .sg-keeper{width:24%; margin-left:-12%; bottom:17%}
+#shopGate.closed #sgIn{display:none}
+@keyframes sgIdle{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-1.2%)}}
+#shopGate .sg-bubble{position:absolute; z-index:2; left:-34%; bottom:calc(100% + 4px); width:205%; box-sizing:border-box; /* 固定寬度、靠左錨定在畫面內：後台臺詞再長也只會換行，不會往左跑出去 */ background:#fffdf8; color:#1e2b4f; border:3px solid #1e2b4f; border-radius:18px; padding:9px 14px 10px; box-shadow:0 5px 0 rgba(30,43,79,.18); font-size:15px; line-height:1.4; text-align:left; transform-origin:20% 100%; transform:scale(0); opacity:0}
+#shopGate .sg-bubble b{display:block; font-size:19px; letter-spacing:.5px}
+#shopGate .sg-bubble span{display:block; font-size:13.5px; color:#4b5470; margin-top:2px}
+#shopGate .sg-bubble::after{content:''; position:absolute; left:calc(41% - 8px); bottom:-12px; width:16px; height:16px; background:#fffdf8; border-right:3px solid #1e2b4f; border-bottom:3px solid #1e2b4f; transform:rotate(45deg)}
+#shopGate.show .sg-bubble{animation:sgPop .55s cubic-bezier(.2,1.5,.4,1) .7s forwards}
+@keyframes sgPop{to{transform:scale(1); opacity:1}}
+#shopGate .sg-x{position:absolute; top:calc(env(safe-area-inset-top,0px) + 14px); right:14px; width:42px; height:42px; border-radius:50%; border:2px solid #1e2b4f; background:rgba(255,253,248,.92); color:#1e2b4f; font-size:18px; line-height:1; cursor:pointer}
+#shopGate .sg-btns{position:absolute; left:max(0px,calc((100vw - var(--gw))/2)); width:var(--gw); box-sizing:border-box; bottom:0; padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px); display:flex; flex-direction:column; gap:10px; background:linear-gradient(180deg,rgba(255,250,240,0),rgba(255,250,240,.88) 38%)}
+#shopGate .sg-btns button{font:inherit; font-size:18px; border-radius:16px; padding:15px 10px; cursor:pointer; letter-spacing:1px}
+#shopGate .sg-in{background:#1f4fa8; color:#fff; border:0; box-shadow:0 4px 0 #14367a}
+#shopGate .sg-later{background:rgba(255,253,248,.95); color:#1e2b4f; border:2px solid #cfc7b4; font-size:16px!important; padding:12px 10px!important}
+/* 藝享選品館商品頁 */
+#shopPage{position:fixed; inset:0; z-index:71; background:#f8f1e4; display:flex; flex-direction:column; opacity:0; transition:opacity .3s}
+#shopPage.show{opacity:1}
+#shopPage .sp-head{flex:none; position:relative; height:var(--sph); background:#a9d2f3 url(shop-head-bg.webp?v=20261008a) center bottom/min(100vw,520px) auto no-repeat} /* 整張店面圖完整顯示（含屋頂），不裁切 */
+#shopPage .sp-title{position:absolute; left:18px; top:calc(env(safe-area-inset-top,0px) + 14px); color:#14214a; text-shadow:0 0 8px rgba(255,255,255,.85),0 0 2px rgba(255,255,255,.9)}
+#shopPage .sp-title small{display:block; font-size:22px; font-weight:900; letter-spacing:1px}
+#shopPage .sp-title h2{margin:2px 0 2px; font-size:28px; letter-spacing:6px; font-weight:800}
+#shopPage .sp-title p{margin:0; font-size:13.5px; font-weight:700}
+#shopPage .sp-x{position:absolute; right:12px; top:calc(env(safe-area-inset-top,0px) + 12px); width:38px; height:38px; border-radius:50%; border:2px solid #14214a; background:rgba(255,253,248,.92); color:#14214a; font-size:16px; cursor:pointer; z-index:2}
+#shopPage .sp-bal{position:absolute; right:12px; bottom:10px; display:flex; align-items:center; gap:6px; background:rgba(255,253,248,.96); border-radius:99px; padding:6px 14px 6px 8px; font-size:13px; color:#3a4258; box-shadow:0 3px 10px rgba(30,40,70,.18)}
+#shopPage .sp-bal b{font-size:20px; color:#14214a; font-variant-numeric:tabular-nums}
+.sp-coin{display:inline-block; width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#ffe9a0,#e8b43c 70%); border:2px solid #c68f1e; flex:none; position:relative}
+.sp-coin::after{content:'★'; position:absolute; inset:0; display:grid; place-items:center; font-size:12px; color:#fff7d6; line-height:1}
+#shopPage .sp-head{z-index:2}
+#shopPage .sp-girl{position:absolute; left:1%; bottom:2px; width:27%; max-width:140px; z-index:3; cursor:pointer; -webkit-tap-highlight-color:transparent}
+#shopPage .sp-gb.off{opacity:0; transition:opacity .5s}
+#shopPage .sp-girl.out{opacity:0}
+#shopPage .sp-girl img{display:block; width:100%; filter:drop-shadow(0 5px 6px rgba(40,36,28,.28))}
+#shopPage .sp-gb{position:absolute; left:92%; top:2%; width:max-content; background:#fffdf8; color:#14214a; border:3px solid #14214a; border-radius:16px; padding:7px 12px; font-size:15px; font-weight:800; transform-origin:0 100%; transform:scale(0); animation:sgPop .5s cubic-bezier(.2,1.5,.4,1) .6s forwards}
+#shopPage .sp-gb::before{content:''; position:absolute; left:-9px; bottom:8px; width:13px; height:13px; background:#fffdf8; border-left:3px solid #14214a; border-bottom:3px solid #14214a; transform:rotate(45deg)}
+#shopPage .sp-tabs{flex:none; display:flex; gap:8px; padding:12px 14px 4px; overflow-x:auto; scrollbar-width:none}
+#shopPage .sp-tabs::-webkit-scrollbar{display:none}
+#shopPage .sp-tabs button{flex:none; font:inherit; font-size:15px; color:#3a4258; background:#fffdf8; border:0; border-radius:99px; padding:9px 18px; box-shadow:0 2px 6px rgba(60,40,10,.08); cursor:pointer; white-space:nowrap}
+#shopPage .sp-tabs button.on{background:#f6d368; color:#14214a; font-weight:800; box-shadow:0 3px 0 #d9ae3c}
+#shopPage .sp-count{flex:none; text-align:center; font-size:13px; color:#6a6f7d; padding:8px 14px 6px; display:flex; align-items:center; gap:10px}
+#shopPage .sp-count::before,#shopPage .sp-count::after{content:''; flex:1; height:1px; background:#d9d1bf}
+#shopPage .sp-tabs,#shopPage .sp-count,#shopPage .sp-grid{width:100%; max-width:520px; margin-left:auto; margin-right:auto; box-sizing:border-box}
+#shopPage .sp-grid{flex:1; overflow-y:auto; padding:4px 14px calc(env(safe-area-inset-bottom,0px) + 96px); display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:max-content; gap:12px; align-content:start; -webkit-overflow-scrolling:touch}
+#shopPage .sp-card{background:#fffdf8; border-radius:16px; overflow:hidden; box-shadow:0 3px 10px rgba(60,40,10,.09); display:flex; flex-direction:column; position:relative}
+#shopPage{--spw:min(100vw,520px); --sph:calc(min(100vw,520px)*.853)}
+#shopPage .sp-img{flex:none; position:relative; width:100%; height:calc((var(--spw) - 40px)/2); background:#ece4d2 center/cover no-repeat}
+#shopPage .sp-img i{position:absolute; inset:0; display:grid; place-items:center; font-size:44px; font-style:normal}
+#shopPage .sp-tag{position:absolute; top:8px; left:8px; background:#d6453b; color:#fff; font-size:11.5px; font-weight:800; border-radius:99px; padding:2px 9px}
+#shopPage .sp-body{padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1}
+#shopPage .sp-nm{font-size:16px; font-weight:800; color:#14214a; line-height:1.25}
+#shopPage .sp-meta{font-size:11.5px; color:#8a8f9c; min-height:14px}
+#shopPage .sp-row{display:flex; flex-direction:column; align-items:stretch; gap:8px; margin-top:auto}
+#shopPage .sp-price{display:flex; align-items:center; gap:5px; font-size:15px; color:#14214a; font-weight:800; white-space:nowrap}
+#shopPage .sp-price s{font-size:11.5px; color:#9aa0ad; font-weight:400}
+#shopPage .sp-price .sp-coin{width:19px; height:19px}
+#shopPage .sp-go{font:inherit; font-size:15px; background:#1f4fa8; color:#fff; border:0; border-radius:99px; padding:9px 18px; white-space:nowrap; box-shadow:0 3px 0 #14367a; cursor:pointer}
+#shopPage .sp-go[disabled]{background:#bcc0c9; box-shadow:0 3px 0 #9ea3ad; color:#fff}
+#shopPage .sp-empty{grid-column:1/-1; text-align:center; color:#8a8f9c; padding:40px 10px; font-size:15px; line-height:1.7}
+#shopPage .places.sp-nav{position:absolute; left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom,0px) + 12px); width:auto; z-index:4; box-shadow:0 4px 16px rgba(40,30,10,.18)}
+#shopPage .places.sp-nav button.on::before{display:none}
+#shopPage .places.sp-nav button.on{background:transparent}
+#shopPage .sp-modal{position:absolute; inset:0; background:rgba(14,20,44,.55); display:grid; place-items:center; padding:20px; z-index:5}
+#shopPage .sp-modal,#shopPage .sp-mcard{box-sizing:border-box}
+#shopPage .sp-mcard{background:#fffdf8; border-radius:22px; padding:22px 20px 18px; width:100%; max-width:340px; text-align:center; color:#14214a}
+#shopPage .sp-mcard h3{margin:0 0 8px; font-size:21px}
+#shopPage .sp-mcard p{margin:0 0 14px; font-size:15px; line-height:1.6; color:#4b5470}
+#shopPage .sp-mcard .sp-mimg{width:96px; height:96px; border-radius:16px; margin:0 auto 12px; background:#ece4d2 center/cover}
+#shopPage .sp-mcard .acts{display:flex; flex-direction:column; gap:8px}
+#shopPage .sp-mcard .acts button{font:inherit; font-size:17px; border-radius:14px; padding:12px; cursor:pointer; border:2px solid transparent}
+#shopPage .sp-mcard .acts .pri{background:#1f4fa8; color:#fff; box-shadow:0 3px 0 #14367a}
+#shopPage .sp-mcard .acts .ghost{background:#fff; color:#14214a; border-color:#d6cfbc}
+/* 黃金扭蛋（試做） */
+#goldG,#stdG{position:fixed; inset:0; z-index:75; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,236,185,.26); backdrop-filter:blur(15px) saturate(1.2); -webkit-backdrop-filter:blur(15px) saturate(1.2); opacity:0; transition:opacity .4s; overflow:hidden}
+#goldG .gg-rays{display:none}
+#goldG .gg-glow{top:44%}
+#ggCv,#stdCv{position:relative; z-index:2; width:min(118vw,calc((100dvh - 175px)/1.5),620px); aspect-ratio:2/3; display:block; flex:none; margin-top:-4px}
+#goldG.show,#stdG.show{opacity:1}
+#goldG .gg-glow{position:absolute; left:50%; top:46%; width:130vmin; height:130vmin; transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(255,226,120,.85) 0%,rgba(255,200,60,.45) 32%,rgba(255,200,60,0) 66%); animation:ggPulse 2.6s ease-in-out infinite}
+#goldG .gg-rays{position:absolute; left:50%; top:46%; width:190vmax; height:190vmax; transform:translate(-50%,-50%); background:repeating-conic-gradient(from 0deg,rgba(255,236,160,.0) 0deg 9deg,rgba(255,236,160,.34) 9deg 18deg); -webkit-mask-image:radial-gradient(circle,#000 0,transparent 38%); mask-image:radial-gradient(circle,#000 0,transparent 38%); animation:ggSpin 40s linear infinite}
+@keyframes ggPulse{0%,100%{opacity:.8; transform:translate(-50%,-50%) scale(.96)}50%{opacity:1; transform:translate(-50%,-50%) scale(1.05)}}
+@keyframes ggSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+#goldG .gg-x{position:absolute; top:calc(env(safe-area-inset-top,0px) + 14px); right:14px; width:42px; height:42px; border-radius:50%; border:2px solid #7a4c00; background:rgba(255,250,232,.92); color:#7a4c00; font-size:18px; cursor:pointer; z-index:5}
+#goldG .gg-top{position:relative; z-index:2; text-align:center; color:#6b4300; text-shadow:0 0 10px rgba(255,255,255,.8); margin-bottom:6px}
+#goldG .gg-top b{display:block; font-size:30px; letter-spacing:6px}
+#goldG .gg-top span{font-size:14px; font-weight:700}
+#goldG .gg-sp{position:absolute; inset:0; z-index:3; pointer-events:none}
+#goldG .gg-sp i{position:absolute; width:var(--s); height:var(--s); background:radial-gradient(circle,#fff 0,#fff6c4 30%,rgba(255,220,100,0) 70%); clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%); animation:ggTw var(--d) ease-in-out var(--l) infinite}
+@keyframes ggTw{0%,100%{opacity:0; transform:scale(.3) rotate(0)}50%{opacity:1; transform:scale(1) rotate(45deg)}}
+#goldG .gg-btns{position:relative; z-index:2; margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:10px; width:min(80vw,360px)}
+#goldG .gg-go{width:100%; font:inherit; font-size:24px; letter-spacing:6px; color:#fff; background:linear-gradient(180deg,#ff9a3c,#e2551c); border:0; border-radius:18px; padding:15px; box-shadow:0 5px 0 #a8380f,0 10px 22px rgba(160,70,0,.35); cursor:pointer}
+#goldG .gg-go:disabled{opacity:.55; box-shadow:0 5px 0 #a8380f}
+#goldG .gg-coin{display:flex; align-items:center; gap:6px; font-size:14px; color:#6b4300; font-weight:700; background:rgba(255,250,232,.85); border-radius:99px; padding:5px 14px 5px 8px}
+#goldG .gg-prize{position:absolute; inset:0; z-index:8; display:grid; place-items:end center; padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 90px); background:rgba(40,24,0,.12)}
+#goldG .gg-pc{width:min(86vw,340px); background:linear-gradient(180deg,#fffdf3,#fff1c9); border:3px solid #e2b24a; border-radius:24px; padding:22px 18px 18px; text-align:center; color:#5a3a00; box-shadow:0 0 0 6px rgba(255,214,90,.35),0 18px 40px rgba(60,30,0,.4); animation:ggCard .6s cubic-bezier(.2,1.5,.4,1)}
+@keyframes ggCard{from{transform:scale(.3) rotate(-6deg); opacity:0}}
+#goldG .gg-pc small{display:block; font-size:13px; letter-spacing:3px; color:#b07a10; font-weight:800}
+#goldG .gg-pc .ic{font-size:76px; line-height:1.2; filter:drop-shadow(0 6px 8px rgba(120,70,0,.3))}
+#goldG .gg-pc h3{margin:4px 0 6px; font-size:26px}
+#goldG .gg-pc p{margin:0 0 14px; font-size:14.5px; line-height:1.6; color:#7a5a20}
+#goldG .gg-pc button{font:inherit; font-size:19px; width:100%; border:0; border-radius:14px; padding:12px; color:#fff; background:linear-gradient(180deg,#ff9a3c,#e2551c); box-shadow:0 4px 0 #a8380f; cursor:pointer}
 </style>
 
 <div id="nightVeil"></div>
@@ -503,8 +622,8 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
     <div class="oxtra" id="oxtra" hidden></div>
     <div class="octinfo"><b>OTTO2 遊樂島・畢卡索月</b><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" fill-opacity=".15"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>聖誕走格子｜11/1 開放</span></div>
         <div class="left" id="left"></div>
-    <div class="places" id="places"><button type="button" id="plPark" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋<span class="chev" aria-hidden="true">›</span></button></div>
-    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">詳細資訊<small>規則・紅利・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
+    <div class="places" id="places"><button type="button" id="plPark" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button></div>
+    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">我的資產<small>紅利・券・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
@@ -513,7 +632,7 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
   <div class="ohead mitop"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">教室的小動物</div><h1 class="oh-t">吉祥物島</h1><p class="oh-s">五隻小動物的家</p></div>
     <div class="oh-r"><button class="ohb" id="miKnow" type="button" aria-label="認識牠們"><i><svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="10" rx="2.1" ry="2.6"/><ellipse cx="10" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="14.5" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="18.3" cy="10" rx="2.1" ry="2.6"/><path d="M12.2 11.5c3 0 5.6 3.4 5.6 5.6 0 2-1.6 2.6-3 2.2-1-.3-1.7-.6-2.6-.6s-1.6.3-2.6.6c-1.4.4-3-.2-3-2.2 0-2.2 2.6-5.6 5.6-5.6z"/></svg></i>認識牠們</button><button class="ohb" id="miMute" type="button" aria-label="音效開關"></button><button class="ohb" id="miMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
   <div class="mimid"><div class="mich" id="miTip" hidden>一根手指轉島・兩根手指放大移動・點動物跟著看</div><button type="button" id="miReset" class="mich" hidden>⟲ 回到原位</button><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div></div>
-  <div class="mibot"><div class="places"><button type="button" id="miPl0"><svg class="pi" viewBox="0 0 32 32"><path d="M3 24c3-7 7-10 11-10s9 3 15 10z" fill="#7cc08a" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 25h28" stroke="#1d2a44" stroke-width="1.6" stroke-linecap="round"/><path d="M19 15V6" stroke="#1d2a44" stroke-width="1.6"/><path d="M19 6l5 2-5 2z" fill="#e2b24a" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/><circle cx="19" cy="4.8" r="1.3" fill="#1d2a44"/></svg>遊樂島</button><button type="button" id="miPl1" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="miPl2"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋<span class="chev" aria-hidden="true">›</span></button></div>
+  <div class="mibot"><div class="places"><button type="button" id="miPl0"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="miPlW"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="miPl1" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="miPl2"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button></div>
     <div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miShot">拍張照</button></div><button type="button" id="miBack" hidden></button></div>
 </div>
 <button type="button" class="backbtn" id="backBtn">回到小黑熊</button>
@@ -544,6 +663,37 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <div class="tour" id="tour" hidden></div>
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast"></div>
+<!-- 2026-10-07 藝享選品館（紅利商店）店門口：點廣場上的店面先看到這一頁，店員說歡迎光臨，選「進去逛逛」或「下次再考慮」 -->
+<div id="shopGate" hidden aria-label="藝享選品館">
+  <div class="sg-stage"><img class="sg-bg" src="shop-gate-bg.webp?v=20261008a" alt="">
+    <div class="sg-keeper"><div class="sg-bubble" id="sgBubble"><b>歡迎光臨！</b><span>今天有新的好禮，<br>要不要進來逛逛？</span></div><img class="sg-man" id="sgMan" src="shop-keeper-last.webp?v=20261007e" alt="店員"><audio id="sgAud" src="shop-keeper.wav?v=20261007e" preload="auto"></audio></div>
+  </div>
+  <button type="button" class="sg-x" id="sgX" aria-label="關閉">✕</button>
+  <div class="sg-btns"><button type="button" class="sg-in" id="sgIn">進去逛逛</button><button type="button" class="sg-later" id="sgLater">下次再考慮</button></div>
+</div>
+<!-- 藝享選品館商品頁：分類標籤＋商品卡，用紅利點數兌換（商品、分類、臺詞都由後台「選品館」分頁管理） -->
+<div id="shopPage" hidden aria-label="藝享選品館">
+  <div class="sp-head"><button type="button" class="sp-x" id="spX" aria-label="關閉">✕</button>
+    <div class="sp-title"><small>OTTO2</small><h2 id="spName">藝享選品館</h2><p id="spSub">把累積的美好，換成喜歡的收藏</p></div>
+    <div class="sp-bal" id="spBal" hidden><i class="sp-coin"></i><span>我的紅利</span><b id="spBalN">0</b></div>
+    <div class="sp-girl" id="spGirl" hidden><div class="sp-gb">你好啊！好久不見</div><img id="spGirlImg" alt="店員" src="shop-girl-last.webp?v=20261008b"><audio id="spGirlAud" src="shop-girl.wav?v=20261008b" preload="auto"></audio></div></div>
+  <div class="sp-tabs" id="spTabs"></div>
+  <div class="sp-count" id="spCount"></div>
+  <div class="sp-grid" id="spGrid"></div>
+  <div class="places sp-nav" id="spNav"></div>
+  <div class="sp-modal" id="spModal" hidden><div class="sp-mcard" id="spMcard"></div></div>
+</div>
+<!-- 黃金扭蛋金幣（試做版）：買方案送的金幣，點了整個畫面跳出金色扭蛋機 -->
+<div id="stdG" hidden aria-label="扭蛋"><canvas id="stdCv" width="720" height="1080"></canvas></div>
+<div id="goldG" hidden aria-label="黃金扭蛋">
+  <div class="gg-rays"></div><div class="gg-glow"></div>
+  <button type="button" class="gg-x" id="ggX" aria-label="關閉">✕</button>
+  <div class="gg-top"><b>黃金扭蛋</b><span id="ggSub">買方案送的金幣，轉一次，保證有獎</span></div>
+  <canvas id="ggCv" width="720" height="1080"></canvas>
+  <div class="gg-sp" id="ggSp"></div>
+  <div class="gg-btns"><button type="button" class="gg-go" id="ggGo">轉一下</button><div class="gg-coin"><i class="sp-coin"></i>黃金扭蛋金幣 ×<b id="ggN">1</b></div></div>
+  <div class="gg-prize" id="ggPrize" hidden></div>
+</div>
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261005j"></script>
@@ -553,7 +703,7 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261005zd';
+const PARK_VER='20261008d';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -728,7 +878,7 @@ function buildScene(){
   snow=new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:.09,transparent:true,opacity:.85}));scene.add(snow);
 
   bear=new THREE.Group();bearBody=makeBear('#1c1c1f',1,false);bear.add(bearBody);scene.add(bear);
-  const n0=scene.children.length;buildPlaza();buildMist();buildEasels();
+  const n0=scene.children.length;buildPlaza();brightenMachine();buildMist();buildEasels();
   /* 把廣場上的東西收進 GA.PR（原點、不旋轉不縮放，座標照舊），11/1 走過橋後整座沉下去，不然大扭蛋機會擋住走格子島的鏡頭 */
   GA.PR=new THREE.Group();scene.add(GA.PR);scene.children.slice(n0).forEach(o=>{if(o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==GA.bridge)GA.PR.add(o)});
   dieG=new THREE.Group();die=mesh(new THREE.BoxGeometry(.72,.72,.72),[3,4,1,6,2,5].map(v=>toon('#ffffff',{map:dieFace(v)})));dieG.add(die);dieG.visible=false;scene.add(dieG);
@@ -967,7 +1117,7 @@ async function xmasPull(){if(!window.PROD||!token())return;
   try{const j=await gcall('/xmas/state');
     if(j.needPhone){XS=null;toast('請先輸入手機號碼，進度才存得下來');setTimeout(()=>{try{Gacha.open()}catch(e){}},500);return}
     XS=j;applyX(j);const from=G.tree;await xmasWorld(true);renderForest();
-    if(G.phase!=='oct')placeBear();hud();
+    if(G.phase!=='oct'&&!HOPPING)placeBear();hud();
     if(G.tree>from&&G.phase!=='oct'){setTreeVisual(from);await quickLight(from,G.tree)}else setTreeVisual(G.tree);
     if(j.gain&&(j.gain.open||j.gain.klass))toast(j.gain.klass?`今天來上課，幫聖誕樹點了 ${j.gain.klass+j.gain.open} 盞燈！`:`今天打開遊戲，幫聖誕樹點了 ${j.gain.open} 盞燈`);
     setTimeout(xmasClaimPrompt,1200)}catch(e){XS=null}}
@@ -1004,7 +1154,7 @@ function gClosedMsg(){const s=gState();if(!ST&&gErrMsg)return gErrMsg;if(s.statu
 async function gSpin(){try{const j=await gcall('/gacha/spin');ST=j.state;return j}catch(e){if(e.code==='NEED_PHONE')setTimeout(()=>Gacha.open(),300);if(e.code==='NO_CHANCE'||e.code==='SOON'||e.code==='ENDED')gRefresh();return{ok:false,error:e.message}}}
 async function gQuiz(b){const j=await gcall('/gacha/quiz',b);ST=j.state;return j}
 let _gNeed=false;
-async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「詳細資訊」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
+async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「我的資產」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
   gPaint()
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
 window.onGachaClose=()=>{gRefresh();if(G&&G.phase!=='oct'&&!XS)xmasPull()};
@@ -1025,8 +1175,9 @@ gInfo();
 setTimeout(()=>{if(!ST&&!gErrMsg){gErrMsg='連線比較慢，請關掉頁面重新打開';gPaint()}},12000);
 
 /* ---------- 遊樂島: the October gacha plaza sits in front; the board behind stays dark until 11/1 ---------- */
-const PLAZA=new THREE.Vector3(-2.2,0,14.2),PLAZA_R=7.2,BRIDGE_X=-4.3,BR_Z0=5.9,BR_Z1=PLAZA.z-PLAZA_R+.9; /* 廣場跟走格子島的距離：橋只有一小段，開門後很快就走到 */
-const MACH=new THREE.Vector3(-2.2,0,11.8),STAND=new THREE.Vector3(1.1,0,12.8);
+const BRIDGE_X=-4.3,PLAZA=new THREE.Vector3(BRIDGE_X+.5,0,14.2),PLAZA_R=7.2,BR_Z0=5.9,BR_Z1=PLAZA.z-PLAZA_R+.9; /* 廣場跟走格子島的距離：橋只有一小段，開門後很快就走到 */
+/* 2026-10-07 大熊改版：廣場中線對準通往走格子島的橋，扭蛋機移到右邊、左邊蓋紅利商店，中間是樂園路口 */
+const MACH=new THREE.Vector3(PLAZA.x+4.0,0,PLAZA.z-1.2),STAND=new THREE.Vector3(1.1,0,12.8),HUBC=new THREE.Vector3(PLAZA.x,0,11.8);
 let DIM=0,ISL=[],parkCam=null;const GA={bulbs:[],caps:[]};
 function grayTex(cv){const c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;const x=c2.getContext('2d');x.drawImage(cv,0,0);
   const d=x.getImageData(0,0,c2.width,c2.height),a=d.data;
@@ -1046,7 +1197,7 @@ function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v
   if(!scene)return;document.body.classList.remove('octload'); /* 2026-10-05 載入完就拿掉十月載入底色，不然十月切到走格子背景會一直是亮藍天空 */const day=oct||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
   if(day){const fc=gal?'#f3ebdd':'#d9eef9';if(!scene.fog)scene.fog=new THREE.Fog(fc,40,85);scene.fog.color.set(fc).lerp(_fn.set('#16275a'),SKY)}else scene.fog=null;
   /* 2026-10-04 走格子是晚上：燈光改成偏藍的月光、暗一點，聖誕樹和串燈的暖黃才亮得起來（原本白天燈光，雪地整片很亮） */
-  if(GA.hemi){const n=day?SKY:1;GA.hemi.intensity=.8-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
+  if(GA.hemi){const n=day?SKY:1;GA.hemi.intensity=.8-.14*(1-n)-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.12*(1-n)-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
   clouds.forEach(c=>c.visible=!gal);if(GA.mist&&oct)GA.mist.visible=!gal;
   /* 畫廊模式不用雲遮：廣場後面放一面看不見的牆（只寫深度），後面的走格子島、橋、鎖都不會畫出來，只看到畫廊背景 */
   if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
@@ -1056,7 +1207,8 @@ function gateSink(){return tween(700,p=>{GA.gate.position.y=GA.bridge.position.y
 function plazaSink(){ // 小黑熊離開廣場後，整座廣場（含扭蛋機）往下沉
   scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o));
   return tween(900,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
-function setPhaseLook(oct){plazaPut(oct);if(ISL)ISL.forEach(o=>o.visible=!oct); /* 十月走格子島藏在霧裡幾乎看不到（實測只佔 0.15% 畫面），不畫它省掉一半的繪製量 */resize();if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct,true);signLook(oct)}
+function setPhaseLook(oct){plazaPut(oct);if(oct&&GA.mist)GA.mist.children.forEach(o=>{if(o.userData.p0)o.position.copy(o.userData.p0);if(o.material&&o.userData.op!==undefined)o.material.opacity=o.userData.op}); /* 開門動畫會把雲往上推，回廣場要復位 */
+  if(ISL)ISL.forEach(o=>o.visible=!oct); /* 十月走格子島藏在霧裡幾乎看不到（實測只佔 0.15% 畫面），不畫它省掉一半的繪製量 */resize();if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct||walkOpen(),true);signLook(oct)}
 
 function labelTex(title,sub,bg,fg,w=512,h=200){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
   x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=10;rr(8,8,w-16,h-16,40,x);x.fill();x.stroke();
@@ -1102,6 +1254,202 @@ function makeFigure(id){return makePicasso(id);const gold=id==='gold',b=makeBear
   if(gold||id==='gold'){[[.3,1.15,.1],[-.32,1.0,.1]].forEach(([x,y,z])=>{const s=A(new THREE.Mesh(new THREE.OctahedronGeometry(.05),new THREE.MeshBasicMaterial({color:'#fff3c4'})));s.position.set(x,y,z)})}
   return b}
 
+
+/* 2026-10-07 紅利商店（廣場左邊）＋通往樂園入口的小徑 */
+function makeXmasTreeSmall(){const g=new THREE.Group();g.add(mesh(new THREE.CylinderGeometry(.1,.13,.3,6),toon('#6b4426'),0,.15,0));
+  [[.62,.9,.55],[.5,.8,1.05],[.36,.7,1.5]].forEach(([r,h,y])=>g.add(mesh(new THREE.ConeGeometry(r,h,7),toon('#2f7a52',{flatShading:true}),0,y,0)));
+  [[.3,.55,.4],[-.34,.8,.2],[.2,1.2,-.3],[-.15,1.5,.25],[.05,.95,.45]].forEach(([x,y,z],i)=>g.add(mesh(new THREE.SphereGeometry(.07,8,6),new THREE.MeshBasicMaterial({color:['#e0482f','#f2cc6b','#fff4c2'][i%3]}),x,y,z)));
+  g.add(mesh(new THREE.OctahedronGeometry(.1),new THREE.MeshBasicMaterial({color:'#ffe08a'}),0,1.92,0));g.add(mesh(new THREE.ConeGeometry(.2,.2,7),toon('#ffffff'),0,1.7,0));return g}
+/* 2026-10-07 紅利商店：直接用大熊那張圖上的店面（已摳圖、招牌改成「紅利商店」），貼成一片立在廣場左邊 */
+/* 2026-10-07 大熊：房子後面和縫隙要有樹和植物。綠色低多邊形的圓樹／松樹、灌木叢、盆栽，照他參考圖的樣子 */
+function makeGreenTree(kind,sc,seed){const g=new THREE.Group(),r=rng(seed*97+3),GC=['#6c9654','#5d8749','#799f5c','#4e7a3f'];
+  if(kind===0){g.add(mesh(new THREE.CylinderGeometry(.1,.17,1.1,6),toon('#8a5a36',{flatShading:true}),0,.55,0));
+    [[0,1.55,0,.95],[.35,2.05,.1,.7],[-.3,1.95,-.1,.62]].forEach(([x,y,z,rad],i)=>{const m=mesh(new THREE.IcosahedronGeometry(rad,0),toon(GC[(i+seed)%4],{flatShading:true}),x,y,z);m.rotation.set(r()*3,r()*3,0);g.add(m)})}
+  else{g.add(mesh(new THREE.CylinderGeometry(.09,.14,.5,6),toon('#8a5a36',{flatShading:true}),0,.25,0));
+    [[.95,1.0,.9],[.75,.95,1.55],[.52,.9,2.15],[.3,.8,2.7]].forEach(([rad,h,y],i)=>{const m=mesh(new THREE.ConeGeometry(rad,h,6),toon(GC[(i+seed)%4],{flatShading:true}),0,y,0);m.rotation.y=i*.6;g.add(m)})}
+  g.scale.setScalar(sc);return g}
+function makePlantPot(sc){const g=new THREE.Group();g.add(mesh(new THREE.CylinderGeometry(.32,.24,.42,6),toon('#efe3c8',{flatShading:true}),0,.21,0));
+  for(let k=0;k<6;k++){const a=k/6*6.28,l=mesh(new THREE.ConeGeometry(.1,.62,4),toon(k%2?'#4f7f40':'#628f4c',{flatShading:true}),Math.cos(a)*.1,.7,Math.sin(a)*.1);l.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);g.add(l)}
+  g.add(mesh(new THREE.ConeGeometry(.1,.7,4),toon('#5a8a47',{flatShading:true}),0,.78,0));g.scale.setScalar(sc);return g}
+function buildGreenery(P){
+  /* 後面的森林：大熊給的去背成品圖，立在廣場後方，跟廣場一起沉下去 */
+  {const w=27,h=w*485/1400,tex=new THREE.TextureLoader().load('forest-back.png?v=20261007c');tex.anisotropy=4;
+    const f=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));f.position.set(-.4,h/2-.6,-8.2);P.add(f);GA.forest=f}
+  /* 縫隙用灌木叢和盆栽填：房子旁邊、入口石階旁、扭蛋機腳邊、前排邊角 */
+  const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];
+  [[-1.6,-1.0,.9],[-6.0,.9,.9],[1.7,-3.7,.85],[2.0,-0.6,.7],[-2.4,-4.4,.8],[0.4,-5.6,.7],[5.3,-1.8,.8],[-5.0,4.0,.7]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
+    [[0,.32,0,.42],[.38,.24,.12,.3],[-.34,.22,.1,.32],[.08,.2,.34,.26]].forEach(([bx,by,bz,r],k)=>{const m=mesh(new THREE.IcosahedronGeometry(r,0),toon(BG[(i+k)%4],{flatShading:true}),bx,by,bz);m.rotation.set(i+k,k*.7,0);b.add(m)});
+    b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)});
+}
+function buildShop(P){
+  const S=new THREE.Group();S.position.set(-4.3,0,-2.0);S.rotation.y=.16;P.add(S);GA.shop=S;
+  const w=4.6,h=w*797/760,tex=new THREE.TextureLoader().load('shop-front.png?v=20261007c');tex.anisotropy=4;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));m.position.set(0,h/2-.05,0);S.add(m);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.14,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(2.5,.6,1);sh.position.set(0,.03,.15);S.add(sh);
+  /* 2026-10-08 店員站在店門口，頭上冒泡泡「來參觀選購！」；放在 S 底下，所以點她＝點店面＝進店 */
+  {const cw=1.65,ch=cw*397/300,ct=new THREE.TextureLoader().load('shop-keeper-last.webp?v=20261007e');ct.anisotropy=4;const cx=1.85,cz=1.15;
+    const c=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshBasicMaterial({map:ct,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));c.position.set(cx,ch/2,cz);S.add(c);
+    const cs=new THREE.Mesh(new THREE.CircleGeometry(1,20),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.16,depthWrite:false}));cs.rotation.x=-Math.PI/2;cs.scale.set(.5,.2,1);cs.position.set(cx,.04,cz+.05);S.add(cs);
+    const cv=document.createElement('canvas');cv.width=480;cv.height=170;const x=cv.getContext('2d');
+    x.fillStyle='#fffdf8';x.strokeStyle='#1e2b4f';x.lineWidth=7;rr(8,8,464,118,36,x);x.fill();x.stroke();
+    x.beginPath();x.moveTo(205,124);x.lineTo(240,164);x.lineTo(268,124);x.closePath();x.fillStyle='#fffdf8';x.fill();x.beginPath();x.moveTo(203,122);x.lineTo(240,165);x.lineTo(270,122);x.stroke();x.fillRect(209,119,57,9);
+    x.font=`bold 58px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillStyle='#1e2b4f';x.fillText('來參觀選購！',240,68);
+    const b=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthWrite:false}));b.scale.set(2.1,.744,1);b.position.set(cx,ch+.5,cz);b.userData.y0=b.position.y;S.add(b);GA.clerkB=b}
+  S.userData.shop=true}
+function buildPath(P){
+  /* 2026-10-07 大熊：不要階梯、顏色灰一點。從廣場中間到入口鋪一條淺灰米色的石板路（幾塊石板、細縫），不要一整塊空白 */
+  const GX=BRIDGE_X-PLAZA.x,e=mesh(new THREE.BoxGeometry(1.95,.03,6.2),toon('#b9b4a4',{flatShading:true}),GX,.02,-3.8);e.castShadow=false;P.add(e);
+  for(let k=0;k<6;k++){const z=-.9-k*.98,t=mesh(new THREE.BoxGeometry(1.7,.045,.9),toon(k%2?'#d0cbbb':'#c8c3b2',{flatShading:true}),GX,.035,z);t.castShadow=false;P.add(t)}
+}
+
+/* ---------- 黃金扭蛋金幣（試做版：獎品先用假資料，之後接後台的等級與機率） ---------- */
+const GG_DEMO=[{ic:'🌟',nm:'紅利 3 點',tx:'已經加進你的紅利點數',w:30},{ic:'🎨',nm:'材料升級券',tx:'來店出示，老師會幫你升級畫布',w:40},{ic:'☕',nm:'咖啡禮包',tx:'兌換券已放進你的帳戶，來店領取',w:20},{ic:'🧣',nm:'訂製絲巾',tx:'兌換券已放進你的帳戶，來店領取',w:10}];
+let GGBUSY=false,GGPRIZE=null;
+function ggSparkles(){const sp=$('ggSp');sp.innerHTML='';for(let k=0;k<18;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=18+Math.random()*30;
+  i.style.cssText=`left:${50+Math.cos(a)*r*.9}%;top:${46+Math.sin(a)*r*.72}%;--s:${14+Math.random()*22}px;--d:${1.4+Math.random()*1.6}s;--l:${(Math.random()*2).toFixed(2)}s`;sp.appendChild(i)}}
+function goldGachaOpen(n){if(GGBUSY)return;const g=$('goldG');$('ggN').textContent=n||1;$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
+  g.hidden=false;void g.offsetWidth;g.classList.add('show');try{sfx('chime')}catch(e){}ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold)}
+function ggIdle(){if(GGBUSY)return;const cv=$('ggCv'),ctx=cv.getContext('2d'),st=performance.now();const f=now=>{if(GGBUSY||$('goldG').hidden)return;ggDraw(ctx,GGT.pop,false,now-st,GGCFG.gold);GGR=requestAnimationFrame(f)};GGR=requestAnimationFrame(f)}
+function goldGachaClose(){const g=$('goldG');g.classList.remove('show');setTimeout(()=>{g.hidden=true},400)}
+function ggBurst(){const sp=$('ggSp');for(let k=0;k<16;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=10+Math.random()*34;i.style.cssText=`left:${50+Math.cos(a)*r}%;top:${46+Math.sin(a)*r*.9}%;--s:${16+Math.random()*24}px;--d:.9s;--l:${(Math.random()*.5).toFixed(2)}s`;sp.appendChild(i);setTimeout(()=>i.remove(),2400)}}
+function ggPick(){const t=GG_DEMO.reduce((a,b)=>a+b.w,0);let r=Math.random()*t;for(const x of GG_DEMO){if((r-=x.w)<0)return x}return GG_DEMO[0]}
+/* 金色扭蛋（畫布版，2026-10-08）：大熊給的去背素材＋純綠背景。每一格都由時間算出來，所以順、可以輸出成影片。
+   時間軸：0～400 機台彈出；400～3200 OTTO2 轉盤轉兩圈、玻璃球裡的扭蛋同步轉一圈；3500～4700 金白膠囊掉出來（比機台還寬）；
+   5200～5900 膠囊打開 */
+const GGI={};['gold-m','gold-cluster','gold-knob','gold-cap','std-m','std-cluster','std-knob'].forEach(n=>{const i=new Image();i.src=n+'.webp?v=20261008e';GGI[n]=i});
+const GGT={pop:400,dial0:400,dial1:3200,cap0:3500,cap1:4700,open0:5200,open1:5900};
+const ggE={io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,out:t=>1-Math.pow(1-t,3),back:t=>{const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)},
+  bounce:t=>{const n=7.5625,d=2.75;if(t<1/d)return n*t*t;if(t<2/d)return n*(t-=1.5/d)*t+.75;if(t<2.5/d)return n*(t-=2.25/d)*t+.9375;return n*(t-=2.625/d)*t+.984375}};
+const ggC=(t,a,b)=>Math.max(0,Math.min(1,(t-a)/(b-a)));
+/* 兩套外觀共用同一支動畫：金色（黃金扭蛋）和原本的彩色機台（每天的扭蛋）。座標都是「機台去背圖」裡的像素 */
+const GGCFG={
+  gold:{m:'gold-m',cl:'gold-cluster',kn:'gold-knob',mw:488,mh:802,K:440/488,globe:[244,346,206],cc:[244,356],cs:.66,knob:[251,591,220],knw:550,chute:[241,681],capW:440,end:[360,800],glow:'gold'},
+  std:{m:'std-m',cl:'std-cluster',kn:'std-knob',mw:574,mh:1227,K:.6,globe:[286,442,268],cc:[286,448],cs:.98,knob:[330,874,292],knw:370,chute:[306,1160],capW:430,end:[360,780],glow:'soft'}};
+/* 彩色機台的膠囊：上半是隨機顏色、下半米白，黑色描邊（跟黃金那顆同樣是一半一半） */
+function ggMakeCap(col){const c=document.createElement('canvas');c.width=400;c.height=407;const x=c.getContext('2d'),r=190,cx=200,cy=203,sp=.54*407;
+  x.save();x.beginPath();x.arc(cx,cy,r,0,7);x.clip();x.fillStyle='#fffaf0';x.fillRect(0,0,400,407);x.fillStyle=col;x.fillRect(0,0,400,sp);
+  const g=x.createRadialGradient(150,120,10,200,220,230);g.addColorStop(0,'rgba(255,255,255,.55)');g.addColorStop(.4,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(0,0,0,.18)');x.fillStyle=g;x.fillRect(0,0,400,407);
+  x.fillStyle='rgba(40,30,20,.35)';x.fillRect(0,sp-5,400,10);x.restore();x.lineWidth=9;x.strokeStyle='#26201c';x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();return c}
+function ggDraw(ctx,t,green,tc,cfg,cap){tc=tc===undefined?t:tc;cfg=cfg||GGCFG.gold;const W=720,H=1080,K=cfg.K,mx=360-cfg.mw*K/2,my=70,P=(x,y)=>[mx+x*K,my+y*K];
+  ctx.clearRect(0,0,W,H);if(green){ctx.fillStyle='#00ff00';ctx.fillRect(0,0,W,H)} /* 線上版透明（透出模糊的遊樂島），輸出影片時才鋪純綠 */
+  const I=GGI,M=I[cfg.m],CL=I[cfg.cl],KN=I[cfg.kn],CP=cap||I['gold-cap'];if(!(M.complete&&CL.complete&&KN.complete&&CP.width))return;
+  if(!green){const gold=cfg.glow==='gold',g=ctx.createRadialGradient(360,440,gold?120:80,360,440,gold?430:400);
+    if(gold){g.addColorStop(0,'rgba(255,205,60,1)');g.addColorStop(.35,'rgba(255,196,40,.85)');g.addColorStop(.7,'rgba(255,200,60,.35)');g.addColorStop(1,'rgba(255,200,60,0)')}
+    else{g.addColorStop(0,'rgba(255,255,255,.75)');g.addColorStop(.5,'rgba(255,250,235,.4)');g.addColorStop(1,'rgba(255,250,235,0)')}
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    [[150,150,34],[600,250,28],[100,430,24],[640,520,30],[200,780,22],[560,800,26],[375,60,22]].forEach(([x,y,r],i)=>{const a=.5+.5*Math.sin(tc/260+i*1.7);ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4*a);ctx.globalAlpha=.35+.65*a;const q=r*(.6+.5*a);ctx.fillStyle='#fffbe0';ctx.beginPath();ctx.moveTo(0,-q);ctx.quadraticCurveTo(q*.12,-q*.12,q,0);ctx.quadraticCurveTo(q*.12,q*.12,0,q);ctx.quadraticCurveTo(-q*.12,q*.12,-q,0);ctx.quadraticCurveTo(-q*.12,-q*.12,0,-q);ctx.fill();ctx.restore()})}
+  const pop=ggE.back(ggC(t,0,GGT.pop)),dial=ggE.io(ggC(t,GGT.dial0,GGT.dial1)),inDial=t>GGT.dial0&&t<GGT.dial1;
+  const wob=inDial?Math.sin(dial*Math.PI*8)*.012*Math.sin(dial*Math.PI):0;
+  /* 機台整體（彈出時從 .86 放大到 1，轉的時候微微晃） */
+  ctx.save();const [bx,by]=P(cfg.mw/2,cfg.mh);ctx.translate(bx,by);ctx.rotate(wob);const sc=.86+.14*pop;ctx.scale(sc,sc);ctx.translate(-bx,-by);
+  const [gx,gy]=P(cfg.globe[0],cfg.globe[1]);
+  ctx.save();ctx.beginPath();ctx.arc(gx,gy,cfg.globe[2]*K,0,Math.PI*2);ctx.clip();      // 球群繞玻璃球中心轉（順時針一圈），只畫在玻璃球裡
+  const [cx,cy]=P(cfg.cc[0],cfg.cc[1]);ctx.translate(cx,cy);ctx.rotate(dial*Math.PI*2);const cs=cfg.cs*K;ctx.scale(cs,cs);ctx.drawImage(CL,-CL.width/2,-CL.height/2);ctx.restore();
+  ctx.drawImage(M,mx,my,cfg.mw*K,cfg.mh*K);                                              // 機台（空玻璃球在球群上面）
+  const [kx,ky]=P(cfg.knob[0],cfg.knob[1]);ctx.save();ctx.translate(kx,ky);ctx.rotate(dial*Math.PI*4);const ks=cfg.knob[2]/cfg.knw*K;ctx.scale(ks,ks);ctx.drawImage(KN,-KN.width/2,-KN.height/2);ctx.restore(); // OTTO2 轉盤轉兩圈
+  ctx.restore();
+  /* 膠囊：從出口掉出來、放大到跟機台一樣寬、彈兩下 */
+  if(t>=GGT.cap0){const p=ggC(t,GGT.cap0,GGT.cap1),[sx,sy]=P(cfg.chute[0],cfg.chute[1]),ex=cfg.end[0],ey=cfg.end[1],y=sy+(ey-sy)*ggE.bounce(p),x=sx+(ex-sx)*ggE.out(p),z=.2+.8*ggE.out(Math.min(1,p*1.5)),rot=(1-ggE.out(p))*-.55;
+    const w=cfg.capW,h=w*CP.height/CP.width,o=ggC(t,GGT.open0,GGT.open1),sp=.54;
+    ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(z,z);
+    const cw=CP.width,ch=CP.height,top=ch*sp;
+    ctx.drawImage(CP,0,top,cw,ch-top,-w/2,-h/2+h*sp,w,h*(1-sp));                          // 下半（米白）
+    ctx.save();const lift=ggE.out(o);ctx.translate(0,-lift*h*.55);ctx.rotate(-lift*.5);ctx.globalAlpha=1-ggC(o,.55,1);   // 上半掀開
+    ctx.drawImage(CP,0,0,cw,top,-w/2,-h/2,w,h*sp);ctx.restore();ctx.restore();
+    if(o>0&&o<1){const g=ctx.createRadialGradient(ex,ey,10,ex,ey,420),a=Math.sin(o*Math.PI);g.addColorStop(0,`rgba(255,255,255,${.95*a})`);g.addColorStop(.35,`rgba(255,236,150,${.5*a})`);g.addColorStop(1,'rgba(255,236,150,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}}
+}
+let GGR=0;
+function ggPlay(t0,t1,done,cfg,cap,cvId){const cv=$(cvId||'ggCv'),ctx=cv.getContext('2d');cancelAnimationFrame(GGR);const st=performance.now();
+  const f=now=>{const t=Math.min(t1,t0+(now-st));ggDraw(ctx,t,false,undefined,cfg,cap);if(t<t1)GGR=requestAnimationFrame(f);else if(done)done()};GGR=requestAnimationFrame(f)}
+async function goldGachaSpin(){if(GGBUSY)return;GGBUSY=true;$('ggGo').disabled=true;const prize=GGPRIZE||ggPick();try{sfx('tick')}catch(e){}
+  await new Promise(r=>ggPlay(GGT.dial0,GGT.open0,r,GGCFG.gold));try{sfx('thunk')}catch(e){}
+  await new Promise(r=>ggPlay(GGT.open0,GGT.open1,r,GGCFG.gold));try{sfx('sparkle')}catch(e){}ggBurst();ggBurst();await sleep(300);
+  const pz=$('ggPrize');pz.innerHTML=`<div class="gg-pc"><small>恭喜獲得</small><div class="ic">${prize.ic}</div><h3>${esc(prize.nm)}</h3><p>${esc(prize.tx)}</p><button type="button" id="ggOk">收下</button></div>`;pz.hidden=false;
+  $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)};
+  $('ggN').textContent=Math.max(0,(+$('ggN').textContent||1)-1);}
+$('ggGo').addEventListener('click',goldGachaSpin);$('ggX').addEventListener('click',()=>{if(!GGBUSY)goldGachaClose()});
+/* 試玩用：網址帶 ?gold=1 時，左下角多一顆小按鈕「試玩金色扭蛋」，自己按才會出來（不會再自己跳出來打斷正常遊戲） */
+if(/[?&]gold=1/.test(location.search)){const b=document.createElement('button');b.type='button';b.textContent='🪙 試玩金色扭蛋';b.style.cssText='position:fixed;left:8px;bottom:8px;z-index:60;font:inherit;font-size:13px;padding:7px 12px;border-radius:99px;border:2px solid #7a4c00;background:#ffe9a8;color:#6b4300;opacity:.9';b.onclick=()=>{if(!busy)goldGachaOpen(1)};document.body.appendChild(b)}
+/* ---------- 藝享選品館：店門口 → 商品頁 → 兌換（2026-10-07） ---------- */
+let SHOP=null,SHOPCAT='all',_shopLoading=null;
+function shopLoad(force){if(_shopLoading&&!force)return _shopLoading;
+  _shopLoading=fetch(NOTIFY_URL+'/shop/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:window.KIOSK?'kiosk':token()})})
+    .then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error((j&&j.error)||'讀不到商品');SHOP=j;return j}).catch(e=>{_shopLoading=null;throw e});
+  return _shopLoading}
+function shopGreet(){if(!SHOP)return;const b=$('sgBubble'),c=SHOP.cfg;
+  if(c.pending){if(b)b.innerHTML=`<b>${esc(c.closedLine||'還沒開店喔！')}</b><span>${esc(c.closedSub||'')}</span>`;return}
+  if(b)b.innerHTML=`<b>${esc(c.greeting||'歡迎光臨！')}</b><span>${esc(c.greetingSub||'')}</span>`}
+function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidden)return;sfx('tap');g.hidden=false;void g.offsetWidth;g.classList.add('show');
+  /* 先問後台「開店了沒」再決定播哪位店員（最多等 1.5 秒，連不上就當開店） */
+  const m=$('sgMan');if(m)m.style.visibility='hidden';
+  Promise.race([shopLoad(true).catch(()=>{}),new Promise(r=>setTimeout(r,1500))]).then(()=>{
+    const closed=!!(SHOP&&SHOP.cfg.pending);g.classList.toggle('closed',closed);shopGreet();
+    $('sgLater').textContent=closed?'好，開幕再來':'下次再考慮';
+    /* 店員：大熊給的影片，去背成透明動畫（揮手→說話→站好），聲音另外抽出來同步播。開店＝男店員說歡迎光臨；還沒開店＝大熊公仔說還沒開店 */
+    if(m){m.onload=()=>{m.style.visibility=''};m.src=(closed?'shop-closed-anim.webp?v=20261008c':'shop-keeper-anim.webp?v=20261007e')+'&t='+Date.now()}
+    const a=$('sgAud');if(a){a.src=closed?'shop-closed.wav?v=20261008c':'shop-keeper.wav?v=20261007e';if(SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})}
+function closeShop(cb){const g=$('shopGate');const a=$('sgAud');if(a)a.pause();g.classList.remove('show');setTimeout(()=>{g.hidden=true;if(cb)cb()},330)}
+$('sgX').addEventListener('click',()=>closeShop());
+$('sgLater').addEventListener('click',()=>{sfx('tap');closeShop(()=>toast('好的，歡迎隨時再來逛逛'))});
+$('sgIn').addEventListener('click',async()=>{sfx('tap');
+  try{await shopLoad()}catch(e){toast('連線不穩，稍後再試');return}
+  if(SHOP.cfg.open===false){toast('選品館暫時休息中，過幾天再來');return}
+  if(SHOP.cfg.pending){toast('選品館還沒開幕喔');return}
+  const g=$('shopGate');g.classList.remove('show');setTimeout(()=>{g.hidden=true;showShopPage()},300)});
+function shopPrice(p){return p.onSale?`<s>${p.orig}</s><i class="sp-coin"></i>${p.price}`:`<i class="sp-coin"></i>${p.price}`}
+let _girlT=0;
+function showShopPage(){const pg=$('shopPage');pg.hidden=false;void pg.offsetWidth;pg.classList.add('show');SHOPCAT='all';renderShop();shopNavBuild();shopGirlHi()}
+/* 進商品頁：另一位店員出來說「你好啊！好久不見」並揮手，播完淡出（大熊給的綠幕影片去背成透明動畫＋聲音） */
+function shopGirlHi(){const g=$('spGirl');if(!g)return;clearTimeout(_girlT);g.classList.remove('out');g.hidden=false;
+  const gb=g.querySelector('.sp-gb');gb.style.animation='none';void gb.offsetWidth;gb.style.animation='';
+  $('spGirlImg').src='shop-girl-anim.webp?v=20261008b&t='+Date.now();
+  const a=$('spGirlAud');if(a&&SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}
+  /* 她一直站在原位；播完（約 8 秒）只收起對話框，點她可以再打一次招呼 */
+  gb.classList.remove('off');_girlT=setTimeout(()=>gb.classList.add('off'),8400)}
+$('spGirl').addEventListener('click',()=>shopGirlHi());
+function hideShopPage(cb){const pg=$('shopPage');clearTimeout(_girlT);const ga=$('spGirlAud');if(ga)ga.pause();const gg=$('spGirl');if(gg)gg.hidden=true;pg.classList.remove('show');setTimeout(()=>{pg.hidden=true;if(cb)cb()},300)}
+function renderShop(){const d=SHOP;if(!d)return;
+  $('spName').textContent=d.cfg.name||'藝享選品館';$('spSub').textContent=d.cfg.sub||'';
+  const bal=$('spBal');if(d.me&&!d.me.needPhone){bal.hidden=false;$('spBalN').textContent=d.me.bonus.toLocaleString()}else bal.hidden=true;
+  const cats=[{id:'all',nm:'全部'},...(d.cfg.cats||[])];
+  $('spTabs').innerHTML=cats.map(c=>`<button type="button" data-c="${esc(c.id)}" class="${SHOPCAT===c.id?'on':''}">${esc(c.nm)}</button>`).join('');
+  $('spTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{SHOPCAT=b.dataset.c;sfx('tap');renderShop()});
+  const list=d.products.filter(p=>SHOPCAT==='all'||p.cat===SHOPCAT);
+  const cn=(cats.find(c=>c.id===SHOPCAT)||{}).nm||'全部';
+  $('spCount').textContent=`${cn}選品・${list.length} 件`;
+  $('spGrid').innerHTML=list.length?list.map(p=>{
+    const meta=[p.onSale?`限時優惠到 ${+p.saleTo.slice(5,7)}/${+p.saleTo.slice(8)}`:'',p.limit?`每人限兌 ${p.limit} 次`:'',p.left!=null&&p.left>0&&p.left<=5?`只剩 ${p.left} 件`:''].filter(Boolean).join('・');
+    const out=p.soldOut||(p.limit&&p.mine>=p.limit);
+    return `<div class="sp-card">${p.onSale?'<span class="sp-tag">限時優惠</span>':''}<div class="sp-img" ${p.img?`style="background-image:url('${esc(p.img)}')"`:''}>${p.img?'':'<i>🎁</i>'}</div>
+      <div class="sp-body"><div class="sp-nm">${esc(p.nm)}</div><div class="sp-meta">${esc(meta)||'&nbsp;'}</div>
+      <div class="sp-row"><div class="sp-price">${shopPrice(p)}<span style="font-size:12px;font-weight:400">點</span></div><button type="button" class="sp-go" data-id="${esc(p.id)}" ${out?'disabled':''}>${p.soldOut?'換完了':(p.limit&&p.mine>=p.limit)?'已兌換':'兌換'}</button></div></div></div>`}).join('')
+    :`<div class="sp-empty">${d.products.length?'這個分類還沒有商品':'選品館的商品還在準備中，<br>很快就會上架！'}</div>`;
+  $('spGrid').querySelectorAll('.sp-go:not([disabled])').forEach(b=>b.onclick=()=>shopAsk(b.dataset.id))}
+function spModal(html,acts){const m=$('spModal');$('spMcard').innerHTML=html+`<div class="acts">${acts.map((a,i)=>`<button type="button" class="${a.cls||''}" data-i="${i}">${esc(a.t)}</button>`).join('')}</div>`;m.hidden=false;
+  return new Promise(res=>{$('spMcard').querySelectorAll('.acts button').forEach(b=>b.onclick=()=>{m.hidden=true;res(acts[+b.dataset.i].v)})})}
+async function shopAsk(id){const p=SHOP.products.find(x=>x.id===id);if(!p)return;sfx('tap');
+  if(window.KIOSK){await spModal('<h3>請用 LINE 打開</h3><p>店內體驗版只能逛逛，<br>想兌換請用 LINE 打開預約頁的遊樂島。</p>',[{t:'知道了',cls:'pri',v:1}]);return}
+  const me=SHOP.me;
+  if(!me){await spModal('<h3>請先登入</h3><p>請從 LINE 打開預約頁，才能用紅利兌換。</p>',[{t:'知道了',cls:'pri',v:1}]);return}
+  if(me.needPhone){hideShopPage(()=>{toast('先輸入手機號碼，才能查到你的紅利');setTimeout(()=>{try{Gacha.open()}catch(e){}},400)});return}
+  const enough=me.bonus>=p.price,img=p.img?`<div class="sp-mimg" style="background-image:url('${esc(p.img)}')"></div>`:'';
+  const ok=await spModal(`${img}<h3>${esc(p.nm)}</h3><p>${enough?`要用 <b>${p.price}</b> 點紅利兌換嗎？<br>你目前有 ${me.bonus.toLocaleString()} 點，兌換後剩 ${(me.bonus-p.price).toLocaleString()} 點。<br><small>兌換後會產生一張兌換券，來店出示就能領取。</small>`:`紅利還不夠喔：需要 <b>${p.price}</b> 點，<br>你目前有 ${me.bonus.toLocaleString()} 點。`}</p>`,
+    enough?[{t:'確定兌換',cls:'pri',v:1},{t:'再想想',cls:'ghost',v:0}]:[{t:'好的',cls:'pri',v:0}]);
+  if(!ok)return;
+  try{const r=await gcall('/shop/redeem',{id});
+    SHOP.me.bonus=r.bonus;const q=SHOP.products.find(x=>x.id===id);if(q){q.mine=r.mine;q.left=r.left;q.soldOut=r.left===0}
+    renderShop();sfx('chime');
+    await spModal(`<h3>🎉 兌換成功！</h3><p>「${esc(p.nm)}」的兌換券已經放進你的帳戶。<br>請在 <b>${r.ticket.expiry}</b> 前來店出示，老師會幫你領取。<br><small>目前紅利剩 ${r.bonus.toLocaleString()} 點</small></p>`,[{t:'太好了',cls:'pri',v:1}])
+  }catch(e){shopLoad(true).then(()=>renderShop()).catch(()=>{});await spModal(`<h3>沒有兌換成功</h3><p>${esc(e.message||'請稍後再試')}</p>`,[{t:'好的',cls:'pri',v:1}])}}
+$('spX').addEventListener('click',()=>hideShopPage());
+/* 底部四個分頁跟主畫面一模一樣（直接複製主畫面那排），點了先關商品頁再過去 */
+function shopNavBuild(){const nav=$('spNav'),src=$('places');if(!nav||!src)return;
+  nav.innerHTML=src.innerHTML.replace(/ id="[^"]*"/g,'').replace(/ class="[^"]*(on|pulse|dot|gray)[^"]*"/g,'');
+  const go=[()=>{if(G.phase!=='oct')backToPlaza()},()=>enterWalk(),()=>mascotGo(),()=>{const b=$('plArt');if(b)b.click()}];
+  nav.querySelectorAll('button').forEach((b,k)=>{b.disabled=false;b.onclick=()=>{sfx('tap');hideShopPage(()=>go[k]&&go[k]())}})}
+/* 2026-10-07 大熊：扭蛋機再亮一點（整體燈光壓暗後它也跟著暗了）→ 讓機身自己微微發亮 */
+function brightenMachine(){if(!GA.g)return;const seen=new Set();GA.g.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{if(seen.has(m)||!m.isMeshToonMaterial)return;seen.add(m);
+  if(m.transparent&&m.opacity<.9)return;if(m.map){m.emissiveMap=m.map;m.emissive.setScalar(.1)}else m.emissive.copy(m.color).multiplyScalar(.12);m.needsUpdate=true})})}
 function buildPlaza(){
   const P=new THREE.Group();P.position.copy(PLAZA);scene.add(P);GA.plaza=P;
   /* 2026-10-04 改成放在畫廊地板上的木頭圓台（原本是飄在空中的島，底下尖尖的岩石拿掉） */
@@ -1111,13 +1459,14 @@ function buildPlaza(){
   {const rock=mesh(new THREE.ConeGeometry(PLAZA_R*.66,3.6,9),toon('#8a6040',{flatShading:true}),0,-3.45,0);rock.rotation.x=Math.PI;P.add(rock)} /* 回到天空島：木台底下的岩石 */
   for(let k=0;k<84;k++){const a=k/84*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),new THREE.MeshBasicMaterial({color:['#e07a5f','#f2cc6b','#e9a35b','#fff4c2'][k%4]}));
     b.position.set(Math.cos(a)*(PLAZA_R-.12),.08,Math.sin(a)*(PLAZA_R-.12));b.userData.base=b.material.color.clone();b.userData.k=k%4;P.add(b);GA.bulbs.push(b)}
-  [[-5.3,-4.6,'',.95],[3.6,-4.6,'',1.1],[5.4,-2.0,'',.85],[1.4,-5.6,'',.8]].forEach(([x,z,c,s])=>{const t=makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)});
-  [[-1.0,-5.4,'#3f5f8a'],[2.4,-3.6,'#d4a347'],[5.4,.8,'#b5573f']].forEach(([x,z,c])=>{const b=new THREE.Group();b.add(mesh(new THREE.CylinderGeometry(.2,.17,.32,14),toon('#c9ced6'),0,.16,0));b.add(mesh(new THREE.CylinderGeometry(.19,.19,.04,14),toon(c),0,.33,0));const d=mesh(new THREE.SphereGeometry(.07,8,6),toon(c),.17,.25,.08);d.scale.y=1.6;b.add(d);b.position.set(x,0,z);P.add(b)});
+  [[-5.7,-4.2,'',.95],[5.2,-5.4,'',1.0],[-3.6,-6.0,'',.7],[6.3,.8,'',.8]].forEach(([x,z,c,s])=>{const t=makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)});
+  [[-3.3,-4.2,'#3f5f8a'],[3.3,-5.4,'#d4a347'],[5.6,2.2,'#b5573f']].forEach(([x,z,c])=>{const b=new THREE.Group();b.add(mesh(new THREE.CylinderGeometry(.2,.17,.32,14),toon('#c9ced6'),0,.16,0));b.add(mesh(new THREE.CylinderGeometry(.19,.19,.04,14),toon(c),0,.33,0));const d=mesh(new THREE.SphereGeometry(.07,8,6),toon(c),.17,.25,.08);d.scale.y=1.6;b.add(d);b.position.set(x,0,z);P.add(b)});
   /* 低多邊形綠色小樹叢（參考圖那種），放在軌道內側後排 */
-  {const BG=['#7fae6a','#93bf74','#6a9a5c','#a6c97f'];[[-2.8,-5.0,1],[-.3,-5.7,.85],[2.5,-5.4,.9],[5.6,-.4,.8],[-5.7,-1.6,1.05],[-4.1,-3.4,.75]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
+  {const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];[[-4.8,-5.2,.9],[4.0,-6.0,.8],[6.2,-2.8,.8],[6.0,2.4,.7],[-6.2,-.4,1.0],[-5.6,2.6,.7]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
     [[0,.32,0,.42],[.38,.24,.12,.3],[-.34,.22,.1,.32],[.08,.2,.34,.26]].forEach(([bx,by,bz,r],k)=>{const m=mesh(new THREE.IcosahedronGeometry(r,0),toon(BG[(i+k)%4],{flatShading:true}),bx,by,bz);m.rotation.set(i+k,k*.7,0);b.add(m)});
     b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)})}
   buildTrack(P);GA._easelsLater=true;
+  buildShop(P);buildGreenery(P);buildPath(P);
 
   // 紅色扭蛋機：照預約頁那台畫（黑色描邊、玻璃球、紅帽子、OTTO2 方向盤、灰色出口、LOVE 吊牌、LUCK 標籤）
   const g=new THREE.Group();g.position.copy(MACH);g.scale.setScalar(1.5);scene.add(g);GA.g=g;GA.wob=new THREE.Group();g.add(GA.wob);const W=GA.wob;
@@ -1172,14 +1521,16 @@ function buildPlaza(){
   const B=new THREE.Group();scene.add(B);GA.bridge=B;
   for(let z=BR_Z0,k=0;z<BR_Z1;z+=.34,k++)B.add(mesh(new THREE.BoxGeometry(1.35,.1,.28),toon(k%2?'#b07a4c':'#9c6a40'),BRIDGE_X+(Math.random()-.5)*.05,-.02,z));
   [BR_Z0,BR_Z1-.1].forEach(z=>[-1,1].forEach(d=>B.add(mesh(new THREE.CylinderGeometry(.06,.07,.7,8),toon('#7a4c30'),BRIDGE_X+d*.72,.3,z))));
-  const gate=new THREE.Group();gate.position.set(BRIDGE_X,0,(BR_Z0+BR_Z1)/2);scene.add(gate);GA.gate=gate;
-  [-1,1].forEach(d=>gate.add(mesh(new THREE.CylinderGeometry(.11,.13,2.3,10),toon('#fffaf2'),d*.85,1.15,0)));
-  gate.add(mesh(new THREE.BoxGeometry(2.1,.62,.16),toon('#2f8f58'),0,2.35,0));
-  GA.gsign=new THREE.Mesh(new THREE.PlaneGeometry(1.95,.56),new THREE.MeshBasicMaterial({transparent:true}));GA.gsign.position.set(0,2.35,.09);gate.add(GA.gsign);
-  GA.bar=new THREE.Group();GA.bar.position.set(-.8,.85,.02);gate.add(GA.bar);
-  const bc=document.createElement('canvas');bc.width=256;bc.height=32;const bx=bc.getContext('2d');for(let k=0;k<8;k++){bx.fillStyle=k%2?'#fffaf2':'#b8473c';bx.fillRect(k*32,0,32,32)}
-  GA.bar.add(mesh(new THREE.BoxGeometry(1.62,.14,.1),toon('#ffffff',{map:new THREE.CanvasTexture(bc)}),.81,0,0));
-  const lock=new THREE.Group();lock.add(mesh(new THREE.BoxGeometry(.3,.26,.12),toon('#d9b45a')));lock.add(mesh(new THREE.TorusGeometry(.1,.03,8,16,Math.PI),toon('#c9ced6'),0,.13,0));lock.position.set(.81,-.22,.06);GA.bar.add(lock);GA.lk=lock;
+  const gate=new THREE.Group();gate.position.set(BRIDGE_X,0,PLAZA.z-5.2);gate.rotation.y=.08;scene.add(gate);GA.gate=gate;
+  /* 2026-10-07 聖誕走格子入口：大熊給的成品圖（已去背）直接貼在路口，小黑熊會走進拱門裡；還沒開放時圖片變灰、掛「x/x 開放」小牌 */
+  {const w=4.2,h=w*924/760,tex=new THREE.TextureLoader().load('xmas-gate.png?v=20261007c',t=>{ /* 還沒開放用的灰階版：圖片載入後轉成灰階貼圖 */
+      try{const im=t.image,cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const x=cv.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;
+        for(let i=0;i<a.length;i+=4){const l=(a[i]*.3+a[i+1]*.59+a[i+2]*.11)+30,k=.72; /* 霧面：保留一半顏色、整體提亮，不要灰灰的不吉利 */
+          a[i]=Math.min(255,a[i]*(1-k)+l*k+10);a[i+1]=Math.min(255,a[i+1]*(1-k)+l*k+10);a[i+2]=Math.min(255,a[i+2]*(1-k)+l*k+8)}x.putImageData(d,0,0);GA.gGray=new THREE.CanvasTexture(cv);GA.gGray.anisotropy=4;GA.gColor=t;if(GA.gimg&&!walkOpen()){GA.gimg.material.map=GA.gGray;GA.gimg.material.needsUpdate=true}}catch(e){}});tex.anisotropy=4;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));m.position.set(0,h/2-.05,0);gate.add(m);GA.gimg=m;
+    const sh=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.14,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(2.5,.7,1);sh.position.set(0,.03,.2);gate.add(sh)}
+  GA.gsign=new THREE.Mesh(new THREE.PlaneGeometry(2.0,.62),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false}));GA.gsign.position.set(0,2.0,.3);GA.gsign.renderOrder=5;gate.add(GA.gsign);
+  GA.bar=new THREE.Group();GA.lk=new THREE.Group(); /* 舊柵門的擋桿／鎖已經不用，留著空物件讓開門動畫不用改 */
 }
 function renderFigs(pop){const have=gpLoad().have;
   // 同一款收集越多隻，島上就多幾隻一起散步（最多 3 隻）
@@ -1205,7 +1556,8 @@ function parkTap(e){
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
-  if(rc.intersectObject(GA.board,true).length){if(!busy)boardBig();return true}
+  if(GA.shop&&rc.intersectObject(GA.shop,true).length){if(!busy)openShop();return true}
+  if(GA.board&&rc.intersectObject(GA.board,true).length){if(!busy)boardBig();return true}
   if(rc.intersectObjects([GA.g,GA.kb],true).length){if(G.phase==='oct')spin();else toast('十月扭蛋已經結束囉');return true}
   let fh=Object.entries(GA.figs).find(([id,f])=>f.fig&&rc.intersectObject(f.fig,true).length);
   /* 公仔很小又一直在走，手指沒剛好點在身上就沒反應 → 點在公仔附近（約一個指頭寬）也算，挑最近的那隻 */
@@ -1213,11 +1565,53 @@ function parkTap(e){
     Object.entries(GA.figs).forEach(([id,f])=>{if(!f.fig||!f.fig.visible)return;[.15,.45].forEach(dy=>{f.fig.getWorldPosition(p);p.y+=dy*(f.fig.scale.y||1)/.5;p.project(camera);if(p.z>1)return;
       const d=Math.hypot(r.left+(p.x+1)/2*r.width-e.clientX,r.top+(1-p.y)/2*r.height-e.clientY);if(d<bd){bd=d;best=[id,f]}})});fh=best}
   if(fh){const b=GB.bears.find(x=>x.id===fh[0].split('#')[0]),f=GA.figs[fh[0]];if(f.fig&&!f.fig.userData.hop)f.fig.userData.hop=.5;sfx('tap');if(!document.querySelector('.gc-zoom'))setTimeout(()=>Gacha.zoom(b.id,gState(),{nm:b.nm,rare:b.rare,hidden:b.hidden,img:'gacha/picasso2/'}),120);return true}
-  if(G.phase==='oct'&&rc.intersectObjects([...ISL,...tiles[0],...tiles[1],GA.gate],true).length){toast('聖誕走格子 11/1 才開放，先轉扭蛋吧');return true}
+  if(G.phase==='oct'&&rc.intersectObjects([...ISL,...tiles[0],...tiles[1],GA.gate],true).length){if(!busy)enterWalk();return true}
   return false;
 }
 const CAPC=['#cf8a72','#d4a347','#86a596','#8796b8','#c098a8','#d9b45a'];
 let spunJ=null;
+
+/* ---------- 2026-10-08 試做：廣場上的扭蛋機改用大熊給的去背圖（網址加 ?art=1 才開，原本的 3D 機台完全沒動） ----------
+   機台、球群、OTTO2 轉盤是三張圖，畫在一張畫布上貼在廣場裡；spin() 原本就在轉 GA.knob／GA.swirl，這裡每格照那兩個角度重畫，
+   所以鏡頭拉近、膠囊滾出來、小畢卡索去拿……全部維持原本的流程，只是機台長得跟你的圖一樣、轉盤會真的轉、球群會真的跟著轉 */
+function artBuild(){if(GA.art)return;const cfg=GGCFG.std,CW=512,CH=Math.round(512*cfg.mh/cfg.mw),cv=document.createElement('canvas');cv.width=CW;cv.height=CH;
+  const tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;const h=10.2,w=h*cfg.mw/cfg.mh;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.04}));m.position.set(MACH.x,h/2-.05,MACH.z+.2);scene.add(m);
+  GA.g.visible=false;GA.art={cv,tex,m,last:null,k:CW/cfg.mw};
+  GA.kb.userData.home.set(MACH.x+.42,3.75,MACH.z+.8);GA.kb.position.copy(GA.kb.userData.home);artTick(true)}
+function artTick(force){const A=GA.art;if(!A)return;const kr=GA.knob.rotation.z,sr=GA.swirl.rotation.z,key=kr.toFixed(3)+'|'+sr.toFixed(3);if(!force&&A.last===key)return;A.last=key;
+  const cfg=GGCFG.std,I=GGI,M=I[cfg.m],CL=I[cfg.cl],KN=I[cfg.kn];if(!(M.complete&&CL.complete&&KN.complete&&M.naturalWidth)){A.last=null;return}
+  const ctx=A.cv.getContext('2d'),k=A.k;ctx.clearRect(0,0,A.cv.width,A.cv.height);
+  ctx.save();ctx.beginPath();ctx.arc(cfg.globe[0]*k,cfg.globe[1]*k,cfg.globe[2]*k,0,7);ctx.clip();ctx.translate(cfg.cc[0]*k,cfg.cc[1]*k);ctx.rotate(-sr);ctx.scale(cfg.cs*k,cfg.cs*k);ctx.drawImage(CL,-CL.width/2,-CL.height/2);ctx.restore();
+  ctx.drawImage(M,0,0,cfg.mw*k,cfg.mh*k);
+  ctx.save();ctx.translate(cfg.knob[0]*k,cfg.knob[1]*k);ctx.rotate(-kr);const ks=cfg.knob[2]/cfg.knw*k;ctx.scale(ks,ks);ctx.drawImage(KN,-KN.width/2,-KN.height/2);ctx.restore();
+  A.tex.needsUpdate=true}
+const STDCAPS=['#e8664d','#f2c14e','#7fb069','#5b8fd9','#b58ad0','#f08aa5'];
+/* 2026-10-08 試做過「每天的扭蛋也全螢幕跳出」，大熊不要，停用（程式留著，沒有地方呼叫） */
+async function spinFullscreen(){
+  if(busy||G.phase!=='oct')return;
+  if(gLeft()<=0){toast(typeof gClosedMsg==='function'?gClosedMsg():'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次');return}
+  busy=true;party=1;parkCam=null;hud();$('tapme').hidden=true;
+  const res=gSpin(),cap=ggMakeCap(STDCAPS[Math.floor(Math.random()*STDCAPS.length)]),ov=$('stdG'),C=GGCFG.std,play=(a,b)=>new Promise(r=>ggPlay(a,b,r,C,cap,'stdCv'));
+  const close=()=>{ov.classList.remove('show');setTimeout(()=>{ov.hidden=true},420)};
+  ov.hidden=false;void ov.offsetWidth;ov.classList.add('show');
+  await play(0,GGT.dial0);sfx('tick');
+  const dial=play(GGT.dial0,GGT.cap0);let k=0;const tk=setInterval(()=>{if(++k<=6)sfx('tick')},430);await dial;clearInterval(tk);
+  const j=await res;
+  if(!j.ok){close();party=0;busy=false;hud();toast(j.error);return}
+  spunJ=j;
+  await play(GGT.cap0,GGT.open0);sfx('thunk');
+  await play(GGT.open0,GGT.open1);sfx('open');setTimeout(()=>sfx('chime'),250);
+  await sleep(300);close();
+  window.onGachaDone=()=>afterSpinStd(j);Gacha.result(j);
+}
+async function afterSpinStd(j){
+  window.onGachaDone=null;party=0;
+  if(j.bear){const nb=Number(gpLoad().have[j.bear.id])||0;if(!j.bear.isNew&&nb>3){renderFigs();}else{parkCam='fig';GA.figFocus=GA.figs[j.bear.id];await sleep(700);renderFigs(j.bear.id);sfx('sparkle');toast(j.bear.isNew?`${j.bear.nm}住進島上了！`:`又一隻${j.bear.nm}來島上玩了！`);await sleep(1600)}}
+  if(j.bear&&j.bear.swap){await popup('star','重複的公仔湊滿 3 隻！','自動多送你 1 次扭蛋，按「轉一下」就能用。');}
+  parkCam=null;busy=false;hud();
+}
+/* 每天的扭蛋：廣場上的機台、鏡頭拉近、膠囊滾出來、小畢卡索去拿（原本的流程） */
 async function spin(){
   if(busy||G.phase!=='oct')return;
   if(gLeft()<=0){toast(typeof gClosedMsg==='function'?gClosedMsg():'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次');return}
@@ -1227,7 +1621,7 @@ async function spin(){
   /* 2026-10-01 大熊：動畫簡化成「方向盤輕轉 → 扭蛋滾出來 → 小畢卡索去拿」，柔和就好、不要等太久 */
   const k0=GA.knob.rotation.z,s0=GA.swirl.rotation.z;let lastTk=0;
   /* 方向盤轉、玻璃球裡面的扭蛋整團跟著轉一圈（v4.52 簡化時不小心拿掉了） */
-  await tween(750,p=>{const e=easeIO(p);GA.knob.rotation.z=k0-e*Math.PI*1.2;GA.swirl.rotation.z=s0-e*Math.PI*2;const tk=Math.floor(e*5);if(tk!==lastTk){lastTk=tk;sfx('tick')}});
+  await tween(GA.art?1700:750,p=>{const e=easeIO(p);GA.knob.rotation.z=k0-e*Math.PI*(GA.art?4:1.2);GA.swirl.rotation.z=s0-e*Math.PI*2;const tk=Math.floor(e*(GA.art?10:5));if(tk!==lastTk){lastTk=tk;sfx('tick')}});
   GA.swirl.rotation.z=0;
   const j=await res;
   if(!j.ok){party=0;parkCam=null;busy=false;hud();toast(j.error);return}
@@ -1265,11 +1659,33 @@ async function afterSpin(j){
 function onGachaState(){hud()}
 
 function gateLook(open,instant){GA.bar.rotation.z=open?Math.PI*.48:0;GA.lk.visible=!open;
-  GA.gsign.material.map=labelTex(open?'走格子 開放中':'11/1 開放',null,open?'#2f8f58':'#3d4352','#fff',512,146);GA.gsign.material.needsUpdate=true}
+  if(GA.gimg){const m=GA.gimg.material;m.color.set('#ffffff');if(GA.gGray&&GA.gColor){m.map=open?GA.gColor:GA.gGray;m.needsUpdate=true}}GA.gsign.visible=!open;
+  if(!open){GA.gsign.material.map=labelTex(xStart()+' 開放','聖誕走格子','#2f6b4f','#fff6d6',512,160);GA.gsign.material.needsUpdate=true}}
 function signLook(oct){drawSign(oct?'世界藝術日':'十月活動結束・明年見','畢卡索扭扭樂')}
-async function openPark(){ // 11/1: the gate opens and the board lights up tile by tile
+/* 2026-10-07 聖誕走格子提早到 10/16 開放：廣場是主畫面，走進路口或點下面「走格子島」，小黑熊跳過去；點「扭蛋島」跳回來 */
+let XINFO=null,XWALKED=false,HOPPING=false;
+const xmd=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:'';
+const xStart=()=>xmd(XINFO&&XINFO.start)||'10/16';
+const xRange=()=>`${xStart()}～${xmd(XINFO&&XINFO.end)||'12/25'}`;
+function walkOpen(){return !window.PROD||XOPEN||document.documentElement.classList.contains('demoq')}
+function enterWalk(){if(busy||G.phase!=='oct')return;if(!walkOpen()){toast(`聖誕走格子 ${xStart()} 開放，先轉扭蛋吧`);return}sfx('tap');openPark()}
+function hopVeil(){let v=$('hopVeil');if(!v){v=document.createElement('div');v.id='hopVeil';document.body.appendChild(v)}return v}
+async function backToPlaza(){
+  if(busy||G.phase==='oct')return;
+  busy=true;hud();sfx('tap');
+  const v=hopVeil();v.classList.add('on');await sleep(380);
+  overview=false;treeCam=false;focusAt=null;parkCam=null;
+  G.phase='oct';SKYHOLD=false;SKY=0;setPhaseLook(true);placeBear();showBubbles();
+  const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
+  try{localStorage.setItem('otto2-park-last','oct')}catch(e){}
+  busy=false;hud();await sleep(150);v.classList.remove('on')}
+function xmasLabels(){const o=walkOpen(),sp=document.querySelector('.octinfo span');
+  if(sp&&sp.lastChild&&sp.lastChild.nodeType===3){sp.lastChild.nodeValue=o?'聖誕走格子開放中｜走進路口就能玩':`聖誕走格子｜${xStart()} 開放`;const sv=sp.querySelector('svg');if(sv)sv.style.display=o?'none':''}
+  const sm=document.querySelector('#soon small');if(sm)sm.textContent=o?'開放中':`${xStart()} 開放`}
+async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去、跳上走格子島
   if(busy||G.phase!=='oct')return;
-  busy=true;overview=false;parkCam='open';SKYHOLD=true;SKY=0;hud();ISL.forEach(o=>o.visible=true);
+  busy=true;HOPPING=true;let first=true;try{first=localStorage.getItem('otto2-park-opened')!=='1'}catch(e){}
+  overview=false;parkCam='open';SKYHOLD=true;SKY=0;hud();ISL.forEach(o=>o.visible=true);
   document.body.classList.add('opening');$('skipOpen').hidden=false; /* 2026-10-04 播動畫時藏起上下介面（原本把橋和小熊擋住），可以按「略過」 */
   const xp=window.PROD?xmasPull():null;
   await sleep(RM?100:450);
@@ -1280,19 +1696,22 @@ async function openPark(){ // 11/1: the gate opens and the board lights up tile 
   for(const lv of [0,1])for(const t of tiles[lv]){dimObj(t,0);const y0=t.position.y;tween(200,p=>{t.position.y=y0+Math.sin(p*Math.PI)*.22});
     if(lv===0)sparkle(t.position.clone().add(new THREE.Vector3(0,.4,0)),2);await sleep(RM?0:20)}
   await clear;setDim(0);signLook(false);if(GA.mist){GA.mist.visible=false;GA.mist.children.forEach(o=>{if(o.material)o.material.opacity=o.userData.op})}
-  G.phase='nov';G.cur=0;G.lv[0].pos=0;GA.bubs.forEach(b=>b.visible=false);hud();busy=true;
+  G.phase='nov';if(!window.PROD&&!XWALKED){G.cur=0;G.lv[0].pos=0}XWALKED=true;GA.bubs.forEach(b=>b.visible=false);hud();busy=true;
   // the bear walks over the bridge to the start tile
-  const y=bear.position.y,pts=[STAND.clone(),PLAZA.clone().add(new THREE.Vector3(-6.0,0,4.0)),PLAZA.clone().add(new THREE.Vector3(-6.3,0,-2.8)),PLAZA.clone().add(new THREE.Vector3(-3.4,0,-5.8)),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2)],st=tilePos(0,0),land=new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z);
+  const y=bear.position.y,pts=[STAND.clone(),new THREE.Vector3(BRIDGE_X,0,PLAZA.z+1.2),new THREE.Vector3(BRIDGE_X,0,PLAZA.z-3.6),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2)];let land; /* 路口在廣場中線，小熊直接走過去（扭蛋機已經搬到右邊） */
   parkCam='walk';
-  for(let k=1;k<pts.length;k++){if(k===4){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  for(let k=1;k<pts.length;k++){if(k===pts.length-1){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
       await tween(200,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
-  { // 從橋頭大跳一下、空翻過去，落在起點格
+  if(xp)await Promise.race([xp,sleep(4000)]); /* 落點用雲端存的位置，不是每次都跳回起點 */
+  {const st=tilePos(G.cur,G.lv[G.cur].pos);land=new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z)}
+  { // 從橋頭大跳一下、空翻過去，落在目前的格子
     const A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);gateSink();
     await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=-easeIO(p)*Math.PI*2});
     bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10)}
   bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;FAST=false;document.body.classList.remove('opening');$('skipOpen').hidden=true;hud();confetti(40);
-  await popup('start','聖誕走格子開放了！','11/1～12/25：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
+  HOPPING=false;try{localStorage.setItem('otto2-park-opened','1');localStorage.setItem('otto2-park-last','nov')}catch(e){}
+  if(first)await popup('start','聖誕走格子開放了！',xRange()+'：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
   if(xp){await xp;placeBear()}
   await dailyOpen();busy=false;hud();
 }
@@ -1307,10 +1726,10 @@ function groundLabel(text,w,col){const cv=document.createElement('canvas');cv.wi
   x.fillStyle=col;rr(8,14,496,100,50,x);x.fill();x.fillStyle='#fff';x.font=`900 60px ${FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,66);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w/4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;return m}
 /* 分區：地上畫不同顏色的圓和字，像遊樂園地圖 */
-const TRA=3.24;function trackR(a){const d=Math.atan2(Math.sin(a-3.3),Math.cos(a-3.3));return Math.abs(d)<.95?6.35-2.0*Math.cos(Math.PI/2*d/.95)**2:6.35}
+const TRA=3.0;function trackR(a){return 6.35} /* 2026-10-07 集章告示牌搬走，左邊不用再往內彎 */
 const ZONE={board:new THREE.Vector3(Math.cos(TRA)*trackR(TRA),0,Math.sin(TRA)*trackR(TRA)),stand:new THREE.Vector3(2.8,0,2.4)};
 function buildZones(P){
-  [[ZONE.board,2.0,'#e7d3a8','十月集章','#b5573f'],[ZONE.stand,1.9,'#dfe6f2','我的公仔','#3f5f8a']].forEach(([p,r,c,t,lc])=>{
+  [[ZONE.stand,1.9,'#dfe6f2','我的公仔','#3f5f8a']].forEach(([p,r,c,t,lc])=>{
     const d=mesh(new THREE.CylinderGeometry(r,r,.04,6),toon(c,{flatShading:true}),p.x,.03,p.z);d.rotation.y=r;d.castShadow=false;P.add(d);const l=groundLabel(t,2.0,lc);l.position.set(p.x,.06,p.z+r-.15);P.add(l)});
   const l=groundLabel('轉扭蛋',1.9,'#b8473c');l.position.set(MACH.x-PLAZA.x,.06,MACH.z-PLAZA.z+3.6);P.add(l);
 }
@@ -1372,7 +1791,8 @@ function cubistGround(){const cv=document.createElement('canvas');cv.width=cv.he
 function shardMesh(pts,c,depth=.06){const sh=new THREE.Shape();pts.forEach(([a,b],i)=>i?sh.lineTo(a,b):sh.moveTo(a,b));sh.closePath();
   const g=new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false});const m=mesh(g,toon(c,{flatShading:true}));const o=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:'#1a1a1a',side:THREE.BackSide}));o.scale.set(1.025,1.025,1.4);o.position.z=-.01;m.add(o);return m}
 function buildBoard(){
-  const B=new THREE.Group(),c=PLAZA.clone().add(ZONE.board);B.position.copy(c);B.rotation.y=Math.atan2(MACH.x+.5-c.x,MACH.z+28-c.z);B.scale.setScalar(1.05);scene.add(B);GA.board=B;
+  return; /* 2026-10-07 大熊：集章告示牌搬到「詳細資訊」裡，廣場上不再放（程式留著） */
+  const B=new THREE.Group(),c=PLAZA.clone().add(ZONE.board);B.position.copy(c);B.rotation.y=Math.atan2(MACH.x+.5-c.x,MACH.z+28-c.z);B.scale.setScalar(.92);scene.add(B);GA.board=B;
   // 歪斜的兩支腳（不同顏色）
   const LIFT=1.7,I=new THREE.Group();I.position.y=LIFT;B.add(I);
   // 跨在鐵軌上的兩支長腳（不同顏色），小火車從底下穿過去
@@ -1392,7 +1812,7 @@ function buildBoard(){
 function boardBig(){drawBoard();sfx('tap');let o=document.getElementById('boardBig');
   if(!o){o=document.createElement('div');o.id='boardBig';o.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(30,30,40,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:14px';
     o.innerHTML='<img alt="十月集章" style="width:100%;max-width:520px;border-radius:14px;border:4px solid #2b2320;background:#fffaf2;box-shadow:0 8px 24px rgba(0,0,0,.3)">'+
-      '<div style="display:flex;gap:10px"><button id="bbInfo" style="font:900 17px/1 inherit;padding:14px 22px;border-radius:14px;border:3px solid #2b2320;background:#f2c94c;color:#2b2320">詳細資訊</button>'+
+      '<div style="display:flex;gap:10px"><button id="bbInfo" style="font:900 17px/1 inherit;padding:14px 22px;border-radius:14px;border:3px solid #2b2320;background:#f2c94c;color:#2b2320">我的資產</button>'+
       '<button id="bbX" style="font:900 17px/1 inherit;padding:14px 22px;border-radius:14px;border:3px solid #2b2320;background:#fff;color:#2b2320">關閉</button></div>';
     document.body.appendChild(o);o.onclick=e=>{if(e.target===o||e.target.id==='bbX'||e.target.tagName==='IMG')o.style.display='none'};
     o.querySelector('#bbInfo').onclick=()=>{o.style.display='none';Gacha.open()}}
@@ -1583,7 +2003,7 @@ function marqTick(now){if(!GA.mbulbs)return;const ph=Math.floor(now/(party?90:22
 /* 走格子島前面的雲霧：10 月蓋住、模糊一點；11/1 開放時散開 */
 function soft(){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.55,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(cv)}
 function buildMist(){const M=new THREE.Group();scene.add(M);GA.mist=M;const t=soft(),r=rng(9);
-  [[-6,1.4,6.4,3.2],[5.5,1.2,6.0,3.6],[0,2.4,4.2,2.8],[-2.5,.8,7.2,2.4],[-8.5,2.6,3.5,3.4],[8,2.8,3,3.6],[-3.5,4.2,1,3],[3.8,4.6,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);M.add(c)})}
+  [[-4.3,3.6,1.0,3.2],[-8,4.6,.5,3],[0,5.0,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);c.userData.p0=c.position.clone();M.add(c)})}
 
 /* 空地上的小畫架：抽到的畢卡索公仔會走過去站著畫畫，畫布上會慢慢多出色塊 */
 const EASELS=[[-1.7,2.7,.95],[3.7,1.0,-.95],[4.3,-1.6,-1.2]];
@@ -1627,9 +2047,8 @@ function toggleMute(){SFX.on=!SFX.on;try{localStorage.setItem('otto2-park-mute',
 function tourSteps(){const b=GA.bubs.map(x=>x.userData.base).reduce((a,v)=>a.add(v),new THREE.Vector3()).multiplyScalar(1/GA.bubs.length),bd=PLAZA.clone().add(ZONE.board);
   return[{at:b.clone(),pos:b.clone().add(new THREE.Vector3(0,2.2,10)),t:'每天都能多轉幾次',d:'答對藝術問答、翻牌過關、線上預約或來上課，都會多送一次扭蛋。等一下看「轉一下」上面那一排，做完會打勾。'},
     {at:MACH.clone().add(new THREE.Vector3(0,3.4,0)),pos:MACH.clone().add(new THREE.Vector3(.4,4.6,15)),t:'畢卡索扭扭樂',d:'點扭蛋機的 OTTO2 方向盤就能轉。每天一次；答對問答、來上課、線上預約，各多一次。'},
-    {at:bd.clone().add(new THREE.Vector3(0,3.2,0)),pos:bd.clone().add(new THREE.Vector3(1.5,3.6,10)),t:'十月集章',d:'每天轉一次就蓋一個章。集滿 7、14、21、28 天都有保底好禮，不用連續。'},
     {at:PLAZA.clone().add(new THREE.Vector3(1.2,1,1.8)),pos:PLAZA.clone().add(new THREE.Vector3(1.2,3.6,11)),t:'收集畢卡索公仔',d:'每轉一次就多一隻畢卡索公仔，牠們會住在島上散步、去畫架畫畫。點公仔可以放大看。'},
-    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「獎品・規則・紅利・圖鑑」。'}]}
+    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「我的資產」。'}]}
 async function startTour(){if(busy||G.phase!=='oct')return;G.pops={day:gToday(),ids:[]};save();showBubbles();const S=tourSteps(),el=document.getElementById('tour');busy=true;hud();document.body.classList.add('touring');
   for(let i=0;i<S.length;i++){GA.tour=S[i];parkCam='tour';
     const go=await new Promise(res=>{el.innerHTML=`<div class="tdots">${S.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><h3>${esc(S[i].t)}</h3><p>${esc(S[i].d)}</p><div class="acts"><button type="button" class="btn ghost" data-v="0">略過</button><button type="button" class="btn" data-v="1">${i<S.length-1?'下一步':'開始玩'}</button></div>`;
@@ -1703,13 +2122,13 @@ function camGoal0(){
   if((parkCam==='mascot'||parkCam==='mascotB'||parkCam==='mascotX')&&MI.g)return miCam(parkCam);
   if(parkCam==='tour'&&GA.tour){const t=GA.tour;return{pos:t.at.clone().add(t.pos.clone().sub(t.at).multiplyScalar(pt?1.55:1)),at:t.at}}
   if(parkCam==='walk'){const b=bear.position;return{pos:new THREE.Vector3(b.x-(pt?9:11),b.y+(pt?13:9.5),b.z+(pt?23:16)),at:new THREE.Vector3(b.x*.7,0,b.z-9)}}
-  if(parkCam==='open')return{pos:new THREE.Vector3(-1.5,pt?15:9.5,pt?40:29),at:new THREE.Vector3(-1.5,0,5)};
+  if(parkCam==='open')return{pos:new THREE.Vector3(BRIDGE_X,pt?15:9.5,pt?40:29),at:new THREE.Vector3(BRIDGE_X,0,5)};
   if(parkCam==='gacha')return{pos:MACH.clone().add(new THREE.Vector3(.4,pt?7.6:5.6,pt?26:16.5)),at:MACH.clone().add(new THREE.Vector3(0,3.6,0))};
   if(parkCam==='cap'&&GA.hold)return{pos:GA.hold.clone().add(new THREE.Vector3(0,pt?2.7:2.0,pt?11.5:7.8)),at:GA.hold.clone().add(new THREE.Vector3(0,.45,0))};
   if(parkCam==='fig'&&GA.figFocus){const f=GA.figFocus;return{pos:new THREE.Vector3(f.x*.8+MACH.x*.2,2.4,f.z+(pt?6:4.4)),at:new THREE.Vector3(f.x,f.y+.2,f.z)}}
-  if(G&&G.phase==='oct'&&!overview&&pt){const at=MACH.clone().add(new THREE.Vector3(0,2.9,3.2)),B=octBand(),m=B?Math.max(.85,Math.min(1.9,innerHeight/(B.bot-B.top)/2.3)):1;
+  if(G&&G.phase==='oct'&&!overview&&pt){const at=HUBC.clone().add(new THREE.Vector3(0,2.9,3.2)),B=octBand(),m=B?Math.max(.85,Math.min(1.9,innerHeight/(B.bot-B.top)/2.3)):1;
     return{pos:at.clone().add(new THREE.Vector3(0,11.7,38.8).multiplyScalar(m)),at}}  /* 2026-10-04 改版：整座島放在上方標題和下方面板中間，依手機可用高度自動縮放 */
-  if(G&&G.phase==='oct'&&!overview)return{pos:MACH.clone().add(new THREE.Vector3(.3,9.4,28.5)),at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.2))};  /* 直式手機往左挪、拉遠一點，左邊的集章告示牌才不會被切掉 */
+  if(G&&G.phase==='oct'&&!overview)return{pos:HUBC.clone().add(new THREE.Vector3(.3,9.4,28.5)),at:HUBC.clone().add(new THREE.Vector3(.3,3.2,3.2))};  /* 直式手機往左挪、拉遠一點，左邊的集章告示牌才不會被切掉 */
   if(focusAt)return{pos:new THREE.Vector3(focusAt.x*.6,(pt?6.2:5.2),focusAt.z+(pt?6:5)),at:new THREE.Vector3(focusAt.x*.8,.3,focusAt.z)};
   if(treeCam)return{pos:new THREE.Vector3(0,pt?4.4:3.9,pt?9.6:7.6),at:new THREE.Vector3(0,pt?2.9:2.7,0)};
   if(overview)return{pos:new THREE.Vector3(0,pt?44:26,pt?46:30),at:new THREE.Vector3(0,1,1.5)};
@@ -1832,8 +2251,12 @@ function petTap(rc,noGo){const gs=Object.values(PET.g).map(p=>p.g).filter(g=>g.v
 /* ---------- 常駐入口（吉祥物島、作品小屋）＋示範標籤＋每天一次的「三隻出現了」通知 ---------- */
 function isStaffNow(){try{return document.documentElement.classList.contains('demoq')||sessionStorage.getItem('otto2-park-staff')==='1'}catch(e){return false}}
 function placesUI(){const a=$('plArt');if(!a)return;a.classList.remove('gray'); /* 2026-10-03 作品小屋正式開放給所有人 */
-  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plMascot').disabled=a.disabled=!!busy}
+  const sim=!!(window.PROD&&ST&&ST.sim);$('demoTag').hidden=!sim;$('demoTag').textContent=window.KIOSK?'店內體驗':'示範';$('ohDemo').hidden=!sim;$('ohDemo').textContent=$('demoTag').textContent;$('ohDemo2').hidden=!sim||G.phase==='oct';$('ohDemo2').textContent=$('demoTag').textContent;$('ohMenu').disabled=!!busy;$('left').style.display=sim?'none':'';$('plPark').classList.toggle('on',G.phase==='oct');$('plWalk').classList.toggle('on',G.phase!=='oct');$('plPark').setAttribute('aria-current',G.phase==='oct'?'page':'false');$('plWalk').setAttribute('aria-current',G.phase!=='oct'?'page':'false');
+  $('plMascot').disabled=a.disabled=$('plPark').disabled=$('plWalk').disabled=!!busy;try{xmasLabels()}catch(e){}}
 $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
+$('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
+$('plWalk').addEventListener('click',()=>enterWalk());
+document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
 $('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261006g',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
@@ -2278,7 +2701,8 @@ function miMenu(gid){const t=$('miFood');t.innerHTML='';const btn=(html,fn,cls)=
   g.foods.forEach(k=>btn('<i style="background:'+FOODC[k]+'"></i>'+FOODN[k],()=>miFeed(k,g.who)))}
 $('miFeed').addEventListener('click',()=>{if(MI.food)return;const t=$('miFood');if(t.hidden){miMenu();t.hidden=false}else t.hidden=true});
 $('miBack').addEventListener('click',mascotBack);
-$('miPl0').addEventListener('click',mascotBack);
+$('miPl0').addEventListener('click',async()=>{if(MI.state!=='on')return;await mascotBack();if(G.phase!=='oct')backToPlaza()});
+$('miPlW').addEventListener('click',async()=>{if(MI.state!=='on')return;if(!walkOpen()&&G.phase==='oct'){toast(`聖誕走格子 ${xStart()} 開放`);return}await mascotBack();if(G.phase==='oct')enterWalk()});
 $('miPl2').addEventListener('click',()=>{if(MI.state!=='on')return;Ferry.go({to:'art.html?v='+PARK_VER,place:'art',from:'park'})});
 $('miMute').addEventListener('click',toggleMute);
 $('miMenu').addEventListener('click',()=>{if(MI.state!=='on')return;$('menu').hidden=false;$('menuX').focus()});
@@ -2468,8 +2892,9 @@ let busy=false,tPrev=performance.now();
 function annivTick(dt,now,g){const A=GA.an,d=camera.position.distanceTo(look),
     show=(!parkCam||/^mascot/.test(parkCam)&&MI.state==='on')&&!treeCam&&!focusAt&&!$('hud').hidden&&camera.position.distanceTo(g.pos)<d*.06; /* 鏡頭飛到定點才出現，飛行途中會擋到扭蛋機 */
   A.fix.visible=show;
-  if(show)Anniv26.pin(A.fix,camera,.68,.46,.2,d*.92,now);const mi=/^mascot/.test(parkCam||'');A.fl.forEach(b=>{b.visible=!mi;if(!RM&&!mi)Anniv26.drift(b,dt,now)})} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
-function loop(now){
+  if(show)Anniv26.pin(A.fix,camera,MI.state!=='off'?.68:-.6,MI.state!=='off'?.46:.42,.2,d*.92,now);const mi=/^mascot/.test(parkCam||'');A.fl.forEach(b=>{b.visible=!mi;if(!RM&&!mi)Anniv26.drift(b,dt,now)})} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
+function loop(now){if(GA.art)artTick();
+  if(GA.clerkB){const k=Math.sin(now/520);GA.clerkB.position.y=GA.clerkB.userData.y0+k*.07;GA.clerkB.scale.set(2.1*(1+k*.025),.744*(1+k*.025),1)}
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
   if(!busy&&!RM){bearBody.scale.y=1+Math.sin(now/380)*.025;bearBody.rotation.y=Math.sin(now/1300)*.25}
@@ -2498,7 +2923,7 @@ function hud(){
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;placesUI();
-  $('ohT').textContent=oct?'畢卡索扭扭樂':'聖誕走格子';$('ohS').textContent=oct?'點一下，轉出你的藝術驚喜。':(G.test?'11–12 月・測試模式':'11/1–12/25・每天擲一次骰子');
+  $('ohT').textContent=oct?'畢卡索扭扭樂':'聖誕走格子';$('ohS').textContent=oct?'點一下，轉出你的藝術驚喜。':(G.test?'11–12 月・測試模式':xStart()+'–12/25・每天擲一次骰子');
   $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`;
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
@@ -3094,15 +3519,15 @@ async function start(data){
   if(!G.avatar)G.avatar={mode:'bear',img:null};if(!G.teachers)G.teachers=[];
   if(G.tree<320&&!G.forest)G.tree=312;
   try{await Promise.race([document.fonts.load('40px Huninn'),new Promise(r=>setTimeout(r,2500))])}catch(e){}
-  buildScene();
+  buildScene();if(/[?&]art=1/.test(location.search))artBuild();
   if(G.cur===1&&!G.booked)G.cur=0;
   Object.keys(lotDeco).forEach(i=>updateLot(+i));
   setTreeVisual(G.tree);
   if(G.treeDone&&G.tree<TREE_GOAL)G.treeDone=false;
   if(!G.forest)G.forest=seedForest();renderForest();
   applyAvatar();await refreshAvatarImg();
-  if(window.PROD){try{const xi=await Promise.race([fetch(NOTIFY_URL+'/xmas/info').then(r=>r.json()),new Promise((_,rj)=>setTimeout(rj,2500))]);XOPEN=!!(xi&&xi.ok&&xi.status==='on')}catch(e){}
-    if(XOPEN){let seen=false;try{seen=localStorage.getItem('otto2-park-opened')==='1'}catch(e){}if(seen)G.phase='nov'}}
+  if(window.PROD){try{const xi=await Promise.race([fetch(NOTIFY_URL+'/xmas/info').then(r=>r.json()),new Promise((_,rj)=>setTimeout(rj,2500))]);XOPEN=!!(xi&&xi.ok&&xi.status==='on');if(xi&&xi.ok)XINFO=xi}catch(e){}
+    if(XOPEN){let last='';try{last=localStorage.getItem('otto2-park-last')||''}catch(e){}const q=location.search;if(/[?&]isl=walk/.test(q)||(last==='nov'&&!/[?&]isl=oct/.test(q)))G.phase='nov'}}
   setPhaseLook(G.phase==='oct');renderFigs();buildPets();trimShadows();if(!/[?&]nomerge/.test(location.search))try{mergePlaza()}catch(e){console.warn('mergePlaza',e)}
   placeBear();const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
   $('giftIcon').src=iconURL('gift',64);$('soonIc').innerHTML=LOCK_SVG;$('roomIcon').src=iconURL('elf',64);
@@ -3115,8 +3540,14 @@ async function start(data){
   (function(){const m=/[?&]phase=(oct|nov)/.exec(location.search);if(!m)return;let n=0;const t=setInterval(()=>{n++;if(document.documentElement.classList.contains('demoq')){clearInterval(t);if(busy)return;if(m[1]==='nov'&&G.phase==='oct')openPark();else if(m[1]==='oct'&&G.phase!=='oct')toOct()}else if(n>30)clearInterval(t)},400)})();
   setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;(window.PROD?xmasPull():Promise.resolve()).then(()=>dailyOpen()).then(()=>{busy=false;hud()})}},1500);
   /* 11/1 之後第一次打開：播開門、小熊跳過去的轉場；之後直接進走格子島 */
-  if(window.PROD&&XOPEN&&G.phase==='oct')setTimeout(()=>{openPark().then(()=>{try{localStorage.setItem('otto2-park-opened','1')}catch(e){}})},1800);
+  xmasIntro();
 }
+/* 聖誕走格子開放後第一次進廣場：跳一次公告，家長自己選要不要馬上過去（不再自動播） */
+function xmasIntro(){let n=0;const go=()=>{if(!window.PROD||!XOPEN||window.KIOSK||++n>50)return;let seen=false;try{seen=localStorage.getItem('otto2-xmas-intro')==='1'}catch(e){return}if(seen||G.phase!=='oct')return;
+  if(busy||!$('pop').hidden||$('hud').hidden||document.body.classList.contains('touring'))return setTimeout(go,900);
+  try{localStorage.setItem('otto2-xmas-intro','1')}catch(e){}
+  popup('start','聖誕走格子開放了！',xRange()+'：每天擲一次骰子、有預約上課多一次。走進廣場中間的路口，或點下面「走格子島」就能過去。',[{t:'馬上去',v:1,cls:'red'},{t:'先逛逛',v:0,cls:'ghost'}]).then(v=>{if(v===1)enterWalk()})};
+  setTimeout(go,4500)}
 $('roll').addEventListener('click',doRoll);
 $('skipOpen').addEventListener('click',()=>{FAST=true;$('skipOpen').hidden=true;tweens.forEach(w=>w.d=1)});
 $('zmBack').addEventListener('click',zmReset);
@@ -3658,10 +4089,10 @@ function render(anim){
     '<div class="gc-bal"><div><b>' + me.points.toLocaleString() + '</b><span>儲值點數</span></div>' +
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
-    '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
-    '<button class="gc-go" id="gcTo3D">回島上轉扭蛋 🎨</button><button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
-    gamesHtml() + bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
+    '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
+    '<button class="gc-go" id="gcTo3D">🏡 去作品小屋蓋房子</button><button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
+    bearsHtml() +
     '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
     '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送' + BU() + '，收進' + BT() + '。</li>' +
@@ -3679,7 +4110,8 @@ function render(anim){
   $("gcBook").onclick = goBook;
   if ($("gcBookLink")) $("gcBookLink").onclick = goBook;
   if ($("gcHwPrev")) $("gcHwPrev").onclick = function(){ st.halloween = !st.halloween; render(false) };
-  $("gcBack").onclick = close; $("gcTo3D").onclick = close;
+  $("gcBack").onclick = close;
+  $("gcTo3D").onclick = function(){ close(); setTimeout(function(){ var b = document.getElementById("plArt"); if (b) b.click() }, 250) };
   updChance();
 }
 function updChance(){
