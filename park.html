@@ -489,7 +489,9 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 #shopGate .sg-keeper{position:absolute; left:26%; margin-left:-14.5%; bottom:17.5%; width:29%; pointer-events:none} /* 不能有 opacity／transform，不然疊底只在自己這一層生效、背景不會消失 */
 #shopGate .sg-man{opacity:0; transition:opacity .3s .15s; filter:drop-shadow(0 6px 8px rgba(40,36,28,.25))}
 #shopGate.show .sg-man{opacity:1}
-#shopGate .sg-man{display:block; width:100%}
+#shopGate .sg-man{display:block; width:100%; aspect-ratio:300/397} /* 先把店員的高度佔住：圖還沒載好時泡泡也不會掉到腳邊 */
+#shopGate.closed .sg-man{aspect-ratio:216/388}
+#shopGate.wait.show .sg-man{opacity:0} #shopGate.wait .sg-bubble{visibility:hidden} /* 還沒問到開店了沒之前，先不顯示店員和泡泡，避免閃一下錯的人 */
 /* 還沒開幕：換成另一位店員（大熊公仔）說「還沒開店」，只留一顆按鈕 */
 #shopGate.closed .sg-keeper{width:24%; margin-left:-12%; bottom:17%}
 #shopGate.closed #sgIn{display:none}
@@ -501,7 +503,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 #shopGate.show .sg-bubble{animation:sgPop .55s cubic-bezier(.2,1.5,.4,1) .7s forwards}
 @keyframes sgPop{to{transform:scale(1); opacity:1}}
 #shopGate .sg-x{position:absolute; top:calc(env(safe-area-inset-top,0px) + 14px); right:14px; width:42px; height:42px; border-radius:50%; border:2px solid #1e2b4f; background:rgba(255,253,248,.92); color:#1e2b4f; font-size:18px; line-height:1; cursor:pointer}
-#shopGate .sg-btns{position:absolute; left:max(0px,calc((100vw - var(--gw))/2)); width:var(--gw); box-sizing:border-box; bottom:0; padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px); display:flex; flex-direction:column; gap:10px; background:linear-gradient(180deg,rgba(255,250,240,0),rgba(255,250,240,.88) 38%)}
+#shopGate .sg-btns{position:absolute; left:max(0px,calc((100vw - var(--gw))/2)); width:min(var(--gw),100vw); box-sizing:border-box; bottom:0; padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px); display:flex; flex-direction:column; gap:10px; background:linear-gradient(180deg,rgba(255,250,240,0),rgba(255,250,240,.88) 38%)}
 #shopGate .sg-btns button{font:inherit; font-size:18px; border-radius:16px; padding:15px 10px; cursor:pointer; letter-spacing:1px}
 #shopGate .sg-in{background:#1f4fa8; color:#fff; border:0; box-shadow:0 4px 0 #14367a}
 #shopGate .sg-later{background:rgba(255,253,248,.95); color:#1e2b4f; border:2px solid #cfc7b4; font-size:16px!important; padding:12px 10px!important}
@@ -703,7 +705,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008i';
+const PARK_VER='20261008j';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -1401,21 +1403,28 @@ const SHOPA={open:{anim:'shop-keeper-anim.webp?v=20261008i',still:'shop-keeper-l
 const _shopImg={};
 function shopImgReady(u){return _shopImg[u]||(_shopImg[u]=new Promise(r=>{const i=new Image();i.onload=()=>r(true);i.onerror=()=>{delete _shopImg[u];r(false)};i.src=u}))}
 /* 進遊樂島幾秒後，趁閒置先把店員動畫和聲音抓好，點店面時就能馬上動 */
-function shopWarm(){setTimeout(()=>{shopLoad().then(()=>{const k=SHOPA[SHOP&&SHOP.cfg.pending?'closed':'open'];shopImgReady(k.still);shopImgReady(k.anim);fetch(k.wav).catch(()=>{})}).catch(()=>{})},4000)}
+function shopWarm(){setTimeout(()=>{shopLoad().then(()=>{shopImgReady(SHOPA.open.still);shopImgReady(SHOPA.closed.still);const k=SHOPA[SHOP&&SHOP.cfg.pending?'closed':'open'];shopImgReady(k.anim);fetch(k.wav).catch(()=>{})}).catch(()=>{})},4000)}
 let _shopTok=0;
-function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidden)return;sfx('tap');g.hidden=false;void g.offsetWidth;g.classList.add('show');
+function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidden)return;sfx('tap');g.hidden=false;g.classList.add('wait');void g.offsetWidth;g.classList.add('show');
   const tok=++_shopTok,m=$('sgMan'),a=$('sgAud');
-  /* 先問後台「開店了沒」再決定出哪位店員（最多等 1.5 秒，連不上就當開店） */
-  Promise.race([shopLoad(true).catch(()=>{}),new Promise(r=>setTimeout(r,1500))]).then(()=>{
+  /* 先問後台「開店了沒」再決定出哪位店員（最多等 1.5 秒；晚到的答案也會補上，不會停在錯的店員） */
+  let shown=null;
+  const apply=()=>{
     if(tok!==_shopTok)return;
-    const closed=!!(SHOP&&SHOP.cfg.pending),k=SHOPA[closed?'closed':'open'];g.classList.toggle('closed',closed);shopGreet();
+    const closed=!!(SHOP&&SHOP.cfg.pending);g.classList.remove('wait');if(shown===closed)return;shown=closed;
+    const k=SHOPA[closed?'closed':'open'];g.classList.toggle('closed',closed);shopGreet();
     $('sgLater').textContent=closed?'好，開幕再來':'下次再考慮';
-    if(m&&!(m.getAttribute('src')||'').startsWith(k.still.split('?')[0]))m.src=k.still;  /* 靜態圖立刻站著；站姿跟動畫最後一格一樣 */
-    /* 動畫（揮手→說話→站好）載好才換上去，聲音同步播；等太久就維持站著 */
-    Promise.race([shopImgReady(k.anim),new Promise(r=>setTimeout(()=>r(false),8000))]).then(ok=>{
-      if(!ok||tok!==_shopTok||g.hidden||!g.classList.contains('show'))return;
-      if(m)m.src=k.anim+'&t='+Date.now();
-      if(a){a.src=k.wav;if(SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})})}
+    /* 靜態圖載好才換上去（站姿跟動畫最後一格一樣），沒載好就不會閃空白 */
+    shopImgReady(k.still).then(()=>{if(tok!==_shopTok||shown!==closed)return;
+      if(m&&!(m.getAttribute('src')||'').startsWith(k.still.split('?')[0]))m.src=k.still;
+      /* 動畫（揮手→說話→站好）載好才換上去，聲音同步播；等太久就維持站著 */
+      Promise.race([shopImgReady(k.anim),new Promise(r=>setTimeout(()=>r(false),8000))]).then(ok=>{
+        if(!ok||tok!==_shopTok||shown!==closed||g.hidden||!g.classList.contains('show'))return;
+        if(m)m.src=k.anim+'&t='+Date.now();
+        if(a){a.src=k.wav;if(SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})})};
+  const ld=shopLoad(true).catch(()=>{});
+  Promise.race([ld,new Promise(r=>setTimeout(r,1500))]).then(apply);
+  ld.then(apply)}
 function closeShop(cb){_shopTok++;const g=$('shopGate');const a=$('sgAud');if(a)a.pause();g.classList.remove('show');setTimeout(()=>{g.hidden=true;if(cb)cb()},330)}
 $('sgX').addEventListener('click',()=>closeShop());
 $('sgLater').addEventListener('click',()=>{sfx('tap');closeShop(()=>toast('好的，歡迎隨時再來逛逛'))});
