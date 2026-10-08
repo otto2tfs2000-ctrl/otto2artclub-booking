@@ -703,7 +703,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261008e';
+const PARK_VER='20261008f';
 /* 自動更新：LINE 的瀏覽器常常留著舊版頁面。開頁時偷偷抓一次最新的 park.html，版本不同就換成最新版（每個版本只換一次，避免一直重整） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const PARK_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==PARK_VER&&!window.__parkReady&&!sessionStorage.getItem('otto2-upd-'+m[1])){sessionStorage.setItem('otto2-upd-'+m[1],'1');{const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}}).catch(()=>{})}catch(e){}})();
@@ -2912,9 +2912,16 @@ function annivTick(dt,now,g){const A=GA.an,d=camera.position.distanceTo(look),
     show=(!parkCam||/^mascot/.test(parkCam)&&MI.state==='on')&&!treeCam&&!focusAt&&!$('hud').hidden&&camera.position.distanceTo(g.pos)<d*.06; /* 鏡頭飛到定點才出現，飛行途中會擋到扭蛋機 */
   A.fix.visible=show;
   if(show)Anniv26.pin(A.fix,camera,MI.state!=='off'?.68:-.6,MI.state!=='off'?.46:.42,.2,d*.92,now);const mi=/^mascot/.test(parkCam||'');A.fl.forEach(b=>{b.visible=!mi;if(!RM&&!mi)Anniv26.drift(b,dt,now)})} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
+/* 店面、後方森林、聖誕入口都是一張去背圖貼在平面上；鏡頭滑到旁邊（例如吉祥物島）從側面看會變成一條細片。
+   這裡讓它們慢慢轉向鏡頭（正面附近維持原本角度，只有鏡頭偏很多才轉，且有上限）。 */
+const _fv=new THREE.Vector3();
+function faceTick(dt){if(!camera)return;const k=Math.min(1,dt*5);
+  [[GA.shop,.16,1.0],[GA.forest,0,.55],[GA.gate,.08,.8]].forEach(([o,b,lim])=>{if(!o||!o.visible)return;o.getWorldPosition(_fv);
+    let d=Math.atan2(camera.position.x-_fv.x,camera.position.z-_fv.z)-b;const dz=.22;d=Math.sign(d)*Math.max(0,Math.abs(d)-dz);d=Math.max(-lim,Math.min(lim,d));
+    o.rotation.y+=(b+d-o.rotation.y)*k})}
 function loop(now){if(GA.art)artTick();
   if(GA.clerkB){const k=Math.sin(now/520);GA.clerkB.position.y=GA.clerkB.userData.y0+k*.07;GA.clerkB.scale.set(2.1*(1+k*.025),.744*(1+k*.025),1)}
-  const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);
+  const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);faceTick(dt);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
   if(!busy&&!RM){bearBody.scale.y=1+Math.sin(now/380)*.025;bearBody.rotation.y=Math.sin(now/1300)*.25}
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>22)c.position.x=-22});
