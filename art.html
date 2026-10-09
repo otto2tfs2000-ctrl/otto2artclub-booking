@@ -102,6 +102,17 @@ body.tour .tourstop{display:block}
 .sheet .row{flex-wrap:wrap; gap:6px}
 .sheet .row .pill{flex:1 1 28%; min-width:0; padding:8px 4px; font-size:13.5px; letter-spacing:.02em; white-space:nowrap}
 .x{position:absolute; right:10px; top:8px; background:none; border:0; color:var(--ink2); font-size:24px; cursor:pointer; padding:4px 8px; line-height:1}
+.drawer{position:fixed; left:0; right:0; bottom:0; max-height:46vh; overflow:auto; background:var(--cream); border-top:1px solid var(--line); border-radius:22px 22px 0 0; padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 12px); z-index:6; box-shadow:0 -10px 40px rgba(40,70,90,.18)}
+.drawer[hidden]{display:none}
+.drawer h3{margin:12px 0 4px; font-size:14px; letter-spacing:.06em; color:var(--ink)}.drawer h3:first-child{margin-top:0}
+.drawer .hint{margin:0 0 6px; font-size:12.5px; color:var(--ink2); line-height:1.6}
+.dsw{display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 4px}
+.dsw button{width:38px; height:38px; border-radius:50%; border:3px solid #fff; outline:2px solid var(--line); padding:0; position:relative; cursor:pointer}
+.dsw button.on{outline:3px solid var(--accent)}.dsw button.lk{opacity:.3}
+.dch{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 4px}
+.dch button{min-width:44px; min-height:38px; padding:0 10px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; font-size:13.5px; cursor:pointer}
+.dch button.on{border-color:var(--accent); background:#e6f1ee; color:var(--accent); font-weight:600}.dch button.lk{opacity:.4}
+.drawer .acts{display:flex; gap:8px; justify-content:center; margin-top:14px}
 .modal{position:fixed; inset:0; background:rgba(214,232,242,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:grid; place-items:center; padding:16px; z-index:5}
 .panel{width:min(420px,100%); max-height:calc(100% - 16px); overflow:auto; background:var(--cream); border:1px solid var(--line); border-radius:24px; padding:22px 20px 18px; box-shadow:0 22px 60px rgba(40,70,90,.22)}
 .panel h2{margin:0 0 4px; font-family:var(--serif); font-weight:600; font-size:21px; letter-spacing:.08em; text-align:center}
@@ -229,6 +240,7 @@ body.tour .pcTag{display:none!important}
 </div>
 <div class="tourcap"><h2 id="tourName"></h2><p id="tourInfo"></p></div>
 <button class="pill tourstop" id="tourStop" type="button">結束導覽</button>
+<div class="drawer" id="drawer" hidden></div>
 <div class="modal" id="modal" hidden><div class="panel" id="panel"></div></div>
 <div class="lb" id="lb" hidden>
   <img id="lbImg" alt="">
@@ -944,26 +956,42 @@ let _plank;function plankTex(){if(_plank)return _plank;const c=cvs(128,128),x=c.
    three ways to grow, picked when you move in:
    stack = building blocks piled up like a lighthouse, stilts = each floor lifted on dark posts, wing = spreads into an L, then rises */
 const WALLS=['#d9907e','#e2bc6e','#8fb2c8','#9cc29a','#c79bb6','#eadcbc','#7fa7a1','#d6a37c','#a7a6cf','#e6a9a0'];
-const ROOF='#cf7448',ROOF_D='#b8613b',TRIM='#f3eee4',STONE='#b3aa9b',STONE_D='#9b9283',POST='#3e4249',BRICK='#a4584a';
+let ROOF='#cf7448',ROOF_D='#b8613b',TRIM='#f3eee4',STONE='#b3aa9b',STONE_D='#9b9283',POST='#3e4249',BRICK='#a4584a';
 const HSTYLES={stack:'積木疊高',wing:'擴建小屋'};
 const normStyle=(s,i)=>{s=s||['stack','wing'][i%2];return s==='stilts'?'stack':s}; /* 高腳屋拿掉了（一層層疊起來很怪）；舊資料裡的高腳屋改成積木疊高 */
-const MAXF=30,floorsOf=n=>Math.min(MAXF,1+Math.floor(n/4)) /* 2026-10-03 大熊：最高 7 樓 → 30 樓 */;
+/* 2026-10-09 大熊：1–15 樓每 4 件 1 層，15 樓之後每 6 件 1 層，20 樓封頂；之後的作品用來解鎖顏色和裝飾 */
+const MAXF=20,floorsOf=n=>n<56?1+Math.floor(n/4):Math.min(MAXF,15+Math.floor((n-56)/6)),worksForFloor=f=>f<=15?(f-1)*4:56+(f-15)*6;
+/* 小屋外觀（存在 house.look：c 整棟牆色、r 屋頂色、fc/fd 各層牆色與裝飾（key 是 f+樓層，避免 Firebase 轉成陣列）、off 關掉的裝飾、tp 頂飾） */
+const HROOFS=[['#cf7448','#b8613b','磚橘'],['#7f8fa6','#69788f','灰藍'],['#6f8f6a','#5b7856','橄欖綠'],['#a9576a','#8d4658','莓紅'],['#4f5d75','#3f4b60','深藍'],['#3e4249','#2f3338','炭黑']];
+const WALL_NAMES=['珊瑚','芥黃','天藍','草綠','藕紫','米白','青灰','杏橘','薰衣草','粉玫瑰'];
+const FDK=[['planter','窗邊花箱',5],['plant','側邊小盆栽',5],['shutter','百葉窗',8],['awning','遮陽棚',10],['lights','燈串',12]];
+const DECOK=[['bush2','更多灌木',8],['topper','屋頂頂飾',8],['lantern','門前小燈籠',10],['smoke','煙囪冒煙',12],['path','前院小徑',15],['vane','庭院風向雞',15],['gold','金色門牌',20]];
+const WALL_FREE=3,WALL_ALL_F=5,ROOF_F=5,ONE_F=5;
+const nestLevel=n=>n<8?0:Math.min(6,1+Math.floor((n-8)/4));
+const NEST_NAMES=['紙箱小窩','木頭小屋','門前小墊子與碗','小圍欄','小花園','屋頂掛飾與小燈'];
 function gable(w,d,h,c){const sh=new THREE.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(0,h);sh.lineTo(-w/2,0);
   const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false});g.translate(0,0,-d/2);const m=new THREE.Mesh(g,toon(c));m.castShadow=true;return m}
 function box(c,w,h,d,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(c));m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;return m}
 // one storey: walls, white trim, windows (lit once there are works), a door on the ground floor
-function storey(wall,w,d,h,lit,door,seed){const g=new THREE.Group(),r=rng(seed);g.add(box(wall,w,h,d));g.add(box(TRIM,w+.06,.05,d+.06,0,h-.02,0));
+function storey(wall,w,d,h,lit,door,seed,dec){const g=new THREE.Group(),r=rng(seed);g.add(box(wall,w,h,d));g.add(box(TRIM,w+.06,.05,d+.06,0,h-.02,0));
   const glass=lit?'#f2d898':'#4f6478',nw=w>.8?2:1;
   for(let k=0;k<nw;k++){const x=nw>1?(k-.5)*w*.46:0;if(door&&k===0&&nw>1){g.add(box('#7b5a43',.2,.34,.03,x,0,d/2));g.add(box(TRIM,.25,.04,.04,x,.34,d/2));continue}
     g.add(box(TRIM,.2,.24,.03,x,h*.36,d/2));g.add(box(glass,.14,.18,.04,x,h*.36+.03,d/2))}
   if(r()<.6){g.add(box(TRIM,.16,.2,.03,0,h*.4,-d/2-.0));g.add(box('#4f6478',.11,.15,.04,0,h*.4+.025,-d/2))}
   if(w>.7)[-1,1].forEach(s=>{g.add(box(TRIM,.03,.2,.16,s*w/2,h*.38,0))});
+  if(dec){const nw=w>.8?2:1,xs=[];for(let k=0;k<nw;k++){if(door&&k===0&&nw>1)continue;xs.push(nw>1?(k-.5)*w*.46:0)}
+    if(dec==='planter')xs.forEach(x=>{g.add(box('#a07b56',.2,.06,.07,x,h*.36-.09,d/2+.04));[-.06,0,.06].forEach((o,j)=>g.add(ball(['#d9907e','#e2bc6e','#c79bb6'][j],.032,x+o,h*.36-.01,d/2+.05,1,1,1,true)));g.add(ball('#7e9a66',.045,x,h*.36-.04,d/2+.05,2.2,.8,1,true))});
+    if(dec==='shutter')xs.forEach(x=>[-1,1].forEach(s=>g.add(box('#5f7f78',.05,.26,.025,x+s*.15,h*.36-.01,d/2+.02))));
+    if(dec==='awning')xs.forEach(x=>{g.add(box('#c9573f',.26,.045,.15,x,h*.36+.25,d/2+.075));g.add(box('#f3eee4',.26,.012,.15,x,h*.36+.295,d/2+.075))});
+    if(dec==='lights')for(let k=0;k<7;k++)g.add(ball(k%2?'#ffd87a':'#f2b8a2',.024,-w/2+.07+k*(w-.14)/6,h-.09-Math.sin(k/6*Math.PI)*.06,d/2+.04,1,1,1,true));
+    if(dec==='plant'){g.add(cyl('#b98f68',.05,.04,.07,-w/2-.05,h*.25,0,8));g.add(ball('#7e9a66',.07,-w/2-.05,h*.25+.12,0,1,1.1,1,true));g.add(ball('#8aa66f',.05,-w/2-.1,h*.25+.1,.04,1,1,1,true))}
+  }
   return g}
 function roofOn(g,w,d,y,big){const rf=gable(w+.16,d+.14,big?.5:.4,ROOF);rf.position.y=y;g.add(rf);const ch=box(BRICK,.12,.26,.12,w*.25,y+.12,-d*.18);g.add(ch);return g}
 /* 效能（2026-10-03）：一間小屋原本由 30～400 個小方塊組成，58 間就要畫 6,000 次，手機會卡。
    小屋蓋好就不會動，所以把同一種材質的方塊合併成一塊（顏色記在頂點上）；有貼圖的門牌照舊 */
 function mergeGroup(R){R.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(R.matrixWorld).invert(),groups=new Map(),mtx=new THREE.Matrix4();
-  R.traverse(c=>{if(!c.isMesh||c.isInstancedMesh||Array.isArray(c.material)||c.material.map||c.material.transparent||!c.material.color||c.children.length)return;
+  R.traverse(c=>{if(!c.isMesh||c.userData.keep||c.isInstancedMesh||Array.isArray(c.material)||c.material.map||c.material.transparent||!c.material.color||c.children.length)return;
     const m=c.material,k=[m.type,m.side,!!m.flatShading,!!m.vertexColors,c.castShadow,c.receiveShadow].join('|');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(c)});
   groups.forEach(list=>{if(list.length<2)return;const P=[],N=[],C=[];
     list.forEach(c=>{const g=c.geometry.index?c.geometry.toNonIndexed():c.geometry.clone();mtx.multiplyMatrices(inv,c.matrixWorld);g.applyMatrix4(mtx);if(!g.attributes.normal)g.computeVertexNormals();
@@ -973,7 +1001,8 @@ function mergeGroup(R){R.updateMatrixWorld(true);const inv=new THREE.Matrix4().c
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
     const m=list[0].material.clone();m.color.set('#ffffff');m.vertexColors=true;const M=new THREE.Mesh(g,m);M.castShadow=list[0].castShadow;M.receiveShadow=list[0].receiveShadow;M.userData.mg=1;R.add(M)})}
 function makeHouse(m,i){
-  const sp=HSPOTS[i%HSPOTS.length],g=new THREE.Group(),n=m.works.length,r=rng(i*17+3),wall=m.color||WALLS[i%WALLS.length],F=floorsOf(n),lit=n>0;
+  const sp=HSPOTS[i%HSPOTS.length],g=new THREE.Group(),n=m.works.length,r=rng(i*17+3),L=m.look||{},wall=L.c!=null&&WALLS[L.c]?WALLS[L.c]:(m.color||WALLS[i%WALLS.length]),F=floorsOf(n),lit=n>0,_R=[ROOF,ROOF_D],fcOf=f=>F>=ONE_F&&L.fc&&WALLS[L.fc['f'+f]]||null,fdOf=f=>{const k=L.fd&&L.fd['f'+f],d=FDK.find(x=>x[0]===k);return d&&F>=d[2]?k:null};
+  if(L.r>0&&HROOFS[L.r]&&F>=ROOF_F){ROOF=HROOFS[L.r][0];ROOF_D=HROOFS[L.r][1]}
   const style=normStyle(m.style,i);
   g.position.set(sp.x,heightAt(sp.x,sp.z)-.05,sp.z);g.rotation.y=Math.atan2(sp.x,sp.z);
   // stone plinth with a brick rim, like a tiny harbour quay
@@ -984,28 +1013,63 @@ function makeHouse(m,i){
   if(style==='stack'){
     // blocks piled up, each a little turned and nudged, a lighthouse cap once it is tall
     let ox=0,oz=0;
-    for(let f=0;f<F;f++){const w=Math.max(.62,W-f*.03),dd=Math.max(.56,D-f*.03),st=storey(f%3===2?'#'+new THREE.Color(wall).offsetHSL(0,0,.06).getHexString():wall,w,dd,H,lit,f===0,i*31+f);
+    for(let f=0;f<F;f++){const w=Math.max(.62,W-f*.03),dd=Math.max(.56,D-f*.03),st=storey(fcOf(f)||(f%3===2?'#'+new THREE.Color(wall).offsetHSL(0,0,.06).getHexString():wall),w,dd,H,lit,f===0,i*31+f,fdOf(f));
       st.position.set(ox,y,oz);st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox=Math.max(-.22,Math.min(.22,ox+(r()-.5)*.16));oz=Math.max(-.18,Math.min(.18,oz+(r()-.5)*.12));g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
+    g.userData.topY=y;g.userData.ox=ox;g.userData.oz=oz;
     if(F>=4){const t=cyl(TRIM,.3,.34,.42,ox,y,oz,10);g.add(t);g.add(cyl('#f2d898',.24,.24,.22,ox,y+.42,oz,10));const cone=new THREE.Mesh(new THREE.ConeGeometry(.4,.55,10),toon(ROOF));cone.position.set(ox,y+.64+.27,oz);cone.castShadow=true;g.add(cone);g.add(ball('#c9573f',.05,ox,y+1.22,oz,1,1,1,true))}
     else roofOn(g,Math.max(.62,W-(F-1)*.03),Math.max(.56,D-(F-1)*.03),y,false).children.slice(-2).forEach(o=>{o.position.x+=ox;o.position.z+=oz})}
   else{
     // spreads along the ground into an L first, then the corner rises into a little tower
     const slots=[[0,0,0],[.94,0,0],[.94,0,-.84],[0,1,0],[.94,1,0],[0,2,0],[0,3,0]];for(let k=7;k<F;k++)slots.push([0,k-3,0]);slots.length=Math.min(slots.length,F);
     const occupied=new Set(slots.map(q=>q.join()));
-    slots.forEach(([sx,sl,sz],k)=>{const st=storey(k%2?'#'+new THREE.Color(wall).offsetHSL(0,-.05,.05).getHexString():wall,W,D,H,lit,k===0,i*31+k);st.position.set(sx-.47,top+sl*H,sz+.3);g.add(st);
+    slots.forEach(([sx,sl,sz],k)=>{const st=storey(fcOf(k)||(k%2?'#'+new THREE.Color(wall).offsetHSL(0,-.05,.05).getHexString():wall),W,D,H,lit,k===0,i*31+k,fdOf(k));st.position.set(sx-.47,top+sl*H,sz+.3);g.add(st);
       if(!occupied.has([sx,sl+1,sz].join())){const rf=gable(W+.14,D+.12,.4,k%2?ROOF_D:ROOF);rf.position.set(sx-.47,top+(sl+1)*H,sz+.3);if(sz)rf.rotation.y=Math.PI/2;g.add(rf)}});
-    y=top+Math.max(...slots.map(q=>q[1]+1))*H;g.add(box(BRICK,.12,.26,.12,-.3,y+.1,.1))}
+    y=top+Math.max(...slots.map(q=>q[1]+1))*H;g.userData.topY=y;g.userData.ox=-.47;g.userData.oz=.3;g.add(box(BRICK,.12,.26,.12,-.3,y+.1,.1))}
   // a few extras that come with more works
   if(n>=10)g.add(ball('#7e9a66',.16,pw/2-.2,.42,pd/2-.3,1,1.1,1,true));
   if(n>=20){const pole=cyl('#e9e3d6',.015,.015,.7,0,y+.3,0,6);g.add(pole);const flag=box(wall==='#eadcbc'?'#c9573f':'#f3eee4',.26,.16,.01,.13,y+.82,0);g.add(flag)}
+  /* 2026-10-09 門口與屋頂的裝飾 + 寵物窩（解鎖看樓層，開關存在 look.off；會動的煙和風向雞不合併，遠的時候不畫） */
+  {const off=L.off||[],dOn=k=>{const d=DECOK.find(x=>x[0]===k);return !!d&&F>=d[2]&&!off.includes(k)},wing=style==='wing',fz=pd/2,ud=g.userData,topY=ud.topY||1,tox=ud.ox||0,toz=ud.oz||0,doorX=(wing?-.47:0)-.21;
+    if(dOn('bush2'))[[-pw/2+.12,.4,fz-.2,.16],[-pw/2+.34,.38,fz-.02,.13],[pw/2-.1,.36,fz-.55,.12]].forEach(([x,yy,z,r])=>g.add(ball('#8aa66f',r,x,yy,z,1,1.1,1,true)));
+    if(dOn('lantern')){const x=doorX-.34,z=fz+.22;g.add(cyl('#3e4249',.014,.014,.55,x,.02,z,6));const gl=new THREE.Mesh(new THREE.SphereGeometry(.06,10,8),new THREE.MeshBasicMaterial({color:'#ffd87a'}));gl.position.set(x,.62,z);gl.userData.own=1;g.add(gl);g.add(cyl('#3e4249',.05,.02,.03,x,.66,z,8))}
+    if(dOn('path'))for(let k=0;k<4;k++)g.add(box(k%2?'#b3aa9b':'#a79e8f',.22,.02,.15,doorX+(k%2?.03:-.03),-.2,fz+.12+k*.2));
+    if(dOn('vane')){const x=pw/2+.55,z=fz+.15;g.add(cyl('#3e4249',.012,.012,.7,x,-.2,z,6));const vg=new THREE.Group();vg.position.set(x,.52,z);[box('#c9573f',.18,.1,.02,0,0,0),ball('#c9573f',.045,.08,.1,0,1,1,1,true),box('#3e4249',.3,.012,.012,0,0,0)].forEach(o=>{o.userData.keep=1;vg.add(o)});g.add(vg);ud.vane=vg}
+    if(dOn('smoke')){const x=tox+.26,z=toz-.27;g.add(cyl('#a4584a',.07,.07,.62,x,topY-.38,z,8));g.add(cyl('#7a3f35',.09,.09,.04,x,topY+.24,z,8));ud.smoke=[];
+      for(let k=0;k<4;k++){const pf=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),new THREE.MeshBasicMaterial({color:'#f3f1ec',transparent:true,opacity:.6}));pf.userData={keep:1,own:1,x,z,y0:topY+.3,i:k};pf.visible=false;g.add(pf);ud.smoke.push(pf)}}
+    if(dOn('topper')){g.updateMatrixWorld(true);const t=new THREE.Box3().setFromObject(g).max.y-g.position.y;
+      if(L.tp==='star'){const sm=new THREE.Mesh(new THREE.OctahedronGeometry(.1),toon('#f2d898'));sm.position.set(tox,t+.13,toz);g.add(sm)}else g.add(ball('#f2d898',.09,tox,t+.08,toz,1,1,1,true))}
+    if(dOn('gold')){const gf=box('#d4a935',.8,.3,.02,.55,.47,fz+.33);gf.rotation.y=.25;g.add(gf)}
+    /* 寵物窩：認養後出現，每多 4 件作品升一級；還沒認養的屋主會看到半透明的窩輪廓 */
+    const lv=nestLevel(n),mine=typeof G!=='undefined'&&G&&G.me===m.id;
+    if((m.pet||m.frog)&&lv>0){const ng=makeNest(lv);ng.position.set(-pw/2-.65,-.2,fz-.05);g.add(ng)}
+    else if(mine&&n<8&&!DEMO_NOGHOST){const gh=new THREE.Mesh(new THREE.BoxGeometry(.34,.22,.32),new THREE.MeshBasicMaterial({color:'#1d6b68',transparent:true,opacity:.28}));gh.position.set(-pw/2-.65,-.09,fz-.05);gh.userData.own=1;g.add(gh)}
+  }
+  ROOF=_R[0];ROOF_D=_R[1];
   const sign=cvs(256,72),sx=sign.getContext('2d');sx.fillStyle='#f6ecd8';sx.fillRect(0,0,256,72);sx.strokeStyle='#a07b56';sx.lineWidth=6;sx.strokeRect(3,3,250,66);sx.fillStyle='#3d2f22';sx.font='34px "Noto Sans TC",sans-serif';sx.textAlign='center';sx.textBaseline='middle';sx.fillText(m.name,128,38);
   const sg=new THREE.Mesh(new THREE.PlaneGeometry(.7,.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sign)}));sg.position.set(.55,.62,pd/2+.35);sg.rotation.y=.25;g.add(sg);g.add(cyl('#a07b56',.02,.02,.55,.55,.1,pd/2+.33,6));
   g.scale.setScalar(1.15);mergeGroup(g);
-  g.userData={member:m,i};g.traverse(o=>{if(o.isMesh){o.userData.house=m;picks.push(o)}});scene.add(g);return g;
+  Object.assign(g.userData,{member:m,i});g.traverse(o=>{if(o.isMesh){o.userData.house=m;picks.push(o)}});scene.add(g);return g;
 }
+const DEMO_NOGHOST=false;
+function makeNest(lv){const g=new THREE.Group(),wood='#b98f68',dark='#6f553e',cream='#eadcbc';
+  if(lv===1){g.add(box(wood,.34,.22,.32));g.add(box(dark,.16,.12,.02,0,0,.17))}
+  if(lv>=2){g.add(box(wood,.36,.24,.34));g.add(box(dark,.14,.13,.02,0,0,.18));const rf=gable(.44,.4,.2,'#a9573f');rf.position.y=.24;g.add(rf)}
+  if(lv>=3){g.add(box('#c9573f',.34,.012,.2,.02,0,.34));g.add(cyl('#e9e3d6',.06,.05,.04,.26,0,.3,10))}
+  if(lv>=4){for(let k=0;k<7;k++)g.add(box(cream,.02,.16,.02,-.3+k*.1,0,.5));g.add(box(cream,.62,.02,.02,0,.1,.5))}
+  if(lv>=5)[[-.32,.42,'#e2bc6e'],[.38,.46,'#d9907e'],[-.38,.1,'#a7a6cf']].forEach(([x,z,c])=>{g.add(cyl('#7e9a66',.01,.01,.08,x,0,z,5));g.add(ball(c,.045,x,.11,z,1,1,1,true))});
+  if(lv>=6){g.add(cyl('#a07b56',.015,.015,.5,.36,0,-.1,6));g.add(ball('#f2d898',.06,.36,.5,-.1,1,1,1,true))}
+  return g}
+let animHouses=[];
+const findAnim=()=>{animHouses=houses.filter(h=>h&&(h.userData.smoke||h.userData.vane))};
+function houseAnimTick(now){const t=now/1000;for(const h of animHouses){h.getWorldPosition(_tv);const near=_tv.distanceTo(camera.position)<34,u=h.userData;
+  if(u.smoke)u.smoke.forEach(pf=>{pf.visible=near;if(near){const d=pf.userData,q=(t*.35+d.i/4)%1;pf.position.set(d.x+q*.06,d.y0+q*.75,d.z);pf.scale.setScalar(.04+q*.1);pf.material.opacity=.6*(1-q)}});
+  if(u.vane&&near)u.vane.rotation.y=t*.8}}
+/* 只重蓋一間（裝飾小屋時邊選邊看，不用整座島重來） */
+function rebuildOne(idx){const old=houses[idx];if(old){scene.remove(old);const gone=new Set();old.traverse(o=>{gone.add(o);if(o.userData.mg||o.userData.own){o.geometry.dispose();o.material.dispose()}});picks=picks.filter(p=>!gone.has(p))}
+  houses[idx]=makeHouse(G.members[idx],idx);findAnim()}
 function rebuildHouses(){
-  const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>{all.add(o);if(o.userData.mg){o.geometry.dispose();o.material.dispose()}})});picks=picks.filter(p=>!all.has(p));
-  houses=G.members.map((m,i)=>makeHouse(m,i));rebuildFoliage();rebuildLumps();tagEls.forEach(b=>b.dataset.i='');try{rebuildGP()}catch(e){console.warn('gp',e)}
+  const all=new Set();houses.forEach(h=>{scene.remove(h);h.traverse(o=>{all.add(o);if(o.userData.mg||o.userData.own){o.geometry.dispose();o.material.dispose()}})});picks=picks.filter(p=>!all.has(p));
+  houses=G.members.map((m,i)=>makeHouse(m,i));findAnim();rebuildFoliage();rebuildLumps();tagEls.forEach(b=>b.dataset.i='');try{rebuildGP()}catch(e){console.warn('gp',e)}
   $('nHouses').textContent=G.members.length;$('nWorks').textContent=G.members.reduce((a,m)=>a+m.works.length,0)+G.album.length;
 }
 /* ================= animals ================= */
@@ -1143,7 +1207,7 @@ function loop(now){
     clouds.forEach(c=>{c.userData.a+=c.userData.v*dt;c.position.x=Math.cos(c.userData.a)*c.userData.d;c.position.z=Math.sin(c.userData.a)*c.userData.d});
     sky.forEach(s=>{const o=s.userData.o;o.a+=o.sp*dt;s.position.set(Math.cos(o.a)*o.rad,o.y+Math.sin(now/2200+o.bob)*.6,Math.sin(o.a)*o.rad);s.rotation.y=-o.a+(o.sp>0?-Math.PI/2:Math.PI/2);
       if(s.userData.tail)s.userData.tail.rotation.z=Math.sin(now/900)*.25;if(s.userData.fl)s.userData.fl.forEach((f,i)=>f.rotation.x=Math.sin(now/500+i)*.4)});
-    lanterns.forEach(l=>{l.rotation.z=Math.sin(now/1400+l.userData.ph)*.08});
+    lanterns.forEach(l=>{l.rotation.z=Math.sin(now/1400+l.userData.ph)*.08});houseAnimTick(now);
     turbines.forEach((t,k)=>t.userData.hub.rotation.z+=dt*(.7+k*.15));
     falls.forEach(f=>f.material.map.offset.y+=dt*.9);
     if(airship){airship.position.y=1.6+Math.sin(now/1800)*.18;airship.rotation.z=Math.sin(now/2300)*.03;airship.userData.prop.rotation.x+=dt*4}
@@ -1220,10 +1284,54 @@ function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
   const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261008l';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
-  const next=F<MAXF?`再 ${4-n%4} 件作品就會加蓋一層。`:'已經蓋到最高了！';
+  const next=F<MAXF?`再 ${worksForFloor(F+1)-n} 件作品就會加蓋一層。`:'已經蓋到最高了！之後的作品用來解鎖裝飾。';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
     gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'');
-  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+/* 裝飾小屋（2026-10-09）：牆色（整棟／每層）、屋頂色、每層裝飾、門口與屋頂裝飾開關。邊選邊看，按「存好了」才寫進去 */
+let lookSt=null;
+function closeLook(revert){const d=$('drawer');if(d.hidden)return;if(revert&&lookSt){lookSt.m.look=lookSt.orig;const i=G.members.indexOf(lookSt.m);if(i>=0)rebuildOne(i)}d.hidden=true;lookSt=null}
+function lookPanel(m){
+  const idx=G.members.indexOf(m),n=m.works.length,F=floorsOf(n),defC=idx%WALLS.length;
+  lookSt={m,orig:m.look?JSON.parse(JSON.stringify(m.look)):null};
+  const L=m.look=m.look?JSON.parse(JSON.stringify(m.look)):{};
+  let mode='all',sel=0,sel2=Math.min(1,F-1);
+  $('sheet').hidden=true;const h=houses[idx];if(h)focusOn(h,7+F*1.8,.3+F*.08,.5-F*.012); /* 下面的抽屜佔掉近一半畫面，小屋要落在上半部 */
+  const drawer=$('drawer'),need=f=>Math.max(0,worksForFloor(f)-n),fcv=f=>L.fc&&L.fc['f'+f],cur=()=>L.c!=null?L.c:defC;
+  const chips=(list,selI,act)=>`<div class="dch">${list.map(i=>`<button type="button" data-a="${act}" data-v="${i}" class="${i===selI?'on':''}">${i+1}樓</button>`).join('')}</div>`;
+  const floors=Array.from({length:F},(_,i)=>i);
+  const paint=()=>{
+    const oneOk=F>=ONE_F,wl=F>=WALL_ALL_F?10:WALL_FREE,wallOn=mode==='one'&&oneOk&&fcv(sel)!=null?+fcv(sel):cur();
+    drawer.innerHTML=`<h3>牆色</h3>
+      <div class="dch"><button type="button" data-a="mode" data-v="all" class="${mode==='all'||!oneOk?'on':''}">整棟一起換</button><button type="button" data-a="mode" data-v="one" class="${mode==='one'&&oneOk?'on':''}${oneOk?'':' lk'}">每層各自換${oneOk?'':'（5樓）'}</button></div>
+      ${mode==='one'&&oneOk?chips(floors,sel,'fl'):''}
+      <div class="dsw">${WALLS.map((c,i)=>`<button type="button" aria-label="${WALL_NAMES[i]}" data-a="wall" data-v="${i}" style="background:${c}" class="${i===wallOn?'on':''}${i>=wl?' lk':''}"></button>`).join('')}</div>
+      <p class="hint">${wl>=10?'10 款牆色都解鎖了。':`再 ${need(WALL_ALL_F)} 件作品，蓋到 ${WALL_ALL_F} 樓，其他牆色和「每層各自換色」就解鎖。`}</p>
+      <h3>屋頂色</h3><div class="dsw">${HROOFS.map(([c],i)=>`<button type="button" aria-label="${HROOFS[i][2]}" data-a="roof" data-v="${i}" style="background:${c}" class="${(L.r||0)===i?'on':''}${i>0&&F<ROOF_F?' lk':''}"></button>`).join('')}</div>
+      ${F<ROOF_F?`<p class="hint">屋頂換色要蓋到 ${ROOF_F} 樓，再 ${need(ROOF_F)} 件作品。</p>`:''}
+      <h3>每層樓的裝飾</h3>${chips(floors,sel2,'fl2')}
+      <div class="dch">${[['', '不放',0],...FDK.map(x=>[x[0],x[1],x[2]])].map(([k,nm,fl])=>`<button type="button" data-a="fd" data-v="${k}" class="${(L.fd&&L.fd['f'+sel2]||'')===k?'on':''}${k&&F<fl?' lk':''}">${nm}${k&&F<fl?`（${fl}樓）`:''}</button>`).join('')}</div>
+      <h3>門口與屋頂</h3><div class="dch">${DECOK.map(([k,nm,fl])=>{const ok=F>=fl,on=ok&&!(L.off||[]).includes(k);return`<button type="button" data-a="dc" data-v="${k}" class="${on?'on':''}${ok?'':' lk'}">${nm}${ok?'':`（${fl}樓）`}</button>`}).join('')}</div>
+      ${F>=8?`<div class="dch"><span class="hint" style="margin:8px 4px 0 0">頂飾</span><button type="button" data-a="tp" data-v="ball" class="${L.tp!=='star'?'on':''}">圓球</button><button type="button" data-a="tp" data-v="star" class="${L.tp==='star'?'on':''}">星星</button></div>`:''}
+      <div class="acts"><button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="save">存好了</button></div>`;
+    drawer.hidden=false};
+  const redraw=()=>{rebuildOne(idx);const hh=houses[idx];if(hh&&focus)focus.obj=hh;paint()};
+  drawer.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
+    if(a==='cancel'){closeLook(true);return}
+    if(a==='save'){b.disabled=true;b.textContent='儲存中…';
+      try{if(!DEMO)await api('/island/look',{c:L.c,r:L.r,fc:L.fc,fd:L.fd,off:L.off,tp:L.tp});
+        lookSt.orig=null;closeLook(false);toast('小屋的樣子存好了')}
+      catch(err){toast(err.message);b.disabled=false;b.textContent='存好了'}return}
+    if(a==='mode'){if(v==='one'&&F<ONE_F){toast(`每層各自換色要蓋到 ${ONE_F} 樓，再 ${need(ONE_F)} 件作品`);return}mode=v;paint();return}
+    if(a==='fl'){sel=+v;paint();return}
+    if(a==='fl2'){sel2=+v;paint();return}
+    if(a==='wall'){const i=+v;if(i>=WALL_FREE&&F<WALL_ALL_F){toast(`這個顏色要蓋到 ${WALL_ALL_F} 樓，再 ${need(WALL_ALL_F)} 件作品`);return}
+      if(mode==='one'&&F>=ONE_F){L.fc=L.fc||{};L.fc['f'+sel]=i}else{L.c=i;delete L.fc}redraw();return}
+    if(a==='roof'){const i=+v;if(i>0&&F<ROOF_F){toast(`屋頂換色要蓋到 ${ROOF_F} 樓，再 ${need(ROOF_F)} 件作品`);return}L.r=i;redraw();return}
+    if(a==='fd'){const d=FDK.find(x=>x[0]===v);if(v&&d&&F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}L.fd=L.fd||{};if(v)L.fd['f'+sel2]=v;else delete L.fd['f'+sel2];redraw();return}
+    if(a==='dc'){const d=DECOK.find(x=>x[0]===v);if(F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}const o=new Set(L.off||[]);o.has(v)?o.delete(v):o.add(v);L.off=[...o];redraw();return}
+    if(a==='tp'){L.tp=v;L.off=(L.off||[]).filter(x=>x!=='topper');redraw();return}};
+  paint()}
 /* 改門牌名字（2026-10-05）：屋主改自己家，老師可以改任何一間 */
 function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫在小屋門牌上，大家逛到都看得到。</p><label for="rn">門牌名字（最多 8 個字）</label><input type="text" id="rn" maxlength="8" value="${esc(m.name)}">
     <div class="acts"><button class="pill" type="button" id="rnX">取消</button><button class="pill main" type="button" id="rnO">改好了</button></div>`);
@@ -1548,7 +1656,7 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null,look:h.look||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
@@ -1580,16 +1688,16 @@ $('plMascot').onclick=()=>{const u='park.html?v=20261008l&isl=mascot';window.Fer
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
 function armBack(){try{if(!(history.state&&history.state.otOv))history.pushState({otOv:1},'')}catch(e){}}
-const anyOv=()=>!$('lb').hidden||!$('modal').hidden||!$('sheet').hidden;
+const anyOv=()=>!$('lb').hidden||!$('modal').hidden||!$('sheet').hidden||!$('drawer').hidden;
 new MutationObserver(()=>{if(anyOv())armBack()}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
-addEventListener('popstate',()=>{if(!$('lb').hidden)$('lb').hidden=true;else if(!$('modal').hidden){closeModal();focus=null}else if(!$('sheet').hidden)closeSheet();else{history.back();return}
+addEventListener('popstate',()=>{if(!$('lb').hidden)$('lb').hidden=true;else if(!$('drawer').hidden){closeLook(true);focus=null}else if(!$('modal').hidden){closeModal();focus=null}else if(!$('sheet').hidden)closeSheet();else{history.back();return}
   if(anyOv())armBack()});
 /* 作品上傳後可以再改名稱（2026-10-05 大熊要的）：屋主改自己家、老師改任何一間和大樹相簿 */
 $('lbRen').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];const t=prompt('作品名稱（最多 14 個字，空白就是不取名）',w.title&&w.title!=='作品'&&w.title!=='上課花絮'?w.title:'');if(t===null)return;
   const title=t.trim().slice(0,14);try{await api('/island/retitle',Object.assign({id:w.id,title},lb.del));w.title=title;openList(lb.list,lb.i,lb.label,lb.del,lb.house);toast(title?'改好了':'名稱拿掉了');reload().catch(()=>{})}catch(e){toast(e.message)}};
 $('lbPrev').onclick=()=>{if(lb)openList(lb.list,(lb.i-1+lb.list.length)%lb.list.length,lb.label,lb.del,lb.house)};
 $('lbNext').onclick=()=>{if(lb)openList(lb.list,(lb.i+1)%lb.list.length,lb.label,lb.del,lb.house)};
-addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('lb').hidden)$('lb').hidden=true;else if(!$('modal').hidden)closeModal();else if(touring)stopTour();else if(!$('sheet').hidden)closeSheet()}});
+addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('lb').hidden)$('lb').hidden=true;else if(!$('drawer').hidden)closeLook(true);else if(!$('modal').hidden)closeModal();else if(touring)stopTour();else if(!$('sheet').hidden)closeSheet()}});
 function safeStart(d){return start(d).catch(err=>{console.error(err);$('loading').textContent='畫面載入失敗：'+(err&&err.message||err)+'（請截圖給我）'})}
 window.claude?.hot?.ready?window.claude.hot.ready(safeStart):safeStart(window.claude?.hot?.data??{});
 </script>
