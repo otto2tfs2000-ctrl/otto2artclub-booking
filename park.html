@@ -715,7 +715,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009e';
+const PARK_VER='20261009f';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1471,8 +1471,21 @@ function shopAnimSet(img,u){return shopAnimBlob(u).then(b=>new Promise(res=>{
   const to=setTimeout(res,900);img.onload=()=>{clearTimeout(to);res()};
   if(b){img._bu=URL.createObjectURL(b);img.src=img._bu}else img.src=u+'&t='+Date.now()}))}
 function shopImgReady(u){return _shopImg[u]||(_shopImg[u]=new Promise(r=>{const i=new Image();i.onload=()=>r(true);i.onerror=()=>{delete _shopImg[u];r(false)};i.src=u}))}
+/* 店員的聲音（2026-10-09）。以前用 <audio>：點了才開始下載，又要等動畫載好才播，iPhone 還常常因為「不是點擊當下播放」直接不出聲；
+   而且按「進去逛逛」沒有停掉門口店員的聲音，進到商品頁還聽得到上一頁的。
+   現在改用 WebAudio（跟遊樂島音效同一個 context）：預先下載＋解碼，要播就馬上播，要停就停得掉；一次只會有一個聲音。 */
+const VOICE={buf:{},cur:null,want:null};
+function voiceLoad(u){return VOICE.buf[u]||(VOICE.buf[u]=(async()=>{try{sfxInit();const c=SFX.ctx;if(!c)return null;const r=await fetch(u);if(!r.ok)throw 0;const ab=await r.arrayBuffer();
+  return await new Promise((ok,no)=>{const p=c.decodeAudioData(ab,ok,no);if(p&&p.catch)p.catch(no)})}catch(e){delete VOICE.buf[u];return null}})())}
+function voiceStop(){VOICE.want=null;const s=VOICE.cur;VOICE.cur=null;if(s){try{s.onended=null;s.stop()}catch(e){}}
+  ['sgAud','spGirlAud'].forEach(id=>{const a=$(id);if(a)try{a.pause()}catch(e){}})}
+function voicePlay(u,elId){voiceStop();if(!SFX.on)return;VOICE.want=u;sfxInit();const c=SFX.ctx;if(c&&c.state==='suspended'){try{c.resume()}catch(e){}}
+  voiceLoad(u).then(b=>{if(VOICE.want!==u)return;
+    if(b&&c){const s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.onended=()=>{if(VOICE.cur===s)VOICE.cur=null};VOICE.cur=s;s.start()}
+    else{const a=elId&&$(elId);if(a){a.src=u;try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)voiceStop()});
 /* 進遊樂島幾秒後，趁閒置先把店員動畫和聲音抓好，點店面時就能馬上動 */
-function shopWarm(){setTimeout(()=>{shopLoad().then(()=>{shopImgReady(SHOPA.open.still);shopImgReady(SHOPA.closed.still);const k=SHOPA[SHOP&&SHOP.cfg.pending?'closed':'open'];shopAnimBlob(k.anim);fetch(k.wav).catch(()=>{})}).catch(()=>{})},4000)}
+function shopWarm(){setTimeout(()=>{shopLoad().then(()=>{shopImgReady(SHOPA.open.still);shopImgReady(SHOPA.closed.still);const k=SHOPA[SHOP&&SHOP.cfg.pending?'closed':'open'];shopAnimBlob(k.anim);voiceLoad(k.wav);setTimeout(()=>{shopAnimBlob(GIRL_ANIM);voiceLoad('shop-girl.m4a?v=20261008i')},1500)}).catch(()=>{})},2000)}
 let _shopTok=0;
 function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidden)return;sfx('tap');g.hidden=false;g.classList.add('wait');void g.offsetWidth;g.classList.add('show');
   const tok=++_shopTok,m=$('sgMan'),a=$('sgAud');
@@ -1493,17 +1506,18 @@ function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidde
         /* 動畫換上去、開始播的同時才放聲音，兩邊一起走 */
         (m?shopAnimSet(m,k.anim):Promise.resolve()).then(()=>{
           if(tok!==_shopTok||shown!==closed||g.hidden||!g.classList.contains('show'))return;
-          if(a){a.src=k.wav;if(SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})})})};
+          voicePlay(k.wav,'sgAud')})})})};
   const ld=shopLoad(true).catch(()=>{});
-  Promise.race([ld,new Promise(r=>setTimeout(r,1500))]).then(apply);
+  if(SHOP)apply();else Promise.race([ld,new Promise(r=>setTimeout(r,1500))]).then(apply);
   ld.then(apply)}
-function closeShop(cb){_shopTok++;const g=$('shopGate');const a=$('sgAud');if(a)a.pause();g.classList.remove('show');setTimeout(()=>{g.hidden=true;if(cb)cb()},330)}
+function closeShop(cb){_shopTok++;voiceStop();const g=$('shopGate');const a=$('sgAud');if(a)a.pause();g.classList.remove('show');setTimeout(()=>{g.hidden=true;if(cb)cb()},330)}
 $('sgX').addEventListener('click',()=>closeShop());
 $('sgLater').addEventListener('click',()=>{sfx('tap');closeShop(()=>toast('好的，歡迎隨時再來逛逛'))});
 $('sgIn').addEventListener('click',async()=>{sfx('tap');
   try{await shopLoad()}catch(e){toast('連線不穩，稍後再試');return}
   if(SHOP.cfg.open===false){toast('選品館暫時休息中，過幾天再來');return}
   if(SHOP.cfg.pending){toast('選品館還沒開幕喔');return}
+  voiceStop();_shopTok++;  /* 進商品頁之前先把門口店員的聲音和還沒跑完的動畫流程停掉 */
   const g=$('shopGate');g.classList.remove('show');setTimeout(()=>{g.hidden=true;showShopPage()},300)});
 function shopPrice(p){return p.onSale?`<s>${p.orig}</s><i class="sp-coin"></i>${p.price}`:`<i class="sp-coin"></i>${p.price}`}
 let _girlT=0,_girlTok=0;
@@ -1513,11 +1527,11 @@ function shopGirlHi(){const g=$('spGirl');if(!g)return;clearTimeout(_girlT);g.cl
   const gb=g.querySelector('.sp-gb');gb.style.animation='none';void gb.offsetWidth;gb.style.animation='';
   const gt=++_girlTok;
   shopAnimSet($('spGirlImg'),GIRL_ANIM).then(()=>{if(gt!==_girlTok||g.hidden)return;
-    const a=$('spGirlAud');if(a&&SFX.on){try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}});
+    voicePlay('shop-girl.m4a?v=20261008i','spGirlAud')});
   /* 她一直站在原位；播完（約 8 秒）只收起對話框，點她可以再打一次招呼 */
   gb.classList.remove('off');_girlT=setTimeout(()=>gb.classList.add('off'),8400)}
 $('spGirl').addEventListener('click',()=>shopGirlHi());
-function hideShopPage(cb){const pg=$('shopPage');clearTimeout(_girlT);const ga=$('spGirlAud');if(ga)ga.pause();const gg=$('spGirl');if(gg)gg.hidden=true;pg.classList.remove('show');setTimeout(()=>{pg.hidden=true;if(cb)cb()},300)}
+function hideShopPage(cb){const pg=$('shopPage');voiceStop();clearTimeout(_girlT);const ga=$('spGirlAud');if(ga)ga.pause();const gg=$('spGirl');if(gg)gg.hidden=true;pg.classList.remove('show');setTimeout(()=>{pg.hidden=true;if(cb)cb()},300)}
 function renderShop(){const d=SHOP;if(!d)return;
   $('spName').textContent=d.cfg.name||'藝享選品館';$('spSub').textContent=d.cfg.sub||'';
   const bal=$('spBal');if(d.me&&!d.me.needPhone){bal.hidden=false;$('spBalN').textContent=d.me.bonus.toLocaleString()}else bal.hidden=true;
@@ -2152,7 +2166,7 @@ function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;if(c.st
   else if(k==='tap')tone(700,.05,'sine',.1)}
 addEventListener('pointerdown',()=>{sfxInit();if(SFX.ctx&&SFX.ctx.state==='suspended')SFX.ctx.resume()},{passive:true});
 function muteLook(){const H=`<i>${SFX.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>'}</i>${SFX.on?'音效':'靜音'}`;['muteBtn','miMute'].forEach(id=>{const b=document.getElementById(id);if(b)b.innerHTML=H})}
-function toggleMute(){SFX.on=!SFX.on;try{localStorage.setItem('otto2-park-mute',SFX.on?'0':'1')}catch(e){}muteLook();if(SFX.on)sfx('tap')}
+function toggleMute(){SFX.on=!SFX.on;if(!SFX.on)try{voiceStop()}catch(e){}try{localStorage.setItem('otto2-park-mute',SFX.on?'0':'1')}catch(e){}muteLook();if(SFX.on)sfx('tap')}
 
 /* ---------- 第一次打開：鏡頭帶著走一圈 ---------- */
 function tourSteps(){const b=GA.bubs.map(x=>x.userData.base).reduce((a,v)=>a.add(v),new THREE.Vector3()).multiplyScalar(1/GA.bubs.length),bd=PLAZA.clone().add(ZONE.board);
