@@ -715,7 +715,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009f';
+const PARK_VER='20261009g';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1898,7 +1898,10 @@ function trainTick(dt,now){if(!GA.train)return;const sp=(party?.75:.2)*(RM?.5:1)
   for(let k=GA.smoke.length-1;k>=0;k--){const p=GA.smoke[k];p.userData.life-=dt;p.position.y+=dt*.6;p.scale.setScalar(1+(1.4-p.userData.life)*1.6);p.material.opacity=Math.max(0,p.userData.life/1.4*.8);if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();p.material.dispose();GA.smoke.splice(k,1)}} /* 用完要釋放，不然火車的煙每 0.7 秒漏一顆，玩越久越卡 */
 }
 /* 公仔：散放在廣場空地上，空位用淡淡的圓圈標出來 */
-const FIG_SPOTS=[[2.6,1.0],[4.2,.5],[3.4,2.6],[1.9,3.9],[4.5,-1.0],[-2.4,-.8],[.9,5.0],[-3.9,3.7],[3.3,-2.2],[-1.6,4.9]];
+/* 2026-10-09 大熊：隱藏版公仔被扭蛋機擋住。舊位子有好幾個在機台正後方、底下（以前每款的位子是照順序亂排的）。
+   新位子是用瀏覽器從預設鏡頭實測「從鏡頭看過去沒被東西擋住」的空地選出來的：避開扭蛋機後面和旁邊、通往橋的路、左邊店員；
+   順序照圖鑑：p01 p02 p06 p05 p03 p04 p07(稀有) p08(稀有) hbear(隱藏) hgold(隱藏)，稀有和隱藏版放在最顯眼的前方中間 */
+const FIG_SPOTS=[[-4.4,-.6],[4.0,2.4],[.7,.9],[-4.4,1.5],[-2.6,.6],[-2.6,-1.5],[1.9,2.4],[.4,4.2],[-1.7,3.9],[-.5,2.4]];
 function buildStand(){GA.figs={};
   GB.bears.forEach((b,i)=>{const [x,z]=FIG_SPOTS[i],wx=PLAZA.x+x,wz=PLAZA.z+z;
     const ring=new THREE.Mesh(new THREE.RingGeometry(.3,.37,6),new THREE.MeshBasicMaterial({color:b.rare?'#d4a347':'#ffffff',transparent:true,opacity:.75,depthWrite:false}));
@@ -2131,7 +2134,8 @@ function buildMist(){const M=new THREE.Group();scene.add(M);GA.mist=M;const t=so
   [[-4.3,3.6,1.0,3.2],[-8,4.6,.5,3],[0,5.0,.5,3.2],[0,7.5,-12,4],[-6,8,-14,3.5],[6,8.5,-15,3.5]].forEach(([x,y,z,s])=>{const c=makeCloud();c.scale.setScalar(s);c.position.set(x,y,z);c.userData.p0=c.position.clone();M.add(c)})}
 
 /* 空地上的小畫架：抽到的畢卡索公仔會走過去站著畫畫，畫布上會慢慢多出色塊 */
-const EASELS=[[-1.7,2.7,.95],[3.7,1.0,-.95],[4.3,-1.6,-1.2]];
+/* 2026-10-09：另外兩個畫架原本一個貼在扭蛋機旁、一個在機台正後方，公仔走去畫畫就被機台擋住（隱藏版也是）。搬到前方空地 */
+const EASELS=[[-1.7,2.7,.95],[2.6,3.5,-.6],[-3.4,3.0,.7]];
 function buildEasels(){GA.easels=[];const wood=toon('#9c6a40',{flatShading:true});
   EASELS.forEach(([x,z,ry],i)=>{const g=new THREE.Group(),pos=PLAZA.clone().add(new THREE.Vector3(x,0,z));g.position.copy(pos);g.rotation.y=ry;scene.add(g);
     [[-.22,.12],[.22,.12],[0,-.25]].forEach(([lx,lz],k)=>{const l=mesh(new THREE.BoxGeometry(.05,1.25,.05),wood,lx,.6,lz);l.rotation.x=k===2?.3:-.08;l.rotation.z=lx*.4;g.add(l)});
