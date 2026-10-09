@@ -581,6 +581,11 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 #goldG .gg-top{position:relative; z-index:2; text-align:center; color:#6b4300; text-shadow:0 0 10px rgba(255,255,255,.8); margin-bottom:6px}
 #goldG .gg-top b{display:block; font-size:30px; letter-spacing:6px}
 #goldG .gg-top span{font-size:14px; font-weight:700}
+#goldG .gg-top small{display:block; font-size:10px; font-weight:400; opacity:.55; margin-top:2px}
+#goldG .gg-fb{position:absolute; left:0; right:0; top:32%; z-index:3; text-align:center; color:#6b4300; pointer-events:none; text-shadow:0 0 10px rgba(255,255,255,.8)}
+#goldG .gg-fb .ic{font-size:110px; line-height:1.1; filter:drop-shadow(0 8px 10px rgba(120,70,0,.35)); animation:ggfb 1.6s ease-in-out infinite}
+#goldG .gg-fb p{margin:6px 0 0; font-size:15px; font-weight:700}
+@keyframes ggfb{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-8px) rotate(4deg)}}
 #goldG .gg-sp{position:absolute; inset:0; z-index:3; pointer-events:none}
 #goldG .gg-sp i{position:absolute; width:var(--s); height:var(--s); background:radial-gradient(circle,#fff 0,#fff6c4 30%,rgba(255,220,100,0) 70%); clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%); animation:ggTw var(--d) ease-in-out var(--l) infinite}
 @keyframes ggTw{0%,100%{opacity:0; transform:scale(.3) rotate(0)}50%{opacity:1; transform:scale(1) rotate(45deg)}}
@@ -694,7 +699,8 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <div id="goldG" hidden aria-label="黃金扭蛋">
   <div class="gg-rays"></div><div class="gg-glow"></div>
   <button type="button" class="gg-x" id="ggX" aria-label="關閉">✕</button>
-  <div class="gg-top"><b>黃金扭蛋</b><span id="ggSub">買方案送的金幣，轉一次，保證有獎</span></div>
+  <div class="gg-top"><b>黃金扭蛋</b><span id="ggSub">買方案送的金幣，轉一次試試手氣</span><small id="ggDiag"></small></div>
+  <div class="gg-fb" id="ggFb" hidden><div class="ic">🪙</div><p id="ggFbT">金色機台準備中…</p></div>
   <canvas id="ggCv" width="720" height="1080"></canvas>
   <div class="gg-sp" id="ggSp"></div>
   <div class="gg-btns"><button type="button" class="gg-go" id="ggGo">轉一下</button><div class="gg-coin"><i class="sp-coin"></i>黃金扭蛋金幣 ×<b id="ggN">1</b></div></div>
@@ -709,7 +715,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009c';
+const PARK_VER='20261009d';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1332,9 +1338,10 @@ function buildPath(P){
 
 /* ---------- 黃金扭蛋金幣（2026-10-09 接上後台：買方案依金額發金幣，伺服器依各級機率抽，紅利直接入帳、票券進「中獎紀錄・核銷」） ---------- */
 let GGBUSY=false,GOLD=null,GGMODE={demo:false,tier:''},GGDT=0;
-const goldHas=()=>!!(GOLD&&GOLD.enabled&&!GOLD.expired&&GOLD.coins>0&&!window.KIOSK&&!GGBUSY);
+const goldHas=()=>!!(GOLD&&GOLD.open&&!GOLD.expired&&GOLD.coins>0&&!window.KIOSK&&!GGBUSY);
 /* 有金幣時，主按鈕「轉一下」直接變金色、按下去開黃金扭蛋；金幣用完就變回原本的 */
-async function goldRefresh(){const was=goldHas()?GOLD.coins:0;if(!token()||window.KIOSK){GOLD=null}else{try{GOLD=await gcall('/gacha/gold/state')}catch(e){GOLD=null}}
+async function goldRefresh(){const was=goldHas()?GOLD.coins:0;if(!token()||window.KIOSK){GOLD=null}else{let dm=false;try{dm=isStaffNow()||(typeof PL!=='undefined'&&PL.staff)||/[?&]gold=1/.test(location.search)}catch(e){}
+    try{GOLD=await gcall('/gacha/gold/state',{demo:dm})}catch(e){GOLD=null}}
   if(goldHas())ggLoadImgs();
   if((goldHas()?GOLD.coins:0)!==was){try{hud()}catch(e){}}}
 function ggSparkles(){const sp=$('ggSp');sp.innerHTML='';for(let k=0;k<18;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=18+Math.random()*30;
@@ -1343,8 +1350,9 @@ function goldGachaOpen(n,demo){ggLoadImgs();if(GGBUSY)return;const g=$('goldG');
   if(demo){const T=(GOLD&&GOLD.tiers)||[];if(T.length){const t=T[GGDT++%T.length];GGMODE.tier=t.id;sub='示範：'+t.nm+'的機率（不入帳）'}else sub='示範（不入帳）'}
   $('ggSub').textContent=sub;$('ggN').textContent=demo?'∞':(n||1);$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
   g.hidden=false;void g.offsetWidth;g.classList.add('show');try{sfx('chime')}catch(e){}
-  ggReady().then(()=>{if(!g.hidden)ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold)}).catch(e=>{ggWhy(e);$('ggSub').textContent='金色機台的圖還在載入，可以先按「轉一下」'})}
-function ggIdle(){if(GGBUSY)return;const cv=$('ggCv'),ctx=cv.getContext('2d'),st=performance.now();const f=now=>{if(GGBUSY||$('goldG').hidden)return;ggDraw(ctx,GGT.pop,false,now-st,GGCFG.gold);GGR=requestAnimationFrame(f)};GGR=requestAnimationFrame(f)}
+  ggFb(true,'金色機台準備中…');
+  ggReady().then(()=>{if(!g.hidden){ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold);ggCheckPaint()}}).catch(e=>{ggWhy(e);ggFb(true,'金色機台的圖沒載到，不影響抽獎，直接按「轉一下」')})}
+function ggIdle(){if(GGBUSY)return;const cv=$('ggCv'),ctx=cv.getContext('2d'),st=performance.now();const f=now=>{if(GGBUSY||$('goldG').hidden)return;try{ggDraw(ctx,GGT.pop,false,now-st,GGCFG.gold)}catch(e){ggWhy(e)}GGR=requestAnimationFrame(f)};GGR=requestAnimationFrame(f)}
 function goldGachaClose(){const g=$('goldG');g.classList.remove('show');setTimeout(()=>{g.hidden=true},400)}
 function ggBurst(){const sp=$('ggSp');for(let k=0;k<16;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=10+Math.random()*34;i.style.cssText=`left:${50+Math.cos(a)*r}%;top:${46+Math.sin(a)*r*.9}%;--s:${16+Math.random()*24}px;--d:.9s;--l:${(Math.random()*.5).toFixed(2)}s`;sp.appendChild(i);setTimeout(()=>i.remove(),2400)}}
 /* 金色扭蛋（畫布版，2026-10-08）：大熊給的去背素材＋純綠背景。每一格都由時間算出來，所以順、可以輸出成影片。
@@ -1357,6 +1365,11 @@ const ggOk=im=>im.complete&&im.naturalWidth>0;
 function ggReady(){ggLoadImgs();const one=n=>new Promise((ok,no)=>{const im=GGI[n];if(ggOk(im))return ok();let t=0;const retry=()=>{if(t++<3)im.src=n+'.webp?v=20261008e&r='+Date.now();else no(new Error('img'))};
     im.onload=()=>ggOk(im)?ok():retry();im.onerror=retry;if(im.complete&&!ggOk(im))retry()});
   return Promise.race([Promise.all(['gold-m','gold-cluster','gold-knob','gold-cap'].map(one)),new Promise((_,no)=>setTimeout(()=>no(new Error('timeout')),15000))])}
+function ggDiagTxt(){const st=['gold-m','gold-cluster','gold-knob','gold-cap'].map(n=>ggOk(GGI[n])?'✓':(GGI[n].complete?'✗':'…')).join('');let f='';try{f=sessionStorage.getItem('otto2-gg-fail')||''}catch(e){}return 'v'+PARK_VER+' 圖'+st+(f?' '+f.split(' ')[0]:'')}
+function ggFb(on,t){const f=$('ggFb');if(!f)return;f.hidden=!on;if(t)$('ggFbT').textContent=t;const d=$('ggDiag');if(d)d.textContent=ggDiagTxt()}
+/* 畫完幾格之後，檢查畫布中間有沒有東西（沒畫出來就顯示保底的金幣和說明，不要整片空白） */
+function ggCheckPaint(){setTimeout(()=>{const g=$('goldG');if(g.hidden)return;let ok=false;try{ok=$('ggCv').getContext('2d').getImageData(360,440,1,1).data[3]>0}catch(e){ok=true}
+  ggFb(!ok,ok?'':'金色機台的畫面沒畫出來，不影響抽獎，直接按「轉一下」')},1400)}
 function ggWhy(e){try{sessionStorage.setItem('otto2-gg-fail',((e&&e.message)||'?')+' '+Date.now())}catch(_){}try{console.warn('gold imgs',e)}catch(_){}}
 function ggLoadImgs(){if(ggLoadImgs.d)return;ggLoadImgs.d=1;GGN.forEach(n=>{GGI[n].src=n+'.webp?v=20261008e'})}
 const GGT={pop:400,dial0:400,dial1:3200,cap0:3500,cap1:4700,open0:5200,open1:5900};
@@ -1374,7 +1387,7 @@ function ggMakeCap(col){const c=document.createElement('canvas');c.width=400;c.h
   x.fillStyle='rgba(40,30,20,.35)';x.fillRect(0,sp-5,400,10);x.restore();x.lineWidth=9;x.strokeStyle='#26201c';x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();return c}
 function ggDraw(ctx,t,green,tc,cfg,cap){tc=tc===undefined?t:tc;cfg=cfg||GGCFG.gold;const W=720,H=1080,K=cfg.K,mx=360-cfg.mw*K/2,my=70,P=(x,y)=>[mx+x*K,my+y*K];
   ctx.clearRect(0,0,W,H);if(green){ctx.fillStyle='#00ff00';ctx.fillRect(0,0,W,H)} /* 線上版透明（透出模糊的遊樂島），輸出影片時才鋪純綠 */
-  const I=GGI,M=I[cfg.m],CL=I[cfg.cl],KN=I[cfg.kn],CP=cap||I['gold-cap'];if(!(M.complete&&CL.complete&&KN.complete&&CP.width))return;
+  const I=GGI,M=I[cfg.m],CL=I[cfg.cl],KN=I[cfg.kn],CP=cap||I['gold-cap'];if(!(ggOk(M)&&ggOk(CL)&&ggOk(KN)&&CP.width>0&&(CP.complete===undefined||ggOk(CP))))return;
   if(!green){const gold=cfg.glow==='gold',g=ctx.createRadialGradient(360,440,gold?120:80,360,440,gold?430:400);
     if(gold){g.addColorStop(0,'rgba(255,205,60,1)');g.addColorStop(.35,'rgba(255,196,40,.85)');g.addColorStop(.7,'rgba(255,200,60,.35)');g.addColorStop(1,'rgba(255,200,60,0)')}
     else{g.addColorStop(0,'rgba(255,255,255,.75)');g.addColorStop(.5,'rgba(255,250,235,.4)');g.addColorStop(1,'rgba(255,250,235,0)')}
@@ -1402,10 +1415,11 @@ function ggDraw(ctx,t,green,tc,cfg,cap){tc=tc===undefined?t:tc;cfg=cfg||GGCFG.go
 }
 let GGR=0;
 function ggPlay(t0,t1,done,cfg,cap,cvId){const cv=$(cvId||'ggCv'),ctx=cv.getContext('2d');cancelAnimationFrame(GGR);const st=performance.now();
-  const f=now=>{const t=Math.min(t1,t0+(now-st));ggDraw(ctx,t,false,undefined,cfg,cap);if(t<t1)GGR=requestAnimationFrame(f);else if(done)done()};GGR=requestAnimationFrame(f)}
+  const f=now=>{const t=Math.min(t1,t0+(now-st));try{ggDraw(ctx,t,false,undefined,cfg,cap)}catch(e){ggWhy(e)}if(t<t1)GGR=requestAnimationFrame(f);else if(done)done()};GGR=requestAnimationFrame(f)}
 async function goldGachaSpin(){if(GGBUSY)return;GGBUSY=true;$('ggGo').disabled=true;
   let anim=true;try{await ggReady()}catch(e){anim=false;ggWhy(e)}
   const play=(a,b)=>anim?new Promise(r=>ggPlay(a,b,r,GGCFG.gold)):sleep(800);
+  if(anim)ggFb(false);else ggFb(true,'金色機台的圖沒載到，不影響抽獎');
   try{sfx('tick')}catch(e){}
   /* 轉盤開始轉的同時就請伺服器抽，結果回來才開蛋（結果是伺服器決定的，網頁改不了） */
   const req=gcall('/gacha/gold/spin',{demo:GGMODE.demo,tier:GGMODE.tier}).then(j=>({j}),e=>({e}));
