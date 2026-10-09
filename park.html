@@ -709,7 +709,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009b';
+const PARK_VER='20261009c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1335,6 +1335,7 @@ let GGBUSY=false,GOLD=null,GGMODE={demo:false,tier:''},GGDT=0;
 const goldHas=()=>!!(GOLD&&GOLD.enabled&&!GOLD.expired&&GOLD.coins>0&&!window.KIOSK&&!GGBUSY);
 /* 有金幣時，主按鈕「轉一下」直接變金色、按下去開黃金扭蛋；金幣用完就變回原本的 */
 async function goldRefresh(){const was=goldHas()?GOLD.coins:0;if(!token()||window.KIOSK){GOLD=null}else{try{GOLD=await gcall('/gacha/gold/state')}catch(e){GOLD=null}}
+  if(goldHas())ggLoadImgs();
   if((goldHas()?GOLD.coins:0)!==was){try{hud()}catch(e){}}}
 function ggSparkles(){const sp=$('ggSp');sp.innerHTML='';for(let k=0;k<18;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=18+Math.random()*30;
   i.style.cssText=`left:${50+Math.cos(a)*r*.9}%;top:${46+Math.sin(a)*r*.72}%;--s:${14+Math.random()*22}px;--d:${1.4+Math.random()*1.6}s;--l:${(Math.random()*2).toFixed(2)}s`;sp.appendChild(i)}}
@@ -1342,7 +1343,7 @@ function goldGachaOpen(n,demo){ggLoadImgs();if(GGBUSY)return;const g=$('goldG');
   if(demo){const T=(GOLD&&GOLD.tiers)||[];if(T.length){const t=T[GGDT++%T.length];GGMODE.tier=t.id;sub='示範：'+t.nm+'的機率（不入帳）'}else sub='示範（不入帳）'}
   $('ggSub').textContent=sub;$('ggN').textContent=demo?'∞':(n||1);$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
   g.hidden=false;void g.offsetWidth;g.classList.add('show');try{sfx('chime')}catch(e){}
-  ggReady().then(()=>{if(!g.hidden)ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold)}).catch(()=>{$('ggSub').textContent='畫面還沒載好，請關掉再打開一次'})}
+  ggReady().then(()=>{if(!g.hidden)ggPlay(0,GGT.pop,()=>ggIdle(),GGCFG.gold)}).catch(e=>{ggWhy(e);$('ggSub').textContent='金色機台的圖還在載入，可以先按「轉一下」'})}
 function ggIdle(){if(GGBUSY)return;const cv=$('ggCv'),ctx=cv.getContext('2d'),st=performance.now();const f=now=>{if(GGBUSY||$('goldG').hidden)return;ggDraw(ctx,GGT.pop,false,now-st,GGCFG.gold);GGR=requestAnimationFrame(f)};GGR=requestAnimationFrame(f)}
 function goldGachaClose(){const g=$('goldG');g.classList.remove('show');setTimeout(()=>{g.hidden=true},400)}
 function ggBurst(){const sp=$('ggSp');for(let k=0;k<16;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=10+Math.random()*34;i.style.cssText=`left:${50+Math.cos(a)*r}%;top:${46+Math.sin(a)*r*.9}%;--s:${16+Math.random()*24}px;--d:.9s;--l:${(Math.random()*.5).toFixed(2)}s`;sp.appendChild(i);setTimeout(()=>i.remove(),2400)}}
@@ -1353,9 +1354,10 @@ function ggBurst(){const sp=$('ggSp');for(let k=0;k<16;k++){const i=document.cre
 const GGI={},GGN=['gold-m','gold-cluster','gold-knob','gold-cap','std-m','std-cluster','std-knob'];GGN.forEach(n=>{GGI[n]=new Image()});
 /* 等金色機台的圖真的載好（網路慢、LINE 瀏覽器載到一半失敗都會讓畫面空空的）：失敗重載兩次，12 秒還不行就回報，不要硬轉 */
 const ggOk=im=>im.complete&&im.naturalWidth>0;
-function ggReady(){ggLoadImgs();const one=n=>new Promise((ok,no)=>{const im=GGI[n];if(ggOk(im))return ok();let t=0;const retry=()=>{if(t++<2)im.src=n+'.webp?v=20261008e&r='+Date.now();else no(new Error('img'))};
+function ggReady(){ggLoadImgs();const one=n=>new Promise((ok,no)=>{const im=GGI[n];if(ggOk(im))return ok();let t=0;const retry=()=>{if(t++<3)im.src=n+'.webp?v=20261008e&r='+Date.now();else no(new Error('img'))};
     im.onload=()=>ggOk(im)?ok():retry();im.onerror=retry;if(im.complete&&!ggOk(im))retry()});
-  return Promise.race([Promise.all(['gold-m','gold-cluster','gold-knob','gold-cap'].map(one)),new Promise((_,no)=>setTimeout(()=>no(new Error('timeout')),12000))])}
+  return Promise.race([Promise.all(['gold-m','gold-cluster','gold-knob','gold-cap'].map(one)),new Promise((_,no)=>setTimeout(()=>no(new Error('timeout')),15000))])}
+function ggWhy(e){try{sessionStorage.setItem('otto2-gg-fail',((e&&e.message)||'?')+' '+Date.now())}catch(_){}try{console.warn('gold imgs',e)}catch(_){}}
 function ggLoadImgs(){if(ggLoadImgs.d)return;ggLoadImgs.d=1;GGN.forEach(n=>{GGI[n].src=n+'.webp?v=20261008e'})}
 const GGT={pop:400,dial0:400,dial1:3200,cap0:3500,cap1:4700,open0:5200,open1:5900};
 const ggE={io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,out:t=>1-Math.pow(1-t,3),back:t=>{const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)},
@@ -1402,17 +1404,17 @@ let GGR=0;
 function ggPlay(t0,t1,done,cfg,cap,cvId){const cv=$(cvId||'ggCv'),ctx=cv.getContext('2d');cancelAnimationFrame(GGR);const st=performance.now();
   const f=now=>{const t=Math.min(t1,t0+(now-st));ggDraw(ctx,t,false,undefined,cfg,cap);if(t<t1)GGR=requestAnimationFrame(f);else if(done)done()};GGR=requestAnimationFrame(f)}
 async function goldGachaSpin(){if(GGBUSY)return;GGBUSY=true;$('ggGo').disabled=true;
-  try{await ggReady()}catch(e){const pz=$('ggPrize');pz.innerHTML='<div class="gg-pc"><small>哎呀</small><div class="ic">😅</div><h3>畫面還沒載好</h3><p>網路好像不太順，你的金幣沒有用掉，請稍後再試一次。</p><button type="button" id="ggOk">好</button></div>';pz.hidden=false;
-    $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();goldRefresh()};return}
+  let anim=true;try{await ggReady()}catch(e){anim=false;ggWhy(e)}
+  const play=(a,b)=>anim?new Promise(r=>ggPlay(a,b,r,GGCFG.gold)):sleep(800);
   try{sfx('tick')}catch(e){}
   /* 轉盤開始轉的同時就請伺服器抽，結果回來才開蛋（結果是伺服器決定的，網頁改不了） */
   const req=gcall('/gacha/gold/spin',{demo:GGMODE.demo,tier:GGMODE.tier}).then(j=>({j}),e=>({e}));
-  await new Promise(r=>ggPlay(GGT.dial0,GGT.open0,r,GGCFG.gold));
+  await play(GGT.dial0,GGT.open0);
   const R=await req,pz=$('ggPrize');
   if(R.e){pz.innerHTML=`<div class="gg-pc"><small>哎呀</small><div class="ic">😅</div><h3>沒有轉成功</h3><p>${esc(R.e.message||'連線不穩，請稍後再試')}</p><button type="button" id="ggOk">好</button></div>`;pz.hidden=false;
     $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();goldRefresh();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)};return}
   const prize=R.j.prize;try{sfx('thunk')}catch(e){}
-  await new Promise(r=>ggPlay(GGT.open0,GGT.open1,r,GGCFG.gold));try{sfx('sparkle')}catch(e){}ggBurst();ggBurst();await sleep(300);
+  await play(GGT.open0,GGT.open1);try{sfx('sparkle')}catch(e){}ggBurst();ggBurst();await sleep(300);
   const tx=(prize.sub?prize.sub+'。':'')+(prize.type==='bonus'?'已經加進你的紅利點數':prize.type==='ticket'?'兌換券已放進你的帳戶，來店出示領取':'謝謝參加，下次再來')+(R.j.sim?'（示範，不入帳）':'');
   pz.innerHTML=`<div class="gg-pc"><small>${prize.type==='none'?'這次':'恭喜獲得'}</small><div class="ic">${esc(prize.ic||'🎁')}</div><h3>${esc(prize.nm)}</h3><p>${esc(tx)}</p><button type="button" id="ggOk">收下</button></div>`;pz.hidden=false;
   if(!R.j.sim)$('ggN').textContent=R.j.coins;
