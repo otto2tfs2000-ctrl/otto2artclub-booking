@@ -715,7 +715,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009d';
+const PARK_VER='20261009e';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1301,13 +1301,14 @@ function makePlantPot(sc){const g=new THREE.Group();g.add(mesh(new THREE.Cylinde
 function buildGreenery(P){
   /* 森林：大熊給的去背成品圖切成 5 段（邊緣羽化），沿著廣場邊緣圍一圈，種在木台上；每一段都會轉向鏡頭，從任何角度看都是正面。
      後方正中間（走到聖誕入口的路）留一個缺口。2026-10-08 大熊：不要一大片飄在半空中 */
-  {const tex=new THREE.TextureLoader().load('forest-ring.webp?v=20261008g');tex.anisotropy=4;
+  {const tex=new THREE.TextureLoader().load('forest-ring.webp?v=20261008m');tex.anisotropy=4;
     const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.02,depthWrite:false,side:THREE.DoubleSide}),ring=new THREE.Group(),geo=[];
-    for(let k=0;k<5;k++){const g=new THREE.PlaneGeometry(1,1),uv=g.attributes.uv;for(let v=0;v<uv.count;v++)uv.setX(v,(uv.getX(v)+k)/5);geo.push(g)}
+    for(let k=0;k<7;k++){const g=new THREE.PlaneGeometry(1,1),uv=g.attributes.uv;for(let v=0;v<uv.count;v++)uv.setX(v,(uv.getX(v)+k)/7);geo.push(g)} /* 前 5 段兩邊都羽化、接在一起用；第 6、7 段是左右最外端的收尾（外側邊緣不羽化，不然橋邊會看到半透明的鬼影樹） */
     const R=PLAZA_R-.9,N=13;let n=0;
     for(let k=0;k<N;k++){const a=(-190+k*(200/(N-1)))*Math.PI/180,x=Math.cos(a)*R,z=Math.sin(a)*R;
       if(x>-2.6&&x<1.6&&z<-1)continue;                       /* 通往聖誕入口的路口，不擋 */
-      const hh=4.3+((k*37)%10)/10*1.1,m=new THREE.Mesh(geo[(k*3+1)%5],mat);m.scale.set(hh*400/485,hh,1);m.position.set(x,hh/2-.3,z);m.renderOrder=2;ring.add(m);n++}
+      if(k<2||k>N-3)continue;                                /* 最外面兩段拿掉，改由 k=2、k=N-3 當收尾段 */
+      const hh=4.3+((k*37)%10)/10*1.1,m=new THREE.Mesh(geo[k===2?5:k===N-3?6:(k*3+1)%5],mat);m.scale.set(hh*400/485,hh,1);m.position.set(x,hh/2-.3,z);m.renderOrder=2;ring.add(m);n++}
     P.add(ring);GA.forest=ring}
   /* 縫隙用灌木叢和盆栽填：房子旁邊、入口石階旁、扭蛋機腳邊、前排邊角 */
   const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];
