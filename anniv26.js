@@ -56,5 +56,11 @@ function pin(b,cam,nx,ny,frac,dist,now){if(!_v){_v=new THREE.Vector3();_f=new TH
 /* 繞 (cx,cz) 飄：o={cx,cz,rad,y,a,sp,bob} */
 function drift(b,dt,now){var o=b.userData.o;o.a+=o.sp*dt;b.position.set(o.cx+Math.cos(o.a)*o.rad,o.y+Math.sin(now/2200+o.bob)*.6,o.cz+Math.sin(o.a)*o.rad);
   b.rotation.y=-o.a+(o.sp>0?-Math.PI/2:Math.PI/2);if(b.userData.banner)b.userData.banner.rotation.x=Math.sin(now/700)*.12}
-window.Anniv26={on:on,A:A,B:B,pin:pin,drift:drift};
+/* 2026-10-10 活動公告用：同 B 款外型，布條換成傳進來的貼圖（ev 活動倒數布條） */
+function Bx(tex,size,len){var g=body(_tB||(_tB=texB()),14,true),ban=new THREE.Group(),m=new THREE.MeshLambertMaterial({map:tex});len=len||3;
+  var geo=new THREE.PlaneGeometry(len,len*.2148,16,1),p=geo.attributes.position;for(var i=0;i<p.count;i++)p.setZ(i,Math.sin(p.getX(i)*2.4)*.1);geo.computeVertexNormals();
+  var f=new THREE.Mesh(geo,m),bk=new THREE.Mesh(geo,m);f.position.x=-len/2-.25;bk.position.x=-len/2-.25;bk.rotation.y=Math.PI;bk.position.z=-.01;ban.add(f);ban.add(bk);
+  var rp=new THREE.LineBasicMaterial({color:'#8a6440'});[.3,-.3].forEach(function(y){ban.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.2,.15,0),new THREE.Vector3(-.25,y,0)]),rp))});
+  ban.position.set(0,-.4,0);g.userData.inner.add(ban);g.userData.banner=ban;g.scale.setScalar(size||1);return g}
+window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift};
 })();
