@@ -738,10 +738,10 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261010b';
+const PARK_VER='20261010c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
-   three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
-const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
+   three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
+const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
 function glGuard(r){
   const cv=r.domElement;let t=0;
   const reload=()=>{try{const k='otto2-gl-reload',l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000){
@@ -2507,7 +2507,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261009a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261010c',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -3094,13 +3094,13 @@ $('miReset').addEventListener('click',mzReset);
    iPhone 的 LINE 裡每畫一個物件都很貴：原本十月廣場一格畫面要畫約 1,770 個物件＋影子再畫一輪，
    手機一秒只剩幾格，點東西要等很久才有反應。
    ① 小東西（半徑 < .3）不產生影子：影子那一輪少畫一大半，看起來幾乎一樣
-   ② 自動調畫質：連續 2 秒每格超過 1/30 秒，就把解析度往下降一級（3→2→1.5→1.25），再不行就關影子 */
+   ② 自動調畫質：連續 2 秒每格超過 1/30 秒，就把解析度往下降一級（3→2），再不行就關影子。2026-10-10 大熊嫌公仔和小字糊：最低只降到 2，不再降到 1.5／1.25 */
 function trimShadows(root){(root||scene).updateMatrixWorld(true);const sp=new THREE.Sphere(),sc=new THREE.Vector3();
   (root||scene).traverse(o=>{if(!o.isMesh||!o.castShadow||o.isInstancedMesh)return;if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();
     o.getWorldScale(sc);if(o.geometry.boundingSphere.radius*Math.max(sc.x,sc.y,sc.z)<.3)o.castShadow=false})}
 const PERF={cap:9,acc:0,n:0,slow:0,t:0,lvl:0};
 function perfTick(dt){if(document.hidden)return;PERF.acc+=dt;PERF.n++;if(PERF.acc<2)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;
-  if(avg>1/30){const steps=[2,1.5,1.25];const cur=renderer.getPixelRatio();const nx=steps.find(v=>v<cur-.01);
+  if(avg>1/30){const steps=[2];const cur=renderer.getPixelRatio();const nx=steps.find(v=>v<cur-.01);
     if(nx){PERF.cap=nx;resize()}else if(renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}}}
 /* ③ 把不會動的小零件合併成一個大物件：手機畫 1 個大物件比畫 200 個小的快很多。
    會動的東西（程式裡有記住的、身上有 userData 的、有貼圖或半透明的）一律不碰，只合併「掛在同一個根底下、永遠不動」的那些 */
