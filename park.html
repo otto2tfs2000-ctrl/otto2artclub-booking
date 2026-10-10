@@ -715,7 +715,7 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261009g';
+const PARK_VER='20261010a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 7 天改用省記憶體模式（影子圖和解析度縮小） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<6048e5}catch(e){return false}})();
@@ -1479,7 +1479,8 @@ function voiceLoad(u){return VOICE.buf[u]||(VOICE.buf[u]=(async()=>{try{sfxInit(
   return await new Promise((ok,no)=>{const p=c.decodeAudioData(ab,ok,no);if(p&&p.catch)p.catch(no)})}catch(e){delete VOICE.buf[u];return null}})())}
 function voiceStop(){VOICE.want=null;const s=VOICE.cur;VOICE.cur=null;if(s){try{s.onended=null;s.stop()}catch(e){}}
   ['sgAud','spGirlAud'].forEach(id=>{const a=$(id);if(a)try{a.pause()}catch(e){}})}
-function voicePlay(u,elId){voiceStop();if(!SFX.on)return;VOICE.want=u;sfxInit();const c=SFX.ctx;if(c&&c.state==='suspended'){try{c.resume()}catch(e){}}
+/* 2026-10-10 iPhone 側邊靜音鍵開著時 WebAudio 不出聲（以前 <audio> 會）：店員說話時把音訊類型設成「媒體播放」，靜音鍵開著也聽得到（iOS 16.4+） */
+function voicePlay(u,elId){voiceStop();if(!SFX.on)return;VOICE.want=u;try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}sfxInit();const c=SFX.ctx;sfxWake()
   voiceLoad(u).then(b=>{if(VOICE.want!==u)return;
     if(b&&c){const s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.onended=()=>{if(VOICE.cur===s)VOICE.cur=null};VOICE.cur=s;s.start()}
     else{const a=elId&&$(elId);if(a){a.src=u;try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}}})}
@@ -1487,6 +1488,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)voiceStop()
 /* 進遊樂島幾秒後，趁閒置先把店員動畫和聲音抓好，點店面時就能馬上動 */
 function shopWarm(){setTimeout(()=>{shopLoad().then(()=>{shopImgReady(SHOPA.open.still);shopImgReady(SHOPA.closed.still);const k=SHOPA[SHOP&&SHOP.cfg.pending?'closed':'open'];shopAnimBlob(k.anim);voiceLoad(k.wav);setTimeout(()=>{shopAnimBlob(GIRL_ANIM);voiceLoad('shop-girl.m4a?v=20261008i')},1500)}).catch(()=>{})},2000)}
 let _shopTok=0;
+/* 2026-10-10 商品圖以前要按「進去逛逛」才開始下載，網路慢會先看到一排空框；現在在門口就先抓好 */
+function shopPreImgs(){(SHOP&&SHOP.products||[]).forEach(p=>{if(p.img)shopImgReady(p.img)})}
 function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidden)return;sfx('tap');g.hidden=false;g.classList.add('wait');void g.offsetWidth;g.classList.add('show');
   const tok=++_shopTok,m=$('sgMan'),a=$('sgAud');
   /* 先問後台「開店了沒」再決定出哪位店員（最多等 1.5 秒；晚到的答案也會補上，不會停在錯的店員） */
@@ -1501,13 +1504,15 @@ function openShop(){const g=$('shopGate');if(!g||!g.hidden||!$('shopPage').hidde
     shopImgReady(k.still).then(()=>{if(tok!==_shopTok||shown!==closed)return;
       if(m&&!(m.getAttribute('src')||'').startsWith(k.still.split('?')[0]))m.src=k.still;
       /* 動畫（揮手→說話→站好）載好才換上去，聲音同步播；等太久就維持站著 */
-      Promise.race([shopAnimBlob(k.anim).then(b=>!!b),new Promise(r=>setTimeout(()=>r(false),8000))]).then(ok=>{
-        if(!ok||tok!==_shopTok||shown!==closed||g.hidden||!g.classList.contains('show'))return;
+      /* 2026-10-10 以前動畫 8 秒沒載好就連聲音都不播；現在等 4 秒，等不到就站著直接說話 */
+      Promise.race([shopAnimBlob(k.anim).then(b=>!!b),new Promise(r=>setTimeout(()=>r(false),4000))]).then(ok=>{
+        if(tok!==_shopTok||shown!==closed||g.hidden||!g.classList.contains('show'))return;
+        if(!ok){voicePlay(k.wav,'sgAud');return}
         /* 動畫換上去、開始播的同時才放聲音，兩邊一起走 */
         (m?shopAnimSet(m,k.anim):Promise.resolve()).then(()=>{
           if(tok!==_shopTok||shown!==closed||g.hidden||!g.classList.contains('show'))return;
           voicePlay(k.wav,'sgAud')})})})};
-  const ld=shopLoad(true).catch(()=>{});
+  const ld=shopLoad(true).then(shopPreImgs).catch(()=>{});
   if(SHOP)apply();else Promise.race([ld,new Promise(r=>setTimeout(r,1500))]).then(apply);
   ld.then(apply)}
 function closeShop(cb){_shopTok++;voiceStop();const g=$('shopGate');const a=$('sgAud');if(a)a.pause();g.classList.remove('show');setTimeout(()=>{g.hidden=true;if(cb)cb()},330)}
@@ -2158,7 +2163,9 @@ const SFX={ctx:null,on:true};try{SFX.on=localStorage.getItem('otto2-park-mute')!
 function sfxInit(){if(SFX.ctx)return;try{SFX.ctx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
 function tone(f,d,type='sine',vol=.2,slide=0,delay=0){const c=SFX.ctx;if(!c)return;const t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.linearRampToValueAtTime(Math.max(40,f+slide),t+d);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05)}
-function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;if(c.state==='suspended')c.resume();
+/* iPhone 切到背景／來電後狀態會是 interrupted（不是 suspended），以前只處理 suspended，回來就一直沒聲音 */
+function sfxWake(){const c=SFX.ctx;if(c&&c.state!=='running'){try{const p=c.resume();if(p&&p.catch)p.catch(()=>{})}catch(e){}}}
+function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;sfxWake();
   if(k==='pop'){tone(900,.09,'sine',.28,-520);tone(1400,.06,'triangle',.12,0,.03)}
   else if(k==='tick')tone(2000,.025,'square',.04)
   else if(k==='fling')tone(320,.35,'triangle',.12,700)
@@ -2168,7 +2175,8 @@ function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;if(c.st
   else if(k==='toot'){tone(392,.22,'sawtooth',.07);tone(523,.32,'sawtooth',.06,0,.2)}
   else if(k==='sparkle')[1200,1600,2000].forEach((f,i)=>tone(f,.15,'sine',.08,0,i*.05))
   else if(k==='tap')tone(700,.05,'sine',.1)}
-addEventListener('pointerdown',()=>{sfxInit();if(SFX.ctx&&SFX.ctx.state==='suspended')SFX.ctx.resume()},{passive:true});
+/* iPhone 只認 touchend／click 當「使用者點擊」，pointerdown 解不開聲音，三個都掛 */
+['pointerdown','touchend','click'].forEach(ev=>addEventListener(ev,()=>{sfxInit();sfxWake()},{passive:true,capture:true}));
 function muteLook(){const H=`<i>${SFX.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>'}</i>${SFX.on?'音效':'靜音'}`;['muteBtn','miMute'].forEach(id=>{const b=document.getElementById(id);if(b)b.innerHTML=H})}
 function toggleMute(){SFX.on=!SFX.on;if(!SFX.on)try{voiceStop()}catch(e){}try{localStorage.setItem('otto2-park-mute',SFX.on?'0':'1')}catch(e){}muteLook();if(SFX.on)sfx('tap')}
 
@@ -3048,7 +3056,9 @@ function loopBody(now){if(GA.art)artTick();
 }
 /* 以前 requestAnimationFrame 放在最後一行，動畫裡任何一個小零件出錯，整個畫面就停在那一格再也不動（看起來像「出不來」）。
    改成先排下一格；出錯的那一格還是盡量把畫面畫出來 */
-let LOOPERR=0;function loop(now){requestAnimationFrame(loop);try{loopBody(now)}catch(e){if(LOOPERR++<5)console.error('loop',e);try{renderer.render(scene,camera)}catch(_){}}}
+/* 2026-10-10 選品館（門口／商品頁）是全螢幕不透明的，後面 3D 照樣一直畫很吃手機記憶體和電，iPhone 會因此圖片出不來甚至整頁重載 → 蓋住時暫停 */
+let _sgEl=null,_spEl=null;function shopCover(){_sgEl=_sgEl||$('shopGate');_spEl=_spEl||$('shopPage');return(_sgEl&&!_sgEl.hidden&&_sgEl.classList.contains('show'))||(_spEl&&!_spEl.hidden)}
+let LOOPERR=0;function loop(now){requestAnimationFrame(loop);if(shopCover()){tPrev=now;return}try{loopBody(now)}catch(e){if(LOOPERR++<5)console.error('loop',e);try{renderer.render(scene,camera)}catch(_){}}}
 
 /* ---------- game state (demo, per browser) ---------- */
 let G;
