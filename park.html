@@ -518,6 +518,12 @@ body:not(.oct) #evPill{display:none}
 #evPop .ev-want.on{background:#fff; color:#ef6f8d; border-color:#ef6f8d}
 #evPop .ev-n{font-size:13.5px; margin:2px 0 6px} #evPop .ev-n b{color:#ef6f8d; font-size:17px}
 #evPop .ev-names{display:flex; flex-wrap:wrap; gap:5px; font-size:12.5px} #evPop .ev-names span{background:#fdeef2; color:#b8475f; border-radius:20px; padding:3px 9px}
+#evPop .ev-more{display:block; width:100%; margin:14px 0 8px; padding:13px; border-radius:14px; border:3px solid #2b2320; background:#1f8fd0; color:#fff; font:900 17px/1.2 inherit; cursor:pointer}
+#evPop .ev-hint{margin:2px 0 6px; font-size:13px; color:#6a6f7d; text-align:center}
+#evPop .ev-back{border:0; background:none; color:#1f8fd0; font:800 14px inherit; padding:0 0 8px; cursor:pointer}
+#evPop .ev-fee{margin:10px 0 0; padding:9px 12px; background:#fff3e0; border:2px solid #f0b45a; border-radius:12px; font-size:16px; font-weight:800; color:#9a5a0a}
+#evPop .ev-row{margin:8px 0 0; font-size:14px; line-height:1.5} #evPop .ev-row b{color:#1e2b4f}
+#evPop .ev-detail{margin:10px 0 0; font-size:14px; line-height:1.75; color:#2b2f3a; white-space:pre-wrap; word-break:break-word}
 #evPop .ev-note{margin:12px 0 0; font-size:12.5px; color:#8a8f9c; line-height:1.6}
 #evBig{position:fixed; inset:0; z-index:67; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; padding:10px; cursor:zoom-out}
 #evBig img{max-width:100%; max-height:100%; object-fit:contain}
@@ -755,12 +761,12 @@ body:not(.oct) #evPill{display:none}
 <script src="petlife.js?v=20261005za"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
-<script src="anniv26.js?v=20261012b"></script>
+<script src="anniv26.js?v=20261012c"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261012b';
+const PARK_VER='20261012c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1574,14 +1580,24 @@ function balApply(){if(!window.Anniv26||!Anniv26.Mgr||typeof scene==='undefined'
 function evAutoOpen(n){const e=EV.cur;if(!e)return;const k='otto2-ev-'+e.id+'-'+e.date;let seen=false;try{seen=localStorage.getItem(k)==='1'}catch(_){}if(seen)return;
   setTimeout(()=>{const free=!busy&&$('pop').hidden&&$('tour').hidden&&$('shopGate').hidden&&$('shopPage').hidden&&G&&G.phase==='oct'&&!document.body.classList.contains('touring');
     if(!free){if(n<20)evAutoOpen(n+1);return}try{localStorage.setItem(k,'1')}catch(_){}evOpen()},n?3000:4000)}
-function evOpen(){const e=evSel();if(!e)return;sfx('tap');$('evImg').src=e.poster||'';$('evImg').parentNode.hidden=!e.poster;evRender();$('evPop').hidden=false}
-function evRender(){const e=evSel();if(!e)return;
+function evOpen(){const e=evSel();if(!e)return;sfx('tap');EV.detail=false;$('evImg').src=e.poster||'';evRender();$('evPop').hidden=false}
+const evHasDetail=e=>!!(e.fee||e.place||e.detail);
+function evRender(){const e=evSel();if(!e)return;const det=evHasDetail(e),inD=det&&EV.detail;
+  $('evImg').parentNode.hidden=inD||!e.poster;
+  const wantBtn=`<button type="button" class="ev-want${e.mine?' on':''}" id="evWant">${e.mine?'💐 已 ＋1（再按一下收回）':det?'💐 ＋1 我想去':'💐 我想去'}</button>`;
+  const cnt=`<div class="ev-n">${e.wantN?`已經有 <b>${e.wantN}</b> 人想去，島上種了 ${e.wantN} 朵花`:'還沒有人按，第一朵花等你種！'}</div>`;
+  const names=e.names&&e.names.length?`<div class="ev-names">${e.names.slice(0,30).map(n=>`<span>${esc(n)}</span>`).join('')}</div>`:'';
+  const note=`<p class="ev-note">報名請直接跟櫃檯說喔！按「${det?'＋1 ':''}我想去」不是報名，是讓大家知道你也想參加，島上外圈會多長一朵花。</p>`;
+  if(inD){
+    $('evBody').innerHTML=`<button type="button" class="ev-back" id="evBack">← 回海報</button><h3>${esc(e.title)}</h3><p class="ev-when">${esc(e.date.replace(/-/g,'/'))}${e.time?'　'+esc(e.time):''}・${esc(evLeft(e))}</p>
+      ${e.fee?`<div class="ev-fee">💰 費用：${esc(e.fee)}</div>`:''}${e.place?`<div class="ev-row"><b>📍 地點</b>　${esc(e.place)}</div>`:''}${e.detail?`<div class="ev-detail">${esc(e.detail)}</div>`:''}
+      ${wantBtn}${cnt}${note}`;
+    $('evBack').onclick=()=>{EV.detail=false;evRender();$('evPop').querySelector('.ev-card').scrollTop=0};
+    $('evWant').onclick=evWant;return}
   $('evBody').innerHTML=`<h3>${esc(e.title)}</h3><p class="ev-when">${esc(e.date.replace(/-/g,'/'))}${e.time?'　'+esc(e.time):''}・${esc(evLeft(e))}</p>${e.sub?`<p class="ev-sub">${esc(e.sub)}</p>`:''}
-    <button type="button" class="ev-want${e.mine?' on':''}" id="evWant">${e.mine?'💐 我想去（已送出一朵花，再按一下收回）':'💐 我想去'}</button>
-    <div class="ev-n">${e.wantN?`已經有 <b>${e.wantN}</b> 人想去，島上種了 ${e.wantN} 朵花`:'還沒有人按，第一朵花等你種！'}</div>
-    ${e.names&&e.names.length?`<div class="ev-names">${e.names.slice(0,30).map(n=>`<span>${esc(n)}</span>`).join('')}</div>`:''}
-    <p class="ev-note">報名請直接跟櫃檯說喔！按「我想去」不是報名，是讓大家知道你也想參加，島上外圈會多長一朵花。</p>`;
-  $('evWant').onclick=evWant}
+    ${det?`<button type="button" class="ev-more" id="evMore">詳細資訊</button><div class="ev-hint">${e.mine?'✅ 你已經 ＋1 了':'有的活動需要費用，先看詳細資訊再按 ＋1'}</div>`:wantBtn}
+    ${cnt}${names}${note}`;
+  if(det)$('evMore').onclick=()=>{sfx('tap');EV.detail=true;evRender();$('evPop').querySelector('.ev-card').scrollTop=0};else $('evWant').onclick=evWant}
 async function evWant(){const e=evSel();if(!e||EV.busy)return;sfx('tap');
   if(window.KIOSK){toast('店內體驗版不能按，請用 LINE 打開遊樂島');return}
   EV.busy=true;const on=!e.mine;$('evWant').disabled=true;
@@ -2593,7 +2609,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261012b',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261012c',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
