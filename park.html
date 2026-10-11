@@ -755,12 +755,12 @@ body:not(.oct) #evPill{display:none}
 <script src="petlife.js?v=20261005za"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
-<script src="anniv26.js?v=20261012a"></script>
+<script src="anniv26.js?v=20261012b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261012a';
+const PARK_VER='20261012b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1543,7 +1543,10 @@ function evDays(e){return Math.round((Date.parse(e.date+'T00:00:00+08:00')-Date.
 function evMd(d){return(+d.slice(5,7))+'/'+(+d.slice(8,10))}
 function evLeft(e){const n=evDays(e);return n<=0?'就是今天！':n===1?'明天就到了！':`倒數 ${n} 天`}
 /* 開花進度 0～1：活動前 bloomDays 天開始，當天全開；bloomDays=0 就不做外圈花，想去的花直接全開 */
-function evBloom(e){const b=+e.bloomDays||0;if(!b)return 1;return Math.max(0,Math.min(1,(b-evDays(e))/b))}
+const evHasBloom=e=>!!e.bloomFrom||+e.bloomDays>0;
+/* 後台填了「開花開始日」就以日期為準（那天花苞、活動當天全開）；沒填才用「開花天數」 */
+function evBloom(e){let b=+e.bloomDays||0;if(e.bloomFrom)b=Math.max(1,Math.round((Date.parse(e.date+'T00:00:00+08:00')-Date.parse(e.bloomFrom+'T00:00:00+08:00'))/864e5));
+  if(!b)return 1;return Math.max(0,Math.min(1,(b-evDays(e))/b))}
 async function evFetch(){try{const r=await fetch(NOTIFY_URL+'/event/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:window.KIOSK?'kiosk':token()})});
   const j=await r.json();if(!j||!j.ok)return;EV.today=j.today;EV.list=j.events||[];EV.cur=EV.list[0]||null;EV.bals=j.balloons||[];evApply(true)}catch(e){}}
 function evApply(first){const e=EV.cur,pill=$('evPill');if(pill)pill.hidden=true; /* 左上小卡改成下面的倒數看板 */
@@ -1556,7 +1559,7 @@ function evApply(first){const e=EV.cur,pill=$('evPill');if(pill)pill.hidden=true
 function evBoardRender(){const L=EV.list||[],bd=$('evBoard');if(!bd)return;const had=!bd.hidden;
   if(!L.length){bd.hidden=true;if(had)GA.band=undefined;return}
   EV.bi=EV.bi%L.length;const e=L[EV.bi],n=evDays(e);
-  $('ebIc').textContent=+e.bloomDays?'🌸':'📣';$('ebT').textContent=evMd(e.date)+' '+e.title;
+  $('ebIc').textContent=evHasBloom(e)?'🌸':'📣';$('ebT').textContent=evMd(e.date)+' '+e.title;
   $('ebS').textContent=[e.time,e.sub,e.wantN?`💐 ${e.wantN} 人想去`:''].filter(Boolean).join('・')||'點一下看海報';
   const en=$('ebN');en.textContent=n<=0?'就是今天！':n===1?'明天':`還有 ${n} 天`;en.className=n<=7?'soon':'';
   $('ebDots').innerHTML=L.length>1?L.map((_,i)=>`<i class="${i===EV.bi?'on':''}"></i>`).join(''):'';
@@ -1611,7 +1614,7 @@ function evFlower(parts,x,z,h,o,k,R){const g=evGeo(),m=new THREE.Matrix4(),S=new
   if(kind==='tul'){parts.push([g.tul,c1,at(0,h+r*.55,0,r,r*1.3,r)]);parts.push([g.tulIn,c2,at(0,h+r*.45,0,r,r*.9,r)])}
   else{parts.push([g.ran,c1,at(0,h+r*.6,0,r*1.1,r*.7,r*1.1)]);parts.push([g.ranC,c2,at(0,h+r*1.0,0,r,r*.6,r)])}}
 function evFlowers(){const e=EV.cur,P=GA.PR;if(!P||typeof scene==='undefined')return;
-  const want=e?Math.min(40,e.wantN||0):0,bl=e?evBloom(e):0,deco=e&&+e.bloomDays?Math.round(bl*36):0,key=e?[e.id,want,bl.toFixed(2)].join('|'):'';
+  const want=e?Math.min(40,e.wantN||0):0,bl=e?evBloom(e):0,deco=e&&evHasBloom(e)?Math.round(bl*36):0,key=e?[e.id,want,bl.toFixed(2)].join('|'):'';
   if(key===EV.flwKey)return;EV.flwKey=key;
   if(EV.flw){P.remove(EV.flw);EV.flw.geometry.dispose();EV.flw=null}
   if(!e||(!want&&!deco))return;
@@ -2590,7 +2593,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261012a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261012b',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
