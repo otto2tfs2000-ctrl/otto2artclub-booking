@@ -62,5 +62,65 @@ function Bx(tex,size,len){var g=body(_tB||(_tB=texB()),14,true),ban=new THREE.Gr
   var f=new THREE.Mesh(geo,m),bk=new THREE.Mesh(geo,m);f.position.x=-len/2-.25;bk.position.x=-len/2-.25;bk.rotation.y=Math.PI;bk.position.z=-.01;ban.add(f);ban.add(bk);
   var rp=new THREE.LineBasicMaterial({color:'#8a6440'});[.3,-.3].forEach(function(y){ban.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.2,.15,0),new THREE.Vector3(-.25,y,0)]),rp))});
   ban.position.set(0,-.4,0);g.userData.inner.add(ban);g.userData.banner=ban;g.scale.setScalar(size||1);return g}
-window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift};
+
+/* ───────── 2026-10-12 後台可設定的熱氣球（A／B／C 款，同時最多 3 顆）─────────
+   A 大氣球：固定在畫面角落（大熊要的位置），字：主標＋副標；顏色六選一
+   B 直式飄帶：彩條氣球底下垂一條直的飄帶（日期＋活動名＋倒數，或自己寫字），只在島的「後面」左右慢慢飄，不經過島上方
+   C 單色大字球：一句話（歡迎新同學之類），固定在畫面角落
+   資料來自伺服器 /event/list 的 balloons（後台「🎈 熱氣球」設定，到期自動消失）。全部用 pin() 擺在畫面上：
+   A／C 用前面的深度、B 用很遠的深度（一定被島擋在後面，不管鏡頭怎麼轉）。 */
+var PAL={pink:['#e8708f','#c93f66'],blue:['#3d9bd0','#226a97'],orange:['#f2a04a','#b8651a'],green:['#8cc152','#4d7f1f'],yellow:['#f6cf4a','#9a7608'],purple:['#9b7fd0','#5e43a0']};
+function pal(c){return PAL[c]||PAL.pink}
+function fit(x,txt,maxW,fs,w){x.font=w+' '+fs+'px '+HEI;var m=x.measureText(txt).width;if(m>maxW){fs=Math.floor(fs*maxW/m);x.font=w+' '+fs+'px '+HEI}return fs}
+function splitTitle(t){t=String(t||'');if(t.length<=4)return [t];var h=Math.ceil(t.length/2);return [t.slice(0,h),t.slice(h)]}
+function texAx(b){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i;
+  x.fillStyle=CREAM;x.fillRect(0,0,w,h);
+  for(i=0;i<32;i++){x.fillStyle=i%2?CREAM:p[0];x.fillRect(i*32,0,32,115);x.fillRect(i*32,h-75,32,75);x.fillStyle=i%2?p[0]:'#ffffff';x.beginPath();x.moveTo(i*32,115);x.lineTo(i*32+32,115);x.lineTo(i*32+16,150);x.fill()}
+  [w*.25,w*.75].forEach(function(cx){x.textAlign='center';x.textBaseline='alphabetic';x.fillStyle=p[1];fit(x,b.title,360,b.sub?118:136,'900');x.fillText(b.title,cx,b.sub?h*.54:h*.62);
+    if(b.sub){x.fillStyle='#1e2b4f';fit(x,b.sub,360,50,'900');x.fillText(b.sub,cx,h*.54+66)}});
+  fleck(x,w,h,400);var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function texCx(b){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i;
+  x.fillStyle=p[0];x.fillRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.16)';for(i=0;i<16;i++)x.fillRect(i*64,0,32,h);
+  var L=splitTitle(b.title);
+  [w*.25,w*.75].forEach(function(cx){x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';
+    var fs=L.length>1?110:128;L.forEach(function(s2){fs=Math.min(fs,fit(x,s2,370,fs,'900'))});
+    L.forEach(function(s2,k){x.font='900 '+fs+'px '+HEI;x.fillText(s2,cx,h*(L.length>1?.4:.5)+k*(fs+12)-(b.sub?18:0)*(k?0:0))});
+    if(b.sub){x.font='900 44px '+HEI;x.fillStyle='rgba(255,255,255,.92)';x.fillText(b.sub,cx,h*.86)}});
+  fleck(x,w,h,200);var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function texBodyX(color){var w=512,h=256,c=cvs(w,h),x=c.getContext('2d'),p=pal(color),i;for(i=0;i<20;i++){x.fillStyle=i%2?CREAM:p[0];x.fillRect(i*25.6,0,25.6,h)}fleck(x,w,h,300);return new THREE.CanvasTexture(c)}
+/* 直式飄帶：上面日期、中間活動名一個字一個字往下排、下面倒數／副標 */
+function texStreamer(b,ctx){var w=256,h=1152,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),top='',mid=b.title||'',bot=b.sub||'',i;
+  if(b.eventId){var d=b.evDate||'';top=d?(+d.slice(5,7))+'/'+(+d.slice(8,10)):'';mid=b.evTitle||mid;
+    var n=Math.round((Date.parse(d+'T00:00:00+08:00')-Date.parse((ctx&&ctx.today||d)+'T00:00:00+08:00'))/864e5);bot=n<=0?'今天！':'還有'+n+'天'}
+  x.fillStyle=p[0];x.fillRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.55)';x.fillRect(0,0,w,14);x.fillRect(0,h-14,w,14);
+  x.fillStyle='#fff';x.fillRect(14,0,6,h);x.fillRect(w-20,0,6,h);
+  x.textAlign='center';x.textBaseline='middle';var y=70;
+  if(top){x.fillStyle='#fff6c9';x.font='900 66px '+HEI;x.fillText(top,w/2,y);y+=78;x.fillStyle='rgba(255,255,255,.6)';x.fillRect(60,y-20,w-120,4)}
+  var chars=Array.from(mid).slice(0,10),room=h-y-(bot?150:50),fs=Math.min(120,Math.floor(room/Math.max(1,chars.length)*.92));
+  x.fillStyle='#fff';x.font='900 '+fs+'px '+HEI;chars.forEach(function(ch,k){x.fillText(ch,w/2,y+fs*.55+k*fs*1.02)});
+  if(bot){x.fillStyle='#fff6c9';x.font='900 48px '+HEI;fit(x,bot,w-60,48,'900');x.fillText(bot,w/2,h-78)}
+  var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function makeX(b,ctx){var g,tex=[];
+  if(b.style==='A'){var ta=texAx(b);g=body(ta,36,false);flat(g,ta);g.userData.env.rotation.y=-Math.PI/2;tex.push(ta);g.userData.kind='pin'}
+  else if(b.style==='C'){var tc=texCx(b);g=body(tc,36,false);flat(g,tc);g.userData.env.rotation.y=-Math.PI/2;tex.push(tc);g.userData.kind='pin'}
+  else{var tb=texBodyX(b.color),ts=texStreamer(b,ctx);g=body(tb,14,false);flat(g,tb);tex.push(tb,ts);g.userData.kind='drift';
+    var geo=new THREE.PlaneGeometry(.78,3.5,1,12);geo.translate(0,-1.75,0);var m=new THREE.MeshBasicMaterial({map:ts,side:THREE.FrontSide,fog:false}),sw=new THREE.Group();
+    var f=new THREE.Mesh(geo,m),bk=new THREE.Mesh(geo,m);bk.rotation.y=Math.PI;bk.position.z=-.012;sw.add(f);sw.add(bk);sw.position.set(0,-.05,0);g.userData.inner.add(sw);g.userData.sway=sw;
+    var rp=new THREE.LineBasicMaterial({color:'#8a6440'});sw.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.25,.18,0),new THREE.Vector3(-.2,0,0)]),rp));sw.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(.25,.18,0),new THREE.Vector3(.2,0,0)]),rp))}
+  if(b.style==='B'){g.traverse(function(m){if(m.material){m.material.transparent=true;m.material.depthTest=false;m.material.depthWrite=false}m.renderOrder=10})} /* B 不看深度（雲是立體的會擋住它），靠位置留在島上方的天空：左右慢慢飄、不蓋到島 */
+  g.userData.tex=tex;g.userData.ph=Math.random()*6.28;g.userData.id=b.id;return g}
+/* 顏色要看得清楚：不吃場景的暗光，用不受光材質 */
+function flat(g,map){g.userData.env.material=new THREE.MeshBasicMaterial({map:map,fog:false})}
+/* cfg: {scene,camera,slots:[{nx,ny,frac}],bx,by,bamp,bfrac}；slots 給 A／C 用（照順序），B 在 bx±bamp 左右慢慢飄 */
+function Mgr(cfg){this.cfg=cfg;this.objs=[];this.key=''}
+Mgr.prototype.count=function(){return this.objs.length};
+Mgr.prototype.set=function(list,ctx){list=(list||[]).slice(0,3);var key=JSON.stringify(list)+'|'+((ctx&&ctx.today)||'');if(key===this.key)return;this.key=key;var me=this;
+  this.objs.forEach(function(o){me.cfg.scene.remove(o);o.traverse(function(m){if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose()});(o.userData.tex||[]).forEach(function(t){t.dispose()})});
+  this.objs=list.map(function(b){var o=makeX(b,ctx);me.cfg.scene.add(o);return o})};
+Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,k=0;
+  this.objs.forEach(function(o){o.visible=!!show;if(!show)return;var u=o.userData,pinned=u.kind==='pin'&&k<cfg.slots.length;
+    if(pinned){var s=cfg.slots[k++];pin(o,cfg.camera,s.nx,s.ny,s.frac,dist,now)}
+    else{var nx=cfg.bx+Math.sin(now*.000085+u.ph)*cfg.bamp,ny=cfg.by+Math.sin(now/1900+u.ph)*.012;pin(o,cfg.camera,nx,ny,cfg.bfrac,dist*1.9,now);
+      if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}}})};
+window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr};
 })();
