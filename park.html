@@ -744,7 +744,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261011a';
+const PARK_VER='20261011b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1258,10 +1258,11 @@ function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v
   /* 畫廊模式不用雲遮：廣場後面放一面看不見的牆（只寫深度），後面的走格子島、橋、鎖都不會畫出來，只看到畫廊背景 */
   if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
 const _fn=new THREE.Color();
-function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.visible=on;GA.bridge.position.y=0;GA.bridge.visible=on}
+function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.scale.setScalar(1);GA.gate.visible=on;GA.bridge.position.y=0;GA.bridge.visible=false;GA.bridge.children.forEach(c=>c.scale.setScalar(1))} /* 橋平常收起來：只有開門過去／跳回來的那一下才出現（門口站在原地，路口看起來就是一道門） */
 function gateSink(g=true,b=true){return tween(700,p=>{const y=-easeIn(p)*8;if(g)GA.gate.position.y=y;if(b)GA.bridge.position.y=y}).then(()=>{if(g)GA.gate.visible=false;if(b)GA.bridge.visible=false})} /* 門口跟著廣場一起沉（不然廣場沉了、門還浮在半空，要等熊起跳才消失）；橋留到熊起跳才沉 */
+function plazaAdopt(){scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.bridge&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o))}
 function plazaSink(){ // 小黑熊離開廣場後，整座廣場（含扭蛋機）往下沉
-  scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o));
+  plazaAdopt();
   return tween(900,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
 function setPhaseLook(oct){plazaPut(oct);if(oct&&GA.mist)GA.mist.children.forEach(o=>{if(o.userData.p0)o.position.copy(o.userData.p0);if(o.material&&o.userData.op!==undefined)o.material.opacity=o.userData.op}); /* 開門動畫會把雲往上推，回廣場要復位 */
   if(ISL)ISL.forEach(o=>o.visible=!oct); /* 十月走格子島藏在霧裡幾乎看不到（實測只佔 0.15% 畫面），不畫它省掉一半的繪製量 */resize();if(GA.mist)GA.mist.visible=oct;setDim(oct?1:0);setTilesDim(oct?1:0);gateLook(!oct||walkOpen(),true);signLook(oct)}
@@ -1922,15 +1923,55 @@ const xRange=()=>`${xStart()}～${xmd(XINFO&&XINFO.end)||'12/25'}`;
 function walkOpen(){return !window.PROD||XOPEN||document.documentElement.classList.contains('demoq')}
 function enterWalk(){if(busy||G.phase!=='oct')return;if(!walkOpen()){toast(`聖誕走格子 ${xStart()} 開放，先轉扭蛋吧`);return}sfx('tap');openPark()}
 function hopVeil(){let v=$('hopVeil');if(!v){v=document.createElement('div');v.id='hopVeil';document.body.appendChild(v)}return v}
+/* 路口的門變成橋（開門過去）／橋收回變回門（跳回來）：橋板一塊一塊從廣場這頭長到島那頭 */
+const brPlanks=()=>GA.bridge.children;
+function gateToBridge(){const B=GA.bridge,n=B.children.length;B.position.y=0;B.visible=true;B.children.forEach(c=>c.scale.setScalar(.001));sfx('sparkle');sparkle(GA.gate.position.clone().add(new THREE.Vector3(0,2.2,0)),14);
+  return tween(900,p=>{GA.gate.scale.setScalar(Math.max(.001,1-easeIn(Math.min(1,p*1.6))));GA.gate.position.y=-easeIn(Math.min(1,p*1.6))*1.5;
+    B.children.forEach((c,i)=>{const q=Math.max(0,Math.min(1,(p*900-(n-1-i)*(520/n))/300));c.scale.setScalar(Math.max(.001,bounce(q)))})}).then(()=>{GA.gate.visible=false;GA.gate.position.y=0;GA.gate.scale.setScalar(1)})}
+function bridgeToGate(){const B=GA.bridge,n=B.children.length;GA.gate.scale.setScalar(.001);GA.gate.visible=true;sfx('sparkle');sparkle(GA.gate.position.clone().add(new THREE.Vector3(0,2.2,0)),14);
+  return tween(900,p=>{B.children.forEach((c,i)=>{const q=Math.max(0,Math.min(1,(p*900-i*(400/n))/300));c.scale.setScalar(Math.max(.001,1-easeIn(q)))});
+    const g=Math.max(0,Math.min(1,(p*900-300)/600));GA.gate.scale.setScalar(Math.max(.001,bounce(g)))}).then(()=>{B.visible=false;B.children.forEach(c=>c.scale.setScalar(1));GA.gate.scale.setScalar(1)})}
 async function backToPlaza(){
   if(busy||G.phase==='oct')return;
   busy=true;hud();sfx('tap');
-  const v=hopVeil();v.classList.add('on');await sleep(380);
-  overview=false;treeCam=false;focusAt=null;parkCam=null;
-  G.phase='oct';SKYHOLD=false;SKY=0;setPhaseLook(true);placeBear();showBubbles();
-  const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
+  if(RM||!GA.PR||!GA.gate||!GA.bridge){ // 減少動態：直接淡出淡入
+    const v=hopVeil();v.classList.add('on');await sleep(380);
+    overview=false;treeCam=false;focusAt=null;parkCam=null;
+    G.phase='oct';SKYHOLD=false;SKY=0;setPhaseLook(true);placeBear();showBubbles();
+    const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
+    try{localStorage.setItem('otto2-park-last','oct')}catch(e){}
+    busy=false;hud();await sleep(150);v.classList.remove('on');return}
+  /* 2026-10-11 大熊：從格子島回扭蛋島也要跳回來——橋升起來、小熊翻過去落在橋頭，廣場從下面升上來、天空由夜變日，走到路口橋收回變成門 */
+  HOPPING=true;overview=false;treeCam=false;focusAt=null;
+  document.body.classList.add('opening');$('skipOpen').hidden=false;
+  try{
+    SKYHOLD=true;SKY=1;skyApply(false);snow.visible=true;
+    plazaAdopt();GA.PR.position.y=-20;GA.PR.visible=true;GA.gate.visible=false;GA.bridge.visible=true;GA.bridge.position.y=-8;GA.bridge.children.forEach(c=>c.scale.setScalar(1));
+    parkCam='open';
+    const p3=new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2),p2=new THREE.Vector3(BRIDGE_X,0,PLAZA.z-3.6),A=bear.position.clone();
+    bear.rotation.y=Math.atan2(p3.x-A.x,p3.z-A.z);
+    tween(700,p=>{GA.bridge.position.y=-(1-easeOut(p))*8});
+    tween(1000,p=>{GA.PR.position.y=-(1-easeIO(p))*20});
+    tween(1700,p=>{SKY=1-easeIO(p);if(SKY<.35)snow.visible=false;skyApply(false)});
+    await tween(780,p=>{bear.position.lerpVectors(A,p3,easeIO(p));bear.position.y=A.y+(p3.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=easeIO(p)*Math.PI*2});
+    bear.rotation.x=0;bear.position.copy(p3);sparkle(p3.clone().add(new THREE.Vector3(0,.5,0)),10);
+    G.phase='oct';
+    // 走過橋到路口：橋收起來、門長回來
+    {const n=Math.max(1,Math.round(p3.distanceTo(p2)/.9));bear.rotation.y=Math.atan2(p2.x-p3.x,p2.z-p3.z);
+      for(let j=0;j<n;j++){const s0=p3.clone().lerp(p2,j/n),e0=p3.clone().lerp(p2,(j+1)/n);
+        await tween(200,p=>{bear.position.lerpVectors(s0,e0,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
+    bridgeToGate();
+    // 雲霧回到走格子島前面
+    if(GA.mist){GA.mist.children.forEach(o=>{if(o.userData.p0)o.position.copy(o.userData.p0);if(o.material&&o.userData.op===undefined)o.userData.op=o.material.opacity});GA.mist.visible=true;
+      tween(700,p=>{setDim(p);GA.mist.children.forEach(o=>{if(o.material&&o.userData.op!==undefined)o.material.opacity=o.userData.op*p})})}
+    {const n=Math.max(1,Math.round(p2.distanceTo(STAND)/.9));bear.rotation.y=Math.atan2(STAND.x-p2.x,STAND.z-p2.z);
+      for(let j=0;j<n;j++){const s0=p2.clone().lerp(STAND,j/n),e0=p2.clone().lerp(STAND,(j+1)/n);
+        await tween(200,p=>{bear.position.lerpVectors(s0,e0,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
+  }catch(e){console.warn('hop back',e)}
+  parkCam=null;SKYHOLD=false;SKY=0;FAST=false;document.body.classList.remove('opening');$('skipOpen').hidden=true;
+  G.phase='oct';setPhaseLook(true);placeBear();showBubbles();
   try{localStorage.setItem('otto2-park-last','oct')}catch(e){}
-  busy=false;hud();await sleep(150);v.classList.remove('on')}
+  HOPPING=false;busy=false;hud()}
 function xmasLabels(){const o=walkOpen(),sp=document.querySelector('.octinfo span');
   if(sp&&sp.lastChild&&sp.lastChild.nodeType===3){sp.lastChild.nodeValue=o?'聖誕走格子開放中｜走進路口就能玩':`聖誕走格子｜${xStart()} 開放`;const sv=sp.querySelector('svg');if(sv)sv.style.display=o?'none':''}
   const sm=document.querySelector('#soon small');if(sm)sm.textContent=o?'開放中':`${xStart()} 開放`}
@@ -1952,7 +1993,7 @@ async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去�
   // the bear walks over the bridge to the start tile
   const y=bear.position.y,pts=[STAND.clone(),new THREE.Vector3(BRIDGE_X,0,PLAZA.z+1.2),new THREE.Vector3(BRIDGE_X,0,PLAZA.z-3.6),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2)];let land; /* 路口在廣場中線，小熊直接走過去（扭蛋機已經搬到右邊） */
   parkCam='walk';
-  for(let k=1;k<pts.length;k++){if(k===pts.length-1){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink();sleep(250).then(()=>gateSink(true,false))}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  for(let k=1;k<pts.length;k++){if(k===pts.length-1){await gateToBridge(); /* 走到路口：門消失、變成橋 */tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
       await tween(200,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
   if(xp)await Promise.race([xp,sleep(4000)]); /* 落點用雲端存的位置，不是每次都跳回起點 */
@@ -2516,7 +2557,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261011a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261011b',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
