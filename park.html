@@ -535,7 +535,7 @@ body:not(.oct) #evPill{display:none}
 /* 藝享選品館商品頁 */
 #shopPage{position:fixed; inset:0; z-index:71; background:#f8f1e4; display:flex; flex-direction:column; opacity:0; transition:opacity .3s}
 #shopPage.show{opacity:1}
-#shopPage .sp-head{flex:none; position:relative; height:var(--sph); background:#a9d2f3 url(shop-head-bg.webp?v=20261008a) center bottom/min(100vw,520px) auto no-repeat} /* 整張店面圖完整顯示（含屋頂），不裁切 */
+#shopPage .sp-head{flex:none; position:relative; height:var(--sph); transition:height .28s ease; background:#a9d2f3 url(shop-head-bg.webp?v=20261008a) center bottom/min(100vw,520px) auto no-repeat} /* 整張店面圖完整顯示（含屋頂），不裁切 */
 #shopPage .sp-title{position:absolute; left:18px; top:calc(env(safe-area-inset-top,0px) + 14px); color:#14214a; text-shadow:0 0 8px rgba(255,255,255,.85),0 0 2px rgba(255,255,255,.9)}
 #shopPage .sp-title small{display:block; font-size:22px; font-weight:900; letter-spacing:1px}
 #shopPage .sp-title h2{margin:2px 0 2px; font-size:28px; letter-spacing:6px; font-weight:800}
@@ -552,6 +552,12 @@ body:not(.oct) #evPill{display:none}
 #shopPage .sp-girl img{display:block; width:100%; filter:drop-shadow(0 5px 6px rgba(40,36,28,.28))}
 #shopPage .sp-gb{position:absolute; left:92%; top:2%; width:max-content; background:#fffdf8; color:#14214a; border:3px solid #14214a; border-radius:16px; padding:7px 12px; font-size:15px; font-weight:800; transform-origin:0 100%; transform:scale(0); animation:sgPop .5s cubic-bezier(.2,1.5,.4,1) .6s forwards}
 #shopPage .sp-gb::before{content:''; position:absolute; left:-9px; bottom:8px; width:13px; height:13px; background:#fffdf8; border-left:3px solid #14214a; border-bottom:3px solid #14214a; transform:rotate(45deg)}
+#shopPage.compact{--sph:calc(env(safe-area-inset-top,0px) + 58px)} /* 商品往上滑時，上面的店面縮成一條細列，讓商品區變大 */
+#shopPage.compact .sp-head{background-image:none; background-color:#a9d2f3}
+#shopPage.compact .sp-title,#shopPage.compact .sp-girl{opacity:0; pointer-events:none}
+#shopPage .sp-title,#shopPage .sp-girl{transition:opacity .2s}
+#shopPage .sp-bal{transition:bottom .28s}
+#shopPage.compact .sp-bal{bottom:9px; right:60px}
 #shopPage .sp-tabs{flex:none; display:flex; gap:8px; padding:12px 14px 4px; overflow-x:auto; scrollbar-width:none}
 #shopPage .sp-tabs::-webkit-scrollbar{display:none}
 #shopPage .sp-tabs button{flex:none; font:inherit; font-size:15px; color:#3a4258; background:#fffdf8; border:0; border-radius:99px; padding:9px 18px; box-shadow:0 2px 6px rgba(60,40,10,.08); cursor:pointer; white-space:nowrap}
@@ -738,7 +744,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261010c';
+const PARK_VER='20261011a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1253,7 +1259,7 @@ function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v
   if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
 const _fn=new THREE.Color();
 function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.visible=on;GA.bridge.position.y=0;GA.bridge.visible=on}
-function gateSink(){return tween(700,p=>{GA.gate.position.y=GA.bridge.position.y=-easeIn(p)*8}).then(()=>{GA.gate.visible=false;GA.bridge.visible=false})}
+function gateSink(g=true,b=true){return tween(700,p=>{const y=-easeIn(p)*8;if(g)GA.gate.position.y=y;if(b)GA.bridge.position.y=y}).then(()=>{if(g)GA.gate.visible=false;if(b)GA.bridge.visible=false})} /* 門口跟著廣場一起沉（不然廣場沉了、門還浮在半空，要等熊起跳才消失）；橋留到熊起跳才沉 */
 function plazaSink(){ // 小黑熊離開廣場後，整座廣場（含扭蛋機）往下沉
   scene.children.filter(o=>o!==bear&&!o.isLight&&o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==snow&&o!==dieG&&o.position.z>12).forEach(o=>GA.PR.add(o));
   return tween(900,p=>{GA.PR.position.y=-easeIO(p)*20}).then(()=>{GA.PR.visible=false})}
@@ -1638,7 +1644,7 @@ $('sgIn').addEventListener('click',async()=>{sfx('tap');
   const g=$('shopGate');g.classList.remove('show');setTimeout(()=>{g.hidden=true;showShopPage()},300)});
 function shopPrice(p){return p.onSale?`<s>${p.orig}</s><i class="sp-coin"></i>${p.price}`:`<i class="sp-coin"></i>${p.price}`}
 let _girlT=0,_girlTok=0;
-function showShopPage(){const pg=$('shopPage');pg.hidden=false;void pg.offsetWidth;pg.classList.add('show');SHOPCAT='all';renderShop();shopNavBuild();shopGirlHi()}
+function showShopPage(){const pg=$('shopPage');pg.hidden=false;void pg.offsetWidth;pg.classList.add('show');pg.classList.remove('compact');SHOPCAT='all';renderShop();shopNavBuild();shopGirlHi()}
 /* 進商品頁：另一位店員出來說「你好啊！好久不見」並揮手，播完淡出（大熊給的綠幕影片去背成透明動畫＋聲音） */
 function shopGirlHi(){const g=$('spGirl');if(!g)return;clearTimeout(_girlT);g.classList.remove('out');g.hidden=false;
   const gb=g.querySelector('.sp-gb');gb.style.animation='none';void gb.offsetWidth;gb.style.animation='';
@@ -1648,6 +1654,9 @@ function shopGirlHi(){const g=$('spGirl');if(!g)return;clearTimeout(_girlT);g.cl
   /* 她一直站在原位；播完（約 8 秒）只收起對話框，點她可以再打一次招呼 */
   gb.classList.remove('off');_girlT=setTimeout(()=>gb.classList.add('off'),8400)}
 $('spGirl').addEventListener('click',()=>shopGirlHi());
+$('spGrid').addEventListener('scroll',()=>{const g=$('spGrid'),pg=$('shopPage');const c=pg.classList.contains('compact');
+  if(!c&&g.scrollTop>24&&g.scrollHeight-g.clientHeight>g.clientHeight*0.5)pg.classList.add('compact');
+  else if(c&&g.scrollTop<=2)pg.classList.remove('compact')},{passive:true});
 function hideShopPage(cb){const pg=$('shopPage');voiceStop();clearTimeout(_girlT);const ga=$('spGirlAud');if(ga)ga.pause();const gg=$('spGirl');if(gg)gg.hidden=true;pg.classList.remove('show');setTimeout(()=>{pg.hidden=true;if(cb)cb()},300)}
 function renderShop(){const d=SHOP;if(!d)return;
   $('spName').textContent=d.cfg.name||'藝享選品館';$('spSub').textContent=d.cfg.sub||'';
@@ -1943,13 +1952,13 @@ async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去�
   // the bear walks over the bridge to the start tile
   const y=bear.position.y,pts=[STAND.clone(),new THREE.Vector3(BRIDGE_X,0,PLAZA.z+1.2),new THREE.Vector3(BRIDGE_X,0,PLAZA.z-3.6),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2)];let land; /* 路口在廣場中線，小熊直接走過去（扭蛋機已經搬到右邊） */
   parkCam='walk';
-  for(let k=1;k<pts.length;k++){if(k===pts.length-1){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  for(let k=1;k<pts.length;k++){if(k===pts.length-1){tween(2400,p=>{SKY=easeIO(p);if(SKY>.35)snow.visible=true;skyApply(false)});plazaSink();sleep(250).then(()=>gateSink(true,false))}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
       await tween(200,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
   if(xp)await Promise.race([xp,sleep(4000)]); /* 落點用雲端存的位置，不是每次都跳回起點 */
   {const st=tilePos(G.cur,G.lv[G.cur].pos);land=new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z)}
   { // 從橋頭大跳一下、空翻過去，落在目前的格子
-    const A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);gateSink();
+    const A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);gateSink(false,true);
     await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=-easeIO(p)*Math.PI*2});
     bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10)}
   bear.rotation.y=0;parkCam=null;SKYHOLD=false;SKY=0;FAST=false;document.body.classList.remove('opening');$('skipOpen').hidden=true;hud();confetti(40);
@@ -2507,7 +2516,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261010c',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261011a',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}

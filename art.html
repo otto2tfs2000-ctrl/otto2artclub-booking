@@ -1009,12 +1009,12 @@ function makeHouse(m,i){
   const pw=style==='wing'?2.3:1.6,pd=style==='wing'?2:1.5;
   g.add(box(STONE_D,pw+.1,.18,pd+.1,0,-.12,0));g.add(box(STONE,pw,.32,pd,0,-.1,0));g.add(box(BRICK,pw+.04,.06,pd+.04,0,.2,0));
   for(let k=0;k<6;k++){const x=-pw/2+.1+k*(pw-.2)/5;g.add(box(POST,.025,.22,.025,x,.24,pd/2-.04))}g.add(box(POST,pw-.15,.025,.025,0,.44,pd/2-.04));
-  const H=.68,W=.92,D=.82,top=.26;let y=top,c=wall;
+  const H=.68,W=.92,D=.82,top=.26;let y=top,c=wall;const fl=[];g.userData.fl=fl; /* 每層樓正中央的位置（小屋座標），裝飾小屋時鏡頭要對到那一層 */
   if(style==='stack'){
     // blocks piled up, each a little turned and nudged, a lighthouse cap once it is tall
     let ox=0,oz=0;
     for(let f=0;f<F;f++){const w=Math.max(.62,W-f*.03),dd=Math.max(.56,D-f*.03),st=storey(fcOf(f)||(f%3===2?'#'+new THREE.Color(wall).offsetHSL(0,0,.06).getHexString():wall),w,dd,H,lit,f===0,i*31+f,fdOf(f));
-      st.position.set(ox,y,oz);st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox=Math.max(-.22,Math.min(.22,ox+(r()-.5)*.16));oz=Math.max(-.18,Math.min(.18,oz+(r()-.5)*.12));g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
+      st.position.set(ox,y,oz);fl[f]=[ox,y+H/2,oz];st.rotation.y=f?(r()-.5)*.35:0;g.add(st);y+=H;if(f<F-1){ox=Math.max(-.22,Math.min(.22,ox+(r()-.5)*.16));oz=Math.max(-.18,Math.min(.18,oz+(r()-.5)*.12));g.add(box(BRICK,w+.08,.07,dd+.08,ox,y-.01,oz));y+=.06}}
     g.userData.topY=y;g.userData.ox=ox;g.userData.oz=oz;
     if(F>=4){const t=cyl(TRIM,.3,.34,.42,ox,y,oz,10);g.add(t);g.add(cyl('#f2d898',.24,.24,.22,ox,y+.42,oz,10));const cone=new THREE.Mesh(new THREE.ConeGeometry(.4,.55,10),toon(ROOF));cone.position.set(ox,y+.64+.27,oz);cone.castShadow=true;g.add(cone);g.add(ball('#c9573f',.05,ox,y+1.22,oz,1,1,1,true))}
     else roofOn(g,Math.max(.62,W-(F-1)*.03),Math.max(.56,D-(F-1)*.03),y,false).children.slice(-2).forEach(o=>{o.position.x+=ox;o.position.z+=oz})}
@@ -1022,7 +1022,7 @@ function makeHouse(m,i){
     // spreads along the ground into an L first, then the corner rises into a little tower
     const slots=[[0,0,0],[.94,0,0],[.94,0,-.84],[0,1,0],[.94,1,0],[0,2,0],[0,3,0]];for(let k=7;k<F;k++)slots.push([0,k-3,0]);slots.length=Math.min(slots.length,F);
     const occupied=new Set(slots.map(q=>q.join()));
-    slots.forEach(([sx,sl,sz],k)=>{const st=storey(fcOf(k)||(k%2?'#'+new THREE.Color(wall).offsetHSL(0,-.05,.05).getHexString():wall),W,D,H,lit,k===0,i*31+k,fdOf(k));st.position.set(sx-.47,top+sl*H,sz+.3);g.add(st);
+    slots.forEach(([sx,sl,sz],k)=>{const st=storey(fcOf(k)||(k%2?'#'+new THREE.Color(wall).offsetHSL(0,-.05,.05).getHexString():wall),W,D,H,lit,k===0,i*31+k,fdOf(k));st.position.set(sx-.47,top+sl*H,sz+.3);fl[k]=[sx-.47,top+sl*H+H/2,sz+.3];g.add(st);
       if(!occupied.has([sx,sl+1,sz].join())){const rf=gable(W+.14,D+.12,.4,k%2?ROOF_D:ROOF);rf.position.set(sx-.47,top+(sl+1)*H,sz+.3);if(sz)rf.rotation.y=Math.PI/2;g.add(rf)}});
     y=top+Math.max(...slots.map(q=>q[1]+1))*H;g.userData.topY=y;g.userData.ox=-.47;g.userData.oz=.3;g.add(box(BRICK,.12,.26,.12,-.3,y+.1,.1))}
   // a few extras that come with more works
@@ -1182,9 +1182,9 @@ let yaw=.6,pitch=.58,zoom=1,focus=null,idleT=0,touring=false,dragging=false;cons
 const portrait=()=>innerHeight>innerWidth;
 function camGoal(){
   let at=new THREE.Vector3(0,2.4,0),d=(portrait()?66:36)*K*zoom,y=yaw,p=pitch;
-  if(focus){if(focus.obj){focus.obj.getWorldPosition(focus.pos);focus.pos.y+=focus.h}at=focus.pos.clone();d=focus.d*(portrait()?1.45:1);if(focus.yaw!==undefined)y=focus.yaw;p=focus.pitch??.35;
+  if(focus){if(focus.loc){focus.obj.updateMatrixWorld(true);focus.pos.copy(focus.obj.localToWorld(focus.loc.clone()))}else if(focus.obj){focus.obj.getWorldPosition(focus.pos);focus.pos.y+=focus.h}at=focus.pos.clone();d=focus.d*(portrait()?1.45:1);if(focus.yaw!==undefined)y=focus.yaw;p=focus.pitch??.35;
     /* 直式手機下面有說明卡：看的點往下移，東西就會出現在畫面上半部，不會被卡片蓋住（2026-10-03） */
-    if(portrait()&&!$('sheet').hidden)at.y-=d*.16}
+    if(portrait()&&(!$('sheet').hidden||!$('drawer').hidden))at.y-=d*.16}
   return{at,pos:at.clone().add(new THREE.Vector3(Math.sin(y)*Math.cos(p)*d,Math.sin(p)*d,Math.cos(y)*Math.cos(p)*d))};
 }
 /* 直式：島的中心對到「上方標題下緣～下方提示字上緣」中間偏上，藍天不會空一大塊（2026-10-04） */
@@ -1282,7 +1282,7 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
-  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261010c';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
+  const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261011a';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${worksForFloor(F+1)-n} 件作品就會加蓋一層。`:'已經蓋到最高了！之後的作品用來解鎖裝飾。';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
@@ -1297,6 +1297,13 @@ function lookPanel(m){
   const L=m.look=m.look?JSON.parse(JSON.stringify(m.look)):{};
   let mode='all',sel=0,sel2=Math.min(1,F-1);
   $('sheet').hidden=true;const h=houses[idx];if(h)focusOn(h,7+F*1.8,.3+F*.08,.5-F*.012); /* 下面的抽屜佔掉近一半畫面，小屋要落在上半部 */
+  /* 鏡頭跟著你選的東西走：選哪一層就拉近到那一層（抽屜蓋住下半部，camGoal 會把目標推到上半部）；選屋頂看屋頂、選門口看地面，選整棟換色就退遠看全部 */
+  const aim=(part,f)=>{const hh=houses[idx];if(!hh)return;const u=hh.userData,q=(u.fl&&u.fl[f])||[0,.6,0],V=(x,y,z)=>new THREE.Vector3(x,y,z);let loc,d,pit;
+    if(part==='floor'){loc=V(q[0],q[1],q[2]+.35);d=5;pit=.25}
+    else if(part==='roof'){loc=V(u.ox||0,(u.topY||2)+.15,u.oz||0);d=4.6;pit=.28}
+    else if(part==='yard'){loc=V(0,.55,.6);d=5.6;pit=.2}
+    else{loc=V(0,(u.topY||2)*.5,0);d=7+F*1.8;pit=.5-F*.012}
+    const w=new THREE.Vector3();hh.getWorldPosition(w);focus={pos:new THREE.Vector3(),d,yaw:focus&&focus.yaw!==undefined?focus.yaw:Math.atan2(w.x,w.z)+.25,pitch:pit,obj:hh,h:0,loc}};
   const drawer=$('drawer'),need=f=>Math.max(0,worksForFloor(f)-n),fcv=f=>L.fc&&L.fc['f'+f],cur=()=>L.c!=null?L.c:defC;
   const chips=(list,selI,act)=>`<div class="dch">${list.map(i=>`<button type="button" data-a="${act}" data-v="${i}" class="${i===selI?'on':''}">${i+1}樓</button>`).join('')}</div>`;
   const floors=Array.from({length:F},(_,i)=>i);
@@ -1316,21 +1323,22 @@ function lookPanel(m){
       <div class="acts"><button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="save">存好了</button></div>`;
     drawer.hidden=false};
   const redraw=()=>{rebuildOne(idx);const hh=houses[idx];if(hh&&focus)focus.obj=hh;paint()};
+  aim('floor',sel2); /* 一打開就看第 2 層（每層裝飾預設選的那層） */
   drawer.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
     if(a==='cancel'){closeLook(true);return}
     if(a==='save'){b.disabled=true;b.textContent='儲存中…';
       try{if(!DEMO)await api('/island/look',{c:L.c,r:L.r,fc:L.fc,fd:L.fd,off:L.off,tp:L.tp});
         lookSt.orig=null;closeLook(false);toast('小屋的樣子存好了')}
       catch(err){toast(err.message);b.disabled=false;b.textContent='存好了'}return}
-    if(a==='mode'){if(v==='one'&&F<ONE_F){toast(`每層各自換色要蓋到 ${ONE_F} 樓，再 ${need(ONE_F)} 件作品`);return}mode=v;paint();return}
-    if(a==='fl'){sel=+v;paint();return}
-    if(a==='fl2'){sel2=+v;paint();return}
-    if(a==='wall'){const i=+v;if(i>=WALL_FREE&&F<WALL_ALL_F){toast(`這個顏色要蓋到 ${WALL_ALL_F} 樓，再 ${need(WALL_ALL_F)} 件作品`);return}
+    if(a==='mode'){if(v==='one'&&F<ONE_F){toast(`每層各自換色要蓋到 ${ONE_F} 樓，再 ${need(ONE_F)} 件作品`);return}mode=v;aim(mode==='one'?'floor':'all',sel);paint();return}
+    if(a==='fl'){sel=+v;aim('floor',sel);paint();return}
+    if(a==='fl2'){sel2=+v;aim('floor',sel2);paint();return}
+    if(a==='wall'){const i=+v;if(!(mode==='one'&&F>=ONE_F))aim('all');else aim('floor',sel);if(i>=WALL_FREE&&F<WALL_ALL_F){toast(`這個顏色要蓋到 ${WALL_ALL_F} 樓，再 ${need(WALL_ALL_F)} 件作品`);return}
       if(mode==='one'&&F>=ONE_F){L.fc=L.fc||{};L.fc['f'+sel]=i}else{L.c=i;delete L.fc}redraw();return}
-    if(a==='roof'){const i=+v;if(i>0&&F<ROOF_F){toast(`屋頂換色要蓋到 ${ROOF_F} 樓，再 ${need(ROOF_F)} 件作品`);return}L.r=i;redraw();return}
-    if(a==='fd'){const d=FDK.find(x=>x[0]===v);if(v&&d&&F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}L.fd=L.fd||{};if(v)L.fd['f'+sel2]=v;else delete L.fd['f'+sel2];redraw();return}
-    if(a==='dc'){const d=DECOK.find(x=>x[0]===v);if(F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}const o=new Set(L.off||[]);o.has(v)?o.delete(v):o.add(v);L.off=[...o];redraw();return}
-    if(a==='tp'){L.tp=v;L.off=(L.off||[]).filter(x=>x!=='topper');redraw();return}};
+    if(a==='roof'){const i=+v;if(i>0&&F<ROOF_F){toast(`屋頂換色要蓋到 ${ROOF_F} 樓，再 ${need(ROOF_F)} 件作品`);return}L.r=i;aim('roof');redraw();return}
+    if(a==='fd'){const d=FDK.find(x=>x[0]===v);if(v&&d&&F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}L.fd=L.fd||{};if(v)L.fd['f'+sel2]=v;else delete L.fd['f'+sel2];aim('floor',sel2);redraw();return}
+    if(a==='dc'){const d=DECOK.find(x=>x[0]===v);if(F<d[2]){toast(`${d[1]}要蓋到 ${d[2]} 樓，再 ${need(d[2])} 件作品`);return}const o=new Set(L.off||[]);o.has(v)?o.delete(v):o.add(v);L.off=[...o];aim(['topper','smoke'].includes(v)?'roof':'yard');redraw();return}
+    if(a==='tp'){L.tp=v;L.off=(L.off||[]).filter(x=>x!=='topper');aim('roof');redraw();return}};
   paint()}
 /* 改門牌名字（2026-10-05）：屋主改自己家，老師可以改任何一間 */
 function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫在小屋門牌上，大家逛到都看得到。</p><label for="rn">門牌名字（最多 8 個字）</label><input type="text" id="rn" maxlength="8" value="${esc(m.name)}">
@@ -1683,8 +1691,8 @@ async function start(data){
 $('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261010c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261010c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261010c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
-$('plMascot').onclick=()=>{const u='park.html?v=20261010c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
+$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261011a';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261011a&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261011a&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
+$('plMascot').onclick=()=>{const u='park.html?v=20261011a&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
 function armBack(){try{if(!(history.state&&history.state.otOv))history.pushState({otOv:1},'')}catch(e){}}
