@@ -511,7 +511,9 @@ body:not(.oct) #evPill{display:none}
 #evPop[hidden],#evBig[hidden]{display:none}
 #evPop .ev-card{position:relative; width:100%; max-width:400px; max-height:calc(100dvh - 32px); overflow:auto; background:#fff; border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,.35)}
 #evPop .ev-x{position:absolute; top:8px; right:8px; z-index:2; width:36px; height:36px; border-radius:50%; border:0; background:rgba(255,255,255,.92); font-size:24px; line-height:36px; color:#2b2320; cursor:pointer}
-#evPop .ev-pw{background:#3fb4ea; cursor:zoom-in} #evPop .ev-pw img{display:block; width:100%; max-height:52dvh; object-fit:contain}
+#evPop .ev-pw{position:relative; background:#3fb4ea; cursor:zoom-in} #evPop .ev-pw img{display:block; width:100%; max-height:52dvh; object-fit:contain}
+#evPop .ev-pn{position:absolute; top:50%; width:34px; height:34px; margin-top:-17px; border-radius:50%; border:0; background:rgba(255,255,255,.88); color:#1f8fd0; font:900 22px/34px inherit; cursor:pointer; padding:0} #evPop .ev-pn.l{left:6px} #evPop .ev-pn.r{right:6px}
+#evPop .ev-pd{position:absolute; left:0; right:0; bottom:8px; display:flex; justify-content:center; gap:6px; pointer-events:none} #evPop .ev-pd i{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:0 0 0 1px rgba(30,43,79,.25)} #evPop .ev-pd i.on{background:#fff; box-shadow:0 0 0 1px #1f8fd0}
 #evPop .ev-body{padding:14px 18px 18px; color:#1e2b4f}
 #evPop h3{margin:0; font-size:20px} #evPop .ev-when{margin:4px 0 0; font-size:14.5px; color:#1f8fd0; font-weight:700} #evPop .ev-sub{margin:4px 0 0; font-size:13.5px; color:#5b5f6b}
 #evPop .ev-want{display:block; width:100%; margin:14px 0 8px; padding:13px; border-radius:14px; border:3px solid #2b2320; background:#ef6f8d; color:#fff; font:900 17px/1.2 inherit; cursor:pointer}
@@ -759,14 +761,14 @@ body:not(.oct) #evPill{display:none}
 
 <script src="ferry.js?v=20261005j"></script>
 <script src="petlife.js?v=20261005za"></script>
-<div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"></div><div class="ev-body" id="evBody"></div></div></div>
+<div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
-<script src="anniv26.js?v=20261012d"></script>
+<script src="anniv26.js?v=20261013a"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261012d';
+const PARK_VER='20261013a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1557,7 +1559,7 @@ async function evFetch(){try{const r=await fetch(NOTIFY_URL+'/event/list',{metho
 function evApply(first){const e=EV.cur,pill=$('evPill');if(pill)pill.hidden=true; /* 左上小卡改成下面的倒數看板 */
   balApply();evBoardRender();
   if(!e){evFlowers();evBalloon();return}
-  EV.list.forEach(x=>{if(x.poster)shopImgReady(x.poster)});
+  EV.list.forEach(x=>{if(x.poster)shopImgReady(x.poster);if(x.poster2)shopImgReady(x.poster2)});
   evFlowers();evBalloon();if(!$('evPop').hidden)evRender();
   if(first)evAutoOpen(0)}
 /* 倒數看板：每 5 秒換下一則，點一下看海報 */
@@ -1579,10 +1581,21 @@ function balApply(){if(!window.Anniv26||!Anniv26.Mgr||typeof scene==='undefined'
 function evAutoOpen(n){const e=EV.cur;if(!e)return;const k='otto2-ev-'+e.id+'-'+e.date;let seen=false;try{seen=localStorage.getItem(k)==='1'}catch(_){}if(seen)return;
   setTimeout(()=>{const free=!busy&&$('pop').hidden&&$('tour').hidden&&$('shopGate').hidden&&$('shopPage').hidden&&G&&G.phase==='oct'&&!document.body.classList.contains('touring');
     if(!free){if(n<20)evAutoOpen(n+1);return}try{localStorage.setItem(k,'1')}catch(_){}evOpen()},n?3000:4000)}
-function evOpen(){const e=evSel();if(!e)return;sfx('tap');EV.detail=false;$('evImg').src=e.poster||'';evRender();$('evPop').hidden=false}
+/* 一個活動最多兩張海報（poster、poster2）：彈窗內左右滑、點箭頭或圓點切換 */
+function evSetImg(){const e=evSel();if(!e)return;const L=[e.poster,e.poster2].filter(Boolean);EV.pi=Math.max(0,Math.min(L.length-1,EV.pi||0));
+  const src=L[EV.pi]||'';if($('evImg').getAttribute('src')!==src)$('evImg').src=src;
+  const two=L.length>1;$('evPL').hidden=$('evPR').hidden=$('evPd').hidden=!two;
+  $('evPd').innerHTML=two?L.map((_,i)=>`<i class="${i===EV.pi?'on':''}"></i>`).join(''):''}
+function evPoster(d){const e=evSel();if(!e||!e.poster2)return;EV.pi=((EV.pi||0)+d+2)%2;evSetImg()}
+$('evPL').addEventListener('click',ev=>{ev.stopPropagation();evPoster(-1)});
+$('evPR').addEventListener('click',ev=>{ev.stopPropagation();evPoster(1)});
+(()=>{const w=$('evImg').parentNode;let x0=null;
+  w.addEventListener('touchstart',ev=>{x0=ev.touches.length===1?ev.touches[0].clientX:null},{passive:true});
+  w.addEventListener('touchend',ev=>{if(x0===null)return;const dx=ev.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>40){evPoster(dx<0?1:-1);EV.swiped=Date.now()}},{passive:true})})();
+function evOpen(){const e=evSel();if(!e)return;sfx('tap');EV.detail=false;EV.pi=0;evRender();$('evPop').hidden=false}
 const evHasDetail=e=>!!(e.fee||e.place||e.detail);
 function evRender(){const e=evSel();if(!e)return;const det=evHasDetail(e),inD=det&&EV.detail;
-  $('evImg').parentNode.hidden=inD||!e.poster;
+  $('evImg').parentNode.hidden=inD||!e.poster;if(!inD)evSetImg();
   const wantBtn=`<button type="button" class="ev-want${e.mine?' on':''}" id="evWant">${e.mine?'💐 已 ＋1（再按一下收回）':det?'💐 ＋1 我想去':'💐 我想去'}</button>`;
   const cnt=`<div class="ev-n">${e.wantN?`已經有 <b>${e.wantN}</b> 人想去，島上種了 ${e.wantN} 朵花`:'還沒有人按，第一朵花等你種！'}</div>`;
   const names=e.names&&e.names.length?`<div class="ev-names">${e.names.slice(0,30).map(n=>`<span>${esc(n)}</span>`).join('')}</div>`:'';
@@ -1605,7 +1618,7 @@ async function evWant(){const e=evSel();if(!e||EV.busy)return;sfx('tap');
   catch(err){toast(err.message||'連線不穩，稍後再試')}finally{EV.busy=false;const b=$('evWant');if(b)b.disabled=false}}
 $('evX').addEventListener('click',()=>{$('evPop').hidden=true});
 $('evPop').addEventListener('click',ev=>{if(ev.target.id==='evPop')$('evPop').hidden=true});
-$('evImg').addEventListener('click',()=>{$('evBigImg').src=$('evImg').src;$('evBig').hidden=false});
+$('evImg').addEventListener('click',()=>{if(Date.now()-(EV.swiped||0)<400)return;$('evBigImg').src=$('evImg').src;$('evBig').hidden=false});
 $('evBig').addEventListener('click',()=>{$('evBig').hidden=true});
 $('evPill').addEventListener('click',evOpen);
 /* 花：全部合成一個網格（一次繪製），想去的人數或日期變了才重做 */
@@ -2608,7 +2621,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261012d',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261013a',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
