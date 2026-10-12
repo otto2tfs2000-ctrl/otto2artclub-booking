@@ -122,5 +122,7 @@ Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,k=0;
     if(pinned){var s=cfg.slots[k++];pin(o,cfg.camera,s.nx,s.ny,s.frac,dist,now)}
     else{var nx=cfg.bx+Math.sin(now*.000085+u.ph)*cfg.bamp,ny=cfg.by+Math.sin(now/1900+u.ph)*.012;pin(o,cfg.camera,nx,ny,cfg.bfrac,dist*1.9,now);
       if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}}})};
-window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr};
+/* 後台沒設定任何熱氣球時的預設：26 週年慶（到 11 月底，on() 為 false 就沒有）。也是新款（A 大氣球＋B 直式飄帶），不再有橫幅 */
+function def26(){return on()?[{id:'d26a',style:'A',title:'26th 周年慶',sub:'週週直播抽好禮',color:'pink',from:'2026-10-01'},{id:'d26b',style:'B',title:'滿千送抽獎券',sub:'26th 周年慶',color:'blue',from:'2026-10-02'}]:[]}
+window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr,def26:def26};
 })();
