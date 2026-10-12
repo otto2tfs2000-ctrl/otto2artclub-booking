@@ -763,12 +763,12 @@ body:not(.oct) #evPill{display:none}
 <script src="petlife.js?v=20261005za"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
-<script src="anniv26.js?v=20261013a"></script>
+<script src="anniv26.js?v=20261013b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261013a';
+const PARK_VER='20261013b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1575,7 +1575,7 @@ $('evBoardBtn').addEventListener('click',()=>{const e=(EV.list||[])[EV.bi];if(!e
 setInterval(()=>{const L=EV.list||[];if(L.length<2||document.hidden)return;const b=$('evBoardBtn');b.classList.add('fade');setTimeout(()=>{EV.bi=(EV.bi+1)%L.length;evBoardRender();b.classList.remove('fade')},280)},5000);
 /* 後台設定的熱氣球（A 大氣球／B 直式飄帶／C 單色大字球，最多 3 顆）。有設定就只顯示這些，沒有才退回 26 週年慶舊款 */
 function balApply(){if(!window.Anniv26||!Anniv26.Mgr||typeof scene==='undefined'||typeof camera==='undefined')return;
-  if(!GA.bm)GA.bm=new Anniv26.Mgr({scene,camera,slots:[],bx:.05,by:.62,bamp:.2,bfrac:.11});
+  if(!GA.bm)GA.bm=new Anniv26.Mgr({scene,camera,slots:[],bx:.05,by:.85,bamp:.2,bfrac:.11});
   GA.bm.set(EV.bals&&EV.bals.length?EV.bals:Anniv26.def26(),{today:EV.today})}
 /* 進島跳一次（同一個活動、同一個日期只跳一次；日期改了會再跳） */
 function evAutoOpen(n){const e=EV.cur;if(!e)return;const k='otto2-ev-'+e.id+'-'+e.date;let seen=false;try{seen=localStorage.getItem(k)==='1'}catch(_){}if(seen)return;
@@ -2621,7 +2621,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261013a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261013b',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -3258,7 +3258,7 @@ function annivTick(dt,now,g){if(!GA.bm)balApply();const A=GA.an,d=camera.positio
   const bm=GA.bm&&GA.bm.count(),mi=/^mascot/.test(parkCam||''),R=MI.state!=='off';
   if(A){if(bm){A.fix.visible=false;A.fl.forEach(b=>b.visible=false)}
     else{A.fix.visible=show;if(show)Anniv26.pin(A.fix,camera,R?.68:-.6,R?.46:.42,.2,d*.92,now);A.fl.forEach(b=>{b.visible=!mi;if(!RM&&!mi)Anniv26.drift(b,dt,now)})}} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
-  if(bm){GA.bm.cfg.slots=R?[{nx:.68,ny:.46,frac:.2},{nx:-.6,ny:.42,frac:.17}]:[{nx:-.6,ny:.42,frac:.2},{nx:.66,ny:.56,frac:.15}];GA.bm.tick(now,show,d*.92)}} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
+  if(bm){GA.bm.cfg.slots=R?[{nx:.7,ny:.68,frac:.15},{nx:-.42,ny:.7,frac:.12}]:[{nx:-.4,ny:.7,frac:.16},{nx:.74,ny:.68,frac:.12}];GA.bm.tick(now,show,d*.92)}} /* 飄的兩顆繞廣場，在吉祥物島會剛好飄到鏡頭前，先藏起來 */
 /* 店面、後方森林、聖誕入口都是一張去背圖貼在平面上；鏡頭滑到旁邊（例如吉祥物島）從側面看會變成一條細片。
    這裡讓它們慢慢轉向鏡頭（正面附近維持原本角度，只有鏡頭偏很多才轉，且有上限）。 */
 const _fv=new THREE.Vector3();

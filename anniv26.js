@@ -6,7 +6,7 @@
    測試：網址加 ?anniv=1 強制出現、?anniv=0 強制不出現。字用系統字型，不另外下載字型。 */
 (function(){
 var END=Date.parse('2026-12-01T00:00:00+08:00');
-function on(){var q=location.search;if(/[?&]anniv=0/.test(q))return false;if(/[?&]anniv=1/.test(q))return true;return Date.now()<END}
+function on(){var q=location.search;if(/[?&]anniv=0/.test(q))return false;if(/[?&]anniv=1/.test(q))return true;return false} /* 2026-10-13 預設關閉：先不放 26 週年慶預設氣球，等後台「熱氣球」上傳資料才出現（原本是 Date.now()<END） */
 var PINK='#e8708f',BLUE='#3d9bd0',ORANGE='#f2a04a',GREEN='#8cc152',YEL='#f6cf4a',CREAM='#fff6e4';
 var HEI='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC",sans-serif',ROUND='"Arial Rounded MT Bold","Arial Black","Helvetica Neue",Arial,sans-serif';
 function cvs(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
@@ -107,7 +107,7 @@ function makeX(b,ctx){var g,tex=[];
     var geo=new THREE.PlaneGeometry(.78,3.5,1,12);geo.translate(0,-1.75,0);var m=new THREE.MeshBasicMaterial({map:ts,side:THREE.FrontSide,fog:false}),sw=new THREE.Group();
     var f=new THREE.Mesh(geo,m),bk=new THREE.Mesh(geo,m);bk.rotation.y=Math.PI;bk.position.z=-.012;sw.add(f);sw.add(bk);sw.position.set(0,-.05,0);g.userData.inner.add(sw);g.userData.sway=sw;
     var rp=new THREE.LineBasicMaterial({color:'#8a6440'});sw.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.25,.18,0),new THREE.Vector3(-.2,0,0)]),rp));sw.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(.25,.18,0),new THREE.Vector3(.2,0,0)]),rp))}
-  if(b.style==='B'){g.traverse(function(m){if(m.material){m.material.transparent=true;m.material.depthTest=false;m.material.depthWrite=false}m.renderOrder=10})} /* B 不看深度（雲是立體的會擋住它），靠位置留在島上方的天空：左右慢慢飄、不蓋到島 */
+  g.traverse(function(m){if(m.material){m.material.transparent=true;m.material.depthTest=false;m.material.depthWrite=false}m.renderOrder=10}) /* A／B／C 都不看深度（雲是立體的會擋住它），靠位置留在島後面上方的天空：不蓋到島、不像貼在廣場上 */
   g.userData.tex=tex;g.userData.ph=Math.random()*6.28;g.userData.id=b.id;return g}
 /* 顏色要看得清楚：不吃場景的暗光，用不受光材質 */
 function flat(g,map){g.userData.env.material=new THREE.MeshBasicMaterial({map:map,fog:false})}
@@ -119,7 +119,7 @@ Mgr.prototype.set=function(list,ctx){list=(list||[]).slice(0,3);var key=JSON.str
   this.objs=list.map(function(b){var o=makeX(b,ctx);me.cfg.scene.add(o);return o})};
 Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,k=0;
   this.objs.forEach(function(o){o.visible=!!show;if(!show)return;var u=o.userData,pinned=u.kind==='pin'&&k<cfg.slots.length;
-    if(pinned){var s=cfg.slots[k++];pin(o,cfg.camera,s.nx,s.ny,s.frac,dist,now)}
+    if(pinned){var s=cfg.slots[k++];pin(o,cfg.camera,s.nx+Math.sin(now*.00005+u.ph)*.03,s.ny,s.frac,dist*1.9,now)} /* 2026-10-13 A／C 也放到島後面的遠方天空（跟 B 一樣深度），加一點點左右漂，不再像貼在廣場上 */
     else{var nx=cfg.bx+Math.sin(now*.000085+u.ph)*cfg.bamp,ny=cfg.by+Math.sin(now/1900+u.ph)*.012;pin(o,cfg.camera,nx,ny,cfg.bfrac,dist*1.9,now);
       if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}}})};
 /* 後台沒設定任何熱氣球時的預設：26 週年慶（到 11 月底，on() 為 false 就沒有）。也是新款（A 大氣球＋B 直式飄帶），不再有橫幅 */
