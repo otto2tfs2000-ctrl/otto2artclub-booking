@@ -73,13 +73,26 @@ var PAL={pink:['#e8708f','#c93f66'],blue:['#3d9bd0','#226a97'],orange:['#f2a04a'
 function pal(c){return PAL[c]||PAL.pink}
 function fit(x,txt,maxW,fs,w){x.font=w+' '+fs+'px '+HEI;var m=x.measureText(txt).width;if(m>maxW){fs=Math.floor(fs*maxW/m);x.font=w+' '+fs+'px '+HEI}return fs}
 function splitTitle(t){t=String(t||'');if(t.length<=4)return [t];var h=Math.ceil(t.length/2);return [t.slice(0,h),t.slice(h)]}
-function texAx(b){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i;
-  x.fillStyle=CREAM;x.fillRect(0,0,w,h);
-  for(i=0;i<32;i++){x.fillStyle=i%2?CREAM:p[0];x.fillRect(i*32,0,32,115);x.fillRect(i*32,h-75,32,75);x.fillStyle=i%2?p[0]:'#ffffff';x.beginPath();x.moveTo(i*32,115);x.lineTo(i*32+32,115);x.lineTo(i*32+16,150);x.fill()}
-  [w*.25,w*.75].forEach(function(cx){x.textAlign='center';x.textBaseline='alphabetic';x.fillStyle=p[1];fit(x,b.title,360,b.sub?118:136,'900');x.fillText(b.title,cx,b.sub?h*.54:h*.62);
-    if(b.sub){x.fillStyle='#1e2b4f';fit(x,b.sub,360,50,'900');x.fillText(b.sub,cx,h*.54+66)}});
-  fleck(x,w,h,400);var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
-function texCx(b){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i;
+/* 氣球上的字：綁了活動（eventId）就自動寫「活動名」＋「日期・還有N天」，沒綁就用自己填的 */
+function btxt(b,ctx){var t=b.title||'',s=b.sub||'';
+  if(b.eventId){var d=b.evDate||'';t=b.evTitle||t;var n=Math.round((Date.parse(d+'T00:00:00+08:00')-Date.parse((ctx&&ctx.today||d)+'T00:00:00+08:00'))/864e5);
+    s=(d?(+d.slice(5,7))+'/'+(+d.slice(8,10))+'　':'')+(isNaN(n)?'':n<=0?'今天！':'還有'+n+'天')}
+  return {t:t,s:s}}
+function rrect(x,l,t,w,h,r){x.beginPath();x.moveTo(l+r,t);x.lineTo(l+w-r,t);x.quadraticCurveTo(l+w,t,l+w,t+r);x.lineTo(l+w,t+h-r);x.quadraticCurveTo(l+w,t+h,l+w-r,t+h);x.lineTo(l+r,t+h);x.quadraticCurveTo(l,t+h,l,t+h-r);x.lineTo(l,t+r);x.quadraticCurveTo(l,t,l+r,t);x.closePath()}
+/* A 大氣球：純色氣球身＋中間一大塊奶油白字牌，主標超大、副標在字牌下半（字牌寬度壓在 330 內，側面看才不會被轉到後面） */
+function texAx(b,ctx){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i,T=btxt(b,ctx);
+  x.fillStyle=p[0];x.fillRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.14)';for(i=0;i<32;i+=2)x.fillRect(i*32,0,32,h);
+  var L=splitTitle(T.t);
+  var SL=T.s?String(T.s).split('　').slice(0,2):[],sh=SL.length*64+(SL.length?14:0),th0=SL.length?196:250;  /* 副標最多兩行（日期／倒數），各自放大 */
+  [w*.25,w*.75].forEach(function(cx){var ph=th0+sh,top=h*.5-ph/2-4;
+    x.fillStyle='#fff6e4';rrect(x,cx-172,top,344,ph,40);x.fill();x.lineWidth=8;x.strokeStyle=p[1];x.stroke();
+    x.textAlign='center';x.textBaseline='middle';
+    var fs=L.length>1?108:140;L.forEach(function(s2){fs=Math.min(fs,fit(x,s2,312,fs,'900'))});
+    var lh=fs*1.06,th=lh*L.length,ty=top+th0/2+4;
+    L.forEach(function(s2,k){x.font='900 '+fs+'px '+HEI;x.fillStyle=p[1];x.fillText(s2,cx,ty-th/2+lh*(k+.5))});
+    SL.forEach(function(s2,k){x.fillStyle='#1e2b4f';fit(x,s2,312,58,'900');x.fillText(s2,cx,top+th0+14+k*64+26)})});
+  fleck(x,w,h,300);var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function texCx(b,ctx){var w=1024,h=512,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),i,T=btxt(b,ctx);b={title:T.t,sub:T.s};
   x.fillStyle=p[0];x.fillRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.16)';for(i=0;i<16;i++)x.fillRect(i*64,0,32,h);
   var L=splitTitle(b.title);
   [w*.25,w*.75].forEach(function(cx){x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';
@@ -101,8 +114,8 @@ function texStreamer(b,ctx){var w=256,h=1152,c=cvs(w,h),x=c.getContext('2d'),p=p
   if(bot){x.fillStyle='#fff6c9';x.font='900 48px '+HEI;fit(x,bot,w-60,48,'900');x.fillText(bot,w/2,h-78)}
   var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
 function makeX(b,ctx){var g,tex=[];
-  if(b.style==='A'){var ta=texAx(b);g=body(ta,36,false);flat(g,ta);g.userData.env.rotation.y=-Math.PI/2;tex.push(ta);g.userData.kind='pin'}
-  else if(b.style==='C'){var tc=texCx(b);g=body(tc,36,false);flat(g,tc);g.userData.env.rotation.y=-Math.PI/2;tex.push(tc);g.userData.kind='pin'}
+  if(b.style==='A'){var ta=texAx(b,ctx);g=body(ta,36,false);flat(g,ta);g.userData.env.rotation.y=-Math.PI/2;tex.push(ta);g.userData.kind='pin'}
+  else if(b.style==='C'){var tc=texCx(b,ctx);g=body(tc,36,false);flat(g,tc);g.userData.env.rotation.y=-Math.PI/2;tex.push(tc);g.userData.kind='pin'}
   else{var tb=texBodyX(b.color),ts=texStreamer(b,ctx);g=body(tb,14,false);flat(g,tb);tex.push(tb,ts);g.userData.kind='drift';
     var geo=new THREE.PlaneGeometry(.78,3.5,1,12);geo.translate(0,-1.75,0);var m=new THREE.MeshBasicMaterial({map:ts,side:THREE.FrontSide,fog:false}),sw=new THREE.Group();
     var f=new THREE.Mesh(geo,m),bk=new THREE.Mesh(geo,m);bk.rotation.y=Math.PI;bk.position.z=-.012;sw.add(f);sw.add(bk);sw.position.set(0,-.05,0);g.userData.inner.add(sw);g.userData.sway=sw;
@@ -117,11 +130,12 @@ Mgr.prototype.count=function(){return this.objs.length};
 Mgr.prototype.set=function(list,ctx){list=(list||[]).slice(0,3);var key=JSON.stringify(list)+'|'+((ctx&&ctx.today)||'');if(key===this.key)return;this.key=key;var me=this;
   this.objs.forEach(function(o){me.cfg.scene.remove(o);o.traverse(function(m){if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose()});(o.userData.tex||[]).forEach(function(t){t.dispose()})});
   this.objs=list.map(function(b){var o=makeX(b,ctx);me.cfg.scene.add(o);return o})};
-Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,k=0;
-  this.objs.forEach(function(o){o.visible=!!show;if(!show)return;var u=o.userData,pinned=u.kind==='pin'&&k<cfg.slots.length;
-    if(pinned){var s=cfg.slots[k++];pin(o,cfg.camera,s.nx+Math.sin(now*.00005+u.ph)*.03,s.ny,s.frac,dist*1.9,now)} /* 2026-10-13 A／C 也放到島後面的遠方天空（跟 B 一樣深度），加一點點左右漂，不再像貼在廣場上 */
-    else{var nx=cfg.bx+Math.sin(now*.000085+u.ph)*cfg.bamp,ny=cfg.by+Math.sin(now/1900+u.ph)*.012;pin(o,cfg.camera,nx,ny,cfg.bfrac,dist*1.9,now);
-      if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}}})};
+Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,n=this.objs.length,xs=n===1?[.1]:n===2?[-.4,.5]:[-.45,.05,.5],
+    k=Math.max(.6,Math.min(1,(cfg.camera.aspect||1.3)/1.1)),py=cfg.py||.72,pf=cfg.pfrac||.19;  /* 直式手機窄，氣球縮小一點才排得下三顆 */
+  this.objs.forEach(function(o,i){o.visible=!!show;if(!show)return;var u=o.userData,B=u.kind==='drift',
+    nx=xs[i]+Math.sin(now*.00007+u.ph)*.04,ny=(B?cfg.by:py)+Math.sin(now/1900+u.ph)*.012;
+    pin(o,cfg.camera,nx,ny,(B?cfg.bfrac:pf)*k,dist*1.9,now);
+    if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}})};
 /* 後台沒設定任何熱氣球時的預設：26 週年慶（到 11 月底，on() 為 false 就沒有）。也是新款（A 大氣球＋B 直式飄帶），不再有橫幅 */
 function def26(){return on()?[{id:'d26a',style:'A',title:'26th 周年慶',sub:'週週直播抽好禮',color:'pink',from:'2026-10-01'},{id:'d26b',style:'B',title:'滿千送抽獎券',sub:'26th 周年慶',color:'blue',from:'2026-10-02'}]:[]}
 window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr,def26:def26};
