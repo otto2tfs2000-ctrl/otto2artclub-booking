@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.64</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.65</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -498,6 +498,16 @@ let hasPlan=false; // 是否為方案會員（第二期由會員系統寫入）
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
 const pLabel=r=>{const n=pNum(r);return n?"NT$"+n.toLocaleString():"現場報價"};
+/* 早鳥價（2026-10-13）：課程表加兩欄「早鳥價」「早鳥截止」（最後一天，含當天）。
+   兩欄都有填、而且今天（台灣時間）還沒超過截止日，就把這個尺寸的單價換成早鳥價；過了截止日自動恢復原價。
+   換在讀表這一步，所以總額、點數扣抵、存進預約的 price 全部自動是早鳥價，不用每處另外判斷。
+   後台 salary-system booking.js、伺服器 server.js 的 loadCourseCatalog 是同一條規則，改這裡要一起改。 */
+const earlyDay=raw=>{const t=String(raw==null?"":raw).trim(),ty=new Date(Date.now()+288e5).toISOString().slice(0,10);let m;
+  if((m=t.match(/(\d{4})\s*[\/\-.年]\s*(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/)))return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");
+  if((m=t.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/)))return m[1]+"-"+String(+m[2]+1).padStart(2,"0")+"-"+m[3].padStart(2,"0");
+  if((m=t.match(/^(\d{1,2})\s*[\/\-.]\s*(\d{1,2})$/)))return ty.slice(0,4)+"-"+m[1].padStart(2,"0")+"-"+m[2].padStart(2,"0");
+  return ""};
+const earlyOn=(priceRaw,untilRaw)=>{const n=pNum(priceRaw),d=earlyDay(untilRaw);return n>0&&!!d&&new Date(Date.now()+288e5).toISOString().slice(0,10)<=d};
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,
   c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad=n=>String(n).padStart(2,"0");
@@ -601,7 +611,7 @@ function rowsToGroups(rows){
   const H=courseHead||{};
   const gi=(r,n)=>H[n]!=null?String(r[H[n]]??"").trim():"";
   const items=rows.map(r=>({cat:String(r[0]||"").trim(),name:String(r[1]||"").trim(),desc:String(r[2]||"").trim(),spec:String(r[3]||"").trim(),dur:String(r[4]||"").trim(),priceRaw:String(r[5]??"").trim(),img:String(r[6]||"").trim(),on:String(r[7]||"Y").trim().toUpperCase()!=="N",sort:+r[8]||99,minAge:+r[9]||0,multi:String(r[10]||"").trim().toUpperCase()==="Y",
-    seats:Math.max(0,pNum(gi(r,"佔位"))),hourly:Math.max(0,pNum(gi(r,"計時"))),pairRaw:gi(r,"兩人價")})).filter(c=>c.name&&c.on);
+    seats:Math.max(0,pNum(gi(r,"佔位"))),hourly:Math.max(0,pNum(gi(r,"計時"))),pairRaw:gi(r,"兩人價"),earlyRaw:gi(r,"早鳥價"),earlyUntil:gi(r,"早鳥截止")})).filter(c=>c.name&&c.on);
   const map=new Map();
   for(const it of items){
     if(!catOrder.includes(it.cat))catOrder.push(it.cat);
@@ -610,7 +620,10 @@ function rowsToGroups(rows){
     const g=map.get(k);
     if(it.seats>g.seats)g.seats=it.seats;
     if(it.hourly>g.hourly)g.hourly=it.hourly;
-    g.variants.push({spec:it.spec,priceRaw:it.priceRaw,pair:Math.max(0,pNum(it.pairRaw))});
+    const eb=earlyOn(it.earlyRaw,it.earlyUntil);
+    let pr=Math.max(0,pNum(it.pairRaw));
+    if(eb&&pr>=2*pNum(it.earlyRaw))pr=0;   /* 早鳥價比兩人價每人還便宜，就不再套兩人價 */
+    g.variants.push({spec:it.spec,priceRaw:eb?String(pNum(it.earlyRaw)):it.priceRaw,pair:pr,...(eb?{early:1,origRaw:it.priceRaw,earlyUntil:earlyDay(it.earlyUntil)}:{})});
   }
   return [...map.values()].sort((a,b)=>a.sort-b.sort);
 }
@@ -712,7 +725,7 @@ function applyAddons(a){
 /* 有暫存就先套上，讓畫面立刻出得來。回傳有沒有拿到課程。 */
 function loadFromCache(){
   const cr=cacheGet("課程");
-  if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時","兩人價"]);
+  if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時","兩人價","早鳥價","早鳥截止"]);
   const c=cacheGet("課程");
   if(!c)return false;
   try{ applyCourses(c) }catch(e){ return false }
@@ -727,7 +740,7 @@ async function loadCourses(){
   try{
     const rows=await gviz("課程");
     cachePut("課程",rows);
-    courseHead=headerIdx(rows,["佔位","計時","兩人價"]);
+    courseHead=headerIdx(rows,["佔位","計時","兩人價","早鳥價","早鳥截止"]);
     applyCourses(rows);
   }finally{ coursesLoaded=true }
 }
@@ -1591,10 +1604,10 @@ function renderCourses(){
         ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
-        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
+        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${(!(g.hourly>0)&&g.variants.some(vv=>vv.early))?`<span class="chip price" style="background:#FFF3D6;border-color:#E8C874;color:#8A5A00">🐦 早鳥價${(()=>{const d=g.variants.find(vv=>vv.early).earlyUntil;return d?` 至 ${+d.slice(5,7)}/${+d.slice(8,10)}`:''})()}</span>`:''}${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         <div class="cardfoot"><span class="cf-dur">${g.hourly>0?`${HOUR_MIN}-${HOUR_MAX} 小時`:(g.dur||'')}</span><span class="cf-cta">${p?'已加入清單 ✓':'點選加入 →'}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
-          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${pLabel(vv.priceRaw)}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${vv.early&&pNum(vv.origRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:''}${pLabel(vv.priceRaw)}${vv.early?' 🐦早鳥':''}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
@@ -1854,7 +1867,7 @@ async function submitBooking(){
     items:Object.keys(picks).map(id=>{
       const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
       const ads=addonsFor(g,p);
-      return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),
+      return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),...(vv.early?{early:1,origPrice:pNum(vv.origRaw)}:{}),
         ...((vv.pair>0&&!(g.hourly>0))?{pair:vv.pair}:{}),
         addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
     }),
