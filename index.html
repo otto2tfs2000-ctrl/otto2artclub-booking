@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.66</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.67</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -659,8 +659,14 @@ function catRefresh(){
     if(x.early){v.early=1;v.earlyUntil=v._row.earlyUntil}else{delete v.early;delete v.earlyUntil}
   }
 }
+let catDepOn=false, catNoteOn=false;
 function applyCatalog(j){
   catPayload=j;catLive=true;
+  /* 訂金方式、預約頁說明：後台填了就用後台的（不再讀試算表），沒填才照舊 */
+  catDepOn=!!(j.deposit&&j.deposit.length);
+  if(catDepOn)payOptions=j.deposit.map(d=>({name:d.name,desc:d.desc,amount:d.amount,type:d.type,info:d.info,sort:d.sort}));
+  catNoteOn=!!(j.notices&&j.notices.length);
+  if(catNoteOn){const key=[],detail=[];j.notices.forEach(n=>(n.type==="key"?key:detail).push({title:n.title,body:n.body,sort:n.sort}));notices={key,detail}}
   groups=catalogToGroups(j);
   addonsByCourse={};
   for(const a of j.addons||[])(addonsByCourse[a.course]=addonsByCourse[a.course]||[]).push({name:a.name,price:a.price,sort:a.sort,spec:a.spec||"",unit:a.unit||"fixed",maxQty:a.maxQty||1});
@@ -808,9 +814,9 @@ function loadFromCache(){
   try{
     const cc=JSON.parse(localStorage.getItem(CAT_CACHE_KEY)||"null");
     if(cc&&cc.live&&cc.rows&&cc.rows.length){
-      applyCatalog(cc);
       const pairs0=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy]];
       pairs0.forEach(([k,fn])=>{ const r=cacheGet(k); if(r){ try{ fn(r) }catch(e){} } });
+      applyCatalog(cc);      /* 課程管理有填的訂金／說明，蓋掉上面試算表暫存的 */
       return true;
     }
   }catch(e){}
@@ -841,7 +847,7 @@ async function loadCourses(){
    慢一點沒關係，重點是不能擋住課程清單。 */
 async function loadExtras(){
   if(!SHEET_ID)return;
-  const jobs=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy],["加購",applyAddons]].filter(j=>!(catLive&&j[0]==="加購"));   /* 用課程管理時，加購已經跟課程一起來了 */
+  const jobs=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy],["加購",applyAddons]].filter(j=>!(catLive&&(j[0]==="加購"||(j[0]==="訂金"&&catDepOn)||(j[0]==="說明"&&catNoteOn))));   /* 用課程管理時，加購已經跟課程一起來了 */
   await Promise.all(jobs.map(async ([sheet,fn])=>{
     try{
       const rows=await gviz(sheet);
