@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.65</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.66</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -529,6 +529,7 @@ async function initLiff(){
         customer.phone = customer.phone || me.phone || "";
         visitCount = me.visits || 0;
         if(me.hasPlan) hasPlan = true;
+        statusChanged();
         if(me.phone) lookupMemberByPhone(me.phone);
       }catch(e){}
       if(!customer.name)customer.name=p.displayName||"";
@@ -604,6 +605,85 @@ function headerIdx(rows,names){
     if(i>=0)out[n]=i;
   });
   return out;
+}
+/* ══ 課程管理（2026-10-13）══════════════════════════════
+   後台「課程管理」是課程、價格、加購、圖片、順序的新來源。伺服器 /liff/catalog 有「總開關」：
+   沒開（預設）→ live:false，這裡完全照舊讀試算表；開了 → 改讀課程管理。讀不到也一律退回試算表，預約不會壞。
+   價格照身分算：會員（有方案或點數堂數）→ 會員價；第一次來的新客（LINE 登入、沒預約過、不是會員檔案裡的人）→ 初次體驗價（沒填就用會員價／優惠價）；
+   其他人 → 原價；早鳥期間所有人都是早鳥價。繪畫課（體驗價／會員價／單次原價三列）照身分自動選，spec 也跟著換（用料才對得上）。
+   算法跟伺服器 server.js catalogResolve、後台 booking.js bkResolve 是同一條，改這裡要一起改。 */
+let catLive=false, catPayload=null;
+const CAT_CACHE_KEY="otto2_liff_catalog_v1";
+function catStatus(){
+  const member=!!(hasPlan||(myMember&&(myMember.points>0||myMember.sessions>0)));
+  const first=!member&&!!lineUser&&visitCount===0&&!myMember;
+  return {member,first};
+}
+function catResolve(row,st,today){
+  const orig=row.pOrig||row.price||0;
+  let price=orig,tier="orig";
+  if(row.tier==="base"){
+    if(st.member&&row.pMember){price=row.pMember;tier="member"}
+    else if(!st.member&&st.first&&row.pFirst){price=row.pFirst;tier="first"}
+  }else if(st.member){ if(row.pMember){price=row.pMember;tier="member"} }
+  else if(st.first){ if(row.pFirst){price=row.pFirst;tier="first"} else if(row.pMember){price=row.pMember;tier="member"} }
+  const early=row.early>0&&/^\d{4}-\d{2}-\d{2}$/.test(row.earlyUntil)&&String(today)<=row.earlyUntil;
+  if(early){price=row.early;tier="early"}
+  const pair=row.pair>=2*price?0:row.pair;
+  const spec=row.tier==="base"?({first:"體驗價",member:"會員價",orig:"單次原價",early:"單次原價"}[tier]):row.spec;
+  return {price,tier,orig,pair,early,spec};
+}
+function catalogToGroups(j){
+  catOrder=[];
+  const map=new Map();
+  for(const r of j.rows){
+    if(r.tier==="legacy")continue;     /* 舊的價格別列只是為了對應用料，客人看不到 */
+    if(!catOrder.includes(r.cat))catOrder.push(r.cat);
+    const k=r.cat+"|"+r.name;
+    if(!map.has(k))map.set(k,{id:"g"+map.size,cat:r.cat,name:r.name,desc:r.desc,dur:r.dur,img:r.img,sort:r.sort,minAge:r.minAge,multiSession:r.multi,seats:r.seats,hourly:r.hourly,variants:[]});
+    const g=map.get(k);
+    if(r.seats>g.seats)g.seats=r.seats;
+    if(r.hourly>g.hourly)g.hourly=r.hourly;
+    g.variants.push({spec:r.spec,priceRaw:"",pair:0,_row:r});
+  }
+  return [...map.values()].sort((a,b)=>a.sort-b.sort);
+}
+/* 依目前的客人身分重算每個規格的價格／規格名／兩人價（身分是非同步認到的，認到就要再算一次） */
+function catRefresh(){
+  if(!catLive||!catPayload)return;
+  const st=catStatus(),today=catPayload.today;
+  for(const g of groups)for(const v of g.variants){
+    const x=catResolve(v._row,st,today);
+    v.priceRaw=String(x.price);v.pair=g.hourly>0?0:x.pair;v.tier=x.tier;v.origRaw=String(x.orig);
+    if(v._row.tier==="base")v.spec=x.spec;
+    if(x.early){v.early=1;v.earlyUntil=v._row.earlyUntil}else{delete v.early;delete v.earlyUntil}
+  }
+}
+function applyCatalog(j){
+  catPayload=j;catLive=true;
+  groups=catalogToGroups(j);
+  addonsByCourse={};
+  for(const a of j.addons||[])(addonsByCourse[a.course]=addonsByCourse[a.course]||[]).push({name:a.name,price:a.price,sort:a.sort,spec:a.spec||"",unit:a.unit||"fixed",maxQty:a.maxQty||1});
+  for(const k in addonsByCourse)addonsByCourse[k].sort((a,b)=>a.sort-b.sort);
+  catRefresh();
+}
+async function loadCatalog(){
+  try{
+    /* 最多等 3.5 秒：伺服器慢的時候不能拖住預約頁，超過就直接讀試算表 */
+    const j=await Promise.race([api("/liff/catalog",{}),new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),3500))]);
+    if(!j.live||!j.rows||!j.rows.length){catLive=false;try{localStorage.removeItem(CAT_CACHE_KEY)}catch(e){}return false}
+    applyCatalog(j);
+    try{localStorage.setItem(CAT_CACHE_KEY,JSON.stringify(j))}catch(e){}
+    return true;
+  }catch(e){return false}   /* 讀不到就退回試算表 */
+}
+/* 身分認到、或電話查到會員之後呼叫：重算價格；不能整頁重畫（填電話時會跳掉輸入框），只更新會變的幾個地方 */
+function statusChanged(){
+  if(!catLive)return;
+  catRefresh();
+  if(step===2||step===3)render();
+  else if(step===4){ drawRecap(); updateBar() }
+  else updateBar();
 }
 let courseHead={};
 function rowsToGroups(rows){
@@ -724,6 +804,16 @@ function applyAddons(a){
 
 /* 有暫存就先套上，讓畫面立刻出得來。回傳有沒有拿到課程。 */
 function loadFromCache(){
+  /* 上次看到的是課程管理（開關開著）就先用那份畫出來 */
+  try{
+    const cc=JSON.parse(localStorage.getItem(CAT_CACHE_KEY)||"null");
+    if(cc&&cc.live&&cc.rows&&cc.rows.length){
+      applyCatalog(cc);
+      const pairs0=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy]];
+      pairs0.forEach(([k,fn])=>{ const r=cacheGet(k); if(r){ try{ fn(r) }catch(e){} } });
+      return true;
+    }
+  }catch(e){}
   const cr=cacheGet("課程");
   if(cr&&cr.length)courseHead=headerIdx(cr,["佔位","計時","兩人價","早鳥價","早鳥截止"]);
   const c=cacheGet("課程");
@@ -738,6 +828,8 @@ function loadFromCache(){
 async function loadCourses(){
   if(!SHEET_ID){groups=rowsToGroups(DEMO_COURSES);rowsToAddons(DEMO_ADDONS);coursesLoaded=true;return}
   try{
+    if(await loadCatalog()){ coursesLoaded=true; return }
+    catLive=false;
     const rows=await gviz("課程");
     cachePut("課程",rows);
     courseHead=headerIdx(rows,["佔位","計時","兩人價","早鳥價","早鳥截止"]);
@@ -749,7 +841,7 @@ async function loadCourses(){
    慢一點沒關係，重點是不能擋住課程清單。 */
 async function loadExtras(){
   if(!SHEET_ID)return;
-  const jobs=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy],["加購",applyAddons]];
+  const jobs=[["訂金",applyDeposit],["說明",applyNotices],["文案",applyCopy],["加購",applyAddons]].filter(j=>!(catLive&&j[0]==="加購"));   /* 用課程管理時，加購已經跟課程一起來了 */
   await Promise.all(jobs.map(async ([sheet,fn])=>{
     try{
       const rows=await gviz(sheet);
@@ -862,7 +954,7 @@ async function lookupMemberByPhone(raw){
   loadHold(phone);
   if(!isPhoneKey(phone)){
     if(mySeq!==lookupMemberSeq)return "stale";
-    myMember=null;renderBalance();return "notfound"}
+    myMember=null;renderBalance();statusChanged();return "notfound"}
   if(myMember&&myMember.phone===phone)return "found";
   /* 電話跟 LINE 帳號的對應，交給 fetchMember 裡帶的 userId 讓伺服器順手記住
      （見 server.js /liff/member）——以前這裡自己直接寫 Firebase，
@@ -870,7 +962,7 @@ async function lookupMemberByPhone(raw){
   const m=await fetchMember(phone);
   if(mySeq!==lookupMemberSeq)return "stale"; /* 打字打到後面去了，這次結果已經過期 */
   if(m&&m.error)return "error";      /* 連線失敗不代表不是會員，已認到的別清掉 */
-  if(!m){myMember=null;renderBalance();return "notfound"}
+  if(!m){myMember=null;renderBalance();statusChanged();return "notfound"}
   setMember(phone,m);
   return "found";
 }
@@ -883,6 +975,7 @@ function setMember(phone,m){
   if(!customer.phone)customer.phone=phone;
   if(!customer.name&&m.name)customer.name=m.name;
   renderBalance();
+  statusChanged();
   if(step===0)renderHome();          /* 認人是非同步的，認到之後補上稱呼 */
 }
 function renderBalance(){
@@ -1096,6 +1189,9 @@ function pairTotal(unit,pair,qty){
   qty=+qty||0;
   return pair>0 ? Math.floor(qty/2)*pair+(qty%2)*unit : unit*qty;
 }
+/* 加購：每個的價 ×（每小時計價的再乘上課的小時數）× 客人選的數量。p.addons[i] 存數量（舊的 true 當 1） */
+function addonQty(p,i){ const q=p&&p.addons&&p.addons[i]; return q?(typeof q==="number"?q:1):0 }
+function addonCost(g,p,a,qty,id){ return (a.price||0)*(a.unit==="hour"?(g.hourly>0?pickHours(id||g.id):1):1)*qty }
 function pickPrice(id){
   const g=groups.find(x=>x.id===id),p=picks[id];
   /* 計時課：每小時單價 × 時數 × 人數。價格欄留空也算得出來。 */
@@ -1103,7 +1199,7 @@ function pickPrice(id){
   const pair = g.hourly>0 ? 0 : (g.variants[p.variantIdx].pair||0);
   let sum=pairTotal(unit,pair,p.qty)*(p.sessions===2?2:1);
   const ads=addonsFor(g,p);
-  for(const i in p.addons) if(p.addons[i]&&ads[i]) sum+=ads[i].price;
+  for(const i in p.addons) if(ads[i]) sum+=addonCost(g,p,ads[i],addonQty(p,i),id);
   return sum;
 }
 const totalPrice=()=>Object.keys(picks).reduce((s,id)=>s+pickPrice(id),0);
@@ -1200,6 +1296,24 @@ function render(){ setTimeout(renderBalance,0);
   if(step===3)renderCalendar();
   if(step===4)renderForm();
   updateBar();
+}
+/* 卡片上的折扣標籤：現在這位客人拿到的是會員價／新客價，就把原價劃掉；還沒認出身分的，提示新客・會員有優惠價 */
+function catTierChips(g){
+  if(!catLive||g.hourly>0)return"";
+  const st=catStatus(),today=catPayload.today;
+  const vs=g.variants.map(v=>({v,x:catResolve(v._row,st,today)}));
+  const cur=vs.reduce((a,b)=>b.x.price<a.x.price?b:a,vs[0]);
+  if(cur.x.early)return"";                                    /* 早鳥有自己的標籤 */
+  if(cur.x.tier==="member"||cur.x.tier==="first"){
+    return `<span class="chip" style="text-decoration:line-through;opacity:.6">原價 NT$${cur.x.orig.toLocaleString()}</span><span class="chip price" style="background:#E8F4EA;border-color:#9CCB9F;color:#2E6B35">${st.member?"會員價":"新客優惠價"}</span>`;
+  }
+  if(!st.member&&!st.first){
+    const best=vs.map(o=>catResolve(o.v._row,{member:true},today)).reduce((a,b)=>b.price<a.price?b:a);
+    const bf=vs.map(o=>catResolve(o.v._row,{first:true},today)).reduce((a,b)=>b.price<a.price?b:a);
+    const low=Math.min(best.price,bf.price);
+    if(low<cur.x.price)return `<span class="chip" style="background:#F3F3F3;color:#666">會員・新客 NT$${low.toLocaleString()}</span>`;
+  }
+  return"";
 }
 function priceChip(g){
   const ns=g.variants.map(v=>pNum(v.priceRaw)).filter(Boolean);
@@ -1604,10 +1718,10 @@ function renderCourses(){
         ${locked?`<div class="desc" style="color:var(--warn)">這次同行的人都未達這門課的年齡限制</div>`:''}
         ${capped?`<div class="desc" style="color:var(--warn)">這次只有 ${elig} 位符合年齡，最多選 ${elig} 份</div>`:''}
         ${g.desc?`<div class="desc">${g.desc}</div>`:''}
-        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${(!(g.hourly>0)&&g.variants.some(vv=>vv.early))?`<span class="chip price" style="background:#FFF3D6;border-color:#E8C874;color:#8A5A00">🐦 早鳥價${(()=>{const d=g.variants.find(vv=>vv.early).earlyUntil;return d?` 至 ${+d.slice(5,7)}/${+d.slice(8,10)}`:''})()}</span>`:''}${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
+        <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${catTierChips(g)}${(!(g.hourly>0)&&g.variants.some(vv=>vv.early))?`<span class="chip price" style="background:#FFF3D6;border-color:#E8C874;color:#8A5A00">🐦 早鳥價${(()=>{const d=g.variants.find(vv=>vv.early).earlyUntil;return d?` 至 ${+d.slice(5,7)}/${+d.slice(8,10)}`:''})()}</span>`:''}${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         <div class="cardfoot"><span class="cf-dur">${g.hourly>0?`${HOUR_MIN}-${HOUR_MAX} 小時`:(g.dur||'')}</span><span class="cf-cta">${p?'已加入清單 ✓':'點選加入 →'}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
-          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${vv.early&&pNum(vv.origRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:''}${pLabel(vv.priceRaw)}${vv.early?' 🐦早鳥':''}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${vv.early&&pNum(vv.origRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:(vv.tier&&vv.tier!=="orig"&&pNum(vv.origRaw)>pNum(vv.priceRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:'')}${pLabel(vv.priceRaw)}${vv.early?' 🐦早鳥':((vv.tier==="member"||vv.tier==="first")?(catStatus().member?' 會員價':' 新客優惠'):'')}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
@@ -1623,7 +1737,11 @@ function renderCourses(){
               <button class="sopt ${(!p||p.sessions!==2)?'on':''}" data-s="1">一般時段<small>約 2 小時・一件作品</small></button>
               <button class="sopt ${p&&p.sessions===2?'on':''}" data-s="2">加時延長<small>約 4 小時，連續兩個時段・費用 ×2</small></button>
             </div></div>`:'')+
-            (ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>`<button class="aopt ${p&&p.addons&&p.addons[i]?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}</span></button>`).join("")}</div>`:'')+
+            (ads.length?`<div class="addons"><div class="vtitle">加購（可複選）</div>${ads.map((a,i)=>{
+              const q=addonQty(p,i);
+              return `<button class="aopt ${q?'on':''}" data-a="${i}"><span class="aname"><span class="abox">✓</span>${a.name}</span><span class="ap">＋NT$${a.price.toLocaleString()}${a.unit==="hour"?'／小時':''}${(a.maxQty||1)>1?'／個':''}</span></button>`+
+              (q&&(a.maxQty||1)>1?`<div class="qty" style="margin:4px 0 8px 6px"><span>要加購幾個？（最多 ${a.maxQty}）</span><div class="stepper"><button data-aq="${i}" data-d="-1">−</button><b>${q}</b><button data-aq="${i}" data-d="1">＋</button></div></div>`:'')
+            }).join("")}</div>`:'')+
             `</div></details>`;
         })():''}
       </div><div class="tick">✓</div></div>`;
@@ -1635,7 +1753,7 @@ function renderCourses(){
       if(e.target.closest("summary"))return; /* 「更多選項」展開/收合交給原生 <details>，不要連帶切換課程選取 */
       if(el.dataset.locked){alert("這門課有年齡限制，這次同行的人都還沒達到。可以看看其他分類的課程。");return}
       let t=e.target;
-      while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
+      while(t&&t!==el&&t.dataset.v===undefined&&t.dataset.a===undefined&&t.dataset.aq===undefined&&t.dataset.s===undefined&&!t.dataset.act)t=t.parentElement;
       if(t&&t.dataset.v!==undefined){
         if(!picks[id])picks[id]={variantIdx:+t.dataset.v,qty:1,addons:{},sessions:1};
         else{picks[id].variantIdx=+t.dataset.v;picks[id].addons={}} /* 換規格，加購清單可能整個換了，索引對不起來，清掉重選 */
@@ -1647,7 +1765,13 @@ function renderCourses(){
       if(t&&t.dataset.a!==undefined){
         if(!picks[id])picks[id]={variantIdx:0,qty:1,addons:{},sessions:1};
         picks[id].addons=picks[id].addons||{};
-        picks[id].addons[t.dataset.a]=!picks[id].addons[t.dataset.a];
+        picks[id].addons[t.dataset.a]=addonQty(picks[id],t.dataset.a)?0:1;   /* 點一下選、再點取消；要加購多個的，下面會出現數量按鈕 */
+        render();return}
+      if(t&&t.dataset.aq!==undefined){
+        const p2=picks[id];if(!p2)return;
+        const ad2=addonsFor(groups.find(x=>x.id===id),p2)[+t.dataset.aq];if(!ad2)return;
+        const q2=addonQty(p2,t.dataset.aq)+(+t.dataset.d);
+        p2.addons[t.dataset.aq]=Math.max(1,Math.min(ad2.maxQty||1,q2));
         render();return}
       if(t&&t.dataset.act){
         const p=picks[id];if(!p)return;
@@ -1759,14 +1883,18 @@ function renderCalendar(){
 function pickSummary(id){
   const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
   const ads=addonsFor(g,p);
-  const chosen=Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>ads[i].name);
+  const chosen=Object.keys(p.addons||{}).filter(i=>addonQty(p,i)&&ads[i]).map(i=>ads[i].name+(addonQty(p,i)>1?"×"+addonQty(p,i):""));
   return `${g.name}${vv.spec?'（'+vv.spec+'）':''} × ${p.qty}位${(vv.pair>0&&p.qty>=2&&!(g.hourly>0))?'（兩人同行價）':''}${chosen.length?'<br><span style="font-size:12.5px;color:var(--ink-soft)">加購：'+chosen.join("、")+'</span>':''}`;
 }
-function renderForm(){
+function recapHtml(){
   const items=Object.keys(picks).map(pickSummary).join("<br>");
+  return `<b>${selDate}　${timeLabel()}</b><br>${items}<br>共 ${totalPeople()} 位・合計 <b>NT$${totalPrice().toLocaleString()}</b>`;
+}
+function drawRecap(){ const el=document.getElementById("recapBox"); if(el)el.innerHTML=recapHtml() }
+function renderForm(){
   const v=document.getElementById("view");
   v.innerHTML=`<div class="form">
-    <div class="recap"><b>${selDate}　${timeLabel()}</b><br>${items}<br>共 ${totalPeople()} 位・合計 <b>NT$${totalPrice().toLocaleString()}</b></div>
+    <div class="recap" id="recapBox">${recapHtml()}</div>
     <div class="field"><label>姓名 *</label><input id="fName" value="${customer.name}" placeholder="請填寫聯絡人姓名"></div>
     <div class="field"><label>手機 *</label><input id="fPhone" value="${customer.phone}" inputmode="tel" placeholder="09xx-xxx-xxx"></div>
     ${kids>0?`<div class="field"><label>小朋友姓名（選填）</label><input id="fChildName" value="${customer.childName||""}" placeholder="方便老師點名、稱呼小朋友"></div>`:''}
@@ -1868,8 +1996,12 @@ async function submitBooking(){
       const g=groups.find(x=>x.id===id),p=picks[id],vv=g.variants[p.variantIdx];
       const ads=addonsFor(g,p);
       return{name:g.name,spec:vv.spec,qty:p.qty,price:pNum(vv.priceRaw),...(vv.early?{early:1,origPrice:pNum(vv.origRaw)}:{}),
+        ...((catLive&&vv.tier&&vv.tier!=="orig"&&!vv.early)?{tier:vv.tier,origPrice:pNum(vv.origRaw)}:{}),
         ...((vv.pair>0&&!(g.hourly>0))?{pair:vv.pair}:{}),
-        addons:Object.keys(p.addons||{}).filter(i=>p.addons[i]&&ads[i]).map(i=>({name:ads[i].name,price:ads[i].price}))};
+        /* 加購：price＝這一項的總額（每個的價 ×［小時］× 數量），後台各處加總照舊就對；多個才另外帶 qty／單價 */
+        addons:Object.keys(p.addons||{}).filter(i=>addonQty(p,i)&&ads[i]).map(i=>{
+          const q=addonQty(p,i),a=ads[i];
+          return {name:a.name,price:addonCost(g,p,a,q,id),...(q>1?{qty:q,unit:a.price}:{}),...(a.unit==="hour"?{perHour:1}:{})}})};
     }),
     people:totalPeople(), seats:totalSeats(), total:totalPrice(),
     /* 計時課的時數；一般課沒有這個欄位 */
@@ -1884,6 +2016,8 @@ async function submitBooking(){
     adults:adults, kids:kids,
     durationMin:totalMinutes(),
     visitCount, hasPlan,
+    /* 課程管理開著時，記下算價當下這位客人是哪一種身分，後台核銷核對價格用 */
+    ...(catLive?{custKind:(()=>{const st=catStatus();return st.member?"member":st.first?"new":(lineUser?"regular":"guest")})()}:{}),
     deposit:(()=>{
       if(deposit==="hold"&&myHold)return{method:"hold",name:"已預付訂金",amount:myHold.amount,status:"pending",hold:true};
       const o=payOptions[+deposit]||{};return{method:o.type||"other",name:o.name||"",amount:o.amount||0,status:"pending"}})(),
