@@ -152,6 +152,8 @@ Mgr.prototype.set=function(list,ctx){list=(list||[]).slice(0,3);var key=JSON.str
 /* 位置（2026-10-13）：T 上排／M 中排 × L 左／M 中／R 右，共 6 格。後台指定了就固定放那格；沒指定的自動挑空格：
    橫向螢幕照老樣子（1 顆放中間、2 顆左右、3 顆左中右，都在上排）；直式手機上排左邊／中間會被畫面大標題蓋住，所以先排右上、再排標題下面的中排 */
 var POS={TL:[-.45,0],TM:[.05,0],TR:[.5,0],ML:[-.45,1],MM:[.05,1],MR:[.5,1]},ROWY=[.72,.45];
+/* 2026-10-17 大熊嫌定點很怪：格子只當起點和高度（上排／中排），氣球從那裡開始由左往右慢慢飄過畫面，飄出右邊從左邊再進來；飄一圈 DRIFT_MS 毫秒 */
+var SPAN=2.5,DRIFT_MS=90000;
 function assign(pl,portrait){var used={},res=[],auto=[],pref;
   pl.forEach(function(p,i){if(p&&POS[p]&&!used[p]){used[p]=1;res[i]=p}else auto.push(i)});
   if(auto.length){pref=portrait?['TR','ML','MM','TM','TL','MR']:pl.every(function(p){return !p})?(pl.length===1?['TM']:pl.length===2?['TL','TR']:['TL','TM','TR']):['TM','TR','TL','MM','ML','MR'];
@@ -160,7 +162,7 @@ function assign(pl,portrait){var used={},res=[],auto=[],pref;
 Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,asp=cfg.camera.aspect||1.3,
     k=Math.max(.6,Math.min(1,asp/1.1)),py=cfg.py||.72,pf=cfg.pfrac||.19,at=assign(this.objs.map(function(o){return o.userData.pos}),asp<.9);  /* 直式手機窄，氣球縮小一點才排得下三顆 */
   this.objs.forEach(function(o,i){o.visible=!!show;if(!show)return;var u=o.userData,B=u.kind==='drift',P=POS[at[i]]||POS.TM,
-    nx=P[0]+Math.sin(now*.00007+u.ph)*.04,ny=ROWY[P[1]]-(asp<.9&&!P[1]?.08:0)+(B?(cfg.by-py):0)+Math.sin(now/1900+u.ph)*.012;  /* 直式手機上排再低一點，不碰右上角的音效／選單鈕 */
+    nx=((P[0]+1.25+now*SPAN/DRIFT_MS)%SPAN+SPAN)%SPAN-1.25,ny=ROWY[P[1]]-(asp<.9&&!P[1]?.08:0)+(B?(cfg.by-py):0)+Math.sin(now/1900+u.ph)*.012;  /* 直式手機上排再低一點，不碰右上角的音效／選單鈕 */
     pin(o,cfg.camera,nx,ny,(B?(cfg.bfrac||.11)*1.3:pf)*k,dist*1.9,now);
     if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}})};
 /* 後台沒設定任何熱氣球時的預設：26 週年慶（到 11 月底，on() 為 false 就沒有）。也是新款（A 大氣球＋B 直式飄帶），不再有橫幅 */
