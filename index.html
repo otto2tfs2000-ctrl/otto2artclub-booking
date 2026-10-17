@@ -1260,7 +1260,7 @@ function openGacha(){ parkToken(); location.href="park.html?v=20261013c" }
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
-  s.src="gacha.js?v=20261005a";
+  s.src="gacha.js?v=20261017a";
   s.onload=()=>window.Gacha&&Gacha.open();
   s.onerror=()=>alert("扭蛋載入失敗，請檢查網路後再試一次");
   document.head.appendChild(s);

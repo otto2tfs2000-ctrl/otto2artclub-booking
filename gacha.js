@@ -38,6 +38,14 @@ var CSS = `
 .gc-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .gc-sh h2{font-size:15px;font-weight:900;color:#1E2B4F;margin:0}
 .gc-sh small{font-size:12px;color:#6B7180}
+.gc-fold>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gc-fold>summary::-webkit-details-marker{display:none}
+.gc-fold>summary .gc-sh h2::before{content:"";display:inline-block;border-left:8px solid #1E2B4F;border-top:6px solid transparent;border-bottom:6px solid transparent;margin-right:8px;transition:transform .2s;transform:rotate(90deg)}
+.gc-fold:not([open])>summary .gc-sh h2::before{transform:none}
+.gc-fold:not([open])>summary .gc-sh{margin-bottom:0}
+.gc-pr .st{font-size:11px;color:#6B7180;font-weight:700;white-space:nowrap}
+.gc-pr.dim{opacity:.45}
+.gc-empty{padding:14px 12px;font-size:12.5px;color:#6B7180;text-align:center;line-height:1.6}
 .gc-banner{border-radius:12px;padding:9px 12px;font-size:12.5px;margin-bottom:10px;line-height:1.6;background:linear-gradient(90deg,#FFE9C2,#FFF6E3);border:1.5px solid #E3B34C}
 .gc-banner b{color:#E8836B}
 .gc-banner.test{background:#EEF1FA;border-color:#8FA6D9}
@@ -478,8 +486,9 @@ function render(anim){
     '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
     '<button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
     gamesHtml() + bearsHtml() +
+    myPrizes() +
     '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
-    '<div class="gc-sec"><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div>' + pool() + '</div>' +
+    '<details class="gc-sec gc-fold" open><summary><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div></summary>' + pool() + '</details>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
     '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送' + BU() + '，收進' + BT() + '。</li>' +
     '<li>每轉一次都會多送一隻' + BU() + '；抽到重複的湊滿 3 隻，會自動多送你 1 次扭蛋（每天最多 1 次）。</li>' +
@@ -578,6 +587,19 @@ function stamps(anim){
     ms.map(function(x){ return '<span class="' + (x.got ? "got" : "") + '">' + (x.got ? "✓ " : "") + x.d + ' 天<br>' + esc(x.nm) + '</span>' }).join("") +
     '</div><div style="font-size:11px;color:#8A90A0;margin-top:8px">累積天數就好，不用連續 🎨</div></div>';
   return h;
+}
+function myPrizes(){
+  var t = st.me && st.me.tickets; if (!t) return "";
+  var ok = t.filter(function(x){ return x.status === "ok" }).length;
+  var row = function(x){
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
+      (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
+  };
+  var lot = st.me.lottery ? '<div class="gc-pr"><span class="ic">🎫</span><span class="nm">月底大抽獎券 ×' + st.me.lottery + '<small>月底抽獎時自動參加</small></span></div>' : "";
+  var body = t.map(row).join("") + lot;
+  return '<div class="gc-sec"><div class="gc-sh"><h2>我的獎品</h2><small>' + (ok ? ok + ' 張可使用' : '扭蛋抽到的券會收在這裡') + '</small></div>' +
+    '<div class="gc-pool">' + (body || '<div class="gc-empty">還沒有獎品券。<br>扭蛋抽到材料升級券這類獎品，都會收在這裡。</div>') + '</div></div>';
 }
 function pool(){
   var mem = st.me.member;
