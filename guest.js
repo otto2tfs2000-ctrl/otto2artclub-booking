@@ -42,7 +42,7 @@ function spin(){var L=load(),t=today();
   if(L.used>=SPINS)ctaSoon('spins');
   return{ok:true,prize:{id:hit.id,ic:hit.ic,nm:hit.nm,sub:'',type:hit.type,v:hit.v||0},milestone:null,
     bear:b?{id:b.id,nm:b.nm,rare:!!b.rare,hidden:false,isNew:isNew,count:owned,total:BEARS.length}:null,collect:null,sure:false,why:'guest',sim:false,state:state(L)}}
-var NO={ok:false,code:'GUEST',error:'體驗版不能用這個功能，加入 OTTO2 的 LINE 就能玩完整版'};
+var NO={ok:false,code:'GUEST',error:'體驗版不能用這個功能，來 OTTO2 上過課就能玩完整版'};
 function api(path){
   if(path==='/gacha/info'){var t=today();return{ok:true,today:t,start:G_START,end:G_END,title:G_TITLE,status:status(t,G_START,G_END),bears:BEARS.length,img:'gacha/picasso2/'}}
   if(path==='/gacha/state')return state(load());
@@ -51,7 +51,7 @@ function api(path){
   if(path==='/event/list')return{ok:true,today:today(),events:[],balloons:[]};
   if(path==='/pets/diary')return{ok:true,list:[]};
   if(path==='/shop/list')return{ok:true,today:today(),me:{},products:[],cfg:{name:'藝享選品館',sub:'',greeting:'',greetingSub:'',cats:[],open:false,pending:true,openAt:'',openText:'',
-    closedLine:'體驗版看不到選品館',closedSub:'加入 OTTO2 的 LINE，就能用紅利換選品館的好東西'}};
+    closedLine:'體驗版看不到選品館',closedSub:'來 OTTO2 上過課的學員，就能用紅利換選品館的好東西'}};
   return NO}
 function pathOf(u){try{var x=new URL(u,location.href);return x.host===HOST?x.pathname.replace(/\/$/,''):null}catch(e){return null}}
 var realFetch=window.fetch.bind(window);
@@ -72,10 +72,10 @@ var css='.gu-bg{position:fixed;inset:0;z-index:2147483000;background:rgba(29,34,
  '.gu-card a:focus-visible,.gu-card button:focus-visible{outline:3px solid #f2c14e;outline-offset:2px}';
 function cta(why){if(document.getElementById('guCta'))return;
   if(!document.getElementById('guCss')){var s=document.createElement('style');s.id='guCss';s.textContent=css;document.head.appendChild(s)}
-  var T={spins:['今天的 3 次轉完了','加入 OTTO2 的 LINE，就能每天轉扭蛋、真的拿紅利，還能帶孩子來畫一幅自己的作品。'],
-    end:['喜歡這座島嗎？','體驗版只能逛逛。加入 OTTO2 的 LINE，就能用自己的帳號玩：轉扭蛋拿真的紅利、走格子幫聖誕樹點燈、把孩子的作品搬進作品小屋。'],
+  var T={spins:['今天的 3 次轉完了','來 OTTO2 上過課的孩子，用自己的帳號每天都能轉，還能拿真的紅利。先預約一堂體驗課吧！'],
+    end:['喜歡這座島嗎？','體驗版只能逛逛。來 OTTO2 上過課的孩子，就能用自己的帳號玩：轉扭蛋拿真的紅利、走格子幫聖誕樹點燈、作品搬進作品小屋。先預約一堂體驗課吧！'],
     house:['想要一間自己的小屋？','來 OTTO2 上過課的孩子，作品都能搬進作品小屋，家人朋友都看得到。先預約一堂體驗課吧！']}[why]||null;
-  T=T||['喜歡這座島嗎？','加入 OTTO2 的 LINE 就能玩完整版，也可以直接預約一堂體驗課。'];
+  T=T||['喜歡這座島嗎？','來 OTTO2 上過課的孩子才能玩完整版。先預約一堂體驗課吧！'];
   var bg=document.createElement('div');bg.className='gu-bg';bg.id='guCta';bg.setAttribute('role','dialog');bg.setAttribute('aria-modal','true');
   bg.innerHTML='<div class="gu-card"><h3></h3><p></p><a class="gu-line" href="'+LINE_URL+'" target="_blank" rel="noopener">加入 LINE 好友</a><a class="gu-book" href="'+BOOK_URL+'" target="_blank" rel="noopener">預約體驗課</a><button type="button" class="gu-x">繼續逛逛</button></div>';
   bg.querySelector('h3').textContent=T[0];bg.querySelector('p').textContent=T[1];
