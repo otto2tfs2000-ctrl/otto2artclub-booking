@@ -1296,7 +1296,7 @@ function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floor
   const next=F<MAXF?`再 ${worksForFloor(F+1)-n} 件作品就會加蓋一層。`:'已經蓋到最高了！之後的作品用來解鎖裝飾。';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
     gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'');
-  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),...(window.GUEST?[['我也想要一間',()=>GuestCTA('house')]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 裝飾小屋（2026-10-09）：牆色（整棟／每層）、屋頂色、每層裝飾、門口與屋頂裝飾開關。邊選邊看，按「存好了」才寫進去 */
 let lookSt=null;
 function closeLook(revert){const d=$('drawer');if(d.hidden)return;if(revert&&lookSt){lookSt.m.look=lookSt.orig;const i=G.members.indexOf(lookSt.m);if(i>=0)rebuildOne(i)}d.hidden=true;lookSt=null}
@@ -1368,7 +1368,8 @@ function thumbs(list,idxs){return`<div class="grid">${idxs.map(i=>{const w=list[
 function houseWall(m){
   const mine=m.id===G.me,can=mine||ME.staff,list=m.works;
   modal(`<h2>${esc(m.name)}的小屋</h2><div class="meta">${list.length} 件作品・照時間排列</div><div class="wall">${list.length?groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join(''):`<div class="empty">${mine?'還沒有作品，上傳第一件吧':'還沒有作品'}</div>`}</div>
-    <div class="acts">${can?`<button class="pill main" type="button" id="hwUp">${mine?'上傳作品':'老師幫忙放作品'}</button>`:''}<button class="pill" type="button" id="hwX">關閉</button></div>`);
+    ${window.GUEST?'<p class="sdesc">體驗版只看得到第一層的真作品，後面是示範圖。</p>':''}<div class="acts">${can?`<button class="pill main" type="button" id="hwUp">${mine?'上傳作品':'老師幫忙放作品'}</button>`:''}${window.GUEST?'<button class="pill main" type="button" id="hwBook">我也想要一間</button>':''}<button class="pill" type="button" id="hwX">關閉</button></div>`);
+  if(window.GUEST)$('hwBook').onclick=()=>{closeModal();GuestCTA('house')};
   $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can&&!DEMO?{house:m.id}:null,m));
   $('hwX').onclick=closeModal;if(can)$('hwUp').onclick=()=>mine?quickPick(m):uploadTo(m);
 }
@@ -1680,10 +1681,16 @@ async function whoAmI(){
   try{if(!ssTok()&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),sleep(4000)])}}catch(e){}
   if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品小屋，才能搬家、上傳'};return}
   try{const j=await api('/island/me');ME=Object.assign({ok:true},j);if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
+/* 訪客版資料：guest-island.json 是 2026-10-24 拍的快照（圖片直接從 Cloudinary 讀），讀不到就用全假的示範島 */
+async function guestData(){try{const j=await fetch('guest-island.json?v=20261024g').then(r=>r.json());
+  return{members:j.houses.map((h,i)=>{const last=(h.works[h.works.length-1]||{}).date||'2026/10';
+    return{id:'g'+i,name:h.name,style:h.style,since:h.since,staff:!!h.staff,look:h.look||null,pet:h.pet||null,frog:h.frog||null,
+      works:Array.from({length:h.n},(_,k)=>k<h.works.length?Object.assign({rx:{l:0,h:0,f:0}},h.works[k]):{seed:i*50+k+1,title:TITLES[(i+k)%12],date:last,by:'本人'})}}),
+    album:demoData().album,me:null}}catch(e){return demoData()}}
 function save(){if(!DEMO||window.GUEST)return;try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
 async function start(data){
   G=null;
-  if(window.GUEST){G=demoData();ME={ok:false,staff:false,err:'體驗版'}} /* 訪客體驗版：示範小屋（假名字、程式畫的作品），不連伺服器 */
+  if(window.GUEST){G=await guestData();ME={ok:false,staff:false,err:'體驗版'}} /* 訪客體驗版：真的小屋、名字遮掉，只放每間第一層（最早 4 件）的真作品，其他是程式畫的；讀 guest-island.json，不連伺服器 */
   else if(DEMO){G=data&&data.members&&data.album?data:null;
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
