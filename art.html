@@ -1295,7 +1295,8 @@ function openAirship(){focusOn(airship,7,1.6);
 function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${worksForFloor(F+1)-n} 件作品就會加蓋一層。`:'已經蓋到最高了！之後的作品用來解鎖裝飾。';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
-    gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'');
+    gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'')+gpAwayTxt(m)+
+      G.members.filter(x=>x.away&&x.away.s==='visit'&&x.away.at===m.id).map(x=>` ${['pet','frog'].map(k=>x[k]&&x[k].n).filter(Boolean).join('和')}（${x.name}家）來這裡作客。`).join('');
   sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),...(window.GUEST?[['我也想要一間',()=>GuestCTA('house')]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 裝飾小屋（2026-10-09）：牆色（整棟／每層）、屋頂色、每層裝飾、門口與屋頂裝飾開關。邊選邊看，按「存好了」才寫進去 */
 let lookSt=null;
@@ -1515,16 +1516,36 @@ const PK={pet:{nm:'天竺鼠',bl:'品種',cl:'花色',L:()=>PetLife.GP_BREEDS,C:
 /* 自己的寵物記在手機，遊樂島的吉祥物島會讀它，讓牠跟著主人過去玩 */
 function gpRemember(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me),ok=m&&m.works.length>=PetLife.GP_WORKS;
   try{ok&&m.pet?localStorage.setItem('otto2-mypet',JSON.stringify(m.pet)):localStorage.removeItem('otto2-mypet');ok&&m.frog?localStorage.setItem('otto2-myfrog',JSON.stringify(m.frog)):localStorage.removeItem('otto2-myfrog')}catch(e){}}
-function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bw){scene.remove(o.bw);o.bw.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})}o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
+function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bub){scene.remove(o.bub);o.bub.material.dispose()}if(o.bw){scene.remove(o.bw);o.bw.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})}o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
   if(!window.PetLife)return;
   G.members.forEach((m,i)=>['pet','frog'].forEach(kind=>{const P=m[kind],K=PK[kind];if(!P||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
     const pd=normStyle(m.style,i)==='wing'?2:1.5,g=K.make(P.b,P.c);g.scale.setScalar(K.sc);
-    h.updateMatrixWorld(true);const home=h.localToWorld(new THREE.Vector3(K.x,0,pd/2+.55));home.y=heightAt(home.x,home.z);g.position.copy(home);
+    h.updateMatrixWorld(true);let home=h.localToWorld(new THREE.Vector3(K.x,0,pd/2+.55));home.y=heightAt(home.x,home.z);
+    /* 2026-10-24 離家出走：5 天沒來去別人家門口作客、14 天去旅行（不在島上），3 天頭上冒「肚子餓」；碗留在自己家 */
+    const aw=m.away,hi=aw&&aw.s==='visit'?G.members.findIndex(x=>x.id===aw.at):-1,host=hi>=0?G.members[hi]:null;
+    if(host&&houses[hi]){const hh=houses[hi],pdh=normStyle(host.style,hi)==='wing'?2:1.5;hh.updateMatrixWorld(true);home=hh.localToWorld(new THREE.Vector3(kind==='frog'?1.1:-1.1,0,pdh/2+1.05));home.y=heightAt(home.x,home.z)}
+    g.position.copy(home);if(aw&&(aw.s==='trip'||(aw.s==='visit'&&!host)))g.visible=false;
     if((P.love||0)>=K.lv[3].at){const cr=gpCrown();cr.position.set(...K.crown);g.add(cr)} /* 親密度 100：頭上小皇冠 */
     g.traverse(x=>{if(x.isMesh){x.userData={gp:m,kind};picks.push(x)}});scene.add(g);
     const bw=gpBowl(kind),bp=h.localToWorld(new THREE.Vector3(K.bx,0,pd/2+.55));bp.y=heightAt(bp.x,bp.z);bw.position.copy(bp);bw.traverse(x=>{if(x.isMesh){x.userData={gpBowl:m,kind};picks.push(x)}});scene.add(bw);
     const front=h.localToWorld(new THREE.Vector3(kind==='frog'?.3:-.2,0,pd/2+1.15));front.y=heightAt(front.x,front.z);
-    gpPets.push({g,bw,bp,front,home,yaw:h.rotation.y,ph:i*1.7+(kind==='frog'?.9:0),m,kind,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6})}))}
+    const bub=aw&&aw.s==='hungry'?gpHungry():null;if(bub)scene.add(bub);
+    gpPets.push({g,bw,bp,front,home,yaw:host?houses[hi].rotation.y:h.rotation.y,ph:i*1.7+(kind==='frog'?.9:0),m,kind,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6,host,bub})}))}
+let _gpHungryT=null;
+function gpHungry(){if(!_gpHungryT){const c=cvs(256,96),x=c.getContext('2d');x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;x.beginPath();x.moveTo(36,6);x.arcTo(250,6,250,76,30);x.arcTo(250,76,6,76,30);x.arcTo(6,76,6,6,30);x.arcTo(6,6,250,6,30);x.closePath();x.fill();x.stroke();
+    x.beginPath();x.moveTo(110,74);x.lineTo(128,92);x.lineTo(146,74);x.fill();x.fillStyle='#c4553b';x.font='bold 38px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('肚子餓了…',128,42);_gpHungryT=new THREE.CanvasTexture(c)}
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:_gpHungryT,transparent:true,depthWrite:false}));s.scale.set(1.15,.43,1);return s}
+const gpAwayTxt=m=>{const a=m.away;if(!a)return'';const nm=['pet','frog'].map(k=>m[k]&&m[k].n).filter(Boolean).join('和')||'牠';
+  if(a.s==='hungry')return ` ${nm}肚子餓了，在門口等主人回來。`;if(a.s==='visit'){const h=G.members.find(x=>x.id===a.at);return ` ${nm}跑去${h?h.name+'家':'別人家'}作客了。`}return ` ${nm}去旅行了，主人回來牠就會回家。`};
+function gpBack(b){if(!b||!b.days)return;const w=b.was==='trip'?'跑去旅行':b.was==='visit'?'跑去別人家作客':'餓著肚子在門口等你';
+  modal(`<h2>${esc(b.names||'牠')}回家了！</h2><p>你 ${b.days} 天沒來，牠${w}。看到你回來好開心${b.gift?`，還帶了伴手禮給你：親密度 +${b.gift}`:''}。</p><div class="acts"><button class="pill main" type="button" id="pbX">歡迎回家</button></div>`);$('pbX').onclick=closeModal;
+  const mine=G.members.find(x=>x.id===G.me);if(mine){const o=gpPets.find(x=>x.m===mine);if(o){o.hop=.6;gpHeart(o.g.position.clone(),6)}}}
+/* 摸摸、餵食回傳 back＝剛從離家回來：重抓島上資料讓牠回家，再演回家 */
+async function gpCameBack(b){if(!b)return;try{await reload();rebuildGP()}catch(e){}gpBack(b)}
+/* 打開作品小屋：有寵物來自己家作客，提醒一次（一天一次） */
+function gpGuests(){if(DEMO||!G||!G.me)return;const g=G.members.filter(x=>x.away&&x.away.s==='visit'&&x.away.at===G.me);if(!g.length)return;
+  const k='otto2-gp-guest-'+new Date(Date.now()+8*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}
+  toast(`有客人來了！${g.map(x=>`${x.name}家的${['pet','frog'].map(k2=>x[k2]&&x[k2].n).filter(Boolean).join('和')}`).join('、')}跑來你家門口作客`)}
 /* 在門口小範圍走來走去（青蛙用跳的）、偶爾停下來東張西望；親密度越高會的動作越多（GP_LV／FR_LV） */
 function gpCrown(){const g=new THREE.Group(),gold=toon('#e8b93a');const base=new THREE.Mesh(new THREE.CylinderGeometry(.16,.18,.1,10,1,true),gold);base.material.side=THREE.DoubleSide;g.add(base);
   for(let i=0;i<5;i++){const a=i/5*Math.PI*2,t=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,5),gold);t.position.set(Math.cos(a)*.16,.1,Math.sin(a)*.16);g.add(t);const j=new THREE.Mesh(new THREE.SphereGeometry(.025,6,5),toon(i%2?'#e0607a':'#6ab8ff'));j.position.set(Math.cos(a)*.17,.03,Math.sin(a)*.17);g.add(j)}return g}
@@ -1539,7 +1560,8 @@ function gpHeart(at,n=5){if(!_gpHT){const c=cvs(64,64),x=c.getContext('2d');x.fi
 function gpTick(dt,now){
   gpHearts=gpHearts.filter(s=>{const u=s.userData;u.t+=dt;if(u.t<u.dl){s.visible=false;return true}s.visible=true;const k=(u.t-u.dl)/u.d;s.position.y+=u.v*dt;s.material.opacity=1-k;if(k>=1){scene.remove(s);s.material.dispose();return false}return true});
   gpPets.forEach(o=>{const K=PK[o.kind],fr=o.kind==='frog',t=now/1000+o.ph,love=o.m[o.kind].love||0,g=o.g;let px,pz,ry,walk=false,lift=0;
-    const greet=love>=K.lv[0].at&&o.m.id===G.me&&focus&&focus.obj===houses[G.members.indexOf(o.m)];
+    if(o.bub){o.bub.position.set(g.position.x,g.position.y+.78,g.position.z);o.bub.visible=g.visible&&Math.sin(now/700)>-.6}
+    const greet=!o.host&&love>=K.lv[0].at&&o.m.id===G.me&&focus&&focus.obj===houses[G.members.indexOf(o.m)];
     if(o.eat>0){o.eat-=dt;px=o.bp.x+Math.cos(o.yaw)*(fr?-.32:.32);pz=o.bp.z-Math.sin(o.yaw)*(fr?-.32:.32);ry=Math.atan2(o.bp.x-px,o.bp.z-pz);const hd=g.userData.head;if(hd)hd.rotation.x=Math.abs(Math.sin(now/120))*.35}
     else if(greet){px=o.front.x;pz=o.front.z;ry=o.yaw;const hd=g.userData.head;if(hd){hd.rotation.x=0;hd.rotation.y=Math.sin(t*2)*.25}}
     else{const s=Math.sin(t*(fr?.25:.35)),x=s*(fr?.3:.38);walk=Math.abs(Math.cos(t*(fr?.25:.35)))>.25;px=o.home.x+Math.cos(o.yaw)*x;pz=o.home.z-Math.sin(o.yaw)*x;
@@ -1555,12 +1577,12 @@ function gpTick(dt,now){
     g.position.set(nx,heightAt(nx,nz)+(walk?Math.abs(Math.sin(t*(fr?5:9)))*K.walk:0)+lift,nz);g.rotation.y=ry;g.rotation.z=o.hop>0&&!fr?Math.sin(o.hop*20)*.15:0})}
 /* 點自己的寵物＝摸摸（每天 +1）；點別人的只會跳一下 */
 async function gpTap(m,kind='pet'){const o=gpPets.find(x=>x.m===m&&x.kind===kind),P=m[kind];if(!o||!P)return;o.hop=.45;const w=o.g.position.clone();gpHeart(w,m.id===G.me?5:2);
-  if(m.id!==G.me||DEMO){toast(`${m.name}家的${P.n}`);return}
-  try{const r=await api('/island/pet/love',{why:'pet',kind});P.love=r.love;toast(r.added?`${P.n}好開心！親密度 +1（♥ ${r.love}）`:`${P.n}${kind==='frog'?'眨眨眼看你':'蹭蹭你'}（今天摸過了）`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
+  if(m.id!==G.me||DEMO){toast(o.host?`${m.name}家的${P.n}，來${o.host.name}家作客`:m.away&&m.away.s==='hungry'?`${m.name}家的${P.n}肚子餓了，在等主人`:`${m.name}家的${P.n}`);return}
+  try{const r=await api('/island/pet/love',{why:'pet',kind});P.love=r.love;if(r.back)return gpCameBack(r.back);toast(r.added?`${P.n}好開心！親密度 +1（♥ ${r.love}）`:`${P.n}${kind==='frog'?'眨眨眼看你':'蹭蹭你'}（今天摸過了）`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
 /* 點碗＝餵牠（每天 +1） */
 async function gpFeed(m,kind='pet'){const o=gpPets.find(x=>x.m===m&&x.kind===kind),P=m[kind];if(!o||!P)return;if(m.id!==G.me||DEMO){toast(`這是${m.name}家${P.n}的碗`);return}
-  o.eat=2.6;setTimeout(()=>gpHeart(o.g.position.clone(),4),1400);
-  try{const r=await api('/island/pet/love',{why:'feed',kind});P.love=r.love;toast(r.added?`${P.n}${kind==='frog'?'一口吞掉了':'吃得好香'}！親密度 +1（♥ ${r.love}）`:`${P.n}今天吃飽了，明天再餵`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
+  const away=m.away&&m.away.s!=='hungry';if(!away){o.eat=2.6;setTimeout(()=>gpHeart(o.g.position.clone(),4),1400)}
+  try{const r=await api('/island/pet/love',{why:'feed',kind});P.love=r.love;if(r.back)return gpCameBack(r.back);toast(r.added?`${P.n}${kind==='frog'?'一口吞掉了':'吃得好香'}！親密度 +1（♥ ${r.love}）`:`${P.n}今天吃飽了，明天再餵`);gpUnlock(m,r,kind)}catch(e){toast(e.message)}}
 function gpUnlock(m,r,kind='pet'){if(!r.added)return;const K=PK[kind],lv=K.lv.find(x=>x.at===r.love);if(lv)setTimeout(()=>{modal(`<h2>${esc(m[kind].n)}跟你更親了！</h2><p>親密度 ♥ ${r.love}：${lv.t}</p><div class="acts"><button class="pill main" type="button" id="ulX">好</button></div>`);$('ulX').onclick=()=>{closeModal();if(r.love>=K.lv[3].at)rebuildGP()}},1600)}
 /* 自己的小屋已經三樓、還有沒認養的 → 各提醒一次（已經養天竺鼠的人，青蛙上線時也會提醒一次） */
 function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(x=>x.id===G.me);if(!m||m.works.length<PetLife.GP_WORKS)return;
@@ -1575,7 +1597,8 @@ let gpView=null;
 function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C(),locked=!!(P&&P.b),fr=kind==='frog';
   let b=(P&&P.b)||B[0].id,c=(P&&P.c)||(fr?B[0].c:Cs[0].id);
   const lv=P?(P.love||0):0,nx=K.lv.find(x=>x.at>lv);
-  modal(`<h2>${P?'我的'+K.nm:'認養一隻'+K.nm}</h2>${P?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small></p>`:''}<div class="gpv" id="gpv"></div>
+  modal(`<h2>${P?'我的'+K.nm:'認養一隻'+K.nm}</h2>${P?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small><br><small>3 天沒來牠會肚子餓、5 天跑去別人家作客、14 天去旅行。什麼都不會少，回來就回家，還會帶伴手禮。</small></p>
+    ${DEMO?'':`<label class="gpnt" style="display:flex;gap:8px;align-items:center;font-weight:400;margin:4px 0 8px"><input type="checkbox" id="gpNt"${ME.petNotify!==false?' checked':''}> 讓牠寄訊息給我（第 3 天、第 14 天各一則 LINE）</label>`}`:''}<div class="gpv" id="gpv"></div>
     <label>${K.bl}${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
     <label>${K.cl}</label><div class="gpc" id="gpc">${Cs.map(x=>`<button type="button" data-id="${x.id}" title="${x.n}"><i style="background:${x.d?`linear-gradient(135deg,${x.m} 50%,${x.d} 50%)`:fr?`radial-gradient(circle at 70% 30%,${x.a} 18%,${x.m} 20%)`:x.m}"></i>${x.n}</button>`).join('')}</div>
     <label for="gpn">名字（最多 8 個字）</label><input type="text" id="gpn" maxlength="8" placeholder="${K.ph}" value="${P?esc(P.n):''}">
@@ -1585,6 +1608,7 @@ function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C
   $('gpb').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(locked)return;b=x.dataset.id;if(fr){const sp=B.find(q=>q.id===b);if(sp)c=sp.c}sel()});
   $('gpc').querySelectorAll('button').forEach(x=>x.onclick=()=>{c=x.dataset.id;sel()});
   const close=()=>{gpStop();closeModal()};$('gpX').onclick=close;sel();
+  if($('gpNt'))$('gpNt').onchange=async e=>{const on=e.target.checked;try{await api('/island/pet/notify',{on});ME.petNotify=on;toast(on?'好，牠想你的時候會寄 LINE 給你':'好，牠不會再寄 LINE 給你了')}catch(er){e.target.checked=!on;toast(er.message)}};
   $('gpO').onclick=async()=>{const n=$('gpn').value.trim();if(!n){toast('幫牠取個名字吧');return}$('gpO').disabled=true;$('gpO').textContent='儲存中…';
     try{await api('/island/pet',{b,c,n,house:m.id,kind});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
     catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
@@ -1674,7 +1698,7 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
-function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null,look:h.look||null})),
+function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null,look:h.look||null,away:h.away||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
 async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.now());const j=await r.json();if(!j.ok)throw new Error(j.error||'讀不到島上的資料');G=fromServer(j);return G}
 async function whoAmI(){
@@ -1695,7 +1719,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();setTimeout(gpAsk,1500)})}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else setTimeout(gpAsk,1500);setTimeout(gpGuests,2600)})}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
