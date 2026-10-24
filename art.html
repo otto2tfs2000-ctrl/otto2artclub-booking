@@ -863,9 +863,9 @@ const FIG={
   const lg=lanternGhost();lg.position.set(0,-.4,.05);f.armL.add(lg);f.armL.rotation.set(-.35,0,-.55);lg.rotation.z=.55;
   return figDone(f,A)},
 };
-/* ===== 2026-10-24 聖誕版島民（11/1～12/31 自動換上，照大熊給的 12 張聖誕公仔設定圖；?xmas=1 / ?xmas=0 可以強制開關）=====
+/* ===== 2026-10-24 聖誕版島民（10/25～12/31 自動換上，大熊說提前到 10/25；照大熊給的 12 張聖誕公仔設定圖；?xmas=1 / ?xmas=0 可以強制開關）=====
    每一位都還是 figBase 的身體，只換衣服配件；大家都多一顆紅鼻子。紅鼻子跟星星不壓暗（userData.keep） */
-const XMAS=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const d=new Date();return d.getMonth()>=10})();
+const XMAS=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const d=new Date(),mo=d.getMonth();return mo>=10||(mo===9&&d.getDate()>=25)})();
 const XT={
   snow:(bg,fg,rx,ry)=>texOf(128,128,(x,w,h)=>{x.fillStyle=bg;x.fillRect(0,0,w,h);x.strokeStyle=fg;x.fillStyle=fg;x.lineCap='round';const r=rng(bg.length*31+fg.length);
     for(let i=0;i<7;i++){const cx=r()*w,cy=r()*h,R=5+r()*7;x.lineWidth=R>9?2.2:1.6;
