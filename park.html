@@ -769,13 +769,13 @@ body:not(.oct) #evPill{display:none}
 <script src="petlife.js?v=20261005za"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
-<script src="anniv26.js?v=20261017a"></script>
+<script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024l';
+const PARK_VER='20261024n';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1592,7 +1592,7 @@ setInterval(()=>{const L=EV.list||[];if(L.length<2||document.hidden)return;const
 /* 後台設定的熱氣球（A 大氣球／B 直式飄帶／C 單色大字球，最多 3 顆）。有設定就只顯示這些，沒有才退回 26 週年慶舊款 */
 function balApply(){if(!window.Anniv26||!Anniv26.Mgr||typeof scene==='undefined'||typeof camera==='undefined')return;
   if(!GA.bm)GA.bm=new Anniv26.Mgr({scene,camera,by:.85,bfrac:.11});
-  GA.bm.set(EV.bals&&EV.bals.length?EV.bals:Anniv26.def26(),{today:EV.today})}
+  GA.bm.set(EV.bals&&EV.bals.length?EV.bals:Anniv26.def26(),{today:EV.today});SANTA.bans=(EV.bals||[]).filter(b=>b.style==='S')} /* S 款＝聖誕雪橇布條 */
 /* 進島跳一次（同一個活動、同一個日期只跳一次；日期改了會再跳） */
 function evAutoOpen(n){const e=EV.cur;if(!e)return;const k='otto2-ev-'+e.id+'-'+e.date;let seen=false;try{seen=localStorage.getItem(k)==='1'}catch(_){}if(seen)return;
   setTimeout(()=>{const free=!busy&&$('pop').hidden&&$('tour').hidden&&$('shopGate').hidden&&$('shopPage').hidden&&G&&G.phase==='oct'&&!document.body.classList.contains('touring');
@@ -2475,7 +2475,7 @@ let _sky;function skyTex(){if(_sky)return _sky;const cv=document.createElement('
   g.addColorStop(0,'#86cdf5');g.addColorStop(.42,'#bfe6fb');g.addColorStop(.78,'#fff1d9');g.addColorStop(1,'#ffe0bf');x.fillStyle=g;x.fillRect(0,0,4,512);_sky=new THREE.CanvasTexture(cv);return _sky}
 /* ---------- 2026-10-24 大熊：11 月起扭蛋島改成晚上，聖誕老公公駕著馴鹿雪橇從夜空飛過（約 11 秒飛一趟、休息 14～24 秒，點牠會說聖誕快樂） ----------
    整組只在扭蛋島（G.phase==='oct'）、聖誕期間（XMG）出現；零件不投影、不參與合併（存在 SANTA.g），腳和尾巴的星星要動 */
-const SANTA={g:null,t:0,next:2.5,fly:false,dir:1,legs:[],stars:[],st:0};
+const SANTA={g:null,t:0,next:2.5,fly:false,dir:1,legs:[],stars:[],st:0,bans:[],bi:-1,cur:null,ban:null}; /* bans：後台 S 款布條，每飛一趟換下一條 */
 function makeSanta(){
   const em=(c,e,k=.55)=>toon(c,{emissive:new THREE.Color(e),emissiveIntensity:k}); /* 夜景燈光暗，稍微自發光才看得清楚 */
   const red=em('#d0342c','#5a0f0b'),white=em('#f6f2ea','#6b6b6b',.5),gold=em('#e8b94a','#6a4a10'),fur=em('#9a6438','#3a2010'),
@@ -2537,15 +2537,31 @@ function santaTick(dt,now){
   if(!on){if(S.g)S.g.visible=false;S.stars.forEach(s=>s.visible=false);return}
   if(!S.g){S.g=makeSanta();S.g.visible=false;scene.add(S.g);for(let i=0;i<14;i++)S.stars.push(santaStar())}
   S.stars.forEach(s=>{const u=s.userData;if(!s.visible)return;u.t+=dt;const k=u.t/1.3;if(k>=1){s.visible=false;return}s.material.opacity=1-k;s.scale.setScalar(.32*(1-k*.6));s.position.y-=dt*.25});
-  if(!S.fly){S.g.visible=false;S.next-=dt;if(S.next<=0){S.fly=true;S.t=0;S.dir=S.dir>0?-1:1}return}
+  if(!S.fly){S.g.visible=false;if(S.ban)S.ban.visible=false;S.next-=dt;if(S.next<=0){S.fly=true;S.t=0;S.dir=S.dir>0?-1:1;santaBanner()}return}
   S.t+=dt;const D=10,p=S.t/D;
-  if(p>=1){S.fly=false;S.next=14+Math.random()*10;S.g.visible=false;return}
+  if(p>=1){S.fly=false;S.next=14+Math.random()*10;S.g.visible=false;if(S.ban)S.ban.visible=false;return}
   const x=HUBC.x+S.dir*(-17+34*p),y=8.9+Math.sin(p*Math.PI)*1.2+Math.sin(now/320)*.12,z=HUBC.z-3.5;
   S.g.position.set(x,y,z);S.g.rotation.set(0,S.dir>0?0:Math.PI,Math.cos(p*Math.PI)*.16);S.g.visible=true;
   S.legs.forEach(l=>{const a=Math.sin(now/85+l.ph)*.75;l.p.rotation.z=l.front?a:-a});
+  if(S.ban&&S.cur){const B=S.ban,back=S.g.localToWorld(new THREE.Vector3(-.75,.62,0));B.visible=true;
+    B.position.set(back.x-S.dir*3.75,back.y-.35+Math.sin(now/420)*.08,back.z);B.userData.cloth.rotation.y=Math.sin(now/380)*.12;B.userData.cloth.rotation.z=Math.sin(now/520)*.04;
+    const front=new THREE.Vector3(B.position.x+S.dir*2.6,B.position.y+.25,B.position.z),ra=B.userData.rope.geometry.attributes.position;
+    B.updateMatrixWorld(true);B.worldToLocal(back);B.worldToLocal(front);ra.setXYZ(0,back.x,back.y,back.z);ra.setXYZ(1,front.x,front.y,front.z);ra.needsUpdate=true}
   S.st-=dt;if(S.st<=0){S.st=.09;const s=S.stars.find(q=>!q.visible);if(s){s.userData={t:0};s.position.copy(S.g.localToWorld(new THREE.Vector3(-.75,.4+Math.random()*.4,(Math.random()-.5)*.6)));s.visible=true}}}
-function santaTap(rc){const S=SANTA;if(!S.g||!S.g.visible||!rc.intersectObject(S.g,true).length)return false;
-  try{sfx('chime')}catch(e){}sparkle(S.g.position.clone(),10);toast('🎅 Ho Ho Ho！聖誕老公公祝你聖誕快樂！');return true}
+/* 這一趟要掛哪條布條：後台有 S 款就輪流，沒有就不掛 */
+function santaBanner(){const S=SANTA,L=S.bans||[];if(!L.length||!window.Anniv26||!Anniv26.texS){S.cur=null;if(S.ban)S.ban.visible=false;return}
+  S.bi=(S.bi+1)%L.length;const b=L[S.bi];
+  if(!S.ban){const B=new THREE.Group(),cl=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.15),new THREE.MeshBasicMaterial({side:THREE.DoubleSide,transparent:true,fog:false}));B.add(cl);
+    const rg=new THREE.BufferGeometry();rg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0,0],3));const rope=new THREE.Line(rg,new THREE.LineBasicMaterial({color:'#e8b94a'}));rope.frustumCulled=false;B.add(rope);
+    B.userData={cloth:cl,rope};B.visible=false;scene.add(B);S.ban=B}
+  if(S.cur!==b){const m=S.ban.userData.cloth.material;if(m.map)m.map.dispose();m.map=Anniv26.texS(b,{today:EV.today});m.needsUpdate=true}
+  S.cur=b}
+function santaTap(rc){const S=SANTA;if(!S.g||!S.g.visible)return false;const onBan=S.ban&&S.ban.visible&&rc.intersectObject(S.ban.userData.cloth,false).length;
+  if(!onBan&&!rc.intersectObject(S.g,true).length)return false;
+  try{sfx('chime')}catch(e){}sparkle(S.g.position.clone(),10);
+  const ev=S.cur&&S.cur.eventId&&(EV.list||[]).find(e=>e.id===S.cur.eventId);
+  if(ev){EV.sel=ev;evOpen();return true}
+  toast(S.cur&&S.cur.title?`🎅 Ho Ho Ho！${S.cur.title}`:'🎅 Ho Ho Ho！聖誕老公公祝你聖誕快樂！');return true}
 
 /* 2026-10-24 第一次來：先跑完導覽，天竺鼠、走格子這些公告排在導覽後面，不要疊在一起 */
 function tourPending(){if(!G||G.phase!=='oct')return false;try{return localStorage.getItem('otto2-park-tour')!=='1'}catch(e){return false}}

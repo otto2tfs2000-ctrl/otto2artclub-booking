@@ -144,9 +144,20 @@ function makeX(b,ctx){var g,tex=[];
 /* 顏色要看得清楚：不吃場景的暗光，用不受光材質 */
 function flat(g,map){g.userData.env.material=new THREE.MeshBasicMaterial({map:map,fog:false})}
 /* cfg: {scene,camera,slots:[{nx,ny,frac}],bx,by,bamp,bfrac}；slots 給 A／C 用（照順序），B 在 bx±bamp 左右慢慢飄 */
+/* S 款・聖誕雪橇布條（2026-10-24）：橫的長布條，聖誕老公公拖著飛（park.html 自己畫，這裡只做貼圖）。有圖放左邊方塊、右邊字；沒圖整條寫字 */
+function texS(b,ctx){var w=1024,h=256,c=cvs(w,h),x=c.getContext('2d'),p=pal(b.color),T=btxt(b,ctx),t=new THREE.CanvasTexture(c);t.anisotropy=4;
+  function paint(im){var i,l=im?232:36;x.clearRect(0,0,w,h);x.fillStyle='#fff6e4';rrect(x,6,10,w-12,h-20,28);x.fill();
+    for(i=0;i<w;i+=48){x.fillStyle=i/48%2?p[0]:'#ffffff';x.fillRect(i,10,48,16);x.fillRect(i,h-26,48,16)}
+    x.lineWidth=8;x.strokeStyle=p[1];rrect(x,6,10,w-12,h-20,28);x.stroke();
+    if(im)drawCover(x,im,30,40,180,176,18);
+    x.textAlign='center';x.textBaseline='middle';var cx=(l+w-30)/2,mw=w-30-l;x.fillStyle=p[1];
+    if(T.s){fit(x,T.t,mw,100,'900');x.fillText(T.t,cx,100);x.fillStyle='#1e2b4f';fit(x,T.s,mw,58,'800');x.fillText(T.s,cx,182)}
+    else{fit(x,T.t,mw,110,'900');x.fillText(T.t,cx,130)}
+    t.needsUpdate=true}
+  paint(null);if(b.img)loadImg(b.img,paint);return t}
 function Mgr(cfg){this.cfg=cfg;this.objs=[];this.key=''}
 Mgr.prototype.count=function(){return this.objs.length};
-Mgr.prototype.set=function(list,ctx){list=(list||[]).slice(0,3);var key=JSON.stringify(list)+'|'+((ctx&&ctx.today)||'');if(key===this.key)return;this.key=key;var me=this;
+Mgr.prototype.set=function(list,ctx){list=(list||[]).filter(function(b){return b.style!=='S'}).slice(0,3);var key=JSON.stringify(list)+'|'+((ctx&&ctx.today)||'');if(key===this.key)return;this.key=key;var me=this;
   this.objs.forEach(function(o){me.cfg.scene.remove(o);o.traverse(function(m){if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose()});(o.userData.tex||[]).forEach(function(t){t.dispose()})});
   this.objs=list.map(function(b){var o=makeX(b,ctx);me.cfg.scene.add(o);return o})};
 /* 位置（2026-10-13）：T 上排／M 中排 × L 左／M 中／R 右，共 6 格。後台指定了就固定放那格；沒指定的自動挑空格：
@@ -167,5 +178,5 @@ Mgr.prototype.tick=function(now,show,dist){var cfg=this.cfg,asp=cfg.camera.aspec
     if(u.sway){u.sway.rotation.z=Math.sin(now/950+u.ph)*.08;u.sway.rotation.x=Math.sin(now/1300+u.ph)*.05}})};
 /* 後台沒設定任何熱氣球時的預設：26 週年慶（到 11 月底，on() 為 false 就沒有）。也是新款（A 大氣球＋B 直式飄帶），不再有橫幅 */
 function def26(){return on()?[{id:'d26a',style:'A',title:'26th 周年慶',sub:'週週直播抽好禮',color:'pink',from:'2026-10-01'},{id:'d26b',style:'B',title:'滿千送抽獎券',sub:'26th 周年慶',color:'blue',from:'2026-10-02'}]:[]}
-window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr,def26:def26};
+window.Anniv26={on:on,A:A,B:B,Bx:Bx,pin:pin,drift:drift,Mgr:Mgr,def26:def26,texS:texS};
 })();
