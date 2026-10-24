@@ -1524,7 +1524,7 @@ function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bub)
     /* 2026-10-24 離家出走：5 天沒來去別人家門口作客、14 天去旅行（不在島上），3 天頭上冒「肚子餓」；碗留在自己家 */
     const aw=m.away,hi=aw&&aw.s==='visit'?G.members.findIndex(x=>x.id===aw.at):-1,host=hi>=0?G.members[hi]:null;
     if(host&&houses[hi]){const hh=houses[hi],pdh=normStyle(host.style,hi)==='wing'?2:1.5;hh.updateMatrixWorld(true);home=hh.localToWorld(new THREE.Vector3(kind==='frog'?1.1:-1.1,0,pdh/2+1.05));home.y=heightAt(home.x,home.z)}
-    g.position.copy(home);if(aw&&(aw.s==='trip'||(aw.s==='visit'&&!host)))g.visible=false;
+    g.position.copy(home);if(aw&&(aw.s==='trip'||aw.s==='storm'||(aw.s==='visit'&&!host)))g.visible=false;
     if((P.love||0)>=K.lv[3].at){const cr=gpCrown();cr.position.set(...K.crown);g.add(cr)} /* 親密度 100：頭上小皇冠 */
     g.traverse(x=>{if(x.isMesh){x.userData={gp:m,kind};picks.push(x)}});scene.add(g);
     const bw=gpBowl(kind),bp=h.localToWorld(new THREE.Vector3(K.bx,0,pd/2+.55));bp.y=heightAt(bp.x,bp.z);bw.position.copy(bp);bw.traverse(x=>{if(x.isMesh){x.userData={gpBowl:m,kind};picks.push(x)}});scene.add(bw);
@@ -1536,12 +1536,18 @@ function gpHungry(){if(!_gpHungryT){const c=cvs(256,96),x=c.getContext('2d');x.f
     x.beginPath();x.moveTo(110,74);x.lineTo(128,92);x.lineTo(146,74);x.fill();x.fillStyle='#c4553b';x.font='bold 38px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('肚子餓了…',128,42);_gpHungryT=new THREE.CanvasTexture(c)}
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:_gpHungryT,transparent:true,depthWrite:false}));s.scale.set(1.15,.43,1);return s}
 const gpAwayTxt=m=>{const a=m.away;if(!a)return'';const nm=['pet','frog'].map(k=>m[k]&&m[k].n).filter(Boolean).join('和')||'牠';
-  if(a.s==='hungry')return ` ${nm}肚子餓了，在門口等主人回來。`;if(a.s==='visit'){const h=G.members.find(x=>x.id===a.at);return ` ${nm}跑去${h?h.name+'家':'別人家'}作客了。`}return ` ${nm}去旅行了，主人回來牠就會回家。`};
-function gpBack(b){if(!b||!b.days)return;const w=b.was==='trip'?'跑去旅行':b.was==='visit'?'跑去別人家作客':'餓著肚子在門口等你';
-  modal(`<h2>${esc(b.names||'牠')}回家了！</h2><p>你 ${b.days} 天沒來，牠${w}。看到你回來好開心${b.gift?`，還帶了伴手禮給你：親密度 +${b.gift}`:''}。</p><div class="acts"><button class="pill main" type="button" id="pbX">歡迎回家</button></div>`);$('pbX').onclick=closeModal;
+  if(a.s==='storm')return ` ${nm}被颱風吹走了，主人回來牠就會回家。`;if(a.s==='hungry')return ` ${nm}肚子餓了，在門口等主人回來。`;if(a.s==='visit'){const h=G.members.find(x=>x.id===a.at);return ` ${nm}跑去${h?h.name+'家':'別人家'}作客了。`}return ` ${nm}去旅行了，主人回來牠就會回家。`};
+function gpBack(b){if(!b||!(b.days||b.was==='storm'))return;const w=b.was==='trip'?'跑去旅行':b.was==='visit'?'跑去別人家作客':'餓著肚子在門口等你';
+  modal(`<h2>${esc(b.names||'牠')}回家了！</h2><p>${b.was==='storm'?'颱風把牠吹到島的另一頭，牠一看到你就跑回家了':`你 ${b.days} 天沒來，牠${w}`}。看到你回來好開心${b.gift?`，還帶了伴手禮給你：親密度 +${b.gift}`:''}。</p><div class="acts"><button class="pill main" type="button" id="pbX">歡迎回家</button></div>`);$('pbX').onclick=closeModal;
   const mine=G.members.find(x=>x.id===G.me);if(mine){const o=gpPets.find(x=>x.m===mine);if(o){o.hop=.6;gpHeart(o.g.position.clone(),6)}}}
 /* 摸摸、餵食回傳 back＝剛從離家回來：重抓島上資料讓牠回家，再演回家 */
 async function gpCameBack(b){if(!b)return;try{await reload();rebuildGP()}catch(e){}gpBack(b)}
+/* 颱風（2026-10-24）：自己的寵物被吹走了 → 打開就問要不要去找牠，按了算「有來」，牠就回家 */
+function gpStormAsk(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me);if(!m||!m.away||m.away.s!=='storm')return;
+  const nm=['pet','frog'].map(k=>m[k]&&m[k].n).filter(Boolean).join('和')||'牠',kind=m.pet?'pet':'frog';
+  modal(`<h2>🌀 ${esc(nm)}被颱風吹走了！</h2><p>昨天的颱風把島上的小動物吹得四處跑，你家門口空蕩蕩的。快去找牠回家吧！</p><div class="acts"><button class="pill" type="button" id="stX">等一下</button><button class="pill main" type="button" id="stGo">去找牠</button></div>`);
+  $('stX').onclick=closeModal;$('stGo').onclick=async()=>{$('stGo').disabled=true;$('stGo').textContent='找牠中…';
+    try{const r=await api('/island/pet/love',{why:'pet',kind});closeModal();if(r.back)gpCameBack(r.back);else{await reload();rebuildGP()}}catch(e){closeModal();toast(e.message)}}}
 /* 打開作品小屋：有寵物來自己家作客，提醒一次（一天一次） */
 function gpGuests(){if(DEMO||!G||!G.me)return;const g=G.members.filter(x=>x.away&&x.away.s==='visit'&&x.away.at===G.me);if(!g.length)return;
   const k='otto2-gp-guest-'+new Date(Date.now()+8*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}
@@ -1719,7 +1725,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else setTimeout(gpAsk,1500);setTimeout(gpGuests,2600)})}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else{const mm=G.members.find(x=>x.id===G.me);setTimeout(mm&&mm.away&&mm.away.s==='storm'?gpStormAsk:gpAsk,1500)}setTimeout(gpGuests,2600)})}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
