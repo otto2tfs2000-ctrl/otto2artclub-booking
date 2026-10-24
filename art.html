@@ -62,6 +62,11 @@ html,body{height:100%}
 body{margin:0; color:var(--ink); font-family:var(--sans); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none;
   background:linear-gradient(180deg,#5b9fcb 0%,#80b9dc 42%,#b3d5e7 78%,#d3e6ec 100%)}
 #stage{position:fixed; inset:0}
+/* 2026-10-25 大熊：聖誕期間作品小屋也要暗色天空，但不要整片黑 → 深藍到淡藍的夜空漸層，標題改白字（XDECO 時 body 加 xnight） */
+body.xnight{background:linear-gradient(180deg,#1b2b5e 0%,#2f4c8c 45%,#6b8bc6 82%,#8ea8d8 100%)}
+body.xnight .oh-l,body.xnight .oh-logo{color:#fff; text-shadow:0 2px 10px rgba(10,20,50,.6)}
+body.xnight .ohb{color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.45)}
+body.xnight .ohb i{color:var(--navy)}
 #stage canvas{display:block; width:100%; height:100%; touch-action:none; filter:saturate(.84) brightness(.97)}
 .hud{position:fixed; inset:0; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between;
   padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 18px); transition:opacity .5s}
@@ -463,7 +468,9 @@ function buildBalloons(){const r=rng(61),an=window.Anniv26&&Anniv26.on();
 function buildSky(){
   const r=rng(8),tex=[1,2,3,4].map(s=>new THREE.CanvasTexture(paintCloud(s)));
   for(let i=0;i<14;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex[i%4],transparent:true,depthWrite:false,opacity:.95}));const w=9+r()*10;sp.scale.set(w,w/2,1);
-    const a=r()*6.28,d=(20+r()*16)*K;sp.position.set(Math.cos(a)*d,i<10?-9+r()*8:3+r()*6,Math.sin(a)*d);sp.userData={a,d,v:.004+r()*.006};scene.add(sp);clouds.push(sp)}
+    const a=r()*6.28,d=(20+r()*16)*K;sp.position.set(Math.cos(a)*d,i<10?-9+r()*8:3+r()*6,Math.sin(a)*d);sp.userData={a,d,v:.004+r()*.006};if(XDECO)sp.material.color.set('#c3cfe8');scene.add(sp);clouds.push(sp)}
+  if(XDECO){const N=140,P=new Float32Array(N*3);for(let i=0;i<N;i++){const a=r()*6.28,el=.18+r()*1.1,R=170;P[i*3]=Math.cos(a)*Math.cos(el)*R;P[i*3+1]=Math.sin(el)*R;P[i*3+2]=Math.sin(a)*Math.cos(el)*R}   /* 夜空的小星星 */
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));const st=new THREE.Points(g,new THREE.PointsMaterial({color:'#fff6d8',size:1.1,fog:false,transparent:true,opacity:.85}));st.frustumCulled=false;scene.add(st)}
 }
 /* ---------- big tree: the class album ---------- */
 // one cauliflower-like puff: a round mass with smaller bumps on its surface, so the outline is scalloped
@@ -1586,9 +1593,10 @@ function glGuard(r){
 function build(){
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});glGuard(renderer);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWMEM?1.5:2));renderer.setClearColor(0,0);
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;$('stage').appendChild(renderer.domElement);
-  scene=new THREE.Scene();scene.fog=new THREE.Fog('#b3d5e7',90,240);camera=new THREE.PerspectiveCamera(38,1,.1,400);
-  scene.add(new THREE.HemisphereLight('#ffffff','#9db27f',.95));
-  const sun=new THREE.DirectionalLight('#fff0d4',.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
+  scene=new THREE.Scene();scene.fog=new THREE.Fog(XDECO?'#7d97cc':'#b3d5e7',90,240);if(XDECO)document.body.classList.add('xnight');camera=new THREE.PerspectiveCamera(38,1,.1,400);
+  /* 夜空時燈光只微微偏藍、暗一點點，島上不要變黑 */
+  scene.add(XDECO?new THREE.HemisphereLight('#e3eaff','#8a9bb8',.88):new THREE.HemisphereLight('#ffffff','#9db27f',.95));
+  const sun=new THREE.DirectionalLight(XDECO?'#eef2ff':'#fff0d4',XDECO?.78:.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
   const sc=sun.shadow.camera;sc.left=-19*K;sc.right=19*K;sc.top=19*K;sc.bottom=-19*K;sc.near=1;sc.far=90;sun.shadow.bias=-.0006;sun.shadow.radius=4;scene.add(sun);
   buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
   addEventListener('resize',resize);resize();
