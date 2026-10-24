@@ -671,7 +671,7 @@ body:not(.oct) #evPill{display:none}
       <div class="colL">
         <div class="chip brand"><span id="brandT">OTTO2 遊樂島</span><small id="brandS">示範版</small></div>
         <div class="chip soon" id="soon"><span id="soonIc"></span><span>聖誕走格子<small>11/1 開放・現在先暗著</small></span></div>
-        <button type="button" class="tree" id="treeBtn"><span class="tt"><span>全體會員聖誕樹</span><em>點燈</em></span><div class="bar"><i id="treeFill"></i></div><b id="treeNum"></b></button>
+        <button type="button" class="tree" id="treeBtn"><span class="tt"><span>聖誕樹</span><em>點燈</em></span><div class="bar"><i id="treeFill"></i></div><b id="treeNum"></b></button>
       </div>
       <div class="colR">
         <div class="chip gchip"><img id="giftIcon" alt=""><span>禮物 <b id="gifts">0</b></span></div>
@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024n';
+const PARK_VER='20261024p';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1191,12 +1191,35 @@ function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t
 async function gcall(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok){const e=new Error(j.error||'發生錯誤');e.code=j.code;throw e}return j}
 /* ---------- 聖誕走格子：進度存雲端（/xmas/*）。連不上或還沒綁電話就退回本機示範 ---------- */
-let XS=null,XW=null,XEXTRA=[0,0],_xTimer=0,XOPEN=false,_xPrompted={};
+let XS=null,XW=null,XEXTRA=[0,0],_xTimer=0,XOPEN=false,_xPrompted={},XLUCKY=null,DAILY=null;
+/* 2026-10-24 大熊：擲骰子不限次數（會員、一般客人、體驗版都一樣），聖誕樹每層有點亮日（燈數夠＋日期到才亮），每天第一擲送禮物＋連續天數章，今日幸運格多送禮物。
+   伺服器有傳日期、幸運格就用伺服器的；體驗版／連不上用本機同一套算法 */
+const LAYER_DATES=['2026-11-08','2026-11-22','2026-12-06','2026-12-15','2026-12-24'],LUCKY_G=3;
+const twToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
+const layerDates=()=>(XW&&XW.tree&&XW.tree.dates&&XW.tree.dates.length)?XW.tree.dates:LAYER_DATES;
+const md2=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:'';
+/* 還沒到點亮日的那一層：燈最多點到差一盞（伺服器那邊照樣累積，日期到了一起亮） */
+function treeCap(){const D=layerDates(),t=(XW&&XW.today)||twToday();for(let k=0;k<LAYERS.length;k++)if(D[k]&&t<D[k])return LAYERS[k]-1;return Infinity}
+function luckyIdx(){if(XLUCKY)return XLUCKY;const t=twToday(),h=s=>{let x=2166136261;for(let i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)}return x>>>0};
+  return [0,1].map(lv=>1+h('lucky'+t+lv)%(LEVELS[lv].path.length-1))}
+/* 體驗版／連不上：本機自己算每天第一擲與連續天數（不會有紅利） */
+function localDaily(){const t=twToday();let s={};try{s=JSON.parse(localStorage.getItem('otto2-xm-streak'))||{}}catch(e){}
+  if(s.last===t)return null;const y=new Date(Date.parse(t+'T00:00:00Z')-864e5).toISOString().slice(0,10),n=s.d===y?(s.n||0)+1:1;
+  try{localStorage.setItem('otto2-xm-streak',JSON.stringify({d:t,n,last:t}))}catch(e){}
+  const d={streak:n,gift:1,orn:-1,pts:0,extraGift:0};G.gifts+=1;
+  if(n%3===0){const m=G.orn.findIndex(o=>!o);if(m>=0){G.orn[m]=true;d.orn=m}else{d.extraGift+=1;G.gifts+=1}}
+  if(n%7===0){d.extraGift+=3;G.gifts+=3;d.memberOnly=true}return d}
+async function showDaily(d){if(!d)return;
+  const nx3=3-d.streak%3,nx7=7-d.streak%7,hint=nx3<nx7?`再連續 ${nx3} 天送吊飾`:`再連續 ${nx7} 天送${window.GUEST?'禮物':'紅利'}`;
+  if(d.orn>=0){await gotOrnament(d.orn,`連續第 ${d.streak} 天！聖誕老公公送你吊飾`);}
+  if(d.pts>0)await popup('giftbig',`連續第 ${d.streak} 天！`,`每天都來，送你紅利 ${d.pts} 點，已經存進會員資料。`);
+  else if(d.memberOnly&&d.extraGift)await popup('giftbig',`連續第 ${d.streak} 天！`,`送你 ${d.extraGift} 個禮物。連續 7 天的紅利是會員專屬，成為會員就能領喔！`);
+  if(!(d.orn>=0)&&!d.pts&&!d.memberOnly)toast(`今天第一擲 +${d.gift+d.extraGift} 個禮物・連續 ${d.streak} 天（${hint}）`);hud()}
 function applyX(j){const p=j.p;G.gifts=p.gifts;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
   if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}}
 /* 全體共用的樹／森林／小屋：用伺服器的資料蓋掉本機示範資料 */
-function applyWorld(w,quiet){XW=w;
-  G.tree=w.tree.lights;G.treeDone=G.tree>=TREE_GOAL;
+function applyWorld(w,quiet){XW=w;if(w.lucky)XLUCKY=w.lucky;
+  G.tree=Math.min(w.tree.lights,treeCap());G.treeDone=G.tree>=TREE_GOAL;
   G.forest=w.forest.filter(f=>f.s>=0&&f.s<FOREST.spots.length).map(f=>({s:f.s,n:f.n,lv:Math.max(1,Math.min(5,f.lv)),me:!!f.me}));
   const old=Object.keys(G.lots);G.lots={};Object.entries(w.lots).forEach(([i,l])=>{G.lots[i]={o:l.me?'me':'x',n:l.n,lv:l.lv}});
   new Set([...old,...Object.keys(G.lots)]).forEach(i=>{try{updateLot(+i)}catch(e){}});
@@ -1205,7 +1228,7 @@ async function xmasWorld(quiet){if(!XS)return null;try{const w=await gcall('/xma
 async function xmasPull(){if(!window.PROD||!token())return;
   try{const j=await gcall('/xmas/state');
     if(j.needPhone){XS=null;toast('請先輸入手機號碼，進度才存得下來');setTimeout(()=>{try{Gacha.open()}catch(e){}},500);return}
-    XS=j;applyX(j);const from=G.tree;await xmasWorld(true);renderForest();
+    XS=j;applyX(j);if(j.lucky)XLUCKY=j.lucky;const from=G.tree;await xmasWorld(true);renderForest();
     if(G.phase!=='oct'&&!HOPPING)placeBear();hud();
     if(G.tree>from&&G.phase!=='oct'){setTreeVisual(from);await quickLight(from,G.tree)}else setTreeVisual(G.tree);
     if(j.gain&&(j.gain.open||j.gain.klass))toast(j.gain.klass?`今天來上課，幫聖誕樹點了 ${j.gain.klass+j.gain.open} 盞燈！`:`今天打開遊戲，幫聖誕樹點了 ${j.gain.open} 盞燈`);
@@ -1231,6 +1254,7 @@ async function xmasClaimPrompt(){if(!XS||!XW||busy||G.phase==='oct'||!$('pop').h
   const ok=await popup('tree',`聖誕樹第 ${k+1} 層亮起來了！`,`謝謝你一起點燈。參與過的會員都可以領 ${pts} 點紅利。`,[{t:`領 ${pts} 點紅利`,v:1,cls:'red'},{t:'晚點再領',v:0,cls:'ghost'}]);
   if(!ok){delete _xPrompted['t'+k];_xPrompted['t'+k]=1;return}
   try{const j=await xcall('/xmas/claim',{kind:'tree',layer:k});hud();const r=j.claimRes;
+    if(r.memberOnly){await popup('giftbig',`第 ${k+1} 層亮了，謝謝你！`,'紅利是會員專屬的回饋，成為會員（購買課程方案）就能一起領。');await xmasWorld(true);setTimeout(xmasClaimPrompt,400);return}
     await popup('giftbig',r.pts?`領到 ${r.pts} 點紅利！`:'這次沒有新的紅利',r.pts?(r.capped?`已經達到這次活動的紅利上限，所以只入帳了 ${r.pts} 點。`:'已經加進你的紅利點數，可以在預約頁「我的」裡看到。'):'你這次活動從遊戲拿到的紅利已經達到上限囉，謝謝你的參與！');
     await xmasWorld(true)}catch(e){toast(e.message||'領取失敗，稍後再試')}
   setTimeout(xmasClaimPrompt,400)}
@@ -3380,7 +3404,7 @@ function faceTick(dt){if(!camera)return;const k=Math.min(1,dt*5);
     let d=Math.atan2(camera.position.x-_fv.x,camera.position.z-_fv.z)-b;const dz=.22;d=Math.sign(d)*Math.max(0,Math.abs(d)-dz);d=Math.max(-lim,Math.min(lim,d));
     o.rotation.y+=(b+d-o.rotation.y)*k});
   if(GA.forest&&GA.forest.visible)GA.forest.children.forEach(m=>{m.getWorldPosition(_fv);m.rotation.y=Math.atan2(camera.position.x-_fv.x,camera.position.z-_fv.z)})}
-function loopBody(now){if(GA.art)artTick();
+function loopBody(now){if(GA.art)artTick();luckyTick(now);
   if(GA.clerkB){const k=Math.sin(now/520);GA.clerkB.position.y=GA.clerkB.userData.y0+k*.07;GA.clerkB.scale.set(2.1*(1+k*.025),.744*(1+k*.025),1)}
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;if(raw>0&&raw<1)perfTick(raw);faceTick(dt);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
@@ -3419,8 +3443,8 @@ function hud(){
   {const k=$('ohK');if(k&&k.firstChild&&k.firstChild.nodeType===3)k.firstChild.nodeValue=oct&&!XMG()?'世界藝術日':'聖誕節'}
   $('ohT').textContent=oct?(XMG()?'聖誕扭扭樂':'畢卡索扭扭樂'):'聖誕走格子';$('ohS').textContent=oct?(XMG()?'點一下，轉出你的聖誕驚喜。':'點一下，轉出你的藝術驚喜。'):(G.test?(window.GUEST?'11–12 月・體驗版':'11–12 月・測試模式'):xStart()+'–12/25・每天擲一次骰子');
   $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`;
-  $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
-  $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
+  $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test||G.lv[0].left>=90?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
+  $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test||G.lv[1].left>=90?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
   $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`${window.GUEST?'體驗版・':''}今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`${window.GUEST?'體驗版':'測試模式'}・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   if(oct){const t=$('left').textContent.replace(/^🔧\s*/,'');$('spin').dataset.sub=t===$('spin').textContent||(window.PROD&&!ST)?'':t}
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
@@ -3431,7 +3455,7 @@ function hud(){
   [...$('mats').children].forEach((m,i)=>m.classList.toggle('got',G.orn[i]));
   const lk=layersOf(G.tree);
   if(lk>=5){$('treeFill').style.width='100%';$('treeNum').textContent='全部亮了！'}
-  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=`${Math.floor(G.tree-layerStart(lk)).toLocaleString()} / ${(LAYERS[lk]-layerStart(lk)).toLocaleString()}`;$('treeBtn').querySelector('.tt>span').textContent=`會員聖誕樹・第${lk+1}層`}
+  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=`${Math.floor(G.tree-layerStart(lk)).toLocaleString()} / ${(LAYERS[lk]-layerStart(lk)).toLocaleString()}`;{const dd=layerDates()[lk],t=(XW&&XW.today)||twToday();$('treeBtn').querySelector('.tt>span').textContent=`聖誕樹・第${lk+1}層`+(dd&&t<dd?`・${md2(dd)} 點亮`:'')}}
   lock2.visible=!G.booked;
   save();
 }
@@ -3819,9 +3843,9 @@ async function gotOrnament(i,title){
   await popup(ORN[i].k,title||`撿到${ORN[i].n}！`,`聖誕吊飾 ${n}/4。${n<4?'集滿四個有大獎（內容之後公布）。':''}`);
   if(n===4&&XS){
     confetti(60);await xmasFlush();const pk=((XW&&XW.ornPick)||{gift:5,point:3,ticket:'材料升級券'});
-    const pick=await popup('giftbig','四個吊飾集滿了！','三選一：禮物可以繼續玩遊戲；紅利點數和材料升級券是真的，每人整個活動只能領一次。',[{t:`${pk.gift} 個禮物`,v:'gift',cls:'ghost'},{t:`紅利 ${pk.point} 點`,v:'point',cls:'red'},{t:pk.ticket||'材料升級券',v:'ticket',cls:'red'}]);
+    const pick=await popup('giftbig','四個吊飾集滿了！',`三選一：禮物可以繼續玩遊戲；紅利點數和材料升級券是真的，每人每週可以領一次${XW&&XW.member===false?'（紅利是會員專屬）':''}。`,[{t:`${pk.gift} 個禮物`,v:'gift',cls:'ghost'},{t:`紅利 ${pk.point} 點`,v:'point',cls:'red'},{t:pk.ticket||'材料升級券',v:'ticket',cls:'red'}]);
     try{const j=await xcall('/xmas/claim',{kind:'orn',pick});hud();const g=j.claimRes.got;
-      await popup('giftbig',g.pick==='point'?`領到紅利 ${g.pts} 點！`:g.pick==='ticket'?`領到${g.nm}！`:`拿到 ${g.gift} 個禮物！`,g.pick==='gift'?(j.claimRes.firstOnly?'紅利和票券每人整個活動只能領一次，這次改送禮物。吊飾已清空，可以再集一輪。':'吊飾已清空，可以再集一輪。'):'已經幫你存進會員資料。吊飾已清空，可以再集一輪，不過紅利和票券每人只能領一次，之後再集滿只能換禮物。')}
+      await popup('giftbig',g.pick==='point'?`領到紅利 ${g.pts} 點！`:g.pick==='ticket'?`領到${g.nm}！`:`拿到 ${g.gift} 個禮物！`,g.pick==='gift'?(j.claimRes.memberOnly?'紅利是會員專屬，這次改送禮物。吊飾已清空，可以再集一輪。':j.claimRes.firstOnly?'紅利和票券每週只能領一次，這次改送禮物，下週一再來換。吊飾已清空，可以再集一輪。':'吊飾已清空，可以再集一輪。'):'已經幫你存進會員資料。吊飾已清空，可以再集一輪，不過紅利和票券每人只能領一次，之後再集滿只能換禮物。')}
     catch(e){toast(e.message||'領取失敗，稍後再試')}
     return}
   if(n===4){confetti(60);await popup('giftbig','四個吊飾集滿了！','這裡會放集滿的大獎，內容還在規劃。吊飾清空，可以再集一輪。');G.orn=[false,false,false,false];hud()}
@@ -3866,8 +3890,13 @@ async function landLot(i){
   const name=OTHERS[lot.o];G.visits[lot.o]=(G.visits[lot.o]||0)+1;addGifts(lot.lv);
   await popup('house',`拜訪${name}的聖誕小屋`,`你和${name}各拿到 ${lot.lv} 個禮物。正式版會用 LINE 通知對方「有人來你家拜訪」。`);
 }
+/* 今日幸運格：格子上方一顆金色星星上下浮 */
+function luckyTick(now){if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)GA.luckyS.forEach(s=>s.visible=false);return}
+  if(!GA.luckyS){GA.luckyS=[0,1].map(()=>{const s=santaStar();s.material.color.set('#ffd84a');s.material.blending=THREE.NormalBlending;s.scale.setScalar(.75);return s})}
+  const L=luckyIdx();GA.luckyS.forEach((s,lv)=>{const t=tiles[lv][L[lv]];if(!t){s.visible=false;return}t.getWorldPosition(s.position);s.position.y+=1.05+Math.sin(now/380+lv)*.12;s.material.rotation=Math.sin(now/600)*.2;s.material.opacity=1;s.visible=MI.state==='off'})}
 async function resolve(){
   const key=LEVELS[G.cur].path[G.lv[G.cur].pos],t=T[key];
+  if(G.lv[G.cur].pos===luckyIdx()[G.cur]&&resolve._lk!==twToday()+G.cur){resolve._lk=twToday()+G.cur;const lg=(XS&&XS.luckyGift)||LUCKY_G;addGifts(lg);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14);await popup('giftbig','今日幸運格！',`踩到今天的幸運格（星星那一格），多送你 ${lg} 個禮物！幸運格每天換一格。`)}
   if(t.mg){await minigame(t.mg);return}
   if(key==='lot')return landLot(G.lv[G.cur].pos);
   if(key==='gacha'&&XS){
@@ -3920,7 +3949,7 @@ async function finale(){
 }
 async function lightTree(n,label,big,own){
   if(XS){await xmasTreeSync(label,big);return}
-  const from=G.tree;G.tree+=n;if(own)G.myLights=(G.myLights||0)+n;hud();
+  const from=G.tree;G.tree=Math.min(G.tree+n,treeCap());if(own)G.myLights=(G.myLights||0)+n;hud();
   if(big)await ceremony(from,G.tree,label);else await quickLight(from,G.tree);
   if(!G.treeDone&&G.tree>=TREE_GOAL){G.treeDone=true;hud();await finale()}
 }
@@ -3928,9 +3957,10 @@ async function donate(){
   if(busy)return;
   const mine=G.myLights||0;
   if(G.treeDone){await popup('tree','聖誕樹已經全部點亮了',`謝謝你！你總共幫忙點了 ${mine} 盞燈。`);return}
-  const info=`每天打開遊戲 +${LIGHTS_OPEN} 盞、擲一次骰子 +${LIGHTS_PER_ROLL} 盞、來教室上課 +${LIGHTS_CLASS} 盞、送 1 個禮物 +${LIGHTS_PER_GIFT} 盞。你已經幫忙點了 ${mine} 盞。`;
+  const nd=layersOf(G.tree),ndD=layerDates()[nd];
+  const info=(nd<5&&ndD?`第 ${nd+1} 層 ${md2(ndD)} 點亮（燈數夠、日期到就亮）。`:'')+`每天打開遊戲 +${LIGHTS_OPEN} 盞、擲一次骰子 +${LIGHTS_PER_ROLL} 盞、來教室上課 +${LIGHTS_CLASS} 盞、送 1 個禮物 +${LIGHTS_PER_GIFT} 盞。你已經幫忙點了 ${mine} 盞。`;
   const done=layersOf(G.tree);
-  const table=`<table class="rank"><tr><th>層</th><th style="text-align:left">要點幾盞</th><th>進度</th></tr>${LAYERS.map((t,k)=>`<tr class="${k===done?'me':''}"><td>${k+1}</td><td style="text-align:left">${(t-layerStart(k)).toLocaleString()} 盞</td><td>${k<done?'亮了':k===done?`${Math.floor(layerFill(G.tree,k)*100)}%・還差 ${Math.ceil(t-G.tree)} 盞`:'還沒開始'}</td></tr>`).join('')}</table><p class="note">每點滿一層，全體會員都有加碼獎勵（內容之後決定）。</p>`;
+  const table=`<table class="rank"><tr><th>層</th><th>點亮日</th><th style="text-align:left">要點幾盞</th><th>進度</th></tr>${LAYERS.map((t,k)=>`<tr class="${k===done?'me':''}"><td>${k+1}</td><td>${md2(layerDates()[k])}</td><td style="text-align:left">${(t-layerStart(k)).toLocaleString()} 盞</td><td>${k<done?'亮了':k===done?`${Math.floor(layerFill(G.tree,k)*100)}%・還差 ${Math.ceil(t-G.tree)} 盞`:'還沒開始'}</td></tr>`).join('')}</table><p class="note">每點滿一層，全體會員都有加碼獎勵（內容之後決定）。</p>`;
   if(G.gifts<1){await popup('tree','一起點亮聖誕樹',info+'你現在沒有禮物，先去收集吧。',[{t:'好',v:1}],table);return}
   const btns=[{t:'送 1 個',v:1,cls:'red'}];if(G.gifts>=3)btns.push({t:'送 3 個',v:3,cls:'red'});btns.push({t:'先不要',v:0,cls:'ghost'});
   const n=await popup('tree','一起點亮聖誕樹',info,btns,table);if(!n)return;
@@ -3944,10 +3974,11 @@ async function doRoll(){
   busy=true;zmReset();hud();sfx('tap');
   /* 2026-10-04 大熊說按了會停頓一下：原本先等伺服器回點數才開始動畫。改成按下去小熊馬上蓄力，點數同時去拿 */
   const vp=(async()=>{let v=0;
-    if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1]}
+    if(XS){try{const j=await gcall('/xmas/roll',{lv:G.cur});XS=j;v=j.v;G.lv[0].left=j.p.left[0];G.lv[1].left=j.p.left[1];
+      if(j.daily){DAILY=j.daily;G.gifts+=(j.daily.gift||0)+(j.daily.extraGift||0);if(j.daily.orn>=0)G.orn[j.daily.orn]=true}}
       catch(e){if(e.code){toast(e.message);xmasPull();return -1}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
-    if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6)}return v})();
-  passedStart=false;const v=await rollDie(vp);if(v<0){busy=false;hud();return}await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}await lightTree(LIGHTS_PER_ROLL,null,false,true);
+    if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6);if(!XS)DAILY=localDaily()}return v})();
+  passedStart=false;const v=await rollDie(vp);if(v<0){busy=false;hud();return}await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}if(DAILY){const d=DAILY;DAILY=null;await showDaily(d)}await lightTree(LIGHTS_PER_ROLL,null,false,true);
   busy=false;hud();
   if(!G.test&&L.left<=0)toast(G.cur===0&&G.booked&&G.lv[1].left>0?'第二層還可以擲一次喔':'今天的次數用完了，明天再來');
 }
@@ -4008,7 +4039,8 @@ async function start(data){
   if(!G||!G.lv||!G.lots)G=fresh();
   if(G.layout!==36){const f=fresh();G.lots=f.lots;G.lv[0].pos=0;G.forest=null;G.layout=36}
   if(G.test===undefined)G.test=true;
-  if(!G.phase)G.phase='oct';if(window.PROD){G.phase='oct';G.test=false}if(G.spinLeft===undefined)G.spinLeft=1;
+  if(!G.phase)G.phase='oct';if(window.PROD){G.phase='oct';G.test=!!window.GUEST} /* 體驗版一直擲（本機示範，不連伺服器） */
+G.tree=Math.min(Number(G.tree)||0,treeCap()); /* 本機示範的燈數也照點亮日 */if(G.spinLeft===undefined)G.spinLeft=1;
   if(!G.arc)G.arc={n:0,best:{}};
   if(!G.avatar)G.avatar={mode:'bear',img:null};if(!G.teachers)G.teachers=[];
   if(G.tree<320&&!G.forest)G.tree=312;
