@@ -768,7 +768,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261021a';
+const PARK_VER='20261024a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1023,7 +1023,7 @@ function makeCommunityTree(){
   TREE.star=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({color:'#7d6a3a'}));TREE.star.position.y=2.86;g.add(TREE.star);
   TREE.glow=addGlow(new THREE.Color('#ffcf73'),1.3,.1);TREE.glow.position.y=2.86;g.add(TREE.glow);
   TREE.rays=new THREE.Sprite(new THREE.SpriteMaterial({map:raysTex(),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0}));TREE.rays.scale.setScalar(2.8);TREE.rays.position.y=2.86;g.add(TREE.rays);
-  TREE.light=new THREE.PointLight('#ffd27a',0,10,2);TREE.light.position.y=2.9;g.add(TREE.light);
+  TREE.light=new THREE.PointLight('#ffd27a',0,10,2);TREE.lightAt=new THREE.Object3D();TREE.lightAt.position.y=2.9;g.add(TREE.lightAt); /* 2026-10-24 燈不放在島裡：島藏起來／出現時燈的數量會變，整個畫面的材質要全部重編（電腦卡 0.5 秒、手機更久），改成一直掛在場景上、跟著樹的位置，藏起來時亮度 0 */
   g.scale.setScalar(1.6);return g;
 }
 const layerStart=k=>k?LAYERS[k-1]:0, layerFill=(v,k)=>Math.max(0,Math.min(1,(v-layerStart(k))/(LAYERS[k]-layerStart(k))));
@@ -1037,7 +1037,7 @@ function treeFade(dt){const T=GA.ctree;if(!T||!bear)return;let want=1;
   if(G&&G.phase!=='oct'&&!overview&&!treeCam&&!parkCam&&!focusAt){T.getWorldPosition(_tc);_tc.y+=2.4;_tb.copy(bear.position);_tb.y+=.7;_td.copy(_tb).sub(camera.position);const L2=_td.lengthSq(),t=Math.max(0,Math.min(1,_tc.clone().sub(camera.position).dot(_td)/L2));
     const dx=camera.position.clone().addScaledVector(_td,t).distanceTo(_tc);if(t>.05&&t<.98&&dx<3.1)want=.16}
   _tf+=(want-_tf)*Math.min(1,dt*7);if(Math.abs(_tf-T.userData.fv)<.01)return;T.userData.fv=_tf;
-  T.traverse(o=>{if(o.isSprite){o.visible=_tf>.7;return}if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{m.transparent=_tf<.99;m.opacity=_tf;m.depthWrite=_tf>.99;m.needsUpdate=true})}})}
+  T.traverse(o=>{if(o.isSprite){o.visible=_tf>.7;return}if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{const tr=_tf<.99;if(m.transparent!==tr){m.transparent=tr;m.needsUpdate=true}m.opacity=_tf;m.depthWrite=_tf>.99})}})}
 function setTreeVisual(v){TREE.shown=v;TREE.pct=Math.min(1,v/TREE_GOAL);TREE.fills=LAYERS.map((_,k)=>layerFill(v,k));const amt=amtOf(v);
   TREE.bulbs.forEach((b,i)=>{const br=Math.max(0,Math.min(1,amt-i));b.userData.br=br;b.userData.on=br>0;b.material.color.copy(DARK).lerp(b.userData.col,br)});
   TREE.star.material.color.copy(STAR_DIM).lerp(STAR_ON,Math.pow(TREE.pct,.7))}
@@ -1051,7 +1051,8 @@ function treeTick(dt,now){
   TREE.glow.scale.setScalar((1+p*.8)*(1+pu*.5)*(1+.03*Math.sin(now/1400)*tw));
   TREE.glow.material.opacity=Math.min(.6,.08+.35*p+pu*.2);
   TREE.rays.material.opacity=G.treeDone?.18+.04*Math.sin(now/1600)*tw:pu*.12;TREE.rays.material.rotation+=dt*.06;
-  TREE.light.intensity=(p*.7+pu*.5)*(1-DIM);TREE.glow.material.opacity*=1-DIM;TREE.rays.material.opacity*=1-DIM;
+  if(!TREE.light.parent)scene.add(TREE.light);let tv=true;for(let o=TREE.lightAt;o;o=o.parent)if(!o.visible){tv=false;break}TREE.lightAt.getWorldPosition(TREE.light.position);
+  TREE.light.intensity=tv?(p*.7+pu*.5)*(1-DIM):0;TREE.glow.material.opacity*=1-DIM;TREE.rays.material.opacity*=1-DIM;
 }
 function sparkle(at,n=6,cols=['#ffd84a','#fff4c2','#ffffff']){
   for(let k=0;k<n;k++){const p=new THREE.Mesh(new THREE.OctahedronGeometry(.045),new THREE.MeshBasicMaterial({color:cols[k%cols.length]}));p.position.copy(at);
