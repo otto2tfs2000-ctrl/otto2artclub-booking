@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024r';
+const PARK_VER='20261025a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1174,7 +1174,10 @@ function updateLot(i){
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
 /* 2026-10-24 大熊：畢卡索扭扭樂到 10/31，11/1 起扭蛋改「聖誕扭扭樂」（伺服器同一天自動換設定；聖誕公仔圖還沒來，先不顯示圖鑑） */
 const XMG=()=>/[?&]xmas=1/.test(location.search)||new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01'; /* ?xmas=1 可以提前預覽 */
-if(XMG()){document.title='聖誕扭扭樂・OTTO2 遊樂島';document.addEventListener('DOMContentLoaded',()=>{document.body.classList.add('xmn');const b=document.querySelector('.octinfo b');if(b)b.textContent='OTTO2 遊樂島・聖誕月'})}
+/* 2026-10-25 大熊：聖誕場景（夜空、下雪、佈置、角色、聖誕帽、聖誕老公公）10/25 就上線；扭蛋名稱和獎品照舊 11/1（伺服器 11/1 才換） */
+const XSC=()=>XMG()||(!/[?&]xmas=0/.test(location.search)&&(t=>t>='2026-10-25'&&t<'2027-01-01')(new Date(Date.now()+8*3600e3).toISOString().slice(0,10)));
+if(XSC())document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('xmn'));
+if(XMG()){document.title='聖誕扭扭樂・OTTO2 遊樂島';document.addEventListener('DOMContentLoaded',()=>{const b=document.querySelector('.octinfo b');if(b)b.textContent='OTTO2 遊樂島・聖誕月'})}
 window.PROD=true;document.addEventListener('selectstart',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});document.addEventListener('contextmenu',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
 /* 店內體驗平板：park.html?kiosk=1 開一次就記住（?kiosk=0 取消）。不用 LINE 登入，伺服器用 "kiosk" 身分走示範模式：可以一直轉、什麼都不入帳 */
 try{if(/[?&]kiosk=1/.test(location.search))localStorage.setItem('otto2-kiosk','1');if(/[?&]kiosk=0/.test(location.search)){localStorage.removeItem('otto2-kiosk');if(sessionStorage.getItem('otto2-liff-tk')==='kiosk')sessionStorage.removeItem('otto2-liff-tk')}
@@ -1313,13 +1316,13 @@ function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
 /* 天空：10 月白天、11–12 月夜景。開門走過橋時 SKYHOLD 先維持白天底色，再用 #nightVeil 淡入夜空 */
 let SKYHOLD=false,SKY=0;
 function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v=$('nightVeil');if(v)v.style.opacity=SKYHOLD?SKY:0;
-  if(!scene)return;document.body.classList.remove('octload'); /* 2026-10-05 載入完就拿掉十月載入底色，不然十月切到走格子背景會一直是亮藍天空 */const day=(oct&&!XMG())||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
+  if(!scene)return;document.body.classList.remove('octload'); /* 2026-10-05 載入完就拿掉十月載入底色，不然十月切到走格子背景會一直是亮藍天空 */const day=(oct&&!XSC())||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
   if(day){const fc=gal?'#f3ebdd':'#d9eef9';if(!scene.fog)scene.fog=new THREE.Fog(fc,40,85);scene.fog.color.set(fc).lerp(_fn.set('#16275a'),SKY)}else scene.fog=null;
   /* 2026-10-04 走格子是晚上：燈光改成偏藍的月光、暗一點，聖誕樹和串燈的暖黃才亮得起來（原本白天燈光，雪地整片很亮） */
-  if(GA.hemi){const n=day?SKY:(oct&&XMG()?.28:1); /* 11 月扭蛋島：天空是晚上，但島上只微微偏藍，不要整片變暗（商店、門口是圖片，會跟 3D 落差很大） */GA.hemi.intensity=.8-.14*(1-n)-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.12*(1-n)-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
+  if(GA.hemi){const n=day?SKY:(oct&&XSC()?.28:1); /* 11 月扭蛋島：天空是晚上，但島上只微微偏藍，不要整片變暗（商店、門口是圖片，會跟 3D 落差很大） */GA.hemi.intensity=.8-.14*(1-n)-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.12*(1-n)-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
   clouds.forEach(c=>c.visible=!gal);if(GA.mist&&oct)GA.mist.visible=!gal;
   /* 畫廊模式不用雲遮：廣場後面放一面看不見的牆（只寫深度），後面的走格子島、橋、鎖都不會畫出來，只看到畫廊背景 */
-  if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;{const mn=!!(oct&&XMG());if(GA.mist&&GA.mist.userData.mn!==mn){GA.mist.userData.mn=mn;GA.mist.traverse(m=>{if(m.material&&m.material.emissive)m.material.emissive.set(mn?'#3c4f86':'#000000')})}}if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
+  if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;{const mn=!!(oct&&XSC());if(GA.mist&&GA.mist.userData.mn!==mn){GA.mist.userData.mn=mn;GA.mist.traverse(m=>{if(m.material&&m.material.emissive)m.material.emissive.set(mn?'#3c4f86':'#000000')})}}if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
 const _fn=new THREE.Color();
 function plazaPut(on){if(!GA.PR)return;GA.PR.position.y=0;GA.PR.visible=on;GA.gate.position.y=0;GA.gate.scale.setScalar(1);GA.gate.visible=on;GA.bridge.position.y=0;GA.bridge.visible=false;GA.bridge.children.forEach(c=>c.scale.setScalar(1))} /* 橋平常收起來：只有開門過去／跳回來的那一下才出現（門口站在原地，路口看起來就是一道門） */
 function gateSink(g=true,b=true){return tween(700,p=>{const y=-easeIn(p)*8;if(g)GA.gate.position.y=y;if(b)GA.bridge.position.y=y}).then(()=>{if(g)GA.gate.visible=false;if(b)GA.bridge.visible=false})} /* 門口跟著廣場一起沉（不然廣場沉了、門還浮在半空，要等熊起跳才消失）；橋留到熊起跳才沉 */
@@ -1407,7 +1410,7 @@ function buildGreenery(P){
   const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];
   [[-1.6,-1.0,.9],[-6.0,.9,.9],[1.7,-3.7,.85],[2.0,-0.6,.7],[-2.4,-4.4,.8],[0.4,-5.6,.7],[5.3,-1.8,.8],[-5.0,4.0,.7]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
     [[0,.32,0,.42],[.38,.24,.12,.3],[-.34,.22,.1,.32],[.08,.2,.34,.26]].forEach(([bx,by,bz,r],k)=>{const m=mesh(new THREE.IcosahedronGeometry(r,0),toon(BG[(i+k)%4],{flatShading:true}),bx,by,bz);m.rotation.set(i+k,k*.7,0);b.add(m)});
-    b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)});
+    if(XSC())xmasBush(b);b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)});
 }
 function buildShop(P){
   const S=new THREE.Group();S.position.set(-4.3,0,-2.0);S.rotation.y=.16;P.add(S);GA.shop=S;
@@ -1415,7 +1418,8 @@ function buildShop(P){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));m.position.set(0,h/2-.05,0);S.add(m);
   const sh=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.14,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(2.5,.6,1);sh.position.set(0,.03,.15);S.add(sh);
   /* 2026-10-08 店員站在店門口，頭上冒泡泡「來參觀選購！」；放在 S 底下，所以點她＝點店面＝進店 */
-  {const cw=1.65,ch=cw*397/300,ct=new THREE.TextureLoader().load('shop-keeper-last.webp?v=20261007e');ct.anisotropy=4;const cx=1.85,cz=1.15;
+  /* 2026-10-24 大熊：聖誕期間店門口的人換成薑餅烘焙師（他設計的公仔正面，一樣高） */
+  {const XB=XSC(),ch=1.65*397/300,cw=XB?ch*308/600:1.65,ct=new THREE.TextureLoader().load(XB?'xmas-baker.webp?v=20261024a':'shop-keeper-last.webp?v=20261007e');ct.anisotropy=4;const cx=1.85,cz=1.15;
     const c=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshBasicMaterial({map:ct,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));c.position.set(cx,ch/2,cz);S.add(c);
     const cs=new THREE.Mesh(new THREE.CircleGeometry(1,20),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.16,depthWrite:false}));cs.rotation.x=-Math.PI/2;cs.scale.set(.5,.2,1);cs.position.set(cx,.04,cz+.05);S.add(cs);
     const cv=document.createElement('canvas');cv.width=480;cv.height=170;const x=cv.getContext('2d');
@@ -1805,6 +1809,20 @@ function shopNavBuild(){const nav=$('spNav'),src=$('places');if(!nav||!src)retur
 /* 2026-10-07 大熊：扭蛋機再亮一點（整體燈光壓暗後它也跟著暗了）→ 讓機身自己微微發亮 */
 function brightenMachine(){if(!GA.g)return;const seen=new Set();GA.g.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{if(seen.has(m)||!m.isMeshToonMaterial)return;seen.add(m);
   if(m.transparent&&m.opacity<.9)return;if(m.map){m.emissiveMap=m.map;m.emissive.setScalar(.1)}else m.emissive.copy(m.color).multiplyScalar(.12);m.needsUpdate=true})})}
+/* 2026-10-24 大熊：四座島都要有聖誕風格（跟作品小屋同一套）。扭蛋島的夜空、下雪、聖誕老公公是 XMG 原本就有的；
+   這裡補：木台上一塊一塊積雪、灌木叢頂積雪＋小燈泡、扭蛋機頂一顆金色星星（樹在 buildPlaza 換成聖誕樹、木台邊的燈泡換紅綠金） */
+function xmasPlaza(P,W,top){
+  const em=c=>toon(c,{emissive:new THREE.Color(c),emissiveIntensity:.35}),r=rng(77);
+  const st=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2+Math.PI/2,R=i%2?.2:.46;i?st.lineTo(Math.cos(a)*R,Math.sin(a)*R):st.moveTo(Math.cos(a)*R,Math.sin(a)*R)}
+  const sg=new THREE.ExtrudeGeometry(st,{depth:.14,bevelEnabled:true,bevelThickness:.04,bevelSize:.04,bevelSegments:2});sg.translate(0,0,-.07);
+  const sm=mesh(sg,em('#f2c64a'),0,top+1.15,0);sm.userData.xstar=1;W.add(sm);           // 有 userData 才不會被 mergePlaza 跟別的零件合在一起（會把發光帶過去）W.add(mesh(new THREE.CylinderGeometry(.04,.04,.4,6),toon('#c9a040'),0,top+.82,0));
+  const N=46,snowM=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,8),toon('#f1f5f8'),N),mt=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),p=new THREE.Vector3();let n=0;
+  for(let k=0;k<400&&n<N;k++){const a=r()*6.28,d=1.2+Math.sqrt(r())*(PLAZA_R-1.8),x=Math.cos(a)*d,z=Math.sin(a)*d;
+    if(Math.hypot(x+PLAZA.x-MACH.x,z+PLAZA.z-MACH.z)<2.6)continue;                      // 扭蛋機腳下不鋪
+    const w=.35+r()*.6;p.set(x,.01,z);sc.set(w*(1.2+r()*.6),.05,w);q.setFromAxisAngle(new THREE.Vector3(0,1,0),r()*6.28);mt.compose(p,q,sc);snowM.setMatrixAt(n++,mt)}
+  snowM.count=n;snowM.receiveShadow=true;P.add(snowM)}
+function xmasBush(b){b.add(mesh(new THREE.SphereGeometry(.4,12,8),toon('#f1f5f8'),.02,.5,.04));b.children[b.children.length-1].scale.set(1.05,.32,1);
+  ['#e0482f','#f2cc6b','#fff4c2','#3f9a5c','#f2cc6b'].forEach((c,i)=>{const a=i/5*6.28+.4;b.add(mesh(new THREE.SphereGeometry(.05,8,6),new THREE.MeshBasicMaterial({color:c}),Math.cos(a)*.4,.28+(i%2)*.12,Math.sin(a)*.36))})}
 function buildPlaza(){
   const P=new THREE.Group();P.position.copy(PLAZA);scene.add(P);GA.plaza=P;
   /* 2026-10-04 改成放在畫廊地板上的木頭圓台（原本是飄在空中的島，底下尖尖的岩石拿掉） */
@@ -1812,14 +1830,14 @@ function buildPlaza(){
   P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.12,PLAZA_R-.3,1.05,64),toon('#b98552'),0,-1.07,0));
   P.add(mesh(new THREE.CylinderGeometry(PLAZA_R-.3,PLAZA_R-.25,.12,64),toon('#9c6c40'),0,-1.62,0));
   {const rock=mesh(new THREE.ConeGeometry(PLAZA_R*.66,3.6,9),toon('#8a6040',{flatShading:true}),0,-3.45,0);rock.rotation.x=Math.PI;P.add(rock)} /* 回到天空島：木台底下的岩石 */
-  for(let k=0;k<84;k++){const a=k/84*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),new THREE.MeshBasicMaterial({color:['#e07a5f','#f2cc6b','#e9a35b','#fff4c2'][k%4]}));
+  for(let k=0;k<84;k++){const a=k/84*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),new THREE.MeshBasicMaterial({color:(XSC()?['#e0482f','#f2cc6b','#3f9a5c','#fff4c2']:['#e07a5f','#f2cc6b','#e9a35b','#fff4c2'])[k%4]}));
     b.position.set(Math.cos(a)*(PLAZA_R-.12),.08,Math.sin(a)*(PLAZA_R-.12));b.userData.base=b.material.color.clone();b.userData.k=k%4;P.add(b);GA.bulbs.push(b)}
-  [[-5.7,-4.2,'',.95],[5.2,-5.4,'',1.0],[-3.6,-6.0,'',.7],[6.3,.8,'',.8]].forEach(([x,z,c,s])=>{const t=makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)});
+  [[-5.7,-4.2,'',.95],[5.2,-5.4,'',1.0],[-3.6,-6.0,'',.7],[6.3,.8,'',.8]].forEach(([x,z,c,s])=>{const t=XSC()?makeXmasTree(s*.95):makeAutumnTree(s,c);t.position.set(x,0,z);P.add(t)}); /* 聖誕期間秋天的樹換成聖誕樹（跟走格子島同一款） */
   [[-3.3,-4.2,'#3f5f8a'],[3.3,-5.4,'#d4a347'],[5.6,2.2,'#b5573f']].forEach(([x,z,c])=>{const b=new THREE.Group();b.add(mesh(new THREE.CylinderGeometry(.2,.17,.32,14),toon('#c9ced6'),0,.16,0));b.add(mesh(new THREE.CylinderGeometry(.19,.19,.04,14),toon(c),0,.33,0));const d=mesh(new THREE.SphereGeometry(.07,8,6),toon(c),.17,.25,.08);d.scale.y=1.6;b.add(d);b.position.set(x,0,z);P.add(b)});
   /* 低多邊形綠色小樹叢（參考圖那種），放在軌道內側後排 */
   {const BG=['#6a9358','#7a9f64','#5b8549','#86a86c'];[[-4.8,-5.2,.9],[4.0,-6.0,.8],[6.2,-2.8,.8],[6.0,2.4,.7],[-6.2,-.4,1.0],[-5.6,2.6,.7]].forEach(([x,z,sc],i)=>{const b=new THREE.Group();
     [[0,.32,0,.42],[.38,.24,.12,.3],[-.34,.22,.1,.32],[.08,.2,.34,.26]].forEach(([bx,by,bz,r],k)=>{const m=mesh(new THREE.IcosahedronGeometry(r,0),toon(BG[(i+k)%4],{flatShading:true}),bx,by,bz);m.rotation.set(i+k,k*.7,0);b.add(m)});
-    b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)})}
+    if(XSC())xmasBush(b);b.position.set(x,0,z);b.scale.setScalar(sc);P.add(b)})}
   buildTrack(P);GA._easelsLater=true;
   buildShop(P);buildGreenery(P);buildPath(P);
 
@@ -1864,6 +1882,8 @@ function buildPlaza(){
   // 趴在方向盤上的小黑熊：轉的時候跟著晃，轉完被甩出去抓扭蛋
   GA.kb=makePicasso('p02');GA.kb.scale.setScalar(KS);GA.kb.userData.home=MACH.clone().add(new THREE.Vector3(0,2.85,1.95));
   GA.kb.position.copy(GA.kb.userData.home);GA.kb.rotation.x=KX;scene.add(GA.kb);
+  if(XSC())xmasPlaza(P,W,GY+R);
+  if(XSC()){const ge=standeeMake('xmas-giftelf.webp?v=20261024a',341/600,2.3,[.78,.6],'#f2c14e');ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge}
   buildTrain();
   buildMarquee(g,GY+R+1.7);
   buildStand();buildBoard();buildBubbles();
@@ -1906,15 +1926,16 @@ function plazaTick(dt,now){walkTick(dt,now);marqTick(now);if(RM){trainTick(dt,no
 function parkTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
-  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(plMyTap(rc))return true;if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
+  if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(santaTap(rc))return true;if(elfTap(rc))return true;if(plMyTap(rc))return true;if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
   if(plTripTap(rc))return true;
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
   if(!busy&&evTap(rc))return true;
-  if(G.phase==='oct'&&santaTap(rc))return true;
+  if(santaTap(rc))return true;   /* 聖誕老公公到處飛，哪座島都可以點他 */
   if(GA.shop&&rc.intersectObject(GA.shop,true).length){if(!busy)openShop();return true}
   if(GA.board&&rc.intersectObject(GA.board,true).length){if(!busy)boardBig();return true}
+  if(G.phase==='oct'&&giftTap(rc))return true;
   if(rc.intersectObjects([GA.g,GA.kb],true).length){if(G.phase==='oct')spin();else toast('十月扭蛋已經結束囉');return true}
   let fh=Object.entries(GA.figs).find(([id,f])=>f.fig&&rc.intersectObject(f.fig,true).length);
   /* 公仔很小又一直在走，手指沒剛好點在身上就沒反應 → 點在公仔附近（約一個指頭寬）也算，挑最近的那隻 */
@@ -2057,7 +2078,7 @@ async function backToPlaza(){
     bear.rotation.y=Math.atan2(p3.x-A.x,p3.z-A.z);
     tween(700,p=>{GA.bridge.position.y=-(1-easeOut(p))*8});
     tween(1000,p=>{GA.PR.position.y=-(1-easeIO(p))*20});
-    tween(1700,p=>{if(XMG())return;SKY=1-easeIO(p);if(SKY<.35)snow.visible=false;skyApply(false)}); /* 11 月起扭蛋島也是晚上，回來不用變天亮 */
+    tween(1700,p=>{if(XSC())return;SKY=1-easeIO(p);if(SKY<.35)snow.visible=false;skyApply(false)}); /* 11 月起扭蛋島也是晚上，回來不用變天亮 */
     await tween(780,p=>{bear.position.lerpVectors(A,p3,easeIO(p));bear.position.y=A.y+(p3.y-A.y)*p+Math.sin(p*Math.PI)*3.4;bear.rotation.x=easeIO(p)*Math.PI*2});
     bear.rotation.x=0;bear.position.copy(p3);sparkle(p3.clone().add(new THREE.Vector3(0,.5,0)),10);
     G.phase='oct';
@@ -2083,7 +2104,7 @@ function xmasLabels(){const o=walkOpen(),sp=document.querySelector('.octinfo spa
 async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去、跳上走格子島
   if(busy||G.phase!=='oct')return;
   busy=true;HOPPING=true;let first=true;try{first=localStorage.getItem('otto2-park-opened')!=='1'}catch(e){}
-  overview=false;parkCam='open';SKYHOLD=true;SKY=XMG()?1:0;hud();ISL.forEach(o=>o.visible=true);
+  overview=false;parkCam='open';SKYHOLD=true;SKY=XSC()?1:0;hud();ISL.forEach(o=>o.visible=true);
   document.body.classList.add('opening');$('skipOpen').hidden=false; /* 2026-10-04 播動畫時藏起上下介面（原本把橋和小熊擋住），可以按「略過」 */
   const xp=window.PROD?xmasPull():null;
   await sleep(RM?100:450);
@@ -2098,7 +2119,7 @@ async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去�
   // the bear walks over the bridge to the start tile
   const y=bear.position.y,pts=[STAND.clone(),new THREE.Vector3(BRIDGE_X,0,PLAZA.z+1.2),new THREE.Vector3(BRIDGE_X,0,PLAZA.z-3.6),new THREE.Vector3(BRIDGE_X,0,BR_Z1-.2)];let land; /* 路口在廣場中線，小熊直接走過去（扭蛋機已經搬到右邊） */
   parkCam='walk';
-  for(let k=1;k<pts.length;k++){if(k===pts.length-1){await gateToBridge(); /* 走到路口：門消失、變成橋 */tween(2400,p=>{SKY=XMG()?1:easeIO(p);if(SKY>.35){snow.visible=true;snow.position.z=0}skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
+  for(let k=1;k<pts.length;k++){if(k===pts.length-1){await gateToBridge(); /* 走到路口：門消失、變成橋 */tween(2400,p=>{SKY=XSC()?1:easeIO(p);if(SKY>.35){snow.visible=true;snow.position.z=0}skyApply(false)});plazaSink()}const a=pts[k-1],b=pts[k],n=Math.max(1,Math.round(a.distanceTo(b)/.9));bear.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);
     for(let j=0;j<n;j++){const s=a.clone().lerp(b,j/n),e=a.clone().lerp(b,(j+1)/n);
       await tween(200,p=>{bear.position.lerpVectors(s,e,p);bear.position.y+=Math.sin(p*Math.PI)*.35})}}
   if(xp)await Promise.race([xp,sleep(4000)]); /* 落點用雲端存的位置，不是每次都跳回起點 */
@@ -2454,7 +2475,7 @@ function tourSteps(){const b=GA.bubs.map(x=>x.userData.base).reduce((a,v)=>a.add
   return[{at:b.clone(),pos:b.clone().add(new THREE.Vector3(0,2.2,10)),t:'每天都能多轉幾次',d:'答對藝術問答、翻牌過關、線上預約或來上課，都會多送一次扭蛋。等一下看「轉一下」上面那一排，做完會打勾。'},
     {at:MACH.clone().add(new THREE.Vector3(0,3.4,0)),pos:MACH.clone().add(new THREE.Vector3(.4,4.6,15)),t:XMG()?'聖誕扭扭樂':'畢卡索扭扭樂',d:'點扭蛋機的 OTTO2 方向盤就能轉。每天一次；答對問答、來上課、線上預約，各多一次。'},
     {at:PLAZA.clone().add(new THREE.Vector3(1.2,1,1.8)),pos:PLAZA.clone().add(new THREE.Vector3(1.2,3.6,11)),t:'收集畢卡索公仔',d:'每轉一次就多一隻畢卡索公仔，牠們會住在島上散步、去畫架畫畫。點公仔可以放大看。'},
-    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「我的資產」。'}].filter(x=>!(XMG()&&x.t==='收集畢卡索公仔'))}
+    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「我的資產」。'}].filter(x=>!(XSC()&&x.t==='收集畢卡索公仔'))}
 async function startTour(){if(busy||G.phase!=='oct')return;G.pops={day:gToday(),ids:[]};save();showBubbles();const S=tourSteps(),el=document.getElementById('tour');busy=true;hud();document.body.classList.add('touring');
   for(let i=0;i<S.length;i++){GA.tour=S[i];parkCam='tour';
     const go=await new Promise(res=>{el.innerHTML=`<div class="tdots">${S.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><h3>${esc(S[i].t)}</h3><p>${esc(S[i].d)}</p><div class="acts"><button type="button" class="btn ghost" data-v="0">略過</button><button type="button" class="btn" data-v="1">${i<S.length-1?'下一步':'開始玩'}</button></div>`;
@@ -2555,8 +2576,12 @@ let _starT=null;
 function santaStar(){if(!_starT){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.translate(32,32);x.fillStyle='#fff6c8';x.beginPath();
     for(let k=0;k<10;k++){const r=k%2?9:28,a=-Math.PI/2+k*Math.PI/5;x.lineTo(Math.cos(a)*r,Math.sin(a)*r)}x.closePath();x.fill();_starT=new THREE.CanvasTexture(c)}
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:_starT,color:'#ffe08a',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));s.visible=false;scene.add(s);return s}
+const _ah2=new THREE.Vector3(),_sh=new THREE.Vector3(),_sf=new THREE.Vector3(),_sr=new THREE.Vector3(),_su=new THREE.Vector3(0,1,0);
 function santaTick(dt,now){
-  const on=XMG()&&G&&G.phase==='oct'&&MI.state==='off'&&!parkCam;
+  /* 2026-10-25 大熊：聖誕老公公要到處飛 → 扭蛋島照原本的路線（在廣場後面的夜空）；走格子島、吉祥物島改成跟著鏡頭：
+     每一趟從畫面一邊飛到另一邊（鏡頭前方約 24 的位置、往上抬一點），不管鏡頭轉到哪都看得到 */
+  const hub=G&&G.phase==='oct'&&MI.state==='off'&&!parkCam,camMode=G&&(MI.state==='on'||(!busy&&G.phase!=='oct'&&MI.state==='off'));   /* 在吉祥物島 busy 一直是 true，不能拿來擋 */
+  const on=XSC()&&(hub||camMode);
   const S=SANTA;
   if(!on){if(S.g)S.g.visible=false;S.stars.forEach(s=>s.visible=false);return}
   if(!S.g){S.g=makeSanta();S.g.visible=false;scene.add(S.g);for(let i=0;i<14;i++)S.stars.push(santaStar())}
@@ -2564,12 +2589,19 @@ function santaTick(dt,now){
   if(!S.fly){S.g.visible=false;if(S.ban)S.ban.visible=false;S.next-=dt;if(S.next<=0){S.fly=true;S.t=0;S.dir=S.dir>0?-1:1;santaBanner()}return}
   S.t+=dt;const D=10,p=S.t/D;
   if(p>=1){S.fly=false;S.next=14+Math.random()*10;S.g.visible=false;if(S.ban)S.ban.visible=false;return}
-  const x=HUBC.x+S.dir*(-17+34*p),y=8.9+Math.sin(p*Math.PI)*1.2+Math.sin(now/320)*.12,z=HUBC.z-3.5;
-  S.g.position.set(x,y,z);S.g.rotation.set(0,S.dir>0?0:Math.PI,Math.cos(p*Math.PI)*.16);S.g.visible=true;
+  let hd=_sh.set(1,0,0);
+  if(hub){const x=HUBC.x+S.dir*(-17+34*p),y=8.9+Math.sin(p*Math.PI)*1.2+Math.sin(now/320)*.12,z=HUBC.z-3.5;
+    S.g.position.set(x,y,z);S.g.rotation.set(0,S.dir>0?0:Math.PI,Math.cos(p*Math.PI)*.16);hd.set(S.dir,0,0)}
+  else{/* 用畫面位置來放：從畫面左（右）外側飛到另一邊，高度在畫面上方約 1/4 處，離鏡頭 D */
+    camera.getWorldDirection(_sf);const rt=_sr.crossVectors(_sf,_su).normalize(),D=Math.max(12,4.7/(.33*2*Math.tan(camera.fov*Math.PI/360)*camera.aspect));   /* 雪橇大約佔畫面寬度 1/3 */
+    _ah2.set(S.dir*(-1.35+2.7*p),.4+Math.sin(p*Math.PI)*.08,.5).unproject(camera).sub(camera.position).normalize();
+    S.g.position.copy(camera.position).addScaledVector(_ah2,D);S.g.position.y+=Math.sin(now/320)*.12;
+    hd.copy(rt).multiplyScalar(S.dir);S.g.rotation.set(0,Math.atan2(-hd.z,hd.x),Math.cos(p*Math.PI)*.16)}
+  S.g.visible=true;
   S.legs.forEach(l=>{const a=Math.sin(now/85+l.ph)*.75;l.p.rotation.z=l.front?a:-a});
   if(S.ban&&S.cur){const B=S.ban,back=S.g.localToWorld(new THREE.Vector3(-.75,.62,0));B.visible=true;
-    B.position.set(back.x-S.dir*3.75,back.y-.35+Math.sin(now/420)*.08,back.z);B.userData.cloth.rotation.y=Math.sin(now/380)*.12;B.userData.cloth.rotation.z=Math.sin(now/520)*.04;
-    const front=new THREE.Vector3(B.position.x+S.dir*2.6,B.position.y+.25,B.position.z),ra=B.userData.rope.geometry.attributes.position;
+    B.position.set(back.x-hd.x*3.75,back.y-.35+Math.sin(now/420)*.08,back.z-hd.z*3.75);B.rotation.y=hub?0:Math.atan2(-_sr.z,_sr.x);B.userData.cloth.rotation.y=Math.sin(now/380)*.12;B.userData.cloth.rotation.z=Math.sin(now/520)*.04;
+    const front=new THREE.Vector3(B.position.x+hd.x*2.6,B.position.y+.25,B.position.z+hd.z*2.6),ra=B.userData.rope.geometry.attributes.position;
     B.updateMatrixWorld(true);B.worldToLocal(back);B.worldToLocal(front);ra.setXYZ(0,back.x,back.y,back.z);ra.setXYZ(1,front.x,front.y,front.z);ra.needsUpdate=true}
   S.st-=dt;if(S.st<=0){S.st=.09;const s=S.stars.find(q=>!q.visible);if(s){s.userData={t:0};s.position.copy(S.g.localToWorld(new THREE.Vector3(-.75,.4+Math.random()*.4,(Math.random()-.5)*.6)));s.visible=true}}}
 /* 這一趟要掛哪條布條：後台有 S 款就輪流，沒有就不掛 */
@@ -2673,6 +2705,11 @@ function petHead(p){const k=1.04,g=new THREE.Group(),fc=p.face||p.body,SGp=(r,a,
 function petZzz(){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
   x.fillStyle='#ffffff';x.strokeStyle='#4a5680';x.lineWidth=7;x.font='900 70px sans-serif';x.textAlign='center';x.textBaseline='middle';x.strokeText('Z',50,80);x.fillText('Z',50,80);x.font='900 44px sans-serif';x.strokeText('z',92,40);x.fillText('z',92,40);
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));s.scale.set(.6,.6,1);return s}
+/* 2026-10-24 聖誕期間（XMG）：三隻天竺鼠、小熊、蛙蛙叫都戴聖誕帽 */
+function santaHat(s){const g=new THREE.Group(),c=new THREE.ConeGeometry(.24,.46,14,4),pa=c.attributes.position;c.translate(0,.23,0);
+  for(let i=0;i<pa.count;i++){const t=pa.getY(i)/.46;pa.setX(i,pa.getX(i)+t*t*.16)}c.computeVertexNormals();     // 帽尖往一邊垂
+  g.add(mesh(c,toon('#d0342c'),0,.02,0));const b=mesh(new THREE.TorusGeometry(.23,.07,8,18),toon('#f6f2ea'),0,.03,0);b.rotation.x=Math.PI/2;g.add(b);
+  g.add(mesh(new THREE.SphereGeometry(.08,10,8),toon('#f6f2ea'),.17,.45,0));g.scale.setScalar(s);return g}
 function makePet(id){const p=PETD[id];p.id=id;const g=new THREE.Group(),SGp=(r,a,b)=>new THREE.SphereGeometry(r,a||18,b||12);
   const body=mesh(SGp(.5,22,16),toon(p.body),0,.42,-.05);body.scale.set(.88,.78,1.2);g.add(body);
   if(p.patch){const pt=mesh(SGp(.3,14,10),toon(p.patch),0,.745,-.1);pt.scale.set(.95,.42,1.25);g.add(pt)}
@@ -2689,6 +2726,7 @@ function makePet(id){const p=PETD[id];p.id=id;const g=new THREE.Group(),SGp=(r,a
     [-1,1].forEach(d=>{const s=mesh(SGp(.22,12,9),toon(p.face),d*.36,.5,-.32);s.scale.set(.5,.8,1.1);g.add(s)})}
   if(p.long)[-1,1].forEach(d=>[.15,-.18,-.5].forEach((z,i)=>{const h=mesh(SGp(.2,10,8),toon(i%2?p.hair:p.top),d*.42,.26,z);h.scale.set(.55,.75,.9);h.rotation.z=d*.25;g.add(h)})); /* 摩卡兩側垂下來的長毛 */
   const head=petHead(p);head.position.set(0,.5,.52);g.add(head);
+  if(XSC()){const h=santaHat(.95);h.position.set(0,.3,-.06);h.rotation.set(-.3,0,.1);head.add(h)}
   const feet=[];[[-.2,.34],[.2,.34],[-.24,-.34],[.24,-.34]].forEach(([x,z])=>{const f=mesh(SGp(.085,10,8),toon('#eab3a6'),x,.07,z);f.scale.set(1,.6,1.35);g.add(f);feet.push(f)});
   const zzz=petZzz();zzz.position.set(.2,1.5,.5);zzz.visible=false;g.add(zzz);
   g.userData={id,head,eyes:head.userData.eyes,feet,body,zzz};return g}
@@ -2755,7 +2793,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261024zd',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025a',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2808,9 +2846,10 @@ const MIB=(function(){
     ring(g,[[0,0],[.45,0],[.9,0]],GR.g1,0);ring(g,[[.9,0],[.98,-.28],[.99,-.52]],GR.g1,.06);ring(g,[[.99,-.52],[1,-1.2],[.92,-1.9]],GR.sand);
     ring(g,[[.92,-1.9],[.8,-2.8],[.6,-3.6]],GR.rock);ring(g,[[.6,-3.6],[.38,-4.5],[.12,-5.2],[0,-5.4]],GR.deep);return g}
   function tree(kind,s){const g=new THREE.Group();g.add(M(CYL(.12,.2,1.1,6),lam(GR.wood2),0,.55,0));
-    if(kind==='pine'){[[1.0,1.2,1.2],[.78,1.1,1.95],[.52,.95,2.65]].forEach(([r,h,y],i)=>g.add(M(CON(r,h,8,.05),lam(i%2?'#6c9448':'#5d853d'),0,y,0)))}
+    if(kind==='pine'){[[1.0,1.2,1.2],[.78,1.1,1.95],[.52,.95,2.65]].forEach(([r,h,y],i)=>{g.add(M(CON(r,h,8,.05),lam(i%2?'#6c9448':'#5d853d'),0,y,0));if(XSC())g.add(M(CON(r*.5,h*.5,8,.03),lam('#f2f6f8'),0,y+h*.27,0))})}
     else{const cols=kind==='blossom'?['#f2d4cf','#f7e2dd','#ecc3bf']:['#7fae52','#93c062','#6f9a4a'];
-      [[0,1.6,0,.95],[-.5,1.35,.25,.62],[.5,1.4,-.2,.66]].forEach(([x,y,z,r],i)=>{const c=M(ICO(r,1,.1),lam(cols[i%3]),x,y,z);c.scale.y=.88;g.add(c)})}
+      [[0,1.6,0,.95],[-.5,1.35,.25,.62],[.5,1.4,-.2,.66]].forEach(([x,y,z,r],i)=>{const c=M(ICO(r,1,.1),lam(cols[i%3]),x,y,z);c.scale.y=.88;g.add(c);if(XSC()){const sc=M(SGf(r*.82,10,6),lam('#f2f6f8'),x,y+r*.55,z);sc.scale.y=.3;g.add(sc)}})}
+    if(XSC())for(let i=0;i<9;i++){const a=i*2.3,y=1.2+(i%3)*.55,rr=kind==='pine'?.9-(i%3)*.28:.95;g.add(M(new THREE.SphereGeometry(.07,8,6),new THREE.MeshBasicMaterial({color:['#ffd36a','#ff6a5a','#fff4cf','#6ab8ff'][i%4]}),Math.cos(a)*rr,y,Math.sin(a)*rr))}
     g.scale.setScalar(s||1);return g}
   function signTex(txt,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#e9c98f';x.fillRect(0,0,w,h);x.strokeStyle='#8b5e34';x.lineWidth=8;x.strokeRect(4,4,w-8,h-8);x.fillStyle='#4a2f17';x.font='900 '+Math.floor(h*.5)+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,w/2,h/2+4);return new THREE.CanvasTexture(c)}
   function hut(){const g=new THREE.Group();
@@ -2893,7 +2932,19 @@ const MIB=(function(){
     {const p=new THREE.Group();p.position.set(MI_VEG[0],0,MI_VEG[1]);p.rotation.y=MI_VEG[2];p.add(M(BOX(2.2,.14,1.5),lam('#8a6038'),0,.07,0));
       for(let r=0;r<3;r++)for(let c=0;c<4;c++){const x=-.75+c*.5,z=-.45+r*.45;p.add(M(ICO(.17,0,.03),lam(r===1?'#f08a2f':'#6fae4a'),x,.22,z))}g.add(p)}
     gpDecor(g);xiongHome(g);frogHome(g);frBuild(g);
+    if(XSC())miXmas(g,busyAt);
+    {const e=elfMake();e.position.set(1.05,0,-1.85);g.add(e);MI.elf=e}   /* 守門員彩繪精靈：站在天竺鼠小屋門口右前方（左前方是聖誕樹） */
     g.scale.setScalar(MIK);return g}
+  /* 2026-10-24 聖誕佈置（跟作品小屋、扭蛋島同一套）：草地一塊一塊積雪、小屋屋頂積雪＋門上花圈、小屋旁一棵聖誕樹和禮物 */
+  function miXmas(g,busyAt){const W=lam('#f2f6f8');
+    const cap=M(CON(1.85*.57,1.5*.55,10,.03),W,0,2.95-1.5*.55/2+.02,0),h=g.children.find(o=>o.position.x===MI_HUT.x&&o.position.z===MI_HUT.z);
+    if(h){h.add(cap);const wr=M(new THREE.TorusGeometry(.2,.07,8,18),lam('#3f7a45'),0,.82,1.44);h.add(wr);h.add(M(SGf(.07,8,6),lam('#d0342c'),0,.64,1.48));
+      [0,1,2,3,4].forEach(k=>{const a=k/5*6.28;h.add(M(SGf(.03,6,5),lam(['#d0342c','#f2c14e'][k%2]),Math.cos(a)*.2,.82+Math.sin(a)*.2,1.5))})}
+    for(let i=0;i<34;i++){const a=rng()*6.28,d=Math.sqrt(rng())*miRAt(a)*.84,x=Math.cos(a)*d,z=Math.sin(a)*d;if(busyAt(x,z))continue;
+      const sn=M(SGf(.5,10,6),W,x,.01,z);sn.scale.set(.6+rng()*.7,.06,.5+rng()*.6);sn.rotation.y=rng()*3;g.add(sn)}
+    const t=makeXmasTree(.62);t.position.set(-1.7,0,-2.1);g.add(t);
+    [['#d0342c','#f2c14e',-1.05,-1.75,.32],['#3f7a45','#f6f2ea',-2.25,-1.55,.28],['#f2c14e','#d0342c',-1.5,-1.35,.24]].forEach(([c,rb,x,z,w])=>{const b=new THREE.Group();b.position.set(x,0,z);b.rotation.y=x*2;
+      b.add(M(BOX(w,w,w),lam(c),0,w/2,0));b.add(M(BOX(w*1.02,w*1.02,w*.18),lam(rb),0,w/2,0));b.add(M(BOX(w*.18,w*1.02,w*1.02),lam(rb),0,w/2,0));g.add(b)})}
   function bridge(x0,x1){const g=new THREE.Group(),L=Math.abs(x1-x0),n=Math.max(4,Math.round(L/.5)),dir=x1<x0?-1:1;g.userData.planks=[];
     for(let k=0;k<n;k++){const p=M(fl(new THREE.BoxGeometry(.5,.14,1.7)),lam(k%2?'#b8824a':'#a8743f'),x0+dir*(k+.5)*L/n,-.08,0);p.scale.x=L/n/.5*.96;p.visible=false;g.add(p);g.userData.planks.push(p)}
     const rails=[];[-1,1].forEach(d=>{const r=M(BOX(L,.08,.08),lam(GR.wood2),(x0+x1)/2,.45,d*.86);r.visible=false;g.add(r);rails.push(r);
@@ -2914,6 +2965,73 @@ const MIB=(function(){
     else{for(let k=0;k<26;k++){const a=Math.random()*6.28,d=Math.random()*.22,h=M(CYL(.012,.012,.5,4),lam(k%3?'#e2c56a':'#cdaa4c'),Math.cos(a)*d,.16,Math.sin(a)*d);h.rotation.z=(Math.random()-.5)*1.6;h.rotation.x=(Math.random()-.5)*1.6;g.add(h)}g.add(M(SGf(.2,8,6),lam('#d9bb5c'),0,.08,0))}
     return g}
   return{island,bridge,food}})();
+/* ---------- 2026-10-24 大熊：吉祥物島守門員「彩繪精靈」（一直都在）。用大熊給的去背三視圖（16_彩繪精靈_三視圖_去背.png）裁出正面（mascot-elf.webp），
+   做成永遠面向鏡頭的紙板人，輕輕上下晃；頭上對話泡泡每 6 秒換一句；點她跳介紹卡、可以直接去餵食 ---------- */
+const ELF_SAY=()=>[...(XSC()?['聖誕快樂！🎄']:[]),'歡迎來吉祥物島！','嘎逼他們肚子餓了，記得餵點心喔','點一下小動物，牠會帶你逛逛','我是彩繪精靈，一起來畫畫吧！'];
+function elfBubble(t){const cv=document.createElement('canvas'),x=cv.getContext('2d'),fs=40;x.font=`900 ${fs}px ${FONT}`;const w=Math.ceil(x.measureText(t).width)+64,h=96;cv.width=w;cv.height=h+22;
+  x.font=`900 ${fs}px ${FONT}`;x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;rr(4,4,w-8,h-8,36,x);x.fill();x.stroke();
+  x.beginPath();x.moveTo(w/2-16,h-6);x.lineTo(w/2,h+18);x.lineTo(w/2+16,h-6);x.closePath();x.fill();x.stroke();x.fillStyle='#fffaf2';x.fillRect(w/2-13,h-10,26,8);
+  x.fillStyle='#2b2320';x.textAlign='center';x.textBaseline='middle';x.fillText(t,w/2,h/2);const tx=new THREE.CanvasTexture(cv);tx.anisotropy=4;return{tx,a:cv.width/cv.height}}
+/* 2026-10-24 大熊：平面板子很奇怪 → 改成像壓克力立牌：正面是圖、後面疊 8 層深色同形狀做出厚度，站在木頭圓底座上；
+   整個立牌只繞直立軸轉向鏡頭（不會像貼紙一樣往後倒），從上往下看看得到頭頂那圈厚度 */
+/* 立牌共用（彩繪精靈、禮物精靈）：url 圖、ar＝寬/高、H 高度、tip＝噴顏料的位置（圖上 0～1 的比例，左上是 0,0）、rim 底座邊色 */
+function standeeMake(url,ar,H,tip,rim){const g=new THREE.Group(),W=H*ar;g.userData.standee=1;      // 有 userData，mergeStatic 不會動它
+  const tx=new THREE.TextureLoader().load(url);tx.anisotropy=4;
+  const geo=new THREE.PlaneGeometry(W,H);geo.translate(0,H/2+.16,0);
+  const st=new THREE.Group();g.add(st);const sp=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tx,alphaTest:.5,side:THREE.DoubleSide}));st.add(sp);   /* 不吃燈光（吃燈光晚上會太黑）；大熊嫌太亮→圖本身彩度降 20%、亮度降 5% */
+  const edge=new THREE.MeshBasicMaterial({map:tx,color:'#9c8c78',alphaTest:.5,side:THREE.DoubleSide});
+  for(let k=1;k<=8;k++){const l=new THREE.Mesh(geo,edge);l.position.z=-k*.014;st.add(l)}
+  const base=new THREE.Group();g.add(base);const R=Math.max(.62,W*.42);
+  base.add(mesh(new THREE.CylinderGeometry(R,R+.06,.16,28),toon('#c99a66'),0,.08,0));base.add(mesh(new THREE.CylinderGeometry(R-.02,R-.02,.02,28),toon('#efe2c8'),0,.17,0));
+  const rm=mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim||'#e9a3b4'),0,.16,0);rm.rotation.x=Math.PI/2;base.add(rm);
+  Object.assign(g.userData,{sp,st,H,W,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H]});return g}
+const ELF_H=2.6;
+function elfMake(){const g=standeeMake('mascot-elf.webp?v=20261024c',358/600,ELF_H,[.96,.47],'#e9a3b4');g.userData.elf=1;
+  const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=ELF_H+.35;bub.renderOrder=5;g.add(bub);
+  g.userData.bub=bub;g.userData.i=-1;g.userData.t=0;return g}
+const _ew=new THREE.Vector3(),_et=new THREE.Vector3(),_ep=new THREE.Vector3();
+/* 2026-10-24 大熊：加動作和反應。點她＝跳一下＋噴顏料＋冒愛心，跳完才開介紹卡；揮畫筆＝整個立牌左右搖、筆尖噴顏料
+   （平面圖的手沒辦法單獨動）；平常每 7～12 秒自己做一次（揮筆或冒愛心）。粒子用 Sprite，放在場景裡、最多 40 顆輪流用 */
+const ELF_PAINT=['#f2a3b8','#8fd3b8','#f2cc6b','#9fc5f2','#f7c6d4'];
+let _dotT,_heartT;
+function elfDotTex(){if(_dotT)return _dotT;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#fff';x.beginPath();x.arc(32,32,26,0,7);x.fill();
+  [[50,18,8],[14,46,7],[46,50,6]].forEach(([a,b,r])=>{x.beginPath();x.arc(a,b,r,0,7);x.fill()});return _dotT=new THREE.CanvasTexture(c)}
+function elfHeartTex(){if(_heartT)return _heartT;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#ff6f8f';x.strokeStyle='#ffffff';x.lineWidth=5;
+  x.beginPath();x.moveTo(32,54);x.bezierCurveTo(4,34,8,8,32,20);x.bezierCurveTo(56,8,60,34,32,54);x.closePath();x.fill();x.stroke();return _heartT=new THREE.CanvasTexture(c)}
+const ELFP=[];
+function elfEmit(kind,at,n){for(let i=0;i<n;i++){let p=ELFP.find(q=>q.life<=0);
+    if(!p){if(ELFP.length>=40)break;p={sp:new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false})),v:new THREE.Vector3(),life:0};p.sp.renderOrder=4;scene.add(p.sp);ELFP.push(p)}
+    const m=p.sp.material,hv=kind==='heart';m.map=hv?elfHeartTex():elfDotTex();m.color.set(hv?'#ffffff':ELF_PAINT[(Math.random()*5)|0]);m.opacity=1;m.needsUpdate=true;
+    p.sp.position.copy(at);p.kind=kind;p.max=p.life=hv?1.6:1.1;const s=hv?.32+Math.random()*.12:.14+Math.random()*.12;p.s=s;p.sp.scale.setScalar(s);p.sp.visible=true;
+    if(hv)p.v.set((Math.random()-.5)*.6,1.1+Math.random()*.5,(Math.random()-.5)*.6);else p.v.set((Math.random()-.5)*2.4,1.2+Math.random()*1.8,(Math.random()-.5)*2.4)}}
+function elfParticles(dt){ELFP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}
+  if(p.kind!=='heart')p.v.y-=4.5*dt;p.sp.position.addScaledVector(p.v,dt);const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4))})}
+const sdTip=u=>u.st.localToWorld(_ep.set(u.tip[0],u.tip[1],.05)).clone(),sdHead=u=>u.st.localToWorld(_ep.set(0,u.H*.85,.1)).clone();
+function sdDo(g,kind){if(!g)return;const u=g.userData;u.anim=kind;u.a0=performance.now();u.fx=0}
+const elfDo=kind=>sdDo(MI.elf,kind);
+/* 每一格：立牌轉向鏡頭、輕晃，播 hop（跳＋扭＋噴顏料＋愛心）／wave（左右搖＋噴顏料）／love（冒愛心）；idle＝可以自己動的時候，每 7～12 秒挑一個 */
+function sdTick(g,now,idle){const u=g.userData;
+  let y=Math.abs(Math.sin(now/520))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300)*.06;
+  if(u.anim){const t=(now-u.a0)/1000;
+    if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.75;spin+=Math.sin(q*Math.PI*2)*.5;/* 只扭一下，不整圈轉（背面是深色的疊層，轉過去不好看） */sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
+      if(!u.fx&&t>.25){u.fx=1;elfEmit('paint',sdTip(u),14);elfEmit('heart',sdHead(u),4)}if(p>=1)u.anim=null}
+    else if(u.anim==='wave'){const p=Math.min(1,t/1.4);rz=Math.sin(t*11)*.14*(1-p);if(t>.2&&t<1.1&&(u.fx++)%3===0)elfEmit('paint',sdTip(u),2);if(p>=1)u.anim=null}
+    else if(u.anim==='love'){if(!u.fx){u.fx=1;elfEmit('heart',sdHead(u),5)}y+=Math.abs(Math.sin(t*9))*.12*Math.max(0,1-t);if(t>1)u.anim=null}}
+  else if(idle&&now>(u.next||0)){if(u.next)sdDo(g,Math.random()<.6?'wave':'love');u.next=now+7000+Math.random()*5000}
+  u.st.position.y=y;u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_ew);_et.set(camera.position.x,_ew.y,camera.position.z);u.st.lookAt(_et);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)}
+function elfTick(now){const dt=Math.min(.05,(now-(elfTick.last||now))/1000);elfTick.last=now;
+  const e=MI.elf;if(e&&MI.g&&MI.g.visible){const u=e.userData;sdTick(e,now,MI.state==='on');
+    if(now-u.t>6000||u.i<0){u.t=now;const L=ELF_SAY();u.i=(u.i+1)%L.length;const b=elfBubble(L[u.i]);if(u.bub.material.map)u.bub.material.map.dispose();u.bub.material.map=b.tx;u.bub.material.needsUpdate=true;const bh=.72;u.bub.scale.set(bh*b.a,bh,1)}
+    u.bub.visible=MI.state==='on'}
+  const ge=GA.giftElf;if(ge&&ge.visible)sdTick(ge,now,G&&G.phase==='oct'&&!busy);
+  elfParticles(dt)}
+/* 2026-10-24 大熊：扭蛋機前面多一個禮物精靈（聖誕期間）。點她跳一下＋冒愛心，說一句話 */
+function giftTap(rc){const e=GA.giftElf;if(!e||!e.visible||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
+  if(e.userData.anim!=='hop'){sdDo(e,'hop');e.userData.next=performance.now()+9000;toast('聖誕快樂！轉一下扭蛋，看看有什麼驚喜 🎁')}return true}
+function elfTap(rc){const e=MI.elf;if(!e||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
+  if(e.userData.anim==='hop')return true;elfDo('hop');e.userData.next=performance.now()+9000;
+  setTimeout(()=>popup(null,'彩繪精靈','吉祥物島的守門員！嘎逼、卡布、摩卡、小熊和蛙蛙叫都住在這裡。餵牠們吃點心，牠們會越來越喜歡你喔。',[{t:'去餵食',v:'feed',cls:'red'},{t:'關閉',v:false,cls:'ghost'}],
+    '<img alt="彩繪精靈" src="mascot-elf.webp?v=20261024c" style="display:block;height:190px;margin:2px auto 6px">').then(v=>{if(v==='feed'&&$('miFood').hidden)$('miFeed').click()}),900);return true}
 const FOODN={veg:'菜菜',corn:'玉米鬚',pepper:'青椒',hay:'乾草',seed:'葵花子',fig:'無花果',fruit:'水果乾',pellet:'飼料',dfish:'小魚'},PNAME={gabi:'嘎逼',kabu:'卡布',moka:'摩卡',xiong:'小熊',frog:'蛙蛙叫'};
 const FOODC={veg:'#4ca64c',corn:'#e0b94a',pepper:'#3f9a3f',hay:'#d9b95a',seed:'#4a4440',fig:'#6b3a4a',fruit:'#b0603a',pellet:'#8a5a34',dfish:'#aeb6ba'};
 /* 2026-10-03 餵食分兩步：先選要餵誰，再出現牠吃的東西（大熊要的） */
@@ -3073,7 +3191,7 @@ function makeXiong(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>
   [-1,1].forEach(d=>{const e=mesh(SGp(.11,10,8),toon('#5e4535'),d*.22,.27,-.04);e.scale.set(1,1,.35);e.rotation.y=d*.35;head.add(e);const i=mesh(SGp(.07,8,6),toon('#e8a6a0'),d*.22,.27,0);i.scale.set(1,1,.2);i.rotation.y=d*.35;head.add(i)});
   const paws=[-1,1].map(d=>{const p=mesh(SGp(.06,8,6),toon('#efb3aa'),d*.13,.16,.42);P.add(p);return p});
   const feet=[];[[-.2,.25],[.2,.25],[-.24,-.3],[.24,-.3]].forEach(([x,z])=>{const f=mesh(SGp(.07,8,6),toon('#efb3aa'),x,.05,z);f.scale.set(1,.6,1.3);P.add(f);feet.push(f)});
-  g.userData={id:'xiong',fr:true,P,head,eyes,cheeks,paws,feet};return g}
+  if(XSC()){const sh=santaHat(.9);sh.position.set(0,.28,-.05);sh.rotation.set(-.25,0,.12);head.add(sh)}g.userData={id:'xiong',fr:true,P,head,eyes,cheeks,paws,feet};return g}
 function makeFrog(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>new THREE.SphereGeometry(r,a||18,b||12),Y='#f3d43a',O='#ee8a4c';g.add(P);
   const surf=(x,z)=>.36+.363*Math.sqrt(Math.max(0,1-(x/.63)**2-(z/.58)**2));
   const body=mesh(SGp(.55,22,16),toon(Y),0,.36,0);body.scale.set(1.15,.66,1.05);P.add(body);
@@ -3088,7 +3206,7 @@ function makeFrog(){const g=new THREE.Group(),P=new THREE.Group(),SGp=(r,a,b)=>n
   /* 埋進土裡：身邊鼓起一圈土、頭上沾一點土 */
   const mound=mesh(new THREE.TorusGeometry(.6,.17,8,20),toon('#3e2b20'));mound.rotation.x=Math.PI/2;mound.scale.set(1.12,1,1);mound.visible=false;g.add(mound);
   const dirt=[[-.2,0],[.15,-.2],[.3,.1],[-.35,-.25],[.05,.25],[-.05,-.4]].map(([x,z])=>{const d=mesh(SGp(.05,6,4),toon('#3a2a20'),x,surf(x,z)+.01,z);d.visible=false;P.add(d);return d});
-  g.userData={id:'frog',fr:true,P,eyes,mound,dirt};return g}
+  if(XSC()){const sh=santaHat(.85);sh.position.set(0,.68,-.12);sh.rotation.x=-.2;P.add(sh)}g.userData={id:'frog',fr:true,P,eyes,mound,dirt};return g}
 function frBuild(g){const k=FRS/MIK,x=makeXiong(),f=makeFrog();x.scale.setScalar(k);f.scale.setScalar(k);g.add(x);g.add(f);
   MI.xiong={g:x,q:[],cur:null,t:0,hop:0,ch:1};MI.frog={g:f,q:[],cur:null,t:0,e:0,bl:3,st:'stare'};
   /* 2026-10-05 大熊要多幾隻青蛙陪蛙蛙叫：住在蛙蛙叫家附近，偶爾跳一下、眨眨眼，點了會介紹自己。造型用 petlife.js 的 makeFrogPet（跟小屋認養的同一套） */
@@ -3412,7 +3530,7 @@ function loopBody(now){if(GA.art)artTick();luckyTick(now);
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>22)c.position.x=-22});
   if(!RM){const a=snow.geometry.attributes.position;for(let k=0;k<a.count;k++){let y=a.getY(k)-dt*(.6+(k%5)*.12);if(y<-6)y=16;a.setY(k,y);a.setX(k,a.getX(k)+Math.sin(now/900+k)*dt*.15)}a.needsUpdate=true}
   const ph=Math.floor(now/450)%4;bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar((b.userData.k===ph&&DIM<.5?1:.45)*(1-DIM*.8)));
-  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);frTick(dt,now);plTick(dt,now);
+  GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);elfTick(now);frTick(dt,now);plTick(dt,now);
   treeTick(dt,now);treeFade(dt);santaTick(dt,now);
   if(window.OttoBGM)OttoBGM.update(MI.state!=='off'?'mascot':(G.phase==='oct'?'park':'walk'),SFX.on&&!window.KIOSK&&!!SFX.ctx,!!VOICE.cur); /* 照所在的島換曲；店內平板不放；店員說話時壓低 */
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
@@ -3437,7 +3555,7 @@ function hud(){
   $('ph0').classList.toggle('on',oct);$('ph1').classList.toggle('on',!oct);
   $('brandT').textContent=oct?'OTTO2 遊樂島':'OTTO2 聖誕走格子';$('brandS').textContent=oct?'10 月・黑熊扭蛋・示範版':(G.test?(window.GUEST?'11–12 月・體驗版':'11–12 月・測試模式'):'11–12 月');
   const gl=gLeft(),gold=goldHas();$('spin').disabled=busy||(gl<=0&&!gold);$('spin').classList.toggle('goldmode',gold);$('spin').textContent=gold?'🪙 黃金轉一下 ×'+GOLD.coins:gl>0?'轉一下':(window.PROD&&!ST?(gErrMsg?'請重開頁面':'連線中…'):window.PROD&&gState().status==='soon'?`${+gState().start.slice(5,7)}/${+gState().start.slice(8)} 開始`:window.PROD&&gState().status==='ended'?'活動結束':'明天再來');$('gpanel').disabled=busy;
-  $('ph0').disabled=$('ph1').disabled=busy;if(snow){snow.visible=(!oct||XMG())&&!SKYHOLD;snow.position.z=oct&&XMG()?21:0} /* 11 月起扭蛋島也下雪（雪原本圍著走格子島，往廣場挪過去） */playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
+  $('ph0').disabled=$('ph1').disabled=busy;if(snow){snow.visible=(!oct||XSC())&&!SKYHOLD;snow.position.z=oct&&XSC()?21:0} /* 11 月起扭蛋島也下雪（雪原本圍著走格子島，往廣場挪過去） */playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;placesUI();
   {const k=$('ohK');if(k&&k.firstChild&&k.firstChild.nodeType===3)k.firstChild.nodeValue=oct&&!XMG()?'世界藝術日':'聖誕節'}
