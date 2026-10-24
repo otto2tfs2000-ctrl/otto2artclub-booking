@@ -218,14 +218,14 @@ function build(side,list,siteName){
     cam.position.x=Math.sin(S.t*.25)*.7;cam.lookAt(0,1.6,0);
     R.render(scene,cam);S.raf=requestAnimationFrame(S.frame)};
   S.raf=requestAnimationFrame(S.frame);
-  S.destroy=function(){S.stopped=true;S.dead=true;cancelAnimationFrame(S.raf);window.removeEventListener('resize',size);try{R.dispose();if(R.forceContextLoss)R.forceContextLoss()}catch(e){}root.remove()};
+  S.destroy=function(){cover=false;S.stopped=true;S.dead=true;cancelAnimationFrame(S.raf);window.removeEventListener('resize',size);try{R.dispose();if(R.forceContextLoss)R.forceContextLoss()}catch(e){}root.remove()};
   return S}
 function cap(S,t){S.capEl.style.opacity=0;setTimeout(function(){S.capEl.textContent=t;S.capEl.style.opacity=1},180)}
 /* 跳：往 target（函式，每一幀重算，因為熱氣球還在轉）拋物線過去 */
 function hop(S,c,target,ms,board){
   var p0=c.g.position.clone();c.on=false;c.hop=true;
   return tween(S,ms,function(p){var e=easeIO(p),t=target();c.g.position.lerpVectors(p0,t,e);c.g.position.y+=Math.sin(p*Math.PI)*1.8;c.g.rotation.y*=.9}).then(function(){var t=target();c.p.copy(t);c.g.position.copy(t);c.hop=false;c.on=!!board})}
-var active=null;
+var active=null,cover=false; /* 2026-10-24 熱氣球整個蓋住畫面時，底下的島先不要畫（手機同時畫兩個 3D 場景會卡） */
 
 /* ---------- 出發 ---------- */
 function go(opt){
@@ -237,7 +237,7 @@ function go(opt){
   var S;try{S=build('r',list,PLACE[opt.from]||'歡樂島')}catch(e){console.error(e);leave();return Promise.resolve()}
   active=S;document.documentElement.appendChild(S.root);
   S.skip.onclick=function(){S.dead=true;leave()};
-  S.root.style.opacity=0;S.root.style.transition='opacity .35s';requestAnimationFrame(function(){S.root.style.opacity=1});
+  S.root.style.opacity=0;S.root.style.transition='opacity .35s';requestAnimationFrame(function(){S.root.style.opacity=1});setTimeout(function(){if(active===S)cover=true},400);
   S.cast.forEach(function(c){c.p.copy(S.stand(c.i));c.g.position.copy(c.p)});
   var pic=S.cast[0].id==='picasso'?S.cast[0]:null;if(pic)pic.wave=true;
   return (async function(){
@@ -270,7 +270,7 @@ function arrive(){
   waitThree(function(ok){
     if(!ok){pre.remove();return}
     var S;try{S=build('l',d.list,PLACE[d.place]||'作品小屋')}catch(e){console.error(e);pre.remove();return}
-    active=S;document.documentElement.appendChild(S.root);pre.remove();S.veil.style.opacity=1;
+    active=S;cover=true;document.documentElement.appendChild(S.root);pre.remove();S.veil.style.opacity=1;
     var home=PLACE[d.place]||'作品小屋';
     S.skip.onclick=function(){S.dead=true;waitReady({dead:false},12000).then(function(){S.destroy();active=null})};
     S.cast.forEach(function(c){c.on=true});
@@ -289,9 +289,9 @@ function arrive(){
       var x0=S.bal.x;
       await tween(S,1700,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=x0+Math.sin(p*5)*.4-p*1.2});if(S.dead)return;
       await waitReady(S,15000);if(S.dead)return;
-      S.root.style.transition='opacity .7s';S.root.style.opacity=0;await sleep(750);S.destroy();active=null})()})}
+      cover=false;S.root.style.transition='opacity .7s';S.root.style.opacity=0;await sleep(750);S.destroy();active=null})()})}
 
-window.Ferry={go:go,arrive:arrive,holdUntil:holdUntil};
+window.Ferry={go:go,arrive:arrive,holdUntil:holdUntil,covering:function(){return cover}};
 /* 從瀏覽器「上一頁」回來時，頁面會被原樣還原（包含蓋住畫面的雲），要清掉 */
 window.addEventListener('pageshow',function(e){if(e.persisted){var o=document.querySelectorAll('.fy');for(var i=0;i<o.length;i++)o[i].remove();if(active&&active.destroy)try{active.destroy()}catch(x){}active=null}});
 try{arrive()}catch(e){console.error(e)}

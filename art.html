@@ -251,7 +251,7 @@ body.tour .pcTag{display:none!important}
 <div class="toast" id="toast"></div>
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
-<script src="ferry.js?v=20261005j"></script>
+<script src="ferry.js?v=20261024f"></script>
 <script src="petlife.js?v=20261005za"></script>
 <script src="anniv26.js?v=20261017a"></script>
 <script src="bgm.js?v=20261024b"></script>
@@ -1207,6 +1207,7 @@ function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
 let tPrev=performance.now();
 function loop(now){
+  if(window.Ferry&&Ferry.covering&&Ferry.covering()&&now-(loop._c||0)<1000){tPrev=now;requestAnimationFrame(loop);return}loop._c=now; /* 熱氣球蓋住畫面時一秒只畫一次（手機同時畫兩個 3D 場景會卡） */
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;perfTick(raw);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
   if(!RM){
