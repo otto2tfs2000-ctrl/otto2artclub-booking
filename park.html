@@ -764,11 +764,12 @@ body:not(.oct) #evPill{display:none}
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
 <script src="anniv26.js?v=20261017a"></script>
+<script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024a';
+const PARK_VER='20261024b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2411,6 +2412,7 @@ function sfx(k){if(!SFX.on)return;sfxInit();const c=SFX.ctx;if(!c)return;sfxWake
 /* iPhone 只認 touchend／click 當「使用者點擊」，pointerdown 解不開聲音，三個都掛 */
 ['pointerdown','touchend','click'].forEach(ev=>addEventListener(ev,()=>{sfxInit();sfxWake()},{passive:true,capture:true}));
 function muteLook(){const H=`<i>${SFX.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>'}</i>${SFX.on?'音效':'靜音'}`;['muteBtn','miMute'].forEach(id=>{const b=document.getElementById(id);if(b)b.innerHTML=H})}
+if(window.OttoBGM)OttoBGM.init(()=>SFX.ctx); /* 2026-10-24 背景音樂跟音效共用同一個開關、同一個 context */
 function toggleMute(){SFX.on=!SFX.on;if(!SFX.on)try{voiceStop()}catch(e){}try{localStorage.setItem('otto2-park-mute',SFX.on?'0':'1')}catch(e){}muteLook();if(SFX.on)sfx('tap')}
 
 /* ---------- 第一次打開：鏡頭帶著走一圈 ---------- */
@@ -3286,6 +3288,7 @@ function loopBody(now){if(GA.art)artTick();
   const ph=Math.floor(now/450)%4;bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar((b.userData.k===ph&&DIM<.5?1:.45)*(1-DIM*.8)));
   GA.bulbs.forEach(b=>b.material.color.copy(b.userData.base).multiplyScalar(b.userData.k===ph?1:.5));plazaTick(dt,now);petsTick(dt,now);frTick(dt,now);plTick(dt,now);
   treeTick(dt,now);treeFade(dt);
+  if(window.OttoBGM)OttoBGM.update(MI.state!=='off'?'mascot':(G.phase==='oct'?'park':'walk'),SFX.on&&!window.KIOSK&&!!SFX.ctx,!!VOICE.cur); /* 照所在的島換曲；店內平板不放；店員說話時壓低 */
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
   viewShift(dt);const g=camGoal(),a=ZM.live||MZ.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
