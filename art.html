@@ -532,44 +532,67 @@ function xmasSnowman(){const a=PIER_A-.15,rr=outline(a)*.66,     // 碼頭內側
    點他們跳一下＋冒愛心＋彩色碎片，下面跳一句話；平常每 7～12 秒自己動一下 */
 const TREEPOS=[];   /* 島上小樹的位置（buildAnimals 種的），聖誕立牌找樹下位置用 */
 const XSD=[],XSDP=[],_sw=new THREE.Vector3(),_st=new THREE.Vector3(),_sp=new THREE.Vector3();
-function xsdMake(url,ar,H,name,say,rim){const g=new THREE.Group(),W=H*ar,tx=new THREE.TextureLoader().load(url);tx.anisotropy=4;
+function xsdMake(url,ar,H,name,say,rim,o={}){const g=new THREE.Group(),W=H*ar,tx=new THREE.TextureLoader().load(url);tx.anisotropy=4;
   const geo=new THREE.PlaneGeometry(W,H);geo.translate(0,H/2+.16,0);const st=new THREE.Group();g.add(st);
   const sp=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tx,alphaTest:.5,side:THREE.DoubleSide}));st.add(sp);sp.userData={xsd:g};picks.push(sp);
   const edge=new THREE.MeshBasicMaterial({map:tx,color:'#9c8c78',alphaTest:.5,side:THREE.DoubleSide});for(let k=1;k<=8;k++){const l=new THREE.Mesh(geo,edge);l.position.z=-k*.014;st.add(l)}
   const R=Math.max(.62,W*.42);g.add(cyl('#c99a66',R,R+.06,.16,0,0,0,28));g.add(cyl('#efe2c8',R-.02,R-.02,.02,0,.16,0,28));
   const rm=new THREE.Mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim));rm.rotation.x=Math.PI/2;rm.position.y=.16;g.add(rm);
-  g.userData={st,H,name,say,i:0,next:0};XSD.push(g);return g}
-function xsdEmit(kind,at,n){const C=['#f6f8fb','#f2a3b8','#8fd3b8','#cfe3f7','#f7c6d4'];
-  for(let i=0;i<n;i++){let p=XSDP.find(q=>q.life<=0);if(!p){if(XSDP.length>=40)break;p={sp:new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false})),v:new THREE.Vector3(),life:0};p.sp.renderOrder=4;scene.add(p.sp);XSDP.push(p)}
-    const hv=kind==='heart',m=p.sp.material;m.map=hv?xsdHeart():xsdDot();m.color.set(hv?'#ffffff':C[(Math.random()*5)|0]);m.opacity=1;m.needsUpdate=true;
-    p.sp.position.copy(at);p.kind=kind;p.max=p.life=hv?1.6:1.1;p.s=hv?.42+Math.random()*.15:.18+Math.random()*.14;p.sp.scale.setScalar(p.s);p.sp.visible=true;
-    if(hv)p.v.set((Math.random()-.5)*.8,1.3+Math.random()*.6,(Math.random()-.5)*.8);else p.v.set((Math.random()-.5)*3,1.5+Math.random()*2,(Math.random()-.5)*3)}}
-let _xdot,_xheart;
+  const tip=o.tip||[.5,.5];g.userData={st,H,W,name,say,i:0,next:0,moves:o.moves||['sway','love'],hopFx:o.hopFx||'dot',tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H]};XSD.push(g);return g}
+/* 粒子：heart 愛心、snow 雪花（慢慢飄）、puff 雪霧（往外散、變大）、ball 雪球（丟出去會掉下來）、dot 彩色碎片 */
+function xsdEmit(kind,at,n,dir){const C=['#f6f8fb','#f2a3b8','#8fd3b8','#cfe3f7','#f7c6d4'];
+  for(let i=0;i<n;i++){let p=XSDP.find(q=>q.life<=0);if(!p){if(XSDP.length>=60)break;p={sp:new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false})),v:new THREE.Vector3(),life:0};p.sp.renderOrder=4;scene.add(p.sp);XSDP.push(p)}
+    const m=p.sp.material,r=Math.random;m.map=kind==='heart'?xsdHeart():kind==='snow'?xsdFlake():xsdDot();m.rotation=r()*6;
+    m.color.set(kind==='heart'?'#ffffff':kind==='snow'?(r()<.5?'#ffffff':'#f7c6d4'):kind==='ball'?'#dbe9fb':kind==='puff'?'#f4f8fb':C[(r()*5)|0]);m.opacity=1;m.needsUpdate=true;
+    p.sp.position.copy(at);p.kind=kind;p.max=p.life={heart:1.6,snow:2.2,puff:.9,ball:1.3}[kind]||1.1;
+    p.s={heart:.42+r()*.15,snow:.22+r()*.14,puff:.35+r()*.2,ball:.5}[kind]||.18+r()*.14;p.sp.scale.setScalar(p.s);p.sp.visible=true;
+    if(kind==='heart')p.v.set((r()-.5)*.8,1.3+r()*.6,(r()-.5)*.8);
+    else if(kind==='snow')p.v.set((r()-.5)*1.2,(dir?-.4:.6)+r()*.6,(r()-.5)*1.2);
+    else if(kind==='puff'){const a=r()*6.28;p.v.set(Math.cos(a)*1.6,.25+r()*.3,Math.sin(a)*1.6)}
+    else if(kind==='ball')p.v.copy(dir).multiplyScalar(4.2).add(_sp.set(0,3.4,0));
+    else p.v.set((r()-.5)*3,1.5+r()*2,(r()-.5)*3)}}
+let _xdot,_xheart,_xflake;
 function xsdDot(){if(_xdot)return _xdot;const c=cvs(64,64),x=c.getContext('2d');x.fillStyle='#fff';x.beginPath();x.arc(32,32,26,0,7);x.fill();return _xdot=new THREE.CanvasTexture(c)}
 function xsdHeart(){if(_xheart)return _xheart;const c=cvs(64,64),x=c.getContext('2d');x.fillStyle='#ff6f8f';x.strokeStyle='#ffffff';x.lineWidth=5;
   x.beginPath();x.moveTo(32,54);x.bezierCurveTo(4,34,8,8,32,20);x.bezierCurveTo(56,8,60,34,32,54);x.closePath();x.fill();x.stroke();return _xheart=new THREE.CanvasTexture(c)}
+function xsdFlake(){if(_xflake)return _xflake;const c=cvs(64,64),x=c.getContext('2d');x.strokeStyle='#fff';x.lineWidth=5;x.lineCap='round';x.translate(32,32);
+  for(let k=0;k<3;k++){x.rotate(Math.PI/3);x.beginPath();x.moveTo(-26,0);x.lineTo(26,0);x.stroke();[-1,1].forEach(s=>{x.beginPath();x.moveTo(s*15,0);x.lineTo(s*22,-7);x.moveTo(s*15,0);x.lineTo(s*22,7);x.stroke()})}return _xflake=new THREE.CanvasTexture(c)}
 function xsdDo(g,kind){const u=g.userData;u.anim=kind;u.a0=performance.now();u.fx=0}
 function xsdTap(g){const u=g.userData;if(u.anim!=='hop'){xsdDo(g,'hop');u.next=performance.now()+9000;toast(`${u.name}：${u.say[u.i++%u.say.length]}`)}}
+/* 2026-10-25 大熊：每個人至少三種動作。共用：hop（點他，跳＋扭＋碎片/雪＋愛心）、love（冒愛心）、sway（左右搖）
+   粉雪女王：wand（揮魔杖，杖頭噴粉白雪花）、twirl（左右扭身，頭上飄雪花下來）
+   薄荷雪怪：stomp（連跳三下，每次落地腳邊噴雪霧）、throw（往後仰再往前丟雪球）、shiver（冷得發抖，抖出小雪花） */
 function xsdTick(dt,now){XSD.forEach(g=>{const u=g.userData;let y=Math.abs(Math.sin(now/520+g.id))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300+g.id)*.06;
-    const head=()=>u.st.localToWorld(_sp.set(0,u.H*1.05,.1)).clone();   /* 從頭頂上方冒，不要蓋住臉 */
+    const head=()=>u.st.localToWorld(_sp.set(0,u.H*1.05,.1)).clone(),tip=()=>u.st.localToWorld(_sp.set(u.tip[0],u.tip[1],.1)).clone(),feet=()=>u.st.localToWorld(_sp.set(0,.25,.2)).clone();
     if(u.anim){const t=(now-u.a0)/1000;
       if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.8;spin+=Math.sin(q*Math.PI*2)*.5;sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
-        if(!u.fx&&t>.25){u.fx=1;xsdEmit('dot',head(),12);xsdEmit('heart',head(),4)}if(p>=1)u.anim=null}
+        if(!u.fx&&t>.25){u.fx=1;xsdEmit(u.hopFx,u.hopFx==='puff'?feet():head(),u.hopFx==='puff'?10:12);xsdEmit('heart',head(),4)}if(p>=1)u.anim=null}
       else if(u.anim==='sway'){const p=Math.min(1,t/1.4);rz=Math.sin(t*9)*.12*(1-p);if(p>=1)u.anim=null}
-      else if(u.anim==='love'){if(!u.fx){u.fx=1;xsdEmit('heart',head(),5)}y+=Math.abs(Math.sin(t*9))*.12*Math.max(0,1-t);if(t>1)u.anim=null}}
-    else if(now>u.next){if(u.next)xsdDo(g,Math.random()<.5?'sway':'love');u.next=now+7000+Math.random()*5000}
+      else if(u.anim==='love'){if(!u.fx){u.fx=1;xsdEmit('heart',head(),5)}y+=Math.abs(Math.sin(t*9))*.12*Math.max(0,1-t);if(t>1)u.anim=null}
+      else if(u.anim==='wand'){const p=Math.min(1,t/1.6);rz=Math.sin(t*7)*.1*(1-p)+.06*(1-p);if(t>.2&&t<1.3&&(u.fx++)%3===0)xsdEmit('snow',tip(),2);if(p>=1)u.anim=null}
+      else if(u.anim==='twirl'){const p=Math.min(1,t/1.8);spin+=Math.sin(t*6)*.55*(1-p);y+=Math.abs(Math.sin(t*6))*.08*(1-p);
+        if(t<1.4&&(u.fx++)%4===0){const h=head();h.x+=(Math.random()-.5)*1.6;h.z+=(Math.random()-.5)*1.6;h.y+=.6;xsdEmit('snow',h,1,true)}if(p>=1)u.anim=null}
+      else if(u.anim==='stomp'){const p=Math.min(1,t/1.5),k=Math.min(2,Math.floor(t/.5)),q=(t-k*.5)/.5;if(t<1.5){y+=Math.sin(Math.PI*q)*.3;if(q<.15){sy=.9;sx=1.06}}
+        if(u.fx<=k&&q>.9){u.fx=k+1;xsdEmit('puff',feet(),6)}if(p>=1)u.anim=null}
+      else if(u.anim==='throw'){const p=Math.min(1,t/1.2);if(t<.4)sy=1+t/.4*.04;y+=t>.4&&t<.7?Math.sin((t-.4)/.3*Math.PI)*.12:0;
+        if(!u.fx&&t>.45){u.fx=1;const d=u.st.localToWorld(_sp.set(0,0,1)).sub(u.st.getWorldPosition(new THREE.Vector3())).setY(0).normalize();xsdEmit('ball',head(),1,d.clone())}
+        rz=t<.4?-t/.4*.12:-.12+Math.min(1,(t-.4)/.25)*.24-Math.max(0,t-.65)*.22;if(p>=1){u.anim=null;rz=0}}
+      else if(u.anim==='shiver'){const p=Math.min(1,t/1.1);rz=Math.sin(t*48)*.04;sx=1+Math.sin(t*48)*.012;if((u.fx++)%5===0&&t<1)xsdEmit('snow',head(),1);if(p>=1)u.anim=null}}
+    else if(now>u.next){if(u.next){const M=u.moves;u.mi=((u.mi==null?-1:u.mi)+1+((Math.random()*(M.length-1))|0))%M.length;xsdDo(g,M[u.mi])}u.next=now+6000+Math.random()*4000}
     u.st.position.y=y;u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_sw);_st.set(camera.position.x,_sw.y,camera.position.z);u.st.lookAt(_st);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)});
-  XSDP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}if(p.kind!=='heart')p.v.y-=4.5*dt;p.sp.position.addScaledVector(p.v,dt);
-    const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4))})}
+  XSDP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}
+    if(p.kind==='snow'){p.v.y-=.5*dt;p.v.x+=Math.sin(p.life*3)*dt*.6;p.sp.material.rotation+=dt}else if(p.kind==='puff')p.v.multiplyScalar(1-dt*2.5);else if(p.kind!=='heart')p.v.y-=(p.kind==='ball'?7:4.5)*dt;
+    p.sp.position.addScaledVector(p.v,dt);const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);
+    if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4));else if(p.kind==='puff')p.sp.scale.setScalar(p.s*(1+(1-k)*1.6))})}
 function xmasPondFolk(){const P=PONDS[1];   /* 第二個湖的這一側：離所有小屋位置 3.5 以上、離小路和畫架都遠 */
-  [['xmas-queen.webp?v=20261025a',428/600,2.5,'粉雪女王',['聖誕快樂！湖水都結成粉紅色的冰了','要不要一起來許個願？','今年的作品也好漂亮喔'],'#f2a3b8',1.05],
-  ].forEach(([u,ar,H,n,say,rim,a])=>{
-    const r=P.r+1.5,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,g=xsdMake(u,ar,H,n,say,rim);g.position.set(x,heightAt(x,z),z);scene.add(g)});
+  [['xmas-queen.webp?v=20261025a',428/600,2.5,'粉雪女王',['聖誕快樂！湖水都結成粉紅色的冰了','要不要一起來許個願？','今年的作品也好漂亮喔'],'#f2a3b8',1.05,{tip:[.07,.48],moves:['wand','twirl','love'],hopFx:'snow'}],
+  ].forEach(([u,ar,H,n,say,rim,a,o])=>{
+    const r=P.r+1.5,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,g=xsdMake(u,ar,H,n,say,rim,o);g.position.set(x,heightAt(x,z),z);scene.add(g)});
   /* 2026-10-25 大熊：兩個不要放一起，雪怪放到水邊附近的樹下 → 找離湖最近、旁邊沒有小屋的那棵樹，站在樹和湖之間 */
   const ok=(x,z)=>!inPond(x,z,.4)&&pathDist(x,z)>.9&&usedSpots().every(h=>Math.hypot(h.x-x,h.z-z)>2.4)&&ESPOTS.every(([ex,ez])=>Math.hypot(ex-x,ez-z)>2)&&XSD.every(o=>Math.hypot(o.position.x-x,o.position.z-z)>6);
   let best=null;TREEPOS.forEach(t=>PONDS.forEach(p=>{const d=Math.hypot(t.x-p.x,t.z-p.z)-p.r;if(d<1||d>5)return;const ux=(p.x-t.x)/(d+p.r),uz=(p.z-t.z)/(d+p.r);
     for(const k of [1.75,1.55,1.95]){   /* 站在樹冠邊緣（太靠樹幹會被松樹的枝葉擋住） */const x=t.x+ux*k,z=t.z+uz*k;if(ok(x,z)&&(!best||d<best.d)){best={x,z,d};break}}}));
-  if(best){const g=xsdMake('xmas-yeti.webp?v=20261025a',352/600,2.5,'薄荷雪怪',['我一點都不可怕啦！','聖誕快樂～抱一個！','在樹下躲雪最舒服了'],'#8fd3b8');g.position.set(best.x,heightAt(best.x,best.z),best.z);scene.add(g)}}
+  if(best){const g=xsdMake('xmas-yeti.webp?v=20261025a',352/600,2.5,'薄荷雪怪',['我一點都不可怕啦！','聖誕快樂～抱一個！','在樹下躲雪最舒服了'],'#8fd3b8',{moves:['stomp','throw','shiver'],hopFx:'puff'});g.position.set(best.x,heightAt(best.x,best.z),best.z);scene.add(g)}}
 /* 2026-10-25 大熊：聖誕老公公要到處飛 → 作品小屋也有（模型照抄遊樂島 park.html 的 makeSanta）。
    跟著鏡頭：每一趟從畫面一邊飛到另一邊，飛 10 秒、休息 14～24 秒；點他說聖誕快樂。看小屋、開視窗的時候不飛 */
 const ASANTA={g:null,t:0,next:3,fly:false,dir:1,legs:[],stars:[],st:0};

@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025a';
+const PARK_VER='20261025b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1420,7 +1420,10 @@ function buildShop(P){
   /* 2026-10-08 店員站在店門口，頭上冒泡泡「來參觀選購！」；放在 S 底下，所以點她＝點店面＝進店 */
   /* 2026-10-24 大熊：聖誕期間店門口的人換成薑餅烘焙師（他設計的公仔正面，一樣高） */
   {const XB=XSC(),ch=1.65*397/300,cw=XB?ch*308/600:1.65,ct=new THREE.TextureLoader().load(XB?'xmas-baker.webp?v=20261024a':'shop-keeper-last.webp?v=20261007e');ct.anisotropy=4;const cx=1.85,cz=1.15;
-    const c=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshBasicMaterial({map:ct,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));c.position.set(cx,ch/2,cz);S.add(c);
+    /* 2026-10-25 大熊：每個人都至少要三種動作 → 聖誕期間烘焙師改成跟其他人一樣的立牌（會晃、丟薑餅、擠糖霜、冒愛心），點他跳一下再進選品館 */
+    if(XB){const bk=standeeMake('xmas-baker.webp?v=20261024a',308/600,2.15,[.86,.5],'#c99a66');bk.position.set(cx,0,cz);S.add(bk);GA.baker=bk;
+      Object.assign(bk.userData,{moves:['toss','shake','love'],hopFx:'cookie',tip2:[(.12-.5)*bk.userData.W,.16+(1-.62)*2.15],pal2:['#ffffff','#f7c6d4','#f2a3b8']})}
+    else{const c=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshBasicMaterial({map:ct,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));c.position.set(cx,ch/2,cz);S.add(c)}
     const cs=new THREE.Mesh(new THREE.CircleGeometry(1,20),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.16,depthWrite:false}));cs.rotation.x=-Math.PI/2;cs.scale.set(.5,.2,1);cs.position.set(cx,.04,cz+.05);S.add(cs);
     const cv=document.createElement('canvas');cv.width=480;cv.height=170;const x=cv.getContext('2d');
     x.fillStyle='#fffdf8';x.strokeStyle='#1e2b4f';x.lineWidth=7;rr(8,8,464,118,36,x);x.fill();x.stroke();
@@ -1883,7 +1886,9 @@ function buildPlaza(){
   GA.kb=makePicasso('p02');GA.kb.scale.setScalar(KS);GA.kb.userData.home=MACH.clone().add(new THREE.Vector3(0,2.85,1.95));
   GA.kb.position.copy(GA.kb.userData.home);GA.kb.rotation.x=KX;scene.add(GA.kb);
   if(XSC())xmasPlaza(P,W,GY+R);
-  if(XSC()){const ge=standeeMake('xmas-giftelf.webp?v=20261024a',341/600,2.3,[.78,.6],'#f2c14e');ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge}
+  if(XSC()){const ge=standeeMake('xmas-giftelf.webp?v=20261024a',341/600,2.3,[.78,.6],'#f2c14e');ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge;
+    Object.assign(ge.userData,{moves:['pop','love','wave'],pal:['#f2c14e','#f7d77a','#f2a3b8','#ffffff','#e8b94a'],i:-1,t:0});
+    const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=2.3+.4;bub.renderOrder=5;ge.add(bub);ge.userData.bub=bub}
   buildTrain();
   buildMarquee(g,GY+R+1.7);
   buildStand();buildBoard();buildBubbles();
@@ -1933,6 +1938,7 @@ function parkTap(e){
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
   if(!busy&&evTap(rc))return true;
   if(santaTap(rc))return true;   /* 聖誕老公公到處飛，哪座島都可以點他 */
+  if(bakerTap(rc))return true;
   if(GA.shop&&rc.intersectObject(GA.shop,true).length){if(!busy)openShop();return true}
   if(GA.board&&rc.intersectObject(GA.board,true).length){if(!busy)boardBig();return true}
   if(G.phase==='oct'&&giftTap(rc))return true;
@@ -2793,7 +2799,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025b',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025c',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2984,9 +2990,9 @@ function standeeMake(url,ar,H,tip,rim){const g=new THREE.Group(),W=H*ar;g.userDa
   const base=new THREE.Group();g.add(base);const R=Math.max(.62,W*.42);
   base.add(mesh(new THREE.CylinderGeometry(R,R+.06,.16,28),toon('#c99a66'),0,.08,0));base.add(mesh(new THREE.CylinderGeometry(R-.02,R-.02,.02,28),toon('#efe2c8'),0,.17,0));
   const rm=mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim||'#e9a3b4'),0,.16,0);rm.rotation.x=Math.PI/2;base.add(rm);
-  Object.assign(g.userData,{sp,st,H,W,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H]});return g}
+  Object.assign(g.userData,{sp,st,H,W,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],moves:['wave','love']});return g}
 const ELF_H=2.6;
-function elfMake(){const g=standeeMake('mascot-elf.webp?v=20261024c',358/600,ELF_H,[.96,.47],'#e9a3b4');g.userData.elf=1;
+function elfMake(){const g=standeeMake('mascot-elf.webp?v=20261024c',358/600,ELF_H,[.96,.47],'#e9a3b4');g.userData.elf=1;g.userData.moves=['wave','love','shake'];g.userData.pal2=ELF_PAINT;
   const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=ELF_H+.35;bub.renderOrder=5;g.add(bub);
   g.userData.bub=bub;g.userData.i=-1;g.userData.t=0;return g}
 const _ew=new THREE.Vector3(),_et=new THREE.Vector3(),_ep=new THREE.Vector3();
@@ -2999,14 +3005,18 @@ function elfDotTex(){if(_dotT)return _dotT;const c=document.createElement('canva
 function elfHeartTex(){if(_heartT)return _heartT;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#ff6f8f';x.strokeStyle='#ffffff';x.lineWidth=5;
   x.beginPath();x.moveTo(32,54);x.bezierCurveTo(4,34,8,8,32,20);x.bezierCurveTo(56,8,60,34,32,54);x.closePath();x.fill();x.stroke();return _heartT=new THREE.CanvasTexture(c)}
 const ELFP=[];
-function elfEmit(kind,at,n){for(let i=0;i<n;i++){let p=ELFP.find(q=>q.life<=0);
+let _cookieT;function elfCookieTex(){if(_cookieT)return _cookieT;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#b8743c';
+  x.beginPath();x.arc(32,16,11,0,7);x.fill();x.fillRect(22,24,20,22);x.lineCap='round';x.lineWidth=9;x.strokeStyle='#b8743c';[[24,30,10,40],[40,30,54,40],[26,44,20,58],[38,44,44,58]].forEach(([a,b,c2,d])=>{x.beginPath();x.moveTo(a,b);x.lineTo(c2,d);x.stroke()});
+  x.fillStyle='#fff';[[28,14],[36,14],[32,32],[32,39]].forEach(([a,b])=>{x.beginPath();x.arc(a,b,2.2,0,7);x.fill()});return _cookieT=new THREE.CanvasTexture(c)}
+/* kind：heart 愛心、cookie 薑餅、其他＝圓點（顏色用 pal） */
+function elfEmit(kind,at,n,pal){for(let i=0;i<n;i++){let p=ELFP.find(q=>q.life<=0);
     if(!p){if(ELFP.length>=40)break;p={sp:new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false})),v:new THREE.Vector3(),life:0};p.sp.renderOrder=4;scene.add(p.sp);ELFP.push(p)}
-    const m=p.sp.material,hv=kind==='heart';m.map=hv?elfHeartTex():elfDotTex();m.color.set(hv?'#ffffff':ELF_PAINT[(Math.random()*5)|0]);m.opacity=1;m.needsUpdate=true;
-    p.sp.position.copy(at);p.kind=kind;p.max=p.life=hv?1.6:1.1;const s=hv?.32+Math.random()*.12:.14+Math.random()*.12;p.s=s;p.sp.scale.setScalar(s);p.sp.visible=true;
-    if(hv)p.v.set((Math.random()-.5)*.6,1.1+Math.random()*.5,(Math.random()-.5)*.6);else p.v.set((Math.random()-.5)*2.4,1.2+Math.random()*1.8,(Math.random()-.5)*2.4)}}
+    const m=p.sp.material,hv=kind==='heart',ck=kind==='cookie',P=pal||ELF_PAINT;m.map=hv?elfHeartTex():ck?elfCookieTex():elfDotTex();m.color.set(hv||ck?'#ffffff':P[(Math.random()*P.length)|0]);m.opacity=1;m.rotation=0;m.needsUpdate=true;
+    p.sp.position.copy(at);p.kind=kind;p.max=p.life=hv?1.6:ck?1.4:1.1;const s=hv?.32+Math.random()*.12:ck?.36:kind==='sugar'?.07+Math.random()*.05:.14+Math.random()*.12;p.s=s;p.sp.scale.setScalar(s);p.sp.visible=true;
+    if(hv)p.v.set((Math.random()-.5)*.6,1.1+Math.random()*.5,(Math.random()-.5)*.6);else if(ck)p.v.set((Math.random()-.5)*2.2,2.6+Math.random()*1.2,(Math.random()-.5)*2.2);else p.v.set((Math.random()-.5)*2.4,1.2+Math.random()*1.8,(Math.random()-.5)*2.4)}}
 function elfParticles(dt){ELFP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}
-  if(p.kind!=='heart')p.v.y-=4.5*dt;p.sp.position.addScaledVector(p.v,dt);const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4))})}
-const sdTip=u=>u.st.localToWorld(_ep.set(u.tip[0],u.tip[1],.05)).clone(),sdHead=u=>u.st.localToWorld(_ep.set(0,u.H*.85,.1)).clone();
+  if(p.kind!=='heart')p.v.y-=4.5*dt;p.sp.position.addScaledVector(p.v,dt);if(p.kind==='cookie')p.sp.material.rotation+=dt*5;const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4))})}
+const sdTip=u=>u.st.localToWorld(_ep.set(u.tip[0],u.tip[1],.05)).clone(),sdTip2=u=>u.tip2?u.st.localToWorld(_ep.set(u.tip2[0],u.tip2[1],.05)).clone():sdTip(u),sdHead=u=>u.st.localToWorld(_ep.set(0,u.H*.85,.1)).clone();
 function sdDo(g,kind){if(!g)return;const u=g.userData;u.anim=kind;u.a0=performance.now();u.fx=0}
 const elfDo=kind=>sdDo(MI.elf,kind);
 /* 每一格：立牌轉向鏡頭、輕晃，播 hop（跳＋扭＋噴顏料＋愛心）／wave（左右搖＋噴顏料）／love（冒愛心）；idle＝可以自己動的時候，每 7～12 秒挑一個 */
@@ -3014,18 +3024,33 @@ function sdTick(g,now,idle){const u=g.userData;
   let y=Math.abs(Math.sin(now/520))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300)*.06;
   if(u.anim){const t=(now-u.a0)/1000;
     if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.75;spin+=Math.sin(q*Math.PI*2)*.5;/* 只扭一下，不整圈轉（背面是深色的疊層，轉過去不好看） */sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
-      if(!u.fx&&t>.25){u.fx=1;elfEmit('paint',sdTip(u),14);elfEmit('heart',sdHead(u),4)}if(p>=1)u.anim=null}
-    else if(u.anim==='wave'){const p=Math.min(1,t/1.4);rz=Math.sin(t*11)*.14*(1-p);if(t>.2&&t<1.1&&(u.fx++)%3===0)elfEmit('paint',sdTip(u),2);if(p>=1)u.anim=null}
+      if(!u.fx&&t>.25){u.fx=1;elfEmit(u.hopFx||'paint',sdTip(u),u.hopFx==='cookie'?4:14,u.pal);elfEmit('heart',sdHead(u),4)}if(p>=1)u.anim=null}
+    else if(u.anim==='wave'){const p=Math.min(1,t/1.4);rz=Math.sin(t*11)*.14*(1-p);if(t>.2&&t<1.1&&(u.fx++)%3===0)elfEmit('paint',sdTip(u),2,u.pal);if(p>=1)u.anim=null}
+    /* pop：先蹲一下再小跳，手上的東西（禮物盒）噴出一大把彩色紙花 */
+    else if(u.anim==='pop'){const p=Math.min(1,t/1.1);if(t<.25){sy=1-t/.25*.1;sx=1+t/.25*.06}else{const q=Math.min(1,(t-.25)/.5);y+=Math.sin(Math.PI*q)*.35}
+      if(!u.fx&&t>.3){u.fx=1;elfEmit('paint',sdTip(u),20,u.pal)}if(p>=1)u.anim=null}
+    /* toss：往後仰再往前，把薑餅一片片往外丟 */
+    else if(u.anim==='toss'){const p=Math.min(1,t/1.3);rz=t<.35?t/.35*.12:.12-Math.min(1,(t-.35)/.3)*.24+Math.max(0,t-.65)*.18;if(p>=1)rz=0;
+      if(t>.42&&u.fx<3&&t>.42+u.fx*.18){u.fx++;elfEmit('cookie',sdTip(u),1)}if(p>=1)u.anim=null}
+    /* shake：快速抖動（擠糖霜／發抖），另一隻手的位置一直灑白白的小點 */
+    else if(u.anim==='shake'){const p=Math.min(1,t/1);rz=Math.sin(t*42)*.045*(1-p*.5);if((u.fx++)%2===0&&t<.9)elfEmit('sugar',sdTip2(u),1,u.pal2||['#ffffff','#f7c6d4']);if(p>=1)u.anim=null}
     else if(u.anim==='love'){if(!u.fx){u.fx=1;elfEmit('heart',sdHead(u),5)}y+=Math.abs(Math.sin(t*9))*.12*Math.max(0,1-t);if(t>1)u.anim=null}}
-  else if(idle&&now>(u.next||0)){if(u.next)sdDo(g,Math.random()<.6?'wave':'love');u.next=now+7000+Math.random()*5000}
+  else if(idle&&now>(u.next||0)){if(u.next){const M=u.moves;u.mi=((u.mi==null?-1:u.mi)+1+((Math.random()*(M.length-1))|0))%M.length;sdDo(g,M[u.mi])}u.next=now+6000+Math.random()*4000}
   u.st.position.y=y;u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_ew);_et.set(camera.position.x,_ew.y,camera.position.z);u.st.lookAt(_et);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)}
 function elfTick(now){const dt=Math.min(.05,(now-(elfTick.last||now))/1000);elfTick.last=now;
   const e=MI.elf;if(e&&MI.g&&MI.g.visible){const u=e.userData;sdTick(e,now,MI.state==='on');
     if(now-u.t>6000||u.i<0){u.t=now;const L=ELF_SAY();u.i=(u.i+1)%L.length;const b=elfBubble(L[u.i]);if(u.bub.material.map)u.bub.material.map.dispose();u.bub.material.map=b.tx;u.bub.material.needsUpdate=true;const bh=.72;u.bub.scale.set(bh*b.a,bh,1)}
     u.bub.visible=MI.state==='on'}
-  const ge=GA.giftElf;if(ge&&ge.visible)sdTick(ge,now,G&&G.phase==='oct'&&!busy);
+  const onPlaza=G&&G.phase==='oct'&&!busy&&MI.state==='off';
+  const ge=GA.giftElf;if(ge&&ge.visible){sdTick(ge,now,onPlaza);const u=ge.userData;
+    if(now-u.t>6500||u.i<0){u.t=now;const L=GIFT_SAY();u.i=(u.i+1)%L.length;const b=elfBubble(L[u.i]);if(u.bub.material.map)u.bub.material.map.dispose();u.bub.material.map=b.tx;u.bub.material.needsUpdate=true;u.bub.scale.set(.66*b.a,.66,1)}
+    u.bub.visible=onPlaza}
+  if(GA.baker)sdTick(GA.baker,now,onPlaza);
   elfParticles(dt)}
 /* 2026-10-24 大熊：扭蛋機前面多一個禮物精靈（聖誕期間）。點她跳一下＋冒愛心，說一句話 */
+const GIFT_SAY=()=>['聖誕快樂！🎁','轉一下扭蛋看看！','禮物準備好了喔','今天也要開心～'];
+/* 點烘焙師：跳一下丟薑餅，跳完才進選品館 */
+function bakerTap(rc){const b=GA.baker;if(!b||!rc.intersectObject(b.userData.sp,false).length)return false;if(busy)return true;sfx('tap');if(b.userData.anim!=='hop'){sdDo(b,'hop');b.userData.next=performance.now()+9000;setTimeout(openShop,750)}return true}
 function giftTap(rc){const e=GA.giftElf;if(!e||!e.visible||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
   if(e.userData.anim!=='hop'){sdDo(e,'hop');e.userData.next=performance.now()+9000;toast('聖誕快樂！轉一下扭蛋，看看有什麼驚喜 🎁')}return true}
 function elfTap(rc){const e=MI.elf;if(!e||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
