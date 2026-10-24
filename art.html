@@ -48,6 +48,7 @@
 .gplove{margin:0 0 6px!important; font-size:14px; color:#e0607a!important}
 .gplove small{color:var(--ink2); font-size:12px}
 </style></head><body>
+<script src="guest.js?v=20261024c"></script>
 <title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1373,7 +1374,7 @@ function houseWall(m){
 function openAlbum(){
   focusOn(bigTree,11,4.2);const list=G.album;
   modal(`<h2>大樹相簿</h2><div class="meta">上課的點點滴滴・老師上傳</div><div class="wall">${list.length?'':'<div class="empty">老師還沒放上課照片</div>'}${groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join('')}</div>
-    <div class="acts"><button class="pill main" type="button" id="alShare">複製分享連結</button>${ME.staff||DEMO?'<button class="pill" type="button" id="alUp">老師上傳</button>':''}<button class="pill" type="button" id="alX">關閉</button></div>`);
+    <div class="acts"><button class="pill main" type="button" id="alShare">複製分享連結</button>${ME.staff||(DEMO&&!window.GUEST)?'<button class="pill" type="button" id="alUp">老師上傳</button>':''}<button class="pill" type="button" id="alX">關閉</button></div>`);
   $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,w=>w.title||'上課花絮',ME.staff&&!DEMO?{album:true}:null));
   $('alX').onclick=()=>{closeModal();focus=null};if($('alUp'))$('alUp').onclick=()=>uploadTo('album');
   $('alShare').onclick=async()=>{const link=location.href.split('#')[0]+'#album';try{await navigator.clipboard.writeText(link);toast('連結複製好了，可以貼到 LINE')}catch(e){toast('這個瀏覽器不讓我複製，請長按網址列分享')}};
@@ -1664,7 +1665,7 @@ function demoData(){const r=rng(3);return{members:NAMES.map((n,i)=>{const k=Math
   album:SNAPS.map((t,i)=>({seed:900+i,title:t,date:`2026/${String(1+Math.floor(i/3)+6).padStart(2,'0')}`})),me:null}}
 let G;
 /* 正式版：小屋和作品都放在 otto2-notify（大家看到同一座島）。網址加 ?demo=1 才是只存在這支手機的示範版 */
-const DEMO=/[?&]demo=1/.test(location.search),NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
+const DEMO=/[?&]demo=1/.test(location.search)||!!window.GUEST,NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
 let ME={ok:false,staff:false,house:null,hasPhone:false,suggest:''};
 function ssTok(){try{return sessionStorage.getItem('otto2-liff-tk')||''}catch(e){return ''}}
 function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t=liff.getAccessToken();if(t)return t}}catch(e){}return ssTok()}
@@ -1678,10 +1679,11 @@ async function whoAmI(){
   try{if(!ssTok()&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),sleep(4000)])}}catch(e){}
   if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品小屋，才能搬家、上傳'};return}
   try{const j=await api('/island/me');ME=Object.assign({ok:true},j);if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
-function save(){if(!DEMO)return;try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
+function save(){if(!DEMO||window.GUEST)return;try{localStorage.setItem('otto2-island-v5',JSON.stringify(G))}catch(e){toast('手機空間不夠，示範版存不下更多照片')}}
 async function start(data){
   G=null;
-  if(DEMO){G=data&&data.members&&data.album?data:null;
+  if(window.GUEST){G=demoData();ME={ok:false,staff:false,err:'體驗版'}} /* 訪客體驗版：示範小屋（假名字、程式畫的作品），不連伺服器 */
+  else if(DEMO){G=data&&data.members&&data.album?data:null;
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
@@ -1695,7 +1697,7 @@ async function start(data){
   if(location.hash==='#album')setTimeout(openAlbum,800);
   window.claude?.hot?.snapshot?.(()=>G);
 }
-$('myBtn').onclick=()=>{const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
+$('myBtn').onclick=()=>{if(window.GUEST){GuestCTA('house');return}const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
 /* 2026-10-24 作品小屋背景音樂〈畫室午後〉：跟遊樂島共用靜音設定（otto2-park-mute），第一次點畫面才會出聲（iPhone 規定） */
@@ -1708,7 +1710,7 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
   const b=document.getElementById('bgmBtn'),look=()=>{if(b){b.innerHTML=on?ON:OFF;b.setAttribute('aria-label',on?'關掉音樂':'打開音樂')}};
   if(b)b.onclick=()=>{on=!on;try{localStorage.setItem('otto2-park-mute',on?'0':'1')}catch(e){}look()};look();
   setInterval(()=>OttoBGM.update('art',on&&!!ctx,false),250)})();
-$('findBtn').onclick=findHouse;$('upBtn').onclick=upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
+$('findBtn').onclick=findHouse;$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
 $('plMascot').onclick=()=>{const u='park.html?v=20261013c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */

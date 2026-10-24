@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <title>世界藝術日・畢卡索扭扭樂</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<script src="guest.js?v=20261024c"></script>
 <script>(function(){var ok=false;try{var c=document.createElement("canvas");ok=!!(c.getContext("webgl")||c.getContext("experimental-webgl"))}catch(e){}if(!ok)location.replace("index.html?go=gacha2d");window.addEventListener("error",function(){if(!window.__parkReady&&!window.__fb){window.__fb=1;location.replace("index.html?go=gacha2d")}});
   setTimeout(function(){if(window.__parkReady)return;var l=document.getElementById("loading");if(!l)return;l.hidden=false;var b="font:inherit;font-size:15px;margin:10px 6px 0;padding:8px 14px;border-radius:12px;border:2px solid #333;background:#fff;color:#333";
     l.innerHTML='載入比較久…<br><button style="'+b+'" onclick="location.reload()">重新載入</button><button style="'+b+'" onclick="location.replace(\'index.html?go=gacha2d\')">改用簡易版</button>'},12000)})()</script>
@@ -769,7 +770,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024b';
+const PARK_VER='20261024c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1235,7 +1236,7 @@ function gToday(){return (ST&&ST.today)||new Date(Date.now()+8*3600e3).toISOStri
 function gDay(){const s=gState();return{spins:s.chances.used||0,quiz:s.quiz&&s.quiz.answered?{ok:!!s.quiz.ok}:null,mem:!!(s.memory&&s.memory.done)}}
 function gpLoad(){const s=gState();return{have:(s.bears&&s.bears.have)||{},dupes:(s.bears&&s.bears.dupes)||0}}
 function gpFresh(){return{}}function gpSave(){}
-function gClosedMsg(){const s=gState();if(!ST&&gErrMsg)return gErrMsg;if(s.status==='loading')return '連線中…';return s.status==='soon'?`活動 ${+s.start.slice(5,7)}/${+s.start.slice(8)} 才開始，先逛逛島吧！`:s.status==='ended'?'活動已經結束囉，謝謝你的參與':'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次'}
+function gClosedMsg(){const s=gState();if(window.GUEST&&s.status==='on')return '體驗版今天的 3 次轉完了，加入 LINE 天天都能轉';if(!ST&&gErrMsg)return gErrMsg;if(s.status==='loading')return '連線中…';return s.status==='soon'?`活動 ${+s.start.slice(5,7)}/${+s.start.slice(8)} 才開始，先逛逛島吧！`:s.status==='ended'?'活動已經結束囉，謝謝你的參與':'今天的機會用完囉：答問答、線上預約、來上課都能多轉一次'}
 async function gSpin(){try{const j=await gcall('/gacha/spin');ST=j.state;return j}catch(e){if(e.code==='NEED_PHONE')setTimeout(()=>Gacha.open(),300);if(e.code==='NO_CHANCE'||e.code==='SOON'||e.code==='ENDED')gRefresh();return{ok:false,error:e.message}}}
 async function gQuiz(b){const j=await gcall('/gacha/quiz',b);ST=j.state;return j}
 let _gNeed=false;
@@ -1244,7 +1245,7 @@ async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(
   gPaint()
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
 window.onGachaClose=()=>{gRefresh();if(G&&G.phase!=='oct'&&!XS)xmasPull()};
-function setStep(){location.href=BOOK_URL}
+function setStep(){location.href=window.GUEST?'https://liff.line.me/2010906803-FMDYktUN?go=book':BOOK_URL} /* 訪客沒登入，改開 LINE 裡的預約頁 */
 /* 島還沒蓋好時資料先回來，就等島蓋好再重畫一次（不然會一直停在「連線中…」） */
 function gPaint(n){n=n||0;if(typeof hud==='function'&&typeof GA!=='undefined'&&GA.bubs){try{renderFigs();showBubbles();hud()}catch(e){}
   /* 先偷偷做一顆扭蛋讓手機把材質準備好，第一次轉的時候才不會頓一下 */
@@ -3318,7 +3319,7 @@ function hud(){
   $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`;
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
-  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
+  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`${window.GUEST?'體驗版・':''}今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`測試模式・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   if(oct){const t=$('left').textContent.replace(/^🔧\s*/,'');$('spin').dataset.sub=t===$('spin').textContent||(window.PROD&&!ST)?'':t}
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
@@ -3943,6 +3944,7 @@ $('roll').addEventListener('click',doRoll);
 $('skipOpen').addEventListener('click',()=>{FAST=true;$('skipOpen').hidden=true;tweens.forEach(w=>w.d=1)});
 $('zmBack').addEventListener('click',zmReset);
 $('spin').addEventListener('click',spin);
+if(window.GUEST){const b=$('gpanel');if(b)b.innerHTML='玩完整版<small>加 LINE・預約體驗課</small>'}
 $('muteBtn').addEventListener('click',toggleMute);muteLook();
 $('tourBtn').addEventListener('click',()=>setTimeout(startTour,250));
 setTimeout(maybeTour,1800);
@@ -4878,6 +4880,10 @@ function showModal(p){
     : '你目前有：紅利 <b>' + me.bonus + '</b> 點') +
     (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
   if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
+  if (window.GUEST) { /* 訪客體驗版：講清楚不入帳，引導加 LINE */
+    $("gcMP").innerHTML = none ? "這次沒中，再轉一次試試 🍀" : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b>（體驗版，不會入帳）<br>加入 OTTO2 的 LINE，就能每天轉、真的拿紅利';
+    if ($("gcMBook")) $("gcMBook").textContent = "📅 預約體驗課";
+    $("gcMBal").innerHTML = '<div class="next">體驗版今天還可以轉 ' + Math.max(0, spun.state.chances.total - spun.state.chances.used) + ' 次</div>'; }
   var bb = spun.bear;
   $("gcMBear").onclick = bb ? function(){ zoomBear(bb.id) } : null;
   $("gcMBear").innerHTML = bb ? '<div class="gc-mbear" data-id="' + esc(bb.id) + '">' + bearSvg(bb.id) + '<div>還扭到了 <b>' + esc(bb.nm) + '</b>' +
@@ -4960,6 +4966,7 @@ function confetti(big){
   clearTimeout(confetti._t); confetti._t = setTimeout(function(){ c.innerHTML = "" }, 5600);
 }
 
+if (window.GUEST) open = function(){ if (window.GuestCTA) GuestCTA('end') }; /* 訪客沒有「我的資產」 */
 window.Gacha = { result: function(j){ ensureUI(); spun = j; st = j.state; busy = true; showModal(j.prize) }, open: open, close: close, zoom: function(id, state, fb){ ensureUI(); if (state) st = state; zoomBear(id, fb) },  /* ensureUI：還沒開過扭蛋面板時樣式還沒載入，小卡會跑到畫面外看不到 */
   memory: function(state){ ensureUI(); if (state) st = state; memoryGame() } };
 })();
