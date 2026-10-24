@@ -16,7 +16,8 @@ var BEARS=[{id:'p01',nm:'經典條紋'},{id:'p02',nm:'和平鴿'},{id:'p06',nm:'
 /* 跟新朋友的獎池同一組機率（不入帳） */
 var PRIZES=[{id:'n1',ic:'✨',nm:'紅利 1 點',type:'bonus',v:1,w:600},{id:'n2',ic:'🌟',nm:'紅利 2 點',type:'bonus',v:2,w:110},{id:'n3',ic:'💫',nm:'紅利 3 點',type:'bonus',v:3,w:50},
   {id:'c50',ic:'🎟️',nm:'下次上課折抵 $50',type:'ticket',w:15},{id:'c100',ic:'🎟️',nm:'下次上課折抵 $100',type:'ticket',w:5},{id:'none',ic:'🍀',nm:'明天再來',type:'none',w:220}];
-var G_START='2026-10-01',G_END='2026-10-31',X_START='2026-10-16',X_END='2026-12-25';
+var XM=new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01'; /* 11/1 起跟正式版一樣換聖誕扭扭樂、先不送公仔 */
+var G_START=XM?'2026-11-01':'2026-10-01',G_END=XM?'2026-12-25':'2026-10-31',X_START='2026-10-16',X_END='2026-12-25',G_TITLE=XM?'聖誕扭扭樂':'世界藝術日・畢卡索扭扭樂';
 function today(){return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)}
 function pick(a){var t=0,i;for(i=0;i<a.length;i++)t+=a[i].w||1;var r=Math.random()*t;for(i=0;i<a.length;i++){if((r-=a[i].w||1)<0)return a[i]}return a[a.length-1]}
 function load(){var L=null;try{L=JSON.parse(localStorage.getItem('otto2-guest-g'))}catch(e){}L=L||{};L.bears=L.bears||{};L.dupes=L.dupes||0;L.bonus=L.bonus||0;L.days=L.days||[];
@@ -24,26 +25,26 @@ function load(){var L=null;try{L=JSON.parse(localStorage.getItem('otto2-guest-g'
 function save(L){try{localStorage.setItem('otto2-guest-g',JSON.stringify(L))}catch(e){}}
 function status(t,s,e){return t<s?'soon':t>e?'ended':'on'}
 function state(L){var t=today(),r=[];for(var i=0;i<SPINS;i++)r.push({why:'guest',label:'體驗版'});
-  return{ok:true,title:'世界藝術日・畢卡索扭扭樂',start:G_START,end:G_END,today:t,expiry:'',sim:false,guest:true,cap:30,status:status(t,G_START,G_END),
+  return{ok:true,title:G_TITLE,start:G_START,end:G_END,today:t,expiry:'',sim:false,guest:true,cap:30,status:status(t,G_START,G_END),
     me:{name:'訪客',phone:'',member:false,points:0,sessions:0,bonus:L.bonus,gotBonus:L.bonus,lottery:0,tickets:[]},
     chances:{total:SPINS,used:Math.min(SPINS,L.used),reasons:r},days:L.days,milestones:[],
     prizes:PRIZES.map(function(p){return{id:p.id,ic:p.ic,nm:p.nm,sub:'',who:'new',type:p.type,left:null}}),
     ticker:[],doubleToday:false,doubleLabel:'',halloween:false,quiz:null,memory:null,
-    bears:{list:BEARS.map(function(b){return{id:b.id,nm:b.nm,rare:!!b.rare,hidden:false}}),title:'畢卡索圖鑑',unit:'畢卡索公仔',img:'gacha/picasso2/',
+    bears:XM?null:{list:BEARS.map(function(b){return{id:b.id,nm:b.nm,rare:!!b.rare,hidden:false}}),title:'畢卡索圖鑑',unit:'畢卡索公仔',img:'gacha/picasso2/',
       have:L.bears,dupes:L.dupes,done:false,reward:'',limit:0,left:null},
     bonusToday:0,maxDaily:5,bonusDaily:1}}
 function spin(){var L=load(),t=today();
   if(status(t,G_START,G_END)!=='on')return{ok:false,code:'ENDED',error:'扭蛋活動已經結束囉，先去走格子島逛逛吧'};
   if(L.used>=SPINS){setTimeout(function(){cta('spins')},300);return{ok:false,code:'NO_CHANCE',error:'體驗版今天的 3 次轉完了'}}
-  var hit=pick(PRIZES),b=pick(BEARS),isNew=!(L.bears[b.id]>0);
-  L.used++;L.bears[b.id]=(L.bears[b.id]||0)+1;if(!isNew)L.dupes++;if(hit.type==='bonus')L.bonus+=hit.v;if(L.days.indexOf(t)<0)L.days.push(t);save(L);
+  var hit=pick(PRIZES),b=XM?null:pick(BEARS),isNew=b?!(L.bears[b.id]>0):false;
+  L.used++;if(b){L.bears[b.id]=(L.bears[b.id]||0)+1;if(!isNew)L.dupes++}if(hit.type==='bonus')L.bonus+=hit.v;if(L.days.indexOf(t)<0)L.days.push(t);save(L);
   var owned=BEARS.filter(function(x){return L.bears[x.id]>0}).length;
   if(L.used>=SPINS)ctaSoon('spins');
   return{ok:true,prize:{id:hit.id,ic:hit.ic,nm:hit.nm,sub:'',type:hit.type,v:hit.v||0},milestone:null,
-    bear:{id:b.id,nm:b.nm,rare:!!b.rare,hidden:false,isNew:isNew,count:owned,total:BEARS.length},collect:null,sure:false,why:'guest',sim:false,state:state(L)}}
+    bear:b?{id:b.id,nm:b.nm,rare:!!b.rare,hidden:false,isNew:isNew,count:owned,total:BEARS.length}:null,collect:null,sure:false,why:'guest',sim:false,state:state(L)}}
 var NO={ok:false,code:'GUEST',error:'體驗版不能用這個功能，加入 OTTO2 的 LINE 就能玩完整版'};
 function api(path){
-  if(path==='/gacha/info'){var t=today();return{ok:true,today:t,start:G_START,end:G_END,title:'世界藝術日・畢卡索扭扭樂',status:status(t,G_START,G_END),bears:BEARS.length,img:'gacha/picasso2/'}}
+  if(path==='/gacha/info'){var t=today();return{ok:true,today:t,start:G_START,end:G_END,title:G_TITLE,status:status(t,G_START,G_END),bears:BEARS.length,img:'gacha/picasso2/'}}
   if(path==='/gacha/state')return state(load());
   if(path==='/gacha/spin')return spin();
   if(path==='/xmas/info'){var x=today();return{ok:true,today:x,start:X_START,end:X_END,status:status(x,X_START,X_END),tiles:[34,16]}}

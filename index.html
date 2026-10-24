@@ -324,7 +324,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.68</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.69</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1332,7 +1332,7 @@ function priceChip(g){
 function hmGameCard(){
   const d=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Taipei"});
   if(d<="2026-10-31")return{t:"世界藝術日・畢卡索扭扭樂",s:"每天轉一次，紅利、畢卡索公仔等你拿"};
-  if(d<="2026-12-25")return{t:"聖誕走格子",s:"每天擲一次骰子，收集吊飾、一起點亮聖誕樹"};
+  if(d<="2026-12-25")return{t:"聖誕走格子・聖誕扭扭樂",s:"每天擲骰子、轉扭蛋，一起點亮聖誕樹"};
   return{t:"Otto2 遊樂島",s:"逛逛大家的作品小屋和吉祥物島"};
 }
 function renderHome(){

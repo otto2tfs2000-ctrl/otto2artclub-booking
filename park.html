@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>世界藝術日・畢卡索扭扭樂</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<script src="guest.js?v=20261024c"></script>
+<script src="guest.js?v=20261024j"></script>
 <script>(function(){var ok=false;try{var c=document.createElement("canvas");ok=!!(c.getContext("webgl")||c.getContext("experimental-webgl"))}catch(e){}if(!ok)location.replace("index.html?go=gacha2d");window.addEventListener("error",function(){if(!window.__parkReady&&!window.__fb){window.__fb=1;location.replace("index.html?go=gacha2d")}});
   setTimeout(function(){if(window.__parkReady)return;var l=document.getElementById("loading");if(!l)return;l.hidden=false;var b="font:inherit;font-size:15px;margin:10px 6px 0;padding:8px 14px;border-radius:12px;border:2px solid #333;background:#fff;color:#333";
     l.innerHTML='載入比較久…<br><button style="'+b+'" onclick="location.reload()">重新載入</button><button style="'+b+'" onclick="location.replace(\'index.html?go=gacha2d\')">改用簡易版</button>'},12000)})()</script>
@@ -770,7 +770,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261024i';
+const PARK_VER='20261024j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1167,6 +1167,9 @@ function updateLot(i){
 }
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
+/* 2026-10-24 大熊：畢卡索扭扭樂到 10/31，11/1 起扭蛋改「聖誕扭扭樂」（伺服器同一天自動換設定；聖誕公仔圖還沒來，先不顯示圖鑑） */
+const XMG=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01';
+if(XMG()){document.title='聖誕扭扭樂・OTTO2 遊樂島';document.addEventListener('DOMContentLoaded',()=>{const b=document.querySelector('.octinfo b');if(b)b.textContent='OTTO2 遊樂島・聖誕月'})}
 window.PROD=true;document.addEventListener('selectstart',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});document.addEventListener('contextmenu',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
 /* 店內體驗平板：park.html?kiosk=1 開一次就記住（?kiosk=0 取消）。不用 LINE 登入，伺服器用 "kiosk" 身分走示範模式：可以一直轉、什麼都不入帳 */
 try{if(/[?&]kiosk=1/.test(location.search))localStorage.setItem('otto2-kiosk','1');if(/[?&]kiosk=0/.test(location.search)){localStorage.removeItem('otto2-kiosk');if(sessionStorage.getItem('otto2-liff-tk')==='kiosk')sessionStorage.removeItem('otto2-liff-tk')}
@@ -1960,7 +1963,7 @@ async function spin(){
   // 小畢卡索從方向盤上輕輕跳下來，走到扭蛋上面抱住
   const top=HOLD.clone().add(new THREE.Vector3(0,.78,-.18)),from=kb.position.clone();kb.scale.setScalar(KS);
   await tween(550,p=>{const e=easeIO(p);kb.position.lerpVectors(from,top,e);kb.position.y+=Math.sin(p*Math.PI)*.6;kb.rotation.set(KX*(1-e)+.35*e,0,0)});
-  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent='畢卡索拿到扭蛋了！點一下打開 👆';
+  GA.capReady=true;const t=$('tapme');t.hidden=false;t.textContent=XMG()?'拿到扭蛋了！點一下打開 👆':'畢卡索拿到扭蛋了！點一下打開 👆';
   setTimeout(()=>{if(GA.capReady)openCapsule()},250);
 }
 async function openCapsule(){
@@ -1986,7 +1989,7 @@ function onGachaState(){hud()}
 function gateLook(open,instant){GA.bar.rotation.z=open?Math.PI*.48:0;GA.lk.visible=!open;
   if(GA.gimg){const m=GA.gimg.material;m.color.set('#ffffff');if(GA.gGray&&GA.gColor){m.map=open?GA.gColor:GA.gGray;m.needsUpdate=true}}GA.gsign.visible=!open;
   if(!open){GA.gsign.material.map=labelTex(xStart()+' 開放','聖誕走格子','#2f6b4f','#fff6d6',512,160);GA.gsign.material.needsUpdate=true}}
-function signLook(oct){drawSign(oct?'世界藝術日':'十月活動結束・明年見','畢卡索扭扭樂')}
+function signLook(oct){if(XMG())drawSign('聖誕節','聖誕扭扭樂');else drawSign(oct?'世界藝術日':'十月活動結束・明年見','畢卡索扭扭樂')}
 /* 2026-10-07 聖誕走格子提早到 10/16 開放：廣場是主畫面，走進路口或點下面「走格子島」，小黑熊跳過去；點「扭蛋島」跳回來 */
 let XINFO=null,XWALKED=false,HOPPING=false;
 const xmd=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:'';
@@ -2419,9 +2422,9 @@ function toggleMute(){SFX.on=!SFX.on;if(!SFX.on)try{voiceStop()}catch(e){}try{lo
 /* ---------- 第一次打開：鏡頭帶著走一圈 ---------- */
 function tourSteps(){const b=GA.bubs.map(x=>x.userData.base).reduce((a,v)=>a.add(v),new THREE.Vector3()).multiplyScalar(1/GA.bubs.length),bd=PLAZA.clone().add(ZONE.board);
   return[{at:b.clone(),pos:b.clone().add(new THREE.Vector3(0,2.2,10)),t:'每天都能多轉幾次',d:'答對藝術問答、翻牌過關、線上預約或來上課，都會多送一次扭蛋。等一下看「轉一下」上面那一排，做完會打勾。'},
-    {at:MACH.clone().add(new THREE.Vector3(0,3.4,0)),pos:MACH.clone().add(new THREE.Vector3(.4,4.6,15)),t:'畢卡索扭扭樂',d:'點扭蛋機的 OTTO2 方向盤就能轉。每天一次；答對問答、來上課、線上預約，各多一次。'},
+    {at:MACH.clone().add(new THREE.Vector3(0,3.4,0)),pos:MACH.clone().add(new THREE.Vector3(.4,4.6,15)),t:XMG()?'聖誕扭扭樂':'畢卡索扭扭樂',d:'點扭蛋機的 OTTO2 方向盤就能轉。每天一次；答對問答、來上課、線上預約，各多一次。'},
     {at:PLAZA.clone().add(new THREE.Vector3(1.2,1,1.8)),pos:PLAZA.clone().add(new THREE.Vector3(1.2,3.6,11)),t:'收集畢卡索公仔',d:'每轉一次就多一隻畢卡索公仔，牠們會住在島上散步、去畫架畫畫。點公仔可以放大看。'},
-    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「我的資產」。'}]}
+    {at:MACH.clone().add(new THREE.Vector3(.3,3.2,3.4)),pos:MACH.clone().add(new THREE.Vector3(.3,9.5,30)),t:'開始玩吧！',d:'紅利、圖鑑、獎品和活動規則，都在最下面「我的資產」。'}].filter(x=>!(XMG()&&x.t==='收集畢卡索公仔'))}
 async function startTour(){if(busy||G.phase!=='oct')return;G.pops={day:gToday(),ids:[]};save();showBubbles();const S=tourSteps(),el=document.getElementById('tour');busy=true;hud();document.body.classList.add('touring');
   for(let i=0;i<S.length;i++){GA.tour=S[i];parkCam='tour';
     const go=await new Promise(res=>{el.innerHTML=`<div class="tdots">${S.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><h3>${esc(S[i].t)}</h3><p>${esc(S[i].d)}</p><div class="acts"><button type="button" class="btn ghost" data-v="0">略過</button><button type="button" class="btn" data-v="1">${i<S.length-1?'下一步':'開始玩'}</button></div>`;
@@ -3317,7 +3320,8 @@ function hud(){
   $('ph0').disabled=$('ph1').disabled=busy;if(snow)snow.visible=!oct&&!SKYHOLD;playerStripes();skyApply(oct);if(window.PROD&&ST&&ST.sim&&!window.KIOSK){document.documentElement.classList.add('demoq');try{sessionStorage.setItem('otto2-park-staff','1')}catch(e){}}if(window.PROD&&document.documentElement.classList.contains('demoq'))G.test=true;document.body.classList.toggle('busy',!!busy);if(oct&&GA.bcv)drawBoard();
   const L=G.lv[G.cur];
   $('gifts').textContent=G.gifts;placesUI();
-  $('ohT').textContent=oct?'畢卡索扭扭樂':'聖誕走格子';$('ohS').textContent=oct?'點一下，轉出你的藝術驚喜。':(G.test?(window.GUEST?'11–12 月・體驗版':'11–12 月・測試模式'):xStart()+'–12/25・每天擲一次骰子');
+  {const k=$('ohK');if(k&&k.firstChild&&k.firstChild.nodeType===3)k.firstChild.nodeValue=oct&&!XMG()?'世界藝術日':'聖誕節'}
+  $('ohT').textContent=oct?(XMG()?'聖誕扭扭樂':'畢卡索扭扭樂'):'聖誕走格子';$('ohS').textContent=oct?(XMG()?'點一下，轉出你的聖誕驚喜。':'點一下，轉出你的藝術驚喜。'):(G.test?(window.GUEST?'11–12 月・體驗版':'11–12 月・測試模式'):xStart()+'–12/25・每天擲一次骰子');
   $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`;
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
