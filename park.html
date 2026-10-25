@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025f';
+const PARK_VER='20261025g';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -4249,6 +4249,29 @@ if(window.GUEST){const b=$('gpanel');if(b)b.innerHTML='玩完整版<small>先預
 $('muteBtn').addEventListener('click',toggleMute);muteLook();
 $('tourBtn').addEventListener('click',()=>setTimeout(startTour,250));
 setTimeout(maybeTour,1800);
+/* 2026-10-25 大熊要：每天第一次進走格子島，跳一個角色小視窗問「今天扭蛋了沒？」（一天一次；從「扭蛋島／換好禮」直接進來、店內平板不跳）
+   角色每天輪一位；聖誕期間五位聖誕角色，之後只剩彩繪精靈 */
+(function dailyHi(){
+  const q=location.search;if(window.KIOSK||/[?&](isl=(oct|mascot)|shop=1)/.test(q))return;
+  const day=new Date(Date.now()+8*3600e3).toISOString().slice(0,10),key='otto2-dailyhi-'+day;
+  try{if(localStorage.getItem(key))return}catch(e){return}
+  const CH=XSC()?[['禮物精靈','xmas-giftelf.webp?v=20261025a'],['薑餅烘焙師','xmas-baker.webp?v=20261024a'],['粉雪女王','xmas-queen.webp?v=20261025a'],['薄荷雪怪','xmas-yeti.webp?v=20261025a'],['彩繪精靈','mascot-elf.webp?v=20261024c']]:[['彩繪精靈','mascot-elf.webp?v=20261024c']];
+  const c=CH[Math.floor(Date.parse(day)/864e5)%CH.length];
+  const t0=Date.now();
+  const go=()=>{if(!G||busy||G.phase==='oct'||!$('pop').hidden||document.body.classList.contains('touring')||(typeof shopOpenNow==='function'&&shopOpenNow()))return setTimeout(go,800);
+    if(!ST&&!gErrMsg&&Date.now()-t0<6000)return setTimeout(go,500);   /* 等一下扭蛋次數 */
+    if(ST&&!gOpen())return;                                          /* 扭蛋沒開就不問 */
+    try{localStorage.setItem(key,'1')}catch(e){}
+    const n=ST?gLeft():-1;
+    const say=n===0?'今天的扭蛋轉完囉，明天再來！先來走格子、點亮聖誕樹吧。紅利存起來，可以到選品館換好禮喔。'
+      :`今天扭蛋了沒？${n>0?`今天還可以轉 ${n} 次，`:'每天都可以轉扭蛋，'}轉出來的紅利存起來，就能到選品館換好禮喔！`;
+    const btns=n===0?[{t:'先走格子',v:false,cls:'red'},{t:'去選品館',v:'shop',cls:'ghost'}]:[{t:'去轉扭蛋',v:'spin',cls:'red'},{t:'先走格子',v:false,cls:'ghost'}];
+    sfx('chime');
+    popup(null,c[0],say,btns,`<img alt="${c[0]}" src="${c[1]}" style="display:block;height:190px;margin:2px auto 6px">`).then(v=>{
+      if(!v)return;$('plPark').click();
+      if(v==='shop'){const w=()=>{if(busy||G.phase!=='oct')return setTimeout(w,300);openShop()};setTimeout(w,400)}});
+  };
+  setTimeout(go,1500)})();
 /* 2026-10-05 「作品小屋開放了」公告：從圖文選單直接進扭蛋的家長不會經過預約頁，這裡也跳一次（大熊要預約頁、扭蛋頁各跳一次：這裡用 otto2-artopen-park；店內平板不跳）。
    ?isl=mascot：從作品小屋點「吉祥物島」回來，直接開吉祥物島 */
 (function artNotice(){const W=()=>!G||busy||document.body.classList.contains('touring')||!$('pop').hidden||!$('hud')||$('hud').hidden;
