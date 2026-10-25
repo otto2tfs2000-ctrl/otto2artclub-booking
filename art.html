@@ -545,7 +545,12 @@ function xsdMake(url,ar,H,name,say,rim,o={}){if(o.atlas){const A=o.atlas,r=A.rec
   const edge=new THREE.MeshBasicMaterial({map:tx,color:'#9c8c78',alphaTest:.5,side:THREE.DoubleSide});if(!o.atlas)for(let k=1;k<=8;k++){   /* 會動的版本不疊厚度（每格輪廓不同，疊起來邊緣會有一圈深色殘影） */const l=new THREE.Mesh(geo,edge);l.position.z=-k*.014;st.add(l)}
   const R=o.baseR||Math.max(.62,W*.42);g.add(cyl('#c99a66',R,R+.06,.16,0,0,0,28));g.add(cyl('#efe2c8',R-.02,R-.02,.02,0,.16,0,28));
   const rm=new THREE.Mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim));rm.rotation.x=Math.PI/2;rm.position.y=.16;g.add(rm);
-  let tip=o.tip||[.5,.5];if(o.atlas){const A=o.atlas,[,,w,h,ox,oy]=A.rects[A.seq[0]];tip=[(ox+tip[0]*w)/A.W0,(oy+tip[1]*h)/A.H0]}g.userData={st,H,W,name,say,i:0,next:0,moves:o.moves||['sway','love'],hopFx:o.hopFx||'dot',tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],tx,sp,atlas:o.atlas,cool:0};if(o.atlas)xsdFrame(g.userData,[0,0,o.atlas.W0,o.atlas.H0,0,0],o.atlas.W0,o.atlas.H0,tx);XSD.push(g);return g}
+  /* 2026-10-25 大熊：看起來浮著 → 底座下面地上的影子、腳底踩在底座上的影子（跳起來變小變淡） */
+  const shM=op=>new THREE.MeshBasicMaterial({map:xsdShadowTex(),color:'#000000',transparent:true,depthWrite:false,opacity:op});
+  const gs=new THREE.Mesh(new THREE.PlaneGeometry(1,1),shM(.3));gs.rotation.x=-Math.PI/2;gs.position.set(.08,.015,.06);gs.scale.set(R*3,R*2.6,1);g.add(gs);
+  let fw=W*.75;if(o.atlas){const [,,w]=o.atlas.rects[o.atlas.seq[0]];fw=w/o.atlas.W0*W*.8}
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(1,1),shM(.5));cs.rotation.x=-Math.PI/2;cs.position.y=.18;cs.scale.set(fw,fw*.38,1);cs.renderOrder=1;g.add(cs);
+  let tip=o.tip||[.5,.5];if(o.atlas){const A=o.atlas,[,,w,h,ox,oy]=A.rects[A.seq[0]];tip=[(ox+tip[0]*w)/A.W0,(oy+tip[1]*h)/A.H0]}g.userData={st,H,W,name,say,i:0,next:0,moves:o.moves||['sway','love'],hopFx:o.hopFx||'dot',tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],tx,sp,atlas:o.atlas,cool:0,csh:cs,cs0:fw,fk:1};if(o.atlas)xsdFrame(g.userData,[0,0,o.atlas.W0,o.atlas.H0,0,0],o.atlas.W0,o.atlas.H0,tx);XSD.push(g);return g}
 /* 粒子：heart 愛心、snow 雪花（慢慢飄）、puff 雪霧（往外散、變大）、ball 雪球（丟出去會掉下來）、dot 彩色碎片 */
 function xsdEmit(kind,at,n,dir){const C=['#f6f8fb','#f2a3b8','#8fd3b8','#cfe3f7','#f7c6d4'];
   for(let i=0;i<n;i++){let p=XSDP.find(q=>q.life<=0);if(!p){if(XSDP.length>=60)break;p={sp:new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false})),v:new THREE.Vector3(),life:0};p.sp.renderOrder=4;scene.add(p.sp);XSDP.push(p)}
@@ -565,7 +570,9 @@ function xsdHeart(){if(_xheart)return _xheart;const c=cvs(64,64),x=c.getContext(
 function xsdFlake(){if(_xflake)return _xflake;const c=cvs(64,64),x=c.getContext('2d');x.strokeStyle='#fff';x.lineWidth=5;x.lineCap='round';x.translate(32,32);
   for(let k=0;k<3;k++){x.rotate(Math.PI/3);x.beginPath();x.moveTo(-26,0);x.lineTo(26,0);x.stroke();[-1,1].forEach(s=>{x.beginPath();x.moveTo(s*15,0);x.lineTo(s*22,-7);x.moveTo(s*15,0);x.lineTo(s*22,7);x.stroke()})}return _xflake=new THREE.CanvasTexture(c)}
 /* 板子顯示貼圖 t 上的一格 r=[x,y,w,h,ox,oy]（tw,th＝貼圖大小），板子大小位置跟著那一格在原畫面裡的範圍 */
-function xsdFrame(u,r,tw,th,t){const A=u.atlas,[x,y,w,h,ox,oy]=r;t.repeat.set(w/tw,h/th);t.offset.set(x/tw,1-(y+h)/th);
+let _xsh;function xsdShadowTex(){if(_xsh)return _xsh;const c=cvs(64,64),x=c.getContext('2d'),g=x.createRadialGradient(32,32,2,32,32,31);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return _xsh=new THREE.CanvasTexture(c)}
+function xsdFrame(u,r,tw,th,t){const A=u.atlas,[x,y,w,h,ox,oy]=r;{const r0=A.rects[A.seq[0]],lift=(r0[5]+r0[3]-(oy+h))/A.H0;u.fk=Math.max(.35,Math.min(1,1-lift*4))}   /* 影片裡跳起來（腳離地）影子變小 */t.repeat.set(w/tw,h/th);t.offset.set(x/tw,1-(y+h)/th);
   if(u.sp.material.map!==t){u.sp.material.map=t;u.sp.material.needsUpdate=true}
   u.sp.scale.set(w/A.W0*u.W,h/A.H0*u.H,1);u.sp.position.set(((ox+w/2)/A.W0-.5)*u.W,.16+(1-(oy+h/2)/A.H0)*u.H,0)}
 function xsdAnimStart(g){const u=g.userData,A=u.atlas;if(!A||u.atx||u.loading)return;u.loading=true;
@@ -582,7 +589,7 @@ function xsdTap(g){const u=g.userData;if(u.atlas){u.tapped=true;xsdAnimStart(g)}
    粉雪女王：wand（揮魔杖，杖頭噴粉白雪花）、twirl（左右扭身，頭上飄雪花下來）
    薄荷雪怪：stomp（連跳三下，每次落地腳邊噴雪霧）、throw（往後仰再往前丟雪球）、shiver（冷得發抖，抖出小雪花） */
 function xsdTick(dt,now){XSD.forEach(g=>{const u=g.userData;
-    if(u.atlas)xsdAnimTick(g,now);let y=Math.abs(Math.sin(now/520+g.id))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300+g.id)*.06;
+    if(u.atlas)xsdAnimTick(g,now);let y=u.atlas?0:Math.abs(Math.sin(now/520+g.id))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300+g.id)*.06;
     const head=()=>u.st.localToWorld(_sp.set(0,u.H*1.05,.1)).clone(),tip=()=>u.st.localToWorld(_sp.set(u.tip[0],u.tip[1],.1)).clone(),feet=()=>u.st.localToWorld(_sp.set(0,.25,.2)).clone();
     if(u.anim){const t=(now-u.a0)/1000;
       if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.8;spin+=Math.sin(q*Math.PI*2)*.5;sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
@@ -599,7 +606,7 @@ function xsdTick(dt,now){XSD.forEach(g=>{const u=g.userData;
         rz=t<.4?-t/.4*.12:-.12+Math.min(1,(t-.4)/.25)*.24-Math.max(0,t-.65)*.22;if(p>=1){u.anim=null;rz=0}}
       else if(u.anim==='shiver'){const p=Math.min(1,t/1.1);rz=Math.sin(t*48)*.04;sx=1+Math.sin(t*48)*.012;if((u.fx++)%5===0&&t<1)xsdEmit('snow',head(),1);if(p>=1)u.anim=null}}
     else if(now>u.next){if(u.next){const M=u.moves;u.mi=((u.mi==null?-1:u.mi)+1+((Math.random()*(M.length-1))|0))%M.length;xsdDo(g,M[u.mi])}u.next=now+6000+Math.random()*4000}
-    u.st.position.y=y;u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_sw);_st.set(camera.position.x,_sw.y,camera.position.z);u.st.lookAt(_st);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)});
+    u.st.position.y=y;if(u.csh){const k=u.fk*Math.max(.35,1-y*1.1);u.csh.scale.set(u.cs0*k,u.cs0*.38*k,1);u.csh.material.opacity=.5*k}u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_sw);_st.set(camera.position.x,_sw.y,camera.position.z);u.st.lookAt(_st);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)});
   XSDP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}
     if(p.kind==='snow'){p.v.y-=.5*dt;p.v.x+=Math.sin(p.life*3)*dt*.6;p.sp.material.rotation+=dt}else if(p.kind==='puff')p.v.multiplyScalar(1-dt*2.5);else if(p.kind!=='heart')p.v.y-=(p.kind==='ball'?7:4.5)*dt;
     p.sp.position.addScaledVector(p.v,dt);const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);

@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025c';
+const PARK_VER='20261025d';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2799,7 +2799,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025e',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025f',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2994,8 +2994,15 @@ function standeeMake(url,ar,H,tip,rim,A){let Hc=H;if(A){const [,,w,h,ox,oy]=A.re
   const base=new THREE.Group();g.add(base);const R=A?Math.max(.6,Hc*.27):Math.max(.62,W*.42);
   base.add(mesh(new THREE.CylinderGeometry(R,R+.06,.16,28),toon('#c99a66'),0,.08,0));base.add(mesh(new THREE.CylinderGeometry(R-.02,R-.02,.02,28),toon('#efe2c8'),0,.17,0));
   const rm=mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim||'#e9a3b4'),0,.16,0);rm.rotation.x=Math.PI/2;base.add(rm);
-  Object.assign(g.userData,{sp,st,H,W,Hc,tx,atlas:A,cool:0,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],moves:['wave','love']});if(A)sdFrame(g.userData,[0,0,A.W0,A.H0,0,0],A.W0,A.H0,tx);return g}
-function sdFrame(u,r,tw,th,t){const A=u.atlas,[x,y,w,h,ox,oy]=r;t.repeat.set(w/tw,h/th);t.offset.set(x/tw,1-(y+h)/th);
+  /* 2026-10-25 大熊：看起來浮著 → 底座下面一圈地上的影子、腳底踩在底座上的影子（跳起來會變小變淡） */
+  const shM=o=>new THREE.MeshBasicMaterial({map:sdShadowTex(),color:'#000000',transparent:true,depthWrite:false,opacity:o});
+  const gs=new THREE.Mesh(new THREE.PlaneGeometry(1,1),shM(.32));gs.rotation.x=-Math.PI/2;gs.position.set(.08,.015,.06);gs.scale.set(R*3,R*2.6,1);g.add(gs);
+  let fw=W*.75;if(A){const [,,w]=A.rects[A.seq[0]];fw=w/A.W0*W*.8}
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(1,1),shM(.5));cs.rotation.x=-Math.PI/2;cs.position.y=.18;cs.scale.set(fw,fw*.38,1);cs.renderOrder=1;g.add(cs);
+  Object.assign(g.userData,{sp,st,H,W,Hc,tx,atlas:A,cool:0,csh:cs,cs0:fw,fk:1,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],moves:['wave','love']});if(A)sdFrame(g.userData,[0,0,A.W0,A.H0,0,0],A.W0,A.H0,tx);return g}
+let _sdSh;function sdShadowTex(){if(_sdSh)return _sdSh;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,2,32,32,31);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return _sdSh=new THREE.CanvasTexture(c)}
+function sdFrame(u,r,tw,th,t){const A=u.atlas,[x,y,w,h,ox,oy]=r;{const r0=A.rects[A.seq[0]],lift=(r0[5]+r0[3]-(oy+h))/A.H0;u.fk=Math.max(.35,Math.min(1,1-lift*4))}   /* 影片裡跳起來（腳離地）影子變小 */t.repeat.set(w/tw,h/th);t.offset.set(x/tw,1-(y+h)/th);
   if(u.sp.material.map!==t){u.sp.material.map=t;u.sp.material.needsUpdate=true}
   u.sp.scale.set(w/A.W0*u.W,h/A.H0*u.H,1);u.sp.position.set(((ox+w/2)/A.W0-.5)*u.W,.16+(1-(oy+h/2)/A.H0)*u.H,0)}
 function sdAnimStart(g){const u=g.userData,A=u.atlas;if(!A||u.atx||u.loading)return;u.loading=true;
@@ -3037,7 +3044,7 @@ function sdDo(g,kind){if(!g)return;const u=g.userData;u.anim=kind;u.a0=performan
 const elfDo=kind=>sdDo(MI.elf,kind);
 /* 每一格：立牌轉向鏡頭、輕晃，播 hop（跳＋扭＋噴顏料＋愛心）／wave（左右搖＋噴顏料）／love（冒愛心）；idle＝可以自己動的時候，每 7～12 秒挑一個 */
 function sdTick(g,now,idle){const u=g.userData;if(u.atlas)sdAnimTick(g,now);
-  let y=Math.abs(Math.sin(now/520))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300)*.06;
+  let y=u.atlas?0:Math.abs(Math.sin(now/520))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300)*.06;   /* 動態版不上下晃，看起來才是站在底座上 */
   if(u.anim){const t=(now-u.a0)/1000;
     if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.75;spin+=Math.sin(q*Math.PI*2)*.5;/* 只扭一下，不整圈轉（背面是深色的疊層，轉過去不好看） */sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
       if(!u.fx&&t>.25){u.fx=1;elfEmit(u.hopFx||'paint',sdTip(u),u.hopFx==='cookie'?4:14,u.pal);elfEmit('heart',sdHead(u),4)}if(p>=1)u.anim=null}
@@ -3052,7 +3059,7 @@ function sdTick(g,now,idle){const u=g.userData;if(u.atlas)sdAnimTick(g,now);
     else if(u.anim==='shake'){const p=Math.min(1,t/1);rz=Math.sin(t*42)*.045*(1-p*.5);if((u.fx++)%2===0&&t<.9)elfEmit('sugar',sdTip2(u),1,u.pal2||['#ffffff','#f7c6d4']);if(p>=1)u.anim=null}
     else if(u.anim==='love'){if(!u.fx){u.fx=1;elfEmit('heart',sdHead(u),5)}y+=Math.abs(Math.sin(t*9))*.12*Math.max(0,1-t);if(t>1)u.anim=null}}
   else if(idle&&now>(u.next||0)){if(u.next){const M=u.moves;u.mi=((u.mi==null?-1:u.mi)+1+((Math.random()*(M.length-1))|0))%M.length;sdDo(g,M[u.mi])}u.next=now+6000+Math.random()*4000}
-  u.st.position.y=y;u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_ew);_et.set(camera.position.x,_ew.y,camera.position.z);u.st.lookAt(_et);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)}
+  u.st.position.y=y;if(u.csh){const k=u.fk*Math.max(.35,1-y*1.1);u.csh.scale.set(u.cs0*k,u.cs0*.38*k,1);u.csh.material.opacity=.5*k}u.st.scale.set(sx,sy,1);u.st.getWorldPosition(_ew);_et.set(camera.position.x,_ew.y,camera.position.z);u.st.lookAt(_et);if(spin)u.st.rotateY(spin);if(rz)u.st.rotateZ(rz)}
 function elfTick(now){const dt=Math.min(.05,(now-(elfTick.last||now))/1000);elfTick.last=now;
   const e=MI.elf;if(e&&MI.g&&MI.g.visible){const u=e.userData;sdTick(e,now,MI.state==='on');
     if(now-u.t>6000||u.i<0){u.t=now;const L=ELF_SAY();u.i=(u.i+1)%L.length;const b=elfBubble(L[u.i]);if(u.bub.material.map)u.bub.material.map.dispose();u.bub.material.map=b.tx;u.bub.material.needsUpdate=true;const bh=.72;u.bub.scale.set(bh*b.a,bh,1)}
