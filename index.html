@@ -231,6 +231,22 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gc-new{display:inline-block;margin-left:6px;background:var(--gold);color:var(--navy);font-size:10.5px;font-weight:900;
   padding:1px 7px;border-radius:9px;vertical-align:2px;letter-spacing:1px}
 @keyframes gcCardHop{0%,82%,100%{translate:0 0}88%{translate:0 -5px}94%{translate:0 0}}
+/* 2026-10-25 聖誕遊樂島卡片：上面一排是原本的卡片頭（點了進走格子），下面紅利進度＋三個直達按鈕 */
+.gcbox{margin-bottom:12px;border-radius:18px;padding:0 0 14px;background:linear-gradient(135deg,#E0322F,#B81E25);
+  border:1.5px solid var(--gold);box-shadow:0 8px 20px rgba(184,30,37,.25);position:relative;overflow:hidden}
+.gcbox::after{content:"❄";position:absolute;right:-8px;top:-22px;font-size:96px;line-height:1;color:rgba(255,255,255,.16);pointer-events:none;animation:gcCardRays 30s linear infinite}
+.gcbox .hm-card.gc{margin:0;border:0;box-shadow:none;background:transparent;border-radius:18px 18px 0 0}
+.gcbox .hm-card.gc::after{display:none}
+.gcbox .hm-card.gc:hover{background:rgba(255,255,255,.06);transform:none}
+.gc-bonus{display:block;width:calc(100% - 28px);margin:0 14px 12px;padding:9px 12px;border:0;border-radius:12px;background:rgba(0,0,0,.18);
+  color:#fff;text-align:left;font:inherit;font-size:13.5px;line-height:1.5;cursor:pointer}
+.gc-bonus b{font-size:18px;color:#FFD86B}
+.gc-bar{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.25);margin:6px 0 4px;overflow:hidden}
+.gc-bar i{display:block;height:100%;border-radius:4px;background:#FFD86B;transition:width .5s}
+.gc-bonus small{display:block;font-size:12.5px;color:#FFE3C9}
+.gc-go{display:flex;gap:8px;padding:0 14px;position:relative;z-index:1}
+.gc-go button{flex:1;border:0;border-radius:12px;background:#fff;color:#8F1D20;font:inherit;font-size:14px;font-weight:800;padding:10px 0;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.gc-go button:active{transform:translateY(1px);box-shadow:none}
 
 /* ══ 分岔畫面 / 我的點數 ══ */
 .hm{padding:22px 18px 40px}
@@ -324,7 +340,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.69</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.70</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1256,7 +1272,24 @@ function artOpenNotice(){
   document.getElementById("artOpenNo").onclick=close;
   document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261025g" };
 }
-function openGacha(){ parkToken(); location.href="park.html?v=20261013c" }
+function openGacha(isl){ parkToken(); location.href="park.html?v=20261025f"+(isl?"&isl="+isl:"") }
+/* 首頁卡片的「還差幾點換什麼」：選品館商品清單是公開的（不帶登入就不回個資），開首頁時抓一次 */
+let hmShop=null,hmShopLoading=false;
+function loadHmShop(){
+  if(hmShop||hmShopLoading)return; hmShopLoading=true;
+  fetch(NOTIFY_URL+"/shop/list",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})
+    .then(r=>r.json()).then(j=>{ if(j&&j.ok&&!j.cfg.pending){ hmShop=j.products.filter(p=>!p.soldOut&&p.price>0); if(step===0)renderHome() } })
+    .catch(()=>{}).finally(()=>{hmShopLoading=false});
+}
+function hmBonusHtml(){
+  if(!myMember||!(myMember.bonus>0))return "";
+  const b=myMember.bonus, list=(hmShop||[]).slice().sort((x,y)=>x.price-y.price);
+  const next=list.find(p=>p.price>b), can=list.filter(p=>p.price<=b).pop();
+  let tip="去選品館看看可以換什麼 ›", pct=100;
+  if(next){ pct=Math.max(4,Math.round(b/next.price*100)); tip=(can?"已經能換「"+can.nm+"」，":"")+"再 "+(next.price-b)+" 點就能換「"+next.nm+"」"; }
+  else if(can) tip="可以換「"+can.nm+"」了！去選品館兌換 ›";
+  return `<button type="button" class="gc-bonus" id="hmBonus">你有 <b>${b}</b> 點紅利<span class="gc-bar"><i style="width:${pct}%"></i></span><small>${esc(tip)}</small></button>`;
+}
 function openGacha2d(){
   if(window.Gacha)return Gacha.open();
   const s=document.createElement("script");
@@ -1331,9 +1364,9 @@ function priceChip(g){
 /* 首頁遊戲卡片跟著活動換（台灣日期）：10 月扭蛋、11/1～12/25 聖誕走格子，之後只寫遊樂島 */
 function hmGameCard(){
   const d=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Taipei"});
-  if(d<="2026-10-31")return{t:"世界藝術日・畢卡索扭扭樂",s:"每天轉一次，紅利、畢卡索公仔等你拿"};
-  if(d<="2026-12-25")return{t:"聖誕走格子・聖誕扭扭樂",s:"每天擲骰子、轉扭蛋，一起點亮聖誕樹"};
-  return{t:"Otto2 遊樂島",s:"逛逛大家的作品小屋和吉祥物島"};
+  /* 2026-10-25 大熊要改成聖誕：一打開就是走格子島，卡片寫整座遊樂島，聖誕畫面到 12/31 */
+  if(d<="2026-12-31")return{t:"聖誕遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"聖誕限定"};
+  return{t:"Otto2 遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"小遊戲"};
 }
 function renderHome(){
   const hmGame=hmGameCard();
@@ -1344,15 +1377,19 @@ function renderHome(){
       <div class="hm-hi">${esc(hi)}</div>
       <div class="hm-tagline">選人數、選課程、挑喜歡的時段，線上就能完成預約。</div>
       ${myHold?`<button class="hm-hold" id="hmHold">💰 你有一筆 <b>NT$${myHold.amount.toLocaleString()}</b> 訂金還沒排課（${esc(myHold.date)} 付款）<br><b>點這裡選時間 ›</b> 約好後訂金自動扣抵，不用再付。</button>`:''}
+      <div class="gcbox">
       <button class="hm-card gc" id="hmGacha">
         <span class="hm-ic"><svg viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="15" r="11" fill="#fff" stroke="#1A1A1A" stroke-width="2"/>
-          <circle cx="15.5" cy="14" r="3.2" fill="#E0322F"/><circle cx="23" cy="11" r="3.2" fill="#F2C94C"/><circle cx="24" cy="18.5" r="3.2" fill="#4FA3C7"/><circle cx="17" cy="20" r="3.2" fill="#7BBF3F"/>
-          <path d="M12 26 L28 26 L30 36 L10 36 Z" fill="#D7262E" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round"/>
-          <rect x="16" y="29" width="8" height="4" rx="2" fill="#ddd" stroke="#1A1A1A" stroke-width="1.2"/></svg></span>
-        <span class="hm-tx"><b>${hmGame.t}<span class="gc-new">小遊戲</span></b><small>${hmGame.s}</small></span>
+          <path d="M20 5 L29 17 H24 L32 27 H25 L33 34 H7 L15 27 H8 L16 17 H11 Z" fill="#2F8A45" stroke="#1A1A1A" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="17" y="34" width="6" height="4" fill="#8A5A2B" stroke="#1A1A1A" stroke-width="1.4"/>
+          <path d="M20 1.5 l1.3 2.7 3 .4 -2.2 2 .5 3 -2.6-1.4 -2.6 1.4 .5-3 -2.2-2 3-.4z" fill="#F2C94C" stroke="#1A1A1A" stroke-width=".9"/>
+          <circle cx="17" cy="15" r="1.6" fill="#E0322F"/><circle cx="23" cy="21" r="1.6" fill="#F2C94C"/><circle cx="15" cy="25" r="1.6" fill="#4FA3C7"/><circle cx="25" cy="30" r="1.6" fill="#E0322F"/><circle cx="18" cy="31" r="1.6" fill="#F2C94C"/></svg></span>
+        <span class="hm-tx"><b>${hmGame.t}<span class="gc-new">${hmGame.tag}</span></b>${myMember&&myMember.bonus>0?"":`<small>${hmGame.s}</small>`}</span>
         <span class="hm-ar">›</span>
       </button>
+      ${hmBonusHtml()}
+      <div class="gc-go"><button type="button" id="hmGoWalk">🎄 走格子</button><button type="button" id="hmGoOct">🎰 轉扭蛋</button><button type="button" id="hmGoShop">🎁 換好禮</button></div>
+      </div>
       <button class="hm-card" id="hmMine">
         <span class="hm-ic">💎</span>
         <span class="hm-tx"><b>查詢我的預約／點數</b><small>看我約了哪些時段、可取消，還有點數堂數紅利</small></span>
@@ -1370,7 +1407,12 @@ function renderHome(){
       </button>
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
-  document.getElementById("hmGacha").onclick=openGacha;
+  document.getElementById("hmGacha").onclick=()=>openGacha();
+  document.getElementById("hmGoWalk").onclick=()=>openGacha();
+  document.getElementById("hmGoOct").onclick=()=>openGacha("oct");
+  document.getElementById("hmGoShop").onclick=()=>openGacha("oct&shop=1");
+  const hb=document.getElementById("hmBonus"); if(hb)hb.onclick=()=>openGacha("oct&shop=1");
+  if(myMember&&myMember.bonus>0)loadHmShop();
   if(myHold)document.getElementById("hmHold").onclick=()=>setStep(1);
   document.getElementById("hmMine").onclick=()=>setStep(9);
   document.getElementById("hmBook").onclick=()=>setStep(1);
@@ -2143,7 +2185,7 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261013c") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261025f") });
   } else if(!boot._gc && /go(=|%3D)art/i.test(q)){
     /* 直達作品小屋（2026-10-05 會員推播用）：https://liff.line.me/2010906803-FMDYktUN?go=art */
     boot._gc=true;

@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025e';
+const PARK_VER='20261025f';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2626,8 +2626,9 @@ function santaTap(rc){const S=SANTA;if(!S.g||!S.g.visible)return false;const onB
   toast(S.cur&&S.cur.title?`🎅 Ho Ho Ho！${S.cur.title}`:'🎅 Ho Ho Ho！聖誕老公公祝你聖誕快樂！');return true}
 
 /* 2026-10-24 第一次來：先跑完導覽，天竺鼠、走格子這些公告排在導覽後面，不要疊在一起 */
-function tourPending(){if(!G||G.phase!=='oct')return false;try{return localStorage.getItem('otto2-park-tour')!=='1'}catch(e){return false}}
-function maybeTour(){if(!GA.bubs||!G)return setTimeout(maybeTour,500);let seen=false;try{seen=localStorage.getItem('otto2-park-tour')==='1'}catch(e){}if(!seen&&G.phase==='oct'){if(busy||!$('pop').hidden)return setTimeout(maybeTour,800);startTour()}}
+function shopOpenNow(){const g=$('shopGate'),pg=$('shopPage');return !!((g&&!g.hidden)||(pg&&!pg.hidden))} /* 選品館開著時，導覽和公告都先等（2026-10-25 首頁「換好禮」直達） */
+function tourPending(){if(shopOpenNow())return true;if(!G||G.phase!=='oct')return false;try{return localStorage.getItem('otto2-park-tour')!=='1'}catch(e){return false}}
+function maybeTour(){if(!GA.bubs||!G)return setTimeout(maybeTour,500);let seen=false;try{seen=localStorage.getItem('otto2-park-tour')==='1'}catch(e){}if(!seen&&G.phase==='oct'){if(busy||!$('pop').hidden||shopOpenNow()||/[?&]shop=1/.test(location.search)&&!maybeTour._s)return setTimeout(maybeTour,800);startTour()}}
 
 /* ---------- camera ---------- */
 /* 兩指放大／縮小島（鏡頭往前推，畫面重新畫，所以不會糊）；放大後單指拖可以移動。網頁本身的縮放關掉 */
@@ -4251,8 +4252,8 @@ setTimeout(maybeTour,1800);
 /* 2026-10-05 「作品小屋開放了」公告：從圖文選單直接進扭蛋的家長不會經過預約頁，這裡也跳一次（大熊要預約頁、扭蛋頁各跳一次：這裡用 otto2-artopen-park；店內平板不跳）。
    ?isl=mascot：從作品小屋點「吉祥物島」回來，直接開吉祥物島 */
 (function artNotice(){const W=()=>!G||busy||document.body.classList.contains('touring')||!$('pop').hidden||!$('hud')||$('hud').hidden;
-  const isl=/[?&]isl=mascot/.test(location.search);
-  const go=()=>{if(W())return setTimeout(go,700);
+  const isl=/[?&]isl=mascot/.test(location.search),shopQ=/[?&]shop=1/.test(location.search);
+  const go=()=>{if(W()||shopOpenNow())return setTimeout(go,700);
     if(isl&&!go._m){go._m=1;mascotGo();return}
     if(window.KIOSK)return;let seen=false,tour=false;try{seen=!!localStorage.getItem('otto2-artopen-park');tour=localStorage.getItem('otto2-park-tour')==='1'}catch(e){return}
     if(seen)return;if(!tour&&G.phase==='oct')return setTimeout(go,1500); /* 第一次來先看完導覽 */
@@ -4260,7 +4261,9 @@ setTimeout(maybeTour,1800);
     popup(null,'🏡 作品小屋正式開放了！','',[{t:'去看看',v:1,cls:'red'},{t:'下次再說',v:0,cls:'ghost'}],
       '<div style="text-align:left;font-size:15px;line-height:1.65;background:#f6f0e2;border-radius:14px;padding:12px 14px;margin:6px 0 4px"><div>📷 會員上傳作品照片，就能蓋一間自己的小屋，作品越多小屋越高</div><div style="margin-top:6px">🎨 島上的藝術家會到你家看作品、留言給你</div><div style="margin-top:6px">👍 ❤️ 🌸 逛別人的小屋，喜歡的作品可以按一下</div></div>')
       .then(v=>{if(v===1)$('plArt').click()})};
-  setTimeout(go,isl?600:2600)})();
+  /* ?isl=oct&shop=1：預約頁首頁「換好禮」直接開選品館，不等導覽／公告；其他公告等關店後再跳（2026-10-25） */
+  if(shopQ){const so=()=>{if(!G||busy||!$('pop').hidden)return setTimeout(so,400);openShop();maybeTour._s=1;setTimeout(go,2600)};setTimeout(so,600)}
+  else setTimeout(go,isl?600:2600)})();
 $('gpanel').addEventListener('click',()=>{if(!busy)Gacha.open()});
 $('tapme').addEventListener('click',()=>openCapsule());
 $('ph0').addEventListener('click',()=>{$('menu').hidden=true;toOct()});
