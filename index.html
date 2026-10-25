@@ -340,7 +340,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.70</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.71</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -510,6 +510,7 @@ let kids=0;       // 兒童人數
 let kidAges=[];   // 每位兒童的年齡
 let lineUser=null; // {userId, displayName}
 let visitCount=0;  // 此 LINE 帳號在本系統的預約次數
+let visitGroups=null; // {paint,mixed}：繪畫／多媒材各上過幾次（伺服器 /liff/me 算，舊伺服器沒有就是 null）
 let hasPlan=false; // 是否為方案會員（第二期由會員系統寫入）
 
 const pNum=r=>{const m=String(r).replace(/,/g,"").match(/\d+/);return m?+m[0]:0};
@@ -544,6 +545,7 @@ async function initLiff(){
         customer.name  = customer.name  || me.name  || "";
         customer.phone = customer.phone || me.phone || "";
         visitCount = me.visits || 0;
+        if(me.vg&&typeof me.vg==="object") visitGroups={paint:+me.vg.paint||0,mixed:+me.vg.mixed||0};
         if(me.hasPlan) hasPlan = true;
         statusChanged();
         if(me.phone) lookupMemberByPhone(me.phone);
@@ -627,26 +629,34 @@ function headerIdx(rows,names){
    沒開（預設）→ live:false，這裡完全照舊讀試算表；開了 → 改讀課程管理。讀不到也一律退回試算表，預約不會壞。
    價格照身分算：會員（有方案或點數堂數）→ 會員價；第一次來的新客（LINE 登入、沒預約過、不是會員檔案裡的人）→ 初次體驗價（沒填就用會員價／優惠價）；
    其他人 → 原價；早鳥期間所有人都是早鳥價。繪畫課（體驗價／會員價／單次原價三列）照身分自動選，spec 也跟著換（用料才對得上）。
+   2026-10-25 改成分兩類看：繪畫（選圖繪畫、創作繪畫、邏輯素描）／多媒材（其他）。沒方案的人上過哪一類，再約同一類就是原價，另一類照樣初次體驗價；
+   有會員檔案但系統裡查不到上過什麼的（7/30 以前的老客人），照舊算原價。本月主打（row.feat）：沒方案的人一律會員價。
    算法跟伺服器 server.js catalogResolve、後台 booking.js bkResolve 是同一條，改這裡要一起改。 */
 let catLive=false, catPayload=null;
-const CAT_CACHE_KEY="otto2_liff_catalog_v1";
+const CAT_CACHE_KEY="otto2_liff_catalog_v2";
 function catStatus(){
   const member=!!(hasPlan||(myMember&&(myMember.points>0||myMember.sessions>0)));
-  const first=!member&&!!lineUser&&visitCount===0&&!myMember;
-  return {member,first};
+  if(member||!lineUser)return {member,first:false,vg:null};
+  if(!visitGroups)return {member,first:visitCount===0&&!myMember,vg:null};   /* 伺服器還是舊版：照舊規則 */
+  const hist=visitGroups.paint+visitGroups.mixed;
+  if(myMember&&hist===0)return {member,first:false,vg:null};
+  return {member,first:true,vg:visitGroups};
 }
+const CAT_GRP_NM={paint:"繪畫",mixed:"多媒材"};
 function catResolve(row,st,today){
   const orig=row.pOrig||row.price||0;
   let price=orig,tier="orig";
-  if(row.tier==="base"){
+  const first=!st.member&&(st.vg?!(st.vg[row.grp||"mixed"]>0):!!st.first);
+  if(!st.member&&row.feat&&row.pMember){price=row.pMember;tier="feat"}
+  else if(row.tier==="base"){
     if(st.member&&row.pMember){price=row.pMember;tier="member"}
-    else if(!st.member&&st.first&&row.pFirst){price=row.pFirst;tier="first"}
+    else if(first&&row.pFirst){price=row.pFirst;tier="first"}
   }else if(st.member){ if(row.pMember){price=row.pMember;tier="member"} }
-  else if(st.first){ if(row.pFirst){price=row.pFirst;tier="first"} else if(row.pMember){price=row.pMember;tier="member"} }
+  else if(first){ if(row.pFirst){price=row.pFirst;tier="first"} else if(row.pMember){price=row.pMember;tier="member"} }
   const early=row.early>0&&/^\d{4}-\d{2}-\d{2}$/.test(row.earlyUntil)&&String(today)<=row.earlyUntil;
   if(early){price=row.early;tier="early"}
   const pair=row.pair>=2*price?0:row.pair;
-  const spec=row.tier==="base"?({first:"體驗價",member:"會員價",orig:"單次原價",early:"單次原價"}[tier]):row.spec;
+  const spec=row.tier==="base"?({first:"體驗價",member:"會員價",feat:"會員價",orig:"單次原價",early:"單次原價"}[tier]):row.spec;
   return {price,tier,orig,pair,early,spec};
 }
 function catalogToGroups(j){
@@ -1343,8 +1353,15 @@ function catTierChips(g){
   const vs=g.variants.map(v=>({v,x:catResolve(v._row,st,today)}));
   const cur=vs.reduce((a,b)=>b.x.price<a.x.price?b:a,vs[0]);
   if(cur.x.early)return"";                                    /* 早鳥有自己的標籤 */
-  if(cur.x.tier==="member"||cur.x.tier==="first"){
-    return `<span class="chip" style="text-decoration:line-through;opacity:.6">原價 NT$${cur.x.orig.toLocaleString()}</span><span class="chip price" style="background:#E8F4EA;border-color:#9CCB9F;color:#2E6B35">${st.member?"會員價":"新客優惠價"}</span>`;
+  if(cur.x.tier==="member"||cur.x.tier==="first"||cur.x.tier==="feat"){
+    return `<span class="chip" style="text-decoration:line-through;opacity:.6">原價 NT$${cur.x.orig.toLocaleString()}</span><span class="chip price" style="background:#E8F4EA;border-color:#9CCB9F;color:#2E6B35">${st.member?"會員價":cur.x.tier==="feat"?"本月主打價":"新客優惠價"}</span>`;
+  }
+  /* 上過同一類課的非會員：直接講清楚為什麼是原價，順便提醒買方案的價格 */
+  const grp=(vs[0].v._row||{}).grp||"mixed";
+  if(!st.member&&st.vg&&st.vg[grp]>0){
+    const best=vs.map(o=>catResolve(o.v._row,{member:true},today)).reduce((a,b)=>b.price<a.price?b:a);
+    return `<span class="chip" style="background:#FFF4E0;border-color:#F0C97A;color:#8A5A00">上過${CAT_GRP_NM[grp]}課・這次是原價</span>`+
+      (best.price<cur.x.price?`<span class="chip" style="background:#F3F3F3;color:#666">買方案 NT$${best.price.toLocaleString()}</span>`:"");
   }
   if(!st.member&&!st.first){
     const best=vs.map(o=>catResolve(o.v._row,{member:true},today)).reduce((a,b)=>b.price<a.price?b:a);
@@ -1777,7 +1794,7 @@ function renderCourses(){
         <div class="meta">${g.hourly>0?`<span class="chip">⏱ ${HOUR_MIN}-${HOUR_MAX} 小時</span>`:(g.dur?`<span class="chip">⏱ ${g.dur}</span>`:'')}<span class="chip price">${g.hourly>0?`每小時 NT$${g.hourly.toLocaleString()}`:priceChip(g)}</span>${catTierChips(g)}${(!(g.hourly>0)&&g.variants.some(vv=>vv.early))?`<span class="chip price" style="background:#FFF3D6;border-color:#E8C874;color:#8A5A00">🐦 早鳥價${(()=>{const d=g.variants.find(vv=>vv.early).earlyUntil;return d?` 至 ${+d.slice(5,7)}/${+d.slice(8,10)}`:''})()}</span>`:''}${(!(g.hourly>0)&&g.variants.some(vv=>vv.pair>0))?`<span class="chip price">${g.variants.length===1?`兩人同行 NT$${g.variants[0].pair.toLocaleString()}`:"兩人同行優惠"}</span>`:''}${g.seats>0?`<span class="chip">佔 ${g.seats} 個位子</span>`:''}</div>
         <div class="cardfoot"><span class="cf-dur">${g.hourly>0?`${HOUR_MIN}-${HOUR_MAX} 小時`:(g.dur||'')}</span><span class="cf-cta">${p?'已加入清單 ✓':'點選加入 →'}</span></div>
         ${multi?`<div class="vars"><div class="vtitle">選擇規格</div><div class="vrow">${g.variants.map((vv,i)=>{
-          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${vv.early&&pNum(vv.origRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:(vv.tier&&vv.tier!=="orig"&&pNum(vv.origRaw)>pNum(vv.priceRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:'')}${pLabel(vv.priceRaw)}${vv.early?' 🐦早鳥':((vv.tier==="member"||vv.tier==="first")?(catStatus().member?' 會員價':' 新客優惠'):'')}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
+          return `<button class="vopt ${p&&p.variantIdx===i?'on':''}" data-v="${i}">${vv.spec||('款式'+(i+1))}　${vv.early&&pNum(vv.origRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:(vv.tier&&vv.tier!=="orig"&&pNum(vv.origRaw)>pNum(vv.priceRaw)?`<s style="opacity:.55;font-weight:400">${pNum(vv.origRaw).toLocaleString()}</s> `:'')}${pLabel(vv.priceRaw)}${vv.early?' 🐦早鳥':((vv.tier==="member"||vv.tier==="first"||vv.tier==="feat")?(catStatus().member?' 會員價':vv.tier==="feat"?' 主打價':' 新客優惠'):'')}${vv.pair>0?`・兩人 NT$${vv.pair.toLocaleString()}`:''}</button>`;
         }).join("")}</div>${g.variants.some(vv=>/體驗/.test(vv.spec))?`<div class="vnote">體驗價每人限用一次</div>`:''}</div>`:''}
         ${g.hourly>0?`<div class="qty"><span>要上幾小時？</span><div class="stepper">
           <button data-act="hminus">−</button><b>${p?pickHours(g.id):HOUR_MIN} 小時</b><button data-act="hplus">＋</button></div></div>
@@ -2073,7 +2090,9 @@ async function submitBooking(){
     durationMin:totalMinutes(),
     visitCount, hasPlan,
     /* 課程管理開著時，記下算價當下這位客人是哪一種身分，後台核銷核對價格用 */
-    ...(catLive?{custKind:(()=>{const st=catStatus();return st.member?"member":st.first?"new":(lineUser?"regular":"guest")})()}:{}),
+    ...(catLive?{custKind:(()=>{const st=catStatus();if(st.member)return "member";
+      const ts=Object.keys(picks).map(id=>{const g=groups.find(x=>x.id===id);return g&&g.variants[picks[id].variantIdx].tier});
+      return ts.includes("first")?"new":(lineUser?"regular":"guest")})()}:{}),
     deposit:(()=>{
       if(deposit==="hold"&&myHold)return{method:"hold",name:"已預付訂金",amount:myHold.amount,status:"pending",hold:true};
       const o=payOptions[+deposit]||{};return{method:o.type||"other",name:o.name||"",amount:o.amount||0,status:"pending"}})(),
