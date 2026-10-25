@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025g';
+const PARK_VER='20261025h';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1971,6 +1971,31 @@ function artTick(force){const A=GA.art;if(!A)return;const kr=GA.knob.rotation.z,
   ctx.save();ctx.translate(cfg.knob[0]*k,cfg.knob[1]*k);ctx.rotate(-kr);const ks=cfg.knob[2]/cfg.knw*k;ctx.scale(ks,ks);ctx.drawImage(KN,-KN.width/2,-KN.height/2);ctx.restore();
   A.tex.needsUpdate=true}
 const STDCAPS=['#e8664d','#f2c14e','#7fb069','#5b8fd9','#b58ad0','#f08aa5'];
+/* 2026-10-25 走格子「扭蛋機」格的動畫（大熊要）：跳出彩色扭蛋機 → 轉盤轉 → 扭蛋掉出來 → 點一下打開 → 才跳獎品視窗。
+   req 是伺服器抽獎的 Promise（轉盤轉的同時就去抽）；回傳 {j} 或 {e}。圖沒載到就不播動畫，直接回結果 */
+function xGachaImgs(){ggLoadImgs();const one=n=>new Promise(ok=>{const im=GGI[n];if(ggOk(im))return ok(true);im.addEventListener('load',()=>ok(ggOk(im)),{once:true});im.addEventListener('error',()=>ok(false),{once:true})});
+  return Promise.race([Promise.all(['std-m','std-cluster','std-knob'].map(one)).then(a=>a.every(Boolean)),sleep(5000).then(()=>false)])}
+async function xGachaShow(req){
+  const R=req.then(j=>({j}),e=>({e}));
+  if(!(await xGachaImgs()))return R;
+  const ov=$('stdG'),C=GGCFG.std,cap=ggMakeCap(STDCAPS[Math.floor(Math.random()*STDCAPS.length)]),play=(a,b)=>new Promise(r=>ggPlay(a,b,r,C,cap,'stdCv'));
+  const close=()=>{ov.classList.remove('show');setTimeout(()=>{ov.hidden=true;const h=$('xgHint');if(h)h.remove()},420)};
+  ov.hidden=false;void ov.offsetWidth;ov.classList.add('show');try{sfx('chime')}catch(e){}
+  await play(0,GGT.dial0);try{sfx('tick')}catch(e){}
+  const dial=play(GGT.dial0,GGT.cap0);let k=0;const tk=setInterval(()=>{if(++k<=6)try{sfx('tick')}catch(e){}},430);await dial;clearInterval(tk);
+  const out=await R;
+  if(out.e){close();return out}
+  await play(GGT.cap0,GGT.open0);try{sfx('thunk')}catch(e){}
+  /* 扭蛋停在出口：等客人點一下才打開（8 秒沒點就自己開） */
+  const h=document.createElement('div');h.id='xgHint';h.textContent='點一下，打開扭蛋！';
+  h.style.cssText='position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 34px);transform:translateX(-50%);z-index:3;background:#d63a2f;color:#fff;font-weight:800;font-size:19px;padding:12px 26px;border-radius:99px;border:3px solid #fff;box-shadow:0 5px 0 #8f2219;white-space:nowrap;animation:xgBob 1s ease-in-out infinite';
+  if(!document.getElementById('xgBobCss')){const st=document.createElement('style');st.id='xgBobCss';st.textContent='@keyframes xgBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}';document.head.appendChild(st)}
+  ov.appendChild(h);
+  await new Promise(r=>{const to=setTimeout(fin,8000);function fin(){clearTimeout(to);ov.removeEventListener('click',fin);r()}ov.addEventListener('click',fin)});
+  h.remove();
+  await play(GGT.open0,GGT.open1);try{sfx('open')}catch(e){}setTimeout(()=>{try{sfx('chime')}catch(e){}},250);
+  await sleep(350);close();await sleep(300);
+  return out}
 /* 2026-10-08 試做過「每天的扭蛋也全螢幕跳出」，大熊不要，停用（程式留著，沒有地方呼叫） */
 async function spinFullscreen(){
   if(busy||G.phase!=='oct')return;
@@ -4067,12 +4092,12 @@ async function resolve(){
   if(t.mg){await minigame(t.mg);return}
   if(key==='lot')return landLot(G.lv[G.cur].pos);
   if(key==='gacha'&&XS){
-    try{const j=await xcall('/xmas/gacha',{});hud();const r=j.gachaRes;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),12,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);
+    try{const R=await xGachaShow(xcall('/xmas/gacha',{}));if(R.e)throw R.e;const j=R.j;hud();const r=j.gachaRes;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),12,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);
       const txt=r.type==='gift'?`轉出一顆扭蛋，裡面有 ${r.n} 個禮物。`:r.type==='bonus'?(r.pts?`轉出一顆扭蛋，是「${r.nm}」！已經加進你的紅利點數。`:`轉出「${r.nm}」，但你這次活動的紅利已達上限，改天再來。`):`轉出一顆扭蛋，是「${r.nm}」！已經放進你的票券，可以在預約頁「我的」看到。`;
       await popup(r.type==='gift'?'gacha':'giftbig',r.type==='gift'?'扭蛋機！':'中獎了！',txt+(j.sim?'（示範模式，不入帳）':''))}
     catch(e){if(e.code==='GACHA_CAP')await popup('gacha','扭蛋機','今天的扭蛋機轉完了，明天再來！');else toast(e.message||'連線不穩，稍後再試')}
     return}
-  if(key==='gacha'){const r=Math.random(),n=r<.6?1:r<.9?2:3;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),10,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);addGifts(n);await popup('gacha','扭蛋機！',`轉出一顆扭蛋，裡面有 ${n} 個禮物。（獎項內容之後公布，現在先送禮物。）`);return}
+  if(key==='gacha'){const r=Math.random(),n=r<.6?1:r<.9?2:3;await xGachaShow(Promise.resolve({}));sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),10,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);addGifts(n);await popup('gacha','扭蛋機！',`轉出一顆扭蛋，裡面有 ${n} 個禮物。（獎項內容之後公布，現在先送禮物。）`);return}
   if(key==='plant')return plant('踩到種樹格');
   if(t.g){addGifts(t.g);await popup(t.ic,key==='big'?'大禮物！':'小禮物',`拿到 ${t.g} 個禮物。禮物可以用來認領、升級聖誕小屋。`);return}
   if(t.o!==undefined){if(G.orn[t.o]){addGifts(1);await popup(t.ic,`又是${ORN[t.o].n}`,'這個吊飾已經有了，換成 1 個禮物。');return}return gotOrnament(t.o)}
@@ -4241,7 +4266,7 @@ function xmasIntro(){let n=0;const go=()=>{if(!window.PROD||!XOPEN||window.KIOSK
   try{localStorage.setItem('otto2-xmas-intro','1')}catch(e){}
   popup('start','聖誕走格子開放了！',xRange()+'：每天擲一次骰子、有預約上課多一次。走進廣場中間的路口，或點下面「走格子島」就能過去。',[{t:'馬上去',v:1,cls:'red'},{t:'先逛逛',v:0,cls:'ghost'}]).then(v=>{if(v===1)enterWalk()})};
   setTimeout(go,4500)}
-$('roll').addEventListener('click',doRoll);
+$('roll').addEventListener('click',doRoll);$('roll').addEventListener('click',()=>{if(G&&G.phase!=='oct')ggLoadImgs()}); /* 走格子擲骰時先把扭蛋機的圖載好（扭蛋機格要用） */
 $('skipOpen').addEventListener('click',()=>{FAST=true;$('skipOpen').hidden=true;tweens.forEach(w=>w.d=1)});
 $('zmBack').addEventListener('click',zmReset);
 $('spin').addEventListener('click',spin);
