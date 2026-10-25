@@ -319,7 +319,7 @@ let _rockN=0;function lpRock(c,s,x,y,z){const m=lpMesh(jitterGeo(new THREE.Dodec
 
 /* ================= world ================= */
 /* 2026-10-24 聖誕佈置（10/25～12/31，大熊 10/25 說提前；?xmas=1 可提前看、?xmas=0 關掉）：地上薄雪、屋頂積雪、大樹變聖誕樹、碼頭雪人、飄雪。島民換裝是另一個開關 XMAS（10/25 起） */
-const XDECO=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const d=new Date(),mo=d.getMonth();return mo>=10||(mo===9&&d.getDate()>=25)})();
+const XDECO=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const t=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return t>='2026-10-25'&&t<'2027-01-01'})();   /* 2026-10-25 大熊：只到今年底（台北時間 10/25～12/31），明年不會自動再開 */
 let snowFall=null;
 let airship=null,turbines=[],falls=[],renderer,scene,camera,picks=[],movers=[],clouds=[],sky=[],artists=[],houses=[],bigTree,lanterns=[];
 
@@ -1080,7 +1080,7 @@ const FIG={
 };
 /* ===== 2026-10-24 聖誕版島民（10/25～12/31 自動換上，大熊說提前到 10/25；照大熊給的 12 張聖誕公仔設定圖；?xmas=1 / ?xmas=0 可以強制開關）=====
    每一位都還是 figBase 的身體，只換衣服配件；大家都多一顆紅鼻子。紅鼻子跟星星不壓暗（userData.keep） */
-const XMAS=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const d=new Date(),mo=d.getMonth();return mo>=10||(mo===9&&d.getDate()>=25)})();
+const XMAS=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const t=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return t>='2026-10-25'&&t<'2027-01-01'})();   /* 2026-10-25 大熊：只到今年底（台北時間 10/25～12/31），明年不會自動再開 */
 const XT={
   snow:(bg,fg,rx,ry)=>texOf(128,128,(x,w,h)=>{x.fillStyle=bg;x.fillRect(0,0,w,h);x.strokeStyle=fg;x.fillStyle=fg;x.lineCap='round';const r=rng(bg.length*31+fg.length);
     for(let i=0;i<7;i++){const cx=r()*w,cy=r()*h,R=5+r()*7;x.lineWidth=R>9?2.2:1.6;

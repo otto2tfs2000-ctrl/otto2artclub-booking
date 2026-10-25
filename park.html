@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025d';
+const PARK_VER='20261025e';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1175,7 +1175,7 @@ function updateLot(i){
 /* 2026-10-24 大熊：畢卡索扭扭樂到 10/31，11/1 起扭蛋改「聖誕扭扭樂」（伺服器同一天自動換設定；聖誕公仔圖還沒來，先不顯示圖鑑） */
 const XMG=()=>/[?&]xmas=1/.test(location.search)||new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01'; /* ?xmas=1 可以提前預覽 */
 /* 2026-10-25 大熊：聖誕場景（夜空、下雪、佈置、角色、聖誕帽、聖誕老公公）10/25 就上線；扭蛋名稱和獎品照舊 11/1（伺服器 11/1 才換） */
-const XSC=()=>XMG()||(!/[?&]xmas=0/.test(location.search)&&(t=>t>='2026-10-25'&&t<'2027-01-01')(new Date(Date.now()+8*3600e3).toISOString().slice(0,10)));
+const XSC=()=>/[?&]xmas=1/.test(location.search)||(!/[?&]xmas=0/.test(location.search)&&(t=>t>='2026-10-25'&&t<'2027-01-01')(new Date(Date.now()+8*3600e3).toISOString().slice(0,10)));   /* 只到今年底；不跟 XMG 綁（XMG 沒有結束日，綁著的話 1/1 之後夜空和佈置會一直在） */
 if(XSC())document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('xmn'));
 if(XMG()){document.title='聖誕扭扭樂・OTTO2 遊樂島';document.addEventListener('DOMContentLoaded',()=>{const b=document.querySelector('.octinfo b');if(b)b.textContent='OTTO2 遊樂島・聖誕月'})}
 window.PROD=true;document.addEventListener('selectstart',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});document.addEventListener('contextmenu',function(e){var t=e.target&&e.target.tagName;if(t!=='INPUT'&&t!=='TEXTAREA')e.preventDefault()});try{if(/[?&]demo=1/.test(location.search))localStorage.setItem('otto2-park-demo','1');if(/[?&]demo=0/.test(location.search))localStorage.removeItem('otto2-park-demo');if(localStorage.getItem('otto2-park-demo')==='1')document.documentElement.classList.add('demoq')}catch(e){}
@@ -2799,7 +2799,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025f',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025g',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
