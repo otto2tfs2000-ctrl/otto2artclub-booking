@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025i';
+const PARK_VER='20261025j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1120,21 +1120,21 @@ async function plant(why){
       const j=await xcall('/xmas/plant',{pref,why});hud();
       if(j.full){await popup('sapling','森林滿了！','島上已經種滿樹了，改送你 1 個禮物。');return}
       const pr=j.plant;
-      if(pr.kind==='new'){G.forest=G.forest.filter(t=>!t.me);G.forest.push({s:pr.s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[pr.s]);await sleep(1100);await growAnim(i,0,1);await sleep(1200);
+      if(pr.kind==='new'){G.forest=G.forest.filter(t=>!t.me);G.forest.push({s:pr.s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[pr.s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);
         await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，其他會員打開遊戲也看得到。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。');overviewFocus(null)}
-      else if(pr.kind==='max'){const mi=G.forest.findIndex(t=>t.me);if(mi>=0){overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1100);const w=FOREST.spots[G.forest[mi].s].clone();w.y+=1.2;sparkle(w,12,['#ffd84a','#ffffff'])}await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');overviewFocus(null)}
+      else if(pr.kind==='max'){const mi=G.forest.findIndex(t=>t.me);if(mi>=0){overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1700);const w=FOREST.spots[G.forest[mi].s].clone();w.y+=1.2;sparkle(w,12,['#ffd84a','#ffffff'])}await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');overviewFocus(null)}
       else{let mi=G.forest.findIndex(t=>t.me);if(mi<0){G.forest.push({s:pr.s,n:'你',lv:Math.max(1,pr.lv-1),me:true});mi=G.forest.length-1;renderForest()} /* 本機森林還沒同步到自己的樹，用伺服器回的位置補上 */
-        if(mi>=0){const from=G.forest[mi].lv;overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1100);await growAnim(mi,from,pr.lv);await sleep(1200);
+        if(mi>=0){const from=G.forest[mi].lv;overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1700);await growAnim(mi,from,pr.lv);await sleep(1200);
         await popup('sapling',`你的樹長大了：${LVN[pr.lv]}`,pr.lv<5?`下一級是「${LVN[pr.lv+1]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');overviewFocus(null)}}
     }catch(e){if(e.code==='PLANT_CAP')await popup('sapling','今天種樹的次數用完了','明天再來，你的樹會繼續長大。');else toast(e.message||'連線不穩，稍後再試')}
     return}
   const mi=G.forest.findIndex(t=>t.me);
   if(mi<0){const s=freeSpotNear(bear.position);if(s<0){addGifts(1);await popup('sapling','森林滿了！','島上已經種滿樹了，改送你 1 個禮物。');return}
-    G.forest.push({s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[s]);await sleep(1100);await growAnim(i,0,1);await sleep(1200);save();
+    G.forest.push({s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);save();
     await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，就種在你旁邊。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。');overviewFocus(null);return}
   const t=G.forest[mi];
   if(t.lv>=5){addGifts(1);await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');return}
-  const from=t.lv;overviewFocus(FOREST.spots[t.s]);await sleep(1100);await growAnim(mi,from,from+1);await sleep(1200);save();
+  const from=t.lv;overviewFocus(FOREST.spots[t.s]);await sleep(1700);await growAnim(mi,from,from+1);await sleep(1200);save();
   await popup('sapling',`你的樹長大了：${LVN[from+1]}`,from+1<5?`下一級是「${LVN[from+2]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');
   overviewFocus(null);
 }
@@ -1174,7 +1174,7 @@ function updateLot(i){
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
 /* 2026-10-24 大熊：畢卡索扭扭樂到 10/31，11/1 起扭蛋改「聖誕扭扭樂」（伺服器同一天自動換設定；聖誕公仔圖還沒來，先不顯示圖鑑） */
-const XMG=()=>/[?&]xmas=1/.test(location.search)||new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01'; /* ?xmas=1 可以提前預覽 */
+const XMG=()=>/[?&]xmas=1/.test(location.search)||new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-10-26'; /* ?xmas=1 可以提前預覽；2026-10-25 大熊改提早到 10/26 換季 */
 /* 2026-10-25 大熊：聖誕場景（夜空、下雪、佈置、角色、聖誕帽、聖誕老公公）10/25 就上線；扭蛋名稱和獎品照舊 11/1（伺服器 11/1 才換） */
 const XSC=()=>/[?&]xmas=1/.test(location.search)||(!/[?&]xmas=0/.test(location.search)&&(t=>t>='2026-10-25'&&t<'2027-01-01')(new Date(Date.now()+8*3600e3).toISOString().slice(0,10)));   /* 只到今年底；不跟 XMG 綁（XMG 沒有結束日，綁著的話 1/1 之後夜空和佈置會一直在） */
 if(XSC())document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('xmn'));
@@ -1864,7 +1864,7 @@ function buildPlaza(){
   const BALLC=['#b5573f','#d9b45a','#7f9a5c','#6f5a8a','#c88a5e','#5f8fa8','#c98a9a','#46679a'];
   const rows=[[-.95,5,.36],[-.35,5,.36],[.25,4,.34]];let k=0;
   rows.forEach(([y,n,r],ri)=>{for(let i=0;i<n;i++){const span=Math.sqrt(Math.max(.1,(R-.2)**2-y*y))-r,x=-span+(n>1?i*2*span/(n-1):0)+(ri%2?.12:-.08),z=((i+ri)%2?.35:-.3);
-    const o=(k%4===1)?picHead(r*.85):(()=>{const b=new THREE.Group(),s=mesh(new THREE.SphereGeometry(r,20,14),toon(BALLC[k%8]));b.add(s);b.add(outline(s.geometry,1.07));return b})();
+    const o=(k%4===1||XMG()&&k%4===3)?(XMG()?xmasHead(r*.95):picHead(r*.85)):(()=>{const b=new THREE.Group(),s=mesh(new THREE.SphereGeometry(r,20,14),toon(BALLC[k%8]));b.add(s);b.add(outline(s.geometry,1.07));return b})();
     o.position.set(x,y,z);o.userData.p=o.position.clone();o.userData.r=k*.29;GA.swirl.add(o);GA.caps.push(o);k++}});
   // 紅帽子
   const capG=facet(new THREE.SphereGeometry(1.0,7,3,0,Math.PI*2,0,Math.PI/2),11);const cap=mesh(capG,cub,0,GY+R-.12,0);cap.scale.y=.62;W.add(cap);const co=outline(capG,1.04);co.position.copy(cap.position);co.scale.set(1.04,.66,1.04);W.add(co);
@@ -1884,7 +1884,7 @@ function buildPlaza(){
   const uv=kg.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,(uv.getX(i)+.625)/1.25,(uv.getY(i)+.23)/.46);
   const kn=mesh(kg,[toon('#ffffff',{map:knobTex()}),toon('#8e8e8e')]);GA.knob.add(kn);const ko=outline(kg,1.06);ko.position.z=-.01;GA.knob.add(ko);
   // 趴在方向盤上的小黑熊：轉的時候跟著晃，轉完被甩出去抓扭蛋
-  GA.kb=makePicasso('p02');GA.kb.scale.setScalar(KS);GA.kb.userData.home=MACH.clone().add(new THREE.Vector3(0,2.85,1.95));
+  GA.kb=XMG()?xmasKb():makePicasso('p02');GA.kb.scale.setScalar(KS);GA.kb.userData.home=MACH.clone().add(new THREE.Vector3(0,2.85,1.95));
   GA.kb.position.copy(GA.kb.userData.home);GA.kb.rotation.x=KX;scene.add(GA.kb);
   if(XSC())xmasPlaza(P,W,GY+R);
   if(XSC()){const ge=standeeMake('xmas-giftelf-still.webp?v=20261025a',1,2.3,[.78,.6],'#f2c14e',SD_ATLAS.GIFT);ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge;
@@ -2408,6 +2408,15 @@ function makePicasso(id){
   if(id==='p08'){const po=mesh(facet(new THREE.ConeGeometry(.32,.42,6,1,true),3,['#c4553f','#e9dcc4','#2f4f7f','#c4553f']),toon('#ffffff',{vertexColors:true,flatShading:true,side:THREE.DoubleSide}),0,.46,0);A(po)}
   g.userData.legs=legs;g.userData.eyes=eyes;g.userData.arms=arms;return g}
 // 扭蛋機裡的小頭像：和平鴿畢卡索
+/* 2026-10-25 聖誕扭扭樂（10/26 起）：玻璃球裡的畢卡索頭換成 17 位聖誕公仔的臉（xmas-faces.webp 5x4 格），方向盤上的小畢卡索換禮物精靈 */
+const XFACE={img:null,list:[],k:0};
+function xmasHead(r){const t=new THREE.Texture();const k=XFACE.k++%17;t.repeat.set(.2,.25);t.offset.set((k%5)*.2,1-.25-Math.floor(k/5)*.25);XFACE.list.push(t);
+  if(!XFACE.img){XFACE.img=new Image();XFACE.img.onload=()=>XFACE.list.forEach(x=>{x.image=XFACE.img;x.needsUpdate=true});XFACE.img.src='xmas-faces.webp?v=20261025a'}
+  else if(XFACE.img.complete&&XFACE.img.naturalWidth){t.image=XFACE.img;t.needsUpdate=true}
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,alphaTest:.05}));sp.scale.set(r*2.5,r*2.5,1);const g=new THREE.Group();g.add(sp);return g}
+function xmasKb(){const ref=makePicasso('p02'),bb=new THREE.Box3().setFromObject(ref),h=Math.max(.5,bb.max.y-bb.min.y);
+  const g=new THREE.Group(),t=new THREE.TextureLoader().load('xmas-giftelf.webp?v=20261025a');
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,alphaTest:.1}));sp.center.set(.5,0);sp.scale.set(h*1.15*341/600,h*1.15,1);sp.position.y=bb.min.y;g.add(sp);return g}
 function picHead(r){const g=new THREE.Group(),s=r/.34;const h=mesh(new THREE.SphereGeometry(.34,20,14),toon(SKIN));h.scale.set(1,1.04,.92);g.add(h);
   [-1,1].forEach(d=>{const hr=mesh(new THREE.SphereGeometry(.14,12,8),toon('#f2eee6'),d*.3,.08,-.03);hr.scale.set(.75,1.25,1.1);g.add(hr);
     g.add(mesh(new THREE.SphereGeometry(.058,12,8),toon('#ffffff'),d*.068,.01,.3));g.add(mesh(new THREE.SphereGeometry(.026,8,6),toon('#111111'),d*.068,.01,.35))});
@@ -3611,10 +3620,12 @@ function loopBody(now){if(GA.art)artTick();luckyTick(now);
   if(window.OttoBGM)OttoBGM.update(MI.state!=='off'?'mascot':(G.phase==='oct'?'park':'walk'),SFX.on&&!window.KIOSK&&!!SFX.ctx,!!VOICE.cur); /* 照所在的島換曲；店內平板不放；店員說話時壓低 */
   if(lock2.visible&&!RM){lock2.position.y=LEVELS[1].off.y+3.4+Math.sin(now/600)*.15;lock2.rotation.y=Math.sin(now/1100)*.4}
   for(let k=parts.length-1;k>=0;k--){const p=parts[k];p.userData.v.y-=(p.userData.float?1.5:9)*dt;p.position.addScaledVector(p.userData.v,dt);p.rotation.x+=dt*6;p.userData.life-=dt;p.scale.setScalar(Math.max(0,p.userData.life));if(p.userData.life<=0){scene.remove(p);p.geometry.dispose();[].concat(p.material).forEach(m=>m.dispose());parts.splice(k,1)}}
-  viewShift(dt);const g=camGoal(),a=ZM.live||MZ.live?Math.min(1,dt*18):1-Math.pow(.04,dt);camera.position.lerp(g.pos,a);look.lerp(g.at,a);camera.lookAt(look);
+  viewShift(dt);const g=camGoal();if(ZM.live||MZ.live){const a=Math.min(1,dt*18);camera.position.lerp(g.pos,a);look.lerp(g.at,a)}else{camEase(camera.position,g.pos,dt);camEase(look,g.at,dt)}camera.lookAt(look);
   billboardHead();annivTick(dt,now,g);if(EV.bal)evTick(dt,now);
   renderer.render(scene,camera);
 }
+/* 2026-10-25 大熊說鏡頭飛太快會不舒服：追的速度放慢（每秒約 75%）、再限制最快每秒 7 格，遠的地方也是慢慢滑過去 */
+const _ce=new THREE.Vector3();function camEase(v,to,dt){_ce.copy(to).sub(v).multiplyScalar(1-Math.pow(.25,dt));const mx=7*dt,l=_ce.length();if(l>mx)_ce.multiplyScalar(mx/l);v.add(_ce)}
 /* 以前 requestAnimationFrame 放在最後一行，動畫裡任何一個小零件出錯，整個畫面就停在那一格再也不動（看起來像「出不來」）。
    改成先排下一格；出錯的那一格還是盡量把畫面畫出來 */
 /* 2026-10-10 選品館（門口／商品頁）是全螢幕不透明的，後面 3D 照樣一直畫很吃手機記憶體和電，iPhone 會因此圖片出不來甚至整頁重載 → 蓋住時暫停 */
@@ -4114,7 +4125,7 @@ async function resolve(){
 }
 // the lighting ceremony: camera goes to the tree, bulbs light one by one, the current tier slowly glows, the star flashes
 async function ceremony(from,to,label){
-  treeCam=true;hud();await sleep(900);
+  treeCam=true;hud();await sleep(1600);
   if(label)toast(label);
   const l0=Math.floor(amtOf(from)),l1=litOf(to);let last=l0,lay=layersOf(from);
   await tween(Math.min(5000,1800+(l1-l0)*260),p=>{
@@ -4136,7 +4147,7 @@ async function quickLight(from,to){
 }
 /* 燈數已經夠、還沒到點亮日：鏡頭飛到樹前、這一層的燈泡閃一輪，告訴客人哪天亮（2026-10-25） */
 async function treeWaitShow(label,add){const lk=layersOf(G.tree),dd=layerDates()[lk];
-  treeCam=true;hud();await sleep(900);
+  treeCam=true;hud();await sleep(1600);
   const a=Math.floor(amtOf(layerStart(lk))),b=Math.min(NB,litOf(LAYERS[lk]));
   for(let r=0;r<3;r++){for(let i=a;i<b;i++){const bl=TREE.bulbs[i];if(!bl)continue;bl.userData.pop=1;if(r===0&&i%2===0){const w=new THREE.Vector3();bl.getWorldPosition(w);sparkle(w,2,[`#${bl.userData.col.getHexString()}`])}}TREE.pulse=1;await sleep(500)}
   await popup('tree',label||'謝謝你幫忙點燈！',`${add?`這次點了 ${add} 盞。`:''}第 ${lk+1} 層的燈已經夠了，${dd?md2(dd)+' 會一起點亮':'很快就會點亮'}！大家目前一共點了 ${(G.treeReal||0).toLocaleString()} 盞，你已經幫忙點了 ${(G.myLights||0).toLocaleString()} 盞。`);

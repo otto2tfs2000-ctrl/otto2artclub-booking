@@ -16,8 +16,8 @@ var BEARS=[{id:'p01',nm:'經典條紋'},{id:'p02',nm:'和平鴿'},{id:'p06',nm:'
 /* 跟新朋友的獎池同一組機率（不入帳） */
 var PRIZES=[{id:'n1',ic:'✨',nm:'紅利 1 點',type:'bonus',v:1,w:600},{id:'n2',ic:'🌟',nm:'紅利 2 點',type:'bonus',v:2,w:110},{id:'n3',ic:'💫',nm:'紅利 3 點',type:'bonus',v:3,w:50},
   {id:'c50',ic:'🎟️',nm:'下次上課折抵 $50',type:'ticket',w:15},{id:'c100',ic:'🎟️',nm:'下次上課折抵 $100',type:'ticket',w:5},{id:'none',ic:'🍀',nm:'明天再來',type:'none',w:220}];
-var XM=new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-11-01'; /* 11/1 起跟正式版一樣換聖誕扭扭樂、先不送公仔 */
-var G_START=XM?'2026-11-01':'2026-10-01',G_END=XM?'2026-12-25':'2026-10-31',X_START='2026-10-16',X_END='2026-12-25',G_TITLE=XM?'聖誕扭扭樂':'世界藝術日・畢卡索扭扭樂';
+var XM=new Date(Date.now()+8*3600e3).toISOString().slice(0,10)>='2026-10-26'; /* 10/26 起（原 11/1，大熊提早）跟正式版一樣換聖誕扭扭樂、先不送公仔 */
+var G_START=XM?'2026-10-26':'2026-10-01',G_END=XM?'2026-12-25':'2026-10-31',X_START='2026-10-16',X_END='2026-12-25',G_TITLE=XM?'聖誕扭扭樂':'世界藝術日・畢卡索扭扭樂';
 function today(){return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)}
 function pick(a){var t=0,i;for(i=0;i<a.length;i++)t+=a[i].w||1;var r=Math.random()*t;for(i=0;i<a.length;i++){if((r-=a[i].w||1)<0)return a[i]}return a[a.length-1]}
 function load(){var L=null;try{L=JSON.parse(localStorage.getItem('otto2-guest-g'))}catch(e){}L=L||{};L.bears=L.bears||{};L.dupes=L.dupes||0;L.bonus=L.bonus||0;L.days=L.days||[];

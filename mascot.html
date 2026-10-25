@@ -344,7 +344,7 @@ const DEST={
   art:{t:'作品小屋',s:'15 週年・大家的作品',u:'art.html?v=20261025g'}};
 const ART_PUBLIC=true; /* 2026-10-03 作品小屋雲端版正式開放給所有人 */
 const taipei=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
-let CUR=(t=>t<'2026-11-01'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
+let CUR=(t=>t<'2026-10-26'?'gacha':t<'2027-01-01'?'xmas':'none')(taipei());
 function isAdmin(){try{return sessionStorage.getItem('otto2-park-staff')==='1'||localStorage.getItem('otto2-park-demo')==='1'}catch(e){return false}}
 function go(k){if(k==='art'&&window.Ferry)Ferry.go({to:DEST[k].u,place:'art',from:'park'});else location.href=DEST[k].u}
 function renderDest(){const adm=isAdmin(),box=$('dest');box.innerHTML='';
