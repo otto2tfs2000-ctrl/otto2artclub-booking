@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025b';
+const PARK_VER='20261025c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1421,8 +1421,8 @@ function buildShop(P){
   /* 2026-10-24 大熊：聖誕期間店門口的人換成薑餅烘焙師（他設計的公仔正面，一樣高） */
   {const XB=XSC(),ch=1.65*397/300,cw=XB?ch*308/600:1.65,ct=new THREE.TextureLoader().load(XB?'xmas-baker.webp?v=20261024a':'shop-keeper-last.webp?v=20261007e');ct.anisotropy=4;const cx=1.85,cz=1.15;
     /* 2026-10-25 大熊：每個人都至少要三種動作 → 聖誕期間烘焙師改成跟其他人一樣的立牌（會晃、丟薑餅、擠糖霜、冒愛心），點他跳一下再進選品館 */
-    if(XB){const bk=standeeMake('xmas-baker.webp?v=20261024a',308/600,2.15,[.86,.5],'#c99a66');bk.position.set(cx,0,cz);S.add(bk);GA.baker=bk;
-      Object.assign(bk.userData,{moves:['toss','shake','love'],hopFx:'cookie',tip2:[(.12-.5)*bk.userData.W,.16+(1-.62)*2.15],pal2:['#ffffff','#f7c6d4','#f2a3b8']})}
+    if(XB){const bk=standeeMake('xmas-baker-still.webp?v=20261025a',1,2.15,[.86,.5],'#c99a66',SD_ATLAS.BAKER);bk.position.set(cx,0,cz);S.add(bk);GA.baker=bk;
+      Object.assign(bk.userData,{moves:['toss','shake','love'],hopFx:'cookie',tip2:(()=>{const A=SD_ATLAS.BAKER,[,,w,h,ox,oy]=A.rects[A.seq[0]],u=bk.userData;return[((ox+.12*w)/A.W0-.5)*u.W,.16+(1-(oy+.62*h)/A.H0)*u.H]})(),pal2:['#ffffff','#f7c6d4','#f2a3b8']})}
     else{const c=new THREE.Mesh(new THREE.PlaneGeometry(cw,ch),new THREE.MeshBasicMaterial({map:ct,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));c.position.set(cx,ch/2,cz);S.add(c)}
     const cs=new THREE.Mesh(new THREE.CircleGeometry(1,20),new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:.16,depthWrite:false}));cs.rotation.x=-Math.PI/2;cs.scale.set(.5,.2,1);cs.position.set(cx,.04,cz+.05);S.add(cs);
     const cv=document.createElement('canvas');cv.width=480;cv.height=170;const x=cv.getContext('2d');
@@ -1886,9 +1886,9 @@ function buildPlaza(){
   GA.kb=makePicasso('p02');GA.kb.scale.setScalar(KS);GA.kb.userData.home=MACH.clone().add(new THREE.Vector3(0,2.85,1.95));
   GA.kb.position.copy(GA.kb.userData.home);GA.kb.rotation.x=KX;scene.add(GA.kb);
   if(XSC())xmasPlaza(P,W,GY+R);
-  if(XSC()){const ge=standeeMake('xmas-giftelf.webp?v=20261024a',341/600,2.3,[.78,.6],'#f2c14e');ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge;
+  if(XSC()){const ge=standeeMake('xmas-giftelf-still.webp?v=20261025a',1,2.3,[.78,.6],'#f2c14e',SD_ATLAS.GIFT);ge.position.set(MACH.x-PLAZA.x-1.9,0,MACH.z-PLAZA.z+2.3);P.add(ge);GA.giftElf=ge;
     Object.assign(ge.userData,{moves:['pop','love','wave'],pal:['#f2c14e','#f7d77a','#f2a3b8','#ffffff','#e8b94a'],i:-1,t:0});
-    const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=2.3+.4;bub.renderOrder=5;ge.add(bub);ge.userData.bub=bub}
+    const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=ge.userData.Hc+.3;bub.renderOrder=5;ge.add(bub);ge.userData.bub=bub}
   buildTrain();
   buildMarquee(g,GY+R+1.7);
   buildStand();buildBoard();buildBubbles();
@@ -2799,7 +2799,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025d',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261025e',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -2981,19 +2981,35 @@ function elfBubble(t){const cv=document.createElement('canvas'),x=cv.getContext(
 /* 2026-10-24 大熊：平面板子很奇怪 → 改成像壓克力立牌：正面是圖、後面疊 8 層深色同形狀做出厚度，站在木頭圓底座上；
    整個立牌只繞直立軸轉向鏡頭（不會像貼紙一樣往後倒），從上往下看看得到頭頂那圈厚度 */
 /* 立牌共用（彩繪精靈、禮物精靈）：url 圖、ar＝寬/高、H 高度、tip＝噴顏料的位置（圖上 0～1 的比例，左上是 0,0）、rim 底座邊色 */
-function standeeMake(url,ar,H,tip,rim){const g=new THREE.Group(),W=H*ar;g.userData.standee=1;      // 有 userData，mergeStatic 不會動它
+/* A＝動態版（大熊的影片：每秒 6 格去背、排進一張大圖）。url 是靜止的第一格；有人點、或鏡頭靠近才下載大圖播一輪，播完或鏡頭離開就丟掉省記憶體。
+   H 是人物身高，動態版換算成整格高度；tip 也從人物範圍換算到整格 */
+const SD_ATLAS={ELF:Object.assign({"W0":224,"H0":360,"AW":4056,"AH":1008,"rects":[[0,0,169,330,20,27],[171,0,170,330,20,27],[343,0,170,332,20,25],[515,0,170,331,20,26],[687,0,170,329,20,28],[859,0,170,330,20,27],[1031,0,171,331,20,26],[1204,0,190,329,18,28],[1396,0,185,328,14,29],[1583,0,165,325,9,33],[1750,0,157,324,6,34],[1909,0,174,325,12,33],[2085,0,202,326,18,31],[2289,0,204,327,18,30],[2495,0,206,324,12,34],[2703,0,208,333,6,25],[2913,0,195,334,3,24],[3110,0,173,331,4,26],[3285,0,168,326,9,31],[3455,0,157,328,20,29],[3614,0,126,330,47,27],[3742,0,130,331,45,26],[3874,0,182,329,3,28],[0,336,187,326,6,31],[189,336,187,323,14,34],[378,336,188,323,14,34],[568,336,197,325,0,32],[767,336,195,325,0,32],[964,336,185,324,14,33],[1151,336,184,324,15,33],[1337,336,190,327,0,30],[1529,336,175,330,2,27],[1706,336,160,330,9,27],[1868,336,151,328,19,29],[2021,336,136,329,33,29],[2159,336,173,340,11,6],[2334,336,177,325,11,4],[2513,336,175,330,11,16],[2690,336,176,323,11,34],[2868,336,184,336,6,2],[3054,336,183,320,9,6],[3239,336,180,332,10,25],[3421,336,172,323,14,35],[3595,336,178,331,14,26],[3775,336,175,329,15,28],[0,678,173,326,16,31],[175,678,175,329,15,29],[352,678,176,330,15,28],[530,678,176,328,15,29]],"seq":[0,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,48,48,48,48,48,48,48]},{fps:6,url:'mascot-elf-anim.webp?v=20261025a'}),GIFT:Object.assign({"W0":180,"H0":360,"AW":4059,"AH":681,"rects":[[0,0,135,332,23,25],[137,0,134,331,24,26],[273,0,134,332,24,25],[409,0,135,334,24,23],[546,0,135,336,24,21],[683,0,135,336,24,21],[820,0,135,336,24,21],[957,0,133,338,25,20],[1092,0,133,332,24,25],[1227,0,160,328,11,30],[1389,0,171,325,5,32],[1562,0,178,326,1,32],[1742,0,177,329,1,29],[1921,0,174,328,3,29],[2097,0,174,327,3,30],[2273,0,166,327,10,30],[2441,0,142,332,21,26],[2585,0,132,335,29,23],[2719,0,142,332,23,25],[2863,0,147,329,21,28],[3012,0,146,330,22,27],[3160,0,145,330,23,27],[3307,0,144,330,23,27],[3453,0,137,333,23,24],[3592,0,153,330,7,27],[3747,0,155,326,5,31],[3904,0,155,326,5,31],[0,340,144,334,15,24],[146,340,140,341,20,2],[288,340,141,328,20,5],[431,340,143,329,19,9],[576,340,141,322,20,35],[719,340,132,337,25,19],[853,340,141,336,20,3],[996,340,143,326,19,6],[1141,340,138,321,22,9],[1281,340,139,322,21,9],[1422,340,141,330,20,17],[1565,340,137,326,22,32],[1704,340,136,333,22,25],[1842,340,137,334,22,23],[1981,340,137,333,22,24],[2120,340,136,331,23,26],[2258,340,136,332,23,25]],"seq":[0,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,14,14,14,15,16,17,18,19,20,21,22,23,24,25,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,42,43,43,43,43,43,43,43,43,43,43]},{fps:6,url:'xmas-giftelf-anim.webp?v=20261025a'}),BAKER:Object.assign({"W0":193,"H0":360,"AW":3931,"AH":712,"rects":[[0,0,161,354,5,3],[163,0,161,355,5,3],[326,0,161,355,5,3],[489,0,161,355,5,3],[652,0,161,355,5,3],[815,0,161,355,4,3],[978,0,167,355,4,3],[1147,0,173,355,3,3],[1322,0,174,354,3,4],[1498,0,174,355,3,3],[1674,0,170,354,7,3],[1846,0,164,354,10,3],[2012,0,159,354,12,3],[2173,0,146,354,20,3],[2321,0,140,354,24,3],[2463,0,140,354,24,3],[2605,0,141,354,24,3],[2748,0,145,354,20,3],[2895,0,143,354,22,3],[3040,0,141,354,24,3],[3183,0,142,354,23,3],[3327,0,144,354,21,3],[3473,0,148,354,16,3],[3623,0,152,355,11,2],[3777,0,154,351,8,6],[0,357,168,353,8,4],[170,357,183,355,5,2],[355,357,174,354,4,3],[531,357,187,354,4,3],[720,357,189,355,4,2],[911,357,187,354,3,3],[1100,357,179,354,2,3],[1281,357,190,354,3,3],[1473,357,185,355,5,2],[1660,357,163,354,7,3],[1825,357,155,354,8,3],[1982,357,155,354,8,3]],"seq":[0,1,1,2,2,3,3,3,3,3,3,3,4,5,6,7,8,9,9,9,9,9,10,11,12,13,14,15,15,16,17,17,18,19,20,21,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,35,36,36,36,36,36,36,36,36]},{fps:6,url:'xmas-baker-anim.webp?v=20261025a'})};
+function standeeMake(url,ar,H,tip,rim,A){let Hc=H;if(A){const [,,w,h,ox,oy]=A.rects[A.seq[0]];H=H*A.H0/h;ar=A.W0/A.H0;tip=[(ox+tip[0]*w)/A.W0,(oy+tip[1]*h)/A.H0];Hc=.16+(1-oy/A.H0)*H}
+  const g=new THREE.Group(),W=H*ar;g.userData.standee=1;   /* 有 userData，mergeStatic 不會動它 */
   const tx=new THREE.TextureLoader().load(url);tx.anisotropy=4;
-  const geo=new THREE.PlaneGeometry(W,H);geo.translate(0,H/2+.16,0);
+  const geo=A?new THREE.PlaneGeometry(1,1):new THREE.PlaneGeometry(W,H);if(!A)geo.translate(0,H/2+.16,0);
   const st=new THREE.Group();g.add(st);const sp=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tx,alphaTest:.5,side:THREE.DoubleSide}));st.add(sp);   /* 不吃燈光（吃燈光晚上會太黑）；大熊嫌太亮→圖本身彩度降 20%、亮度降 5% */
   const edge=new THREE.MeshBasicMaterial({map:tx,color:'#9c8c78',alphaTest:.5,side:THREE.DoubleSide});
-  for(let k=1;k<=8;k++){const l=new THREE.Mesh(geo,edge);l.position.z=-k*.014;st.add(l)}
-  const base=new THREE.Group();g.add(base);const R=Math.max(.62,W*.42);
+  if(!A)for(let k=1;k<=8;k++){const l=new THREE.Mesh(geo,edge);l.position.z=-k*.014;st.add(l)}   /* 動態版不疊厚度（每格輪廓不同，會有殘影） */
+  const base=new THREE.Group();g.add(base);const R=A?Math.max(.6,Hc*.27):Math.max(.62,W*.42);
   base.add(mesh(new THREE.CylinderGeometry(R,R+.06,.16,28),toon('#c99a66'),0,.08,0));base.add(mesh(new THREE.CylinderGeometry(R-.02,R-.02,.02,28),toon('#efe2c8'),0,.17,0));
   const rm=mesh(new THREE.TorusGeometry(R,.025,6,28),toon(rim||'#e9a3b4'),0,.16,0);rm.rotation.x=Math.PI/2;base.add(rm);
-  Object.assign(g.userData,{sp,st,H,W,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],moves:['wave','love']});return g}
+  Object.assign(g.userData,{sp,st,H,W,Hc,tx,atlas:A,cool:0,tip:[(tip[0]-.5)*W,.16+(1-tip[1])*H],moves:['wave','love']});if(A)sdFrame(g.userData,[0,0,A.W0,A.H0,0,0],A.W0,A.H0,tx);return g}
+function sdFrame(u,r,tw,th,t){const A=u.atlas,[x,y,w,h,ox,oy]=r;t.repeat.set(w/tw,h/th);t.offset.set(x/tw,1-(y+h)/th);
+  if(u.sp.material.map!==t){u.sp.material.map=t;u.sp.material.needsUpdate=true}
+  u.sp.scale.set(w/A.W0*u.W,h/A.H0*u.H,1);u.sp.position.set(((ox+w/2)/A.W0-.5)*u.W,.16+(1-(oy+h/2)/A.H0)*u.H,0)}
+function sdAnimStart(g){const u=g.userData,A=u.atlas;if(!A||u.atx||u.loading)return;u.loading=true;
+  new THREE.TextureLoader().load(A.url,t=>{u.loading=false;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;u.atx=t;u.p0=null;u.fi=-1},undefined,()=>{u.loading=false})}
+function sdAnimStop(u){if(!u.atx)return;sdFrame(u,[0,0,u.atlas.W0,u.atlas.H0,0,0],u.atlas.W0,u.atlas.H0,u.tx);u.atx.dispose();u.atx=null;u.tapped=false;u.cool=performance.now()+6000}
+const _sdw=new THREE.Vector3();
+function sdAnimTick(g,now){const u=g.userData,A=u.atlas;g.getWorldPosition(_sdw);const d=camera.position.distanceTo(_sdw);
+  if(!u.atx){if(!u.loading&&now>u.cool&&d<11&&g.visible)sdAnimStart(g);return}   /* 鏡頭靠近就播一輪 */
+  if(u.p0==null)u.p0=now;const k=Math.max(0,Math.floor((now-u.p0)/1000*A.fps));
+  if(k>=A.seq.length||(d>26&&!u.tapped)||!g.visible){sdAnimStop(u);return}       /* 播完、鏡頭走遠、看不到了就丟掉大圖 */
+  const i=A.seq[k];if(i!=null&&i!==u.fi){u.fi=i;sdFrame(u,A.rects[i],A.AW,A.AH,u.atx)}}
 const ELF_H=2.6;
-function elfMake(){const g=standeeMake('mascot-elf.webp?v=20261024c',358/600,ELF_H,[.96,.47],'#e9a3b4');g.userData.elf=1;g.userData.moves=['wave','love','shake'];g.userData.pal2=ELF_PAINT;
-  const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=ELF_H+.35;bub.renderOrder=5;g.add(bub);
+function elfMake(){const g=standeeMake('mascot-elf-still.webp?v=20261025a',1,ELF_H,[.96,.47],'#e9a3b4',SD_ATLAS.ELF);g.userData.elf=1;g.userData.moves=['wave','love','shake'];g.userData.pal2=ELF_PAINT;
+  const bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));bub.center.set(.5,0);bub.position.y=g.userData.Hc+.25;bub.renderOrder=5;g.add(bub);
   g.userData.bub=bub;g.userData.i=-1;g.userData.t=0;return g}
 const _ew=new THREE.Vector3(),_et=new THREE.Vector3(),_ep=new THREE.Vector3();
 /* 2026-10-24 大熊：加動作和反應。點她＝跳一下＋噴顏料＋冒愛心，跳完才開介紹卡；揮畫筆＝整個立牌左右搖、筆尖噴顏料
@@ -3016,11 +3032,11 @@ function elfEmit(kind,at,n,pal){for(let i=0;i<n;i++){let p=ELFP.find(q=>q.life<=
     if(hv)p.v.set((Math.random()-.5)*.6,1.1+Math.random()*.5,(Math.random()-.5)*.6);else if(ck)p.v.set((Math.random()-.5)*2.2,2.6+Math.random()*1.2,(Math.random()-.5)*2.2);else p.v.set((Math.random()-.5)*2.4,1.2+Math.random()*1.8,(Math.random()-.5)*2.4)}}
 function elfParticles(dt){ELFP.forEach(p=>{if(p.life<=0)return;p.life-=dt;if(p.life<=0){p.sp.visible=false;return}
   if(p.kind!=='heart')p.v.y-=4.5*dt;p.sp.position.addScaledVector(p.v,dt);if(p.kind==='cookie')p.sp.material.rotation+=dt*5;const k=p.life/p.max;p.sp.material.opacity=Math.min(1,k*2);if(p.kind==='heart')p.sp.scale.setScalar(p.s*(1+(1-k)*.4))})}
-const sdTip=u=>u.st.localToWorld(_ep.set(u.tip[0],u.tip[1],.05)).clone(),sdTip2=u=>u.tip2?u.st.localToWorld(_ep.set(u.tip2[0],u.tip2[1],.05)).clone():sdTip(u),sdHead=u=>u.st.localToWorld(_ep.set(0,u.H*.85,.1)).clone();
+const sdTip=u=>u.st.localToWorld(_ep.set(u.tip[0],u.tip[1],.05)).clone(),sdTip2=u=>u.tip2?u.st.localToWorld(_ep.set(u.tip2[0],u.tip2[1],.05)).clone():sdTip(u),sdHead=u=>u.st.localToWorld(_ep.set(0,u.Hc*.85,.1)).clone();
 function sdDo(g,kind){if(!g)return;const u=g.userData;u.anim=kind;u.a0=performance.now();u.fx=0}
 const elfDo=kind=>sdDo(MI.elf,kind);
 /* 每一格：立牌轉向鏡頭、輕晃，播 hop（跳＋扭＋噴顏料＋愛心）／wave（左右搖＋噴顏料）／love（冒愛心）；idle＝可以自己動的時候，每 7～12 秒挑一個 */
-function sdTick(g,now,idle){const u=g.userData;
+function sdTick(g,now,idle){const u=g.userData;if(u.atlas)sdAnimTick(g,now);
   let y=Math.abs(Math.sin(now/520))*.06,sx=1,sy=1,rz=0,spin=Math.sin(now/1300)*.06;
   if(u.anim){const t=(now-u.a0)/1000;
     if(u.anim==='hop'){const p=Math.min(1,t/.75);if(t<.12){sy=1-t/.12*.12;sx=1+t/.12*.08}else{const q=Math.min(1,(t-.12)/.63);y+=Math.sin(Math.PI*q)*.75;spin+=Math.sin(q*Math.PI*2)*.5;/* 只扭一下，不整圈轉（背面是深色的疊層，轉過去不好看） */sy=1+Math.sin(Math.PI*q)*.06;sx=1-Math.sin(Math.PI*q)*.04}
@@ -3050,10 +3066,10 @@ function elfTick(now){const dt=Math.min(.05,(now-(elfTick.last||now))/1000);elfT
 /* 2026-10-24 大熊：扭蛋機前面多一個禮物精靈（聖誕期間）。點她跳一下＋冒愛心，說一句話 */
 const GIFT_SAY=()=>['聖誕快樂！🎁','轉一下扭蛋看看！','禮物準備好了喔','今天也要開心～'];
 /* 點烘焙師：跳一下丟薑餅，跳完才進選品館 */
-function bakerTap(rc){const b=GA.baker;if(!b||!rc.intersectObject(b.userData.sp,false).length)return false;if(busy)return true;sfx('tap');if(b.userData.anim!=='hop'){sdDo(b,'hop');b.userData.next=performance.now()+9000;setTimeout(openShop,750)}return true}
-function giftTap(rc){const e=GA.giftElf;if(!e||!e.visible||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
+function bakerTap(rc){const b=GA.baker;if(!b||!rc.intersectObject(b.userData.sp,false).length)return false;if(busy)return true;sfx('tap');b.userData.tapped=true;sdAnimStart(b);if(b.userData.anim!=='hop'){sdDo(b,'hop');b.userData.next=performance.now()+9000;setTimeout(openShop,750)}return true}
+function giftTap(rc){const e=GA.giftElf;if(!e||!e.visible||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');e.userData.tapped=true;sdAnimStart(e);
   if(e.userData.anim!=='hop'){sdDo(e,'hop');e.userData.next=performance.now()+9000;toast('聖誕快樂！轉一下扭蛋，看看有什麼驚喜 🎁')}return true}
-function elfTap(rc){const e=MI.elf;if(!e||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');
+function elfTap(rc){const e=MI.elf;if(!e||!rc.intersectObject(e.userData.sp,false).length)return false;sfx('tap');e.userData.tapped=true;sdAnimStart(e);
   if(e.userData.anim==='hop')return true;elfDo('hop');e.userData.next=performance.now()+9000;
   setTimeout(()=>popup(null,'彩繪精靈','吉祥物島的守門員！嘎逼、卡布、摩卡、小熊和蛙蛙叫都住在這裡。餵牠們吃點心，牠們會越來越喜歡你喔。',[{t:'去餵食',v:'feed',cls:'red'},{t:'關閉',v:false,cls:'ghost'}],
     '<img alt="彩繪精靈" src="mascot-elf.webp?v=20261024c" style="display:block;height:190px;margin:2px auto 6px">').then(v=>{if(v==='feed'&&$('miFood').hidden)$('miFeed').click()}),900);return true}
