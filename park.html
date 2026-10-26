@@ -775,7 +775,7 @@ body:not(.oct) #evPill{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261025k';
+const PARK_VER='20261026a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1276,7 +1276,29 @@ function gClosedMsg(){const s=gState();if(window.GUEST&&s.status==='on')return '
 async function gSpin(){try{const j=await gcall('/gacha/spin');ST=j.state;return j}catch(e){if(e.code==='NEED_PHONE')setTimeout(()=>Gacha.open(),300);if(e.code==='NO_CHANCE'||e.code==='SOON'||e.code==='ENDED')gRefresh();return{ok:false,error:e.message}}}
 async function gQuiz(b){const j=await gcall('/gacha/quiz',b);ST=j.state;return j}
 let _gNeed=false;
-async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「我的資產」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
+/* 2026-10-26 大熊：畫布是上課用的材料，抽到／集章／兌換／手上有畫布券都要跳提醒：要搭配一堂課（課程費另計） */
+window.CV_NOTE = window.CV_NOTE || '畫布是上課用的材料，要搭配預約一堂課使用（課程費另計），上課當天就畫在這塊畫布上 🎨';
+window.cvIs = window.cvIs || function(nm){ return /畫布/.test(String(nm || '')) };
+window.cvTip = window.cvTip || function(nm){ return window.cvIs(nm) ? '<div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#FFF4E5;color:#9A4B12;font-size:13px;line-height:1.6;text-align:left">⚠️ ' + window.CV_NOTE + '</div>' : '' };
+window.cvPop = window.cvPop || function(title, html){
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(20,26,45,.55);display:flex;align-items:center;justify-content:center;padding:24px';
+  d.innerHTML = '<div style="background:#fff;border-radius:18px;padding:22px 20px 18px;max-width:340px;width:100%;text-align:center;color:#1E2B4F;font-size:14.5px;line-height:1.7;box-shadow:0 10px 30px rgba(0,0,0,.25)">' +
+    '<div style="font-size:34px">🖼️</div><div style="font-size:18px;font-weight:700;margin:4px 0 8px">' + title + '</div>' + html +
+    '<button type="button" style="margin-top:14px;width:100%;border:0;border-radius:999px;padding:11px;background:#1E2B4F;color:#fff;font-size:15px;font-weight:700">我知道了</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('button').onclick = function(){ d.remove() };
+};
+/* 手上有還沒領的畫布券：每支電話在這台手機提醒一次 */
+window.cvCheck = window.cvCheck || function(s){
+  if (!s || !s.me || !s.me.phone || s.sim || window.GUEST || window.KIOSK) return;
+  var t = (s.me.tickets || []).filter(function(x){ return x.status === 'ok' && window.cvIs(x.nm) });
+  if (!t.length) return;
+  var k = 'otto2-cvnote-' + s.me.phone;
+  try { if (localStorage.getItem(k)) return; localStorage.setItem(k, '1') } catch(e){ return }
+  window.cvPop('關於你的畫布', '你有一張「<b>' + String(t[0].nm).replace(/[&<>"']/g, '') + '</b>」可以領取。' + window.cvTip(t[0].nm) + '<div style="margin-top:8px;font-size:13px;color:#5A6070">預約上課時跟小編說要用這塊畫布就可以了！</div>');
+};
+async function gRefresh(){try{const j=await gcall('/gacha/state');gErrMsg='';if(j.needPhone){_gNeed=true;ST=null;gErrMsg='請先輸入電話（點「我的資產」）'}else{_gNeed=false;ST=j;if(j.me){customer.name=j.me.name||'';customer.phone=j.me.phone||''}try{cvCheck(j)}catch(e){}}}catch(e){gErrMsg=e.message||'連線不穩，請稍後再試'}
   if(window.goldTick)goldRefresh();
   gPaint()
   if(_gNeed&&!gRefresh._asked){gRefresh._asked=true;setTimeout(()=>{if(window.Gacha)Gacha.open()},600)}}
@@ -1799,13 +1821,13 @@ async function shopAsk(id){const p=SHOP.products.find(x=>x.id===id);if(!p)return
   if(!me){await spModal('<h3>請先登入</h3><p>請從 LINE 打開預約頁，才能用紅利兌換。</p>',[{t:'知道了',cls:'pri',v:1}]);return}
   if(me.needPhone){hideShopPage(()=>{toast('先輸入手機號碼，才能查到你的紅利');setTimeout(()=>{try{Gacha.open()}catch(e){}},400)});return}
   const enough=me.bonus>=p.price,img=p.img?`<div class="sp-mimg" style="background-image:url('${esc(p.img)}')"></div>`:'';
-  const ok=await spModal(`${img}<h3>${esc(p.nm)}</h3><p>${enough?`要用 <b>${p.price}</b> 點紅利兌換嗎？<br>你目前有 ${me.bonus.toLocaleString()} 點，兌換後剩 ${(me.bonus-p.price).toLocaleString()} 點。<br><small>兌換後會產生一張兌換券，來店出示就能領取。</small>`:`紅利還不夠喔：需要 <b>${p.price}</b> 點，<br>你目前有 ${me.bonus.toLocaleString()} 點。`}</p>`,
+  const ok=await spModal(`${img}<h3>${esc(p.nm)}</h3><p>${enough?`要用 <b>${p.price}</b> 點紅利兌換嗎？<br>你目前有 ${me.bonus.toLocaleString()} 點，兌換後剩 ${(me.bonus-p.price).toLocaleString()} 點。<br><small>兌換後會產生一張兌換券，來店出示就能領取。</small>${cvTip(p.nm)}`:`紅利還不夠喔：需要 <b>${p.price}</b> 點，<br>你目前有 ${me.bonus.toLocaleString()} 點。`}</p>`,
     enough?[{t:'確定兌換',cls:'pri',v:1},{t:'再想想',cls:'ghost',v:0}]:[{t:'好的',cls:'pri',v:0}]);
   if(!ok)return;
   try{const r=await gcall('/shop/redeem',{id});
     SHOP.me.bonus=r.bonus;const q=SHOP.products.find(x=>x.id===id);if(q){q.mine=r.mine;q.left=r.left;q.soldOut=r.left===0}
     renderShop();sfx('chime');
-    await spModal(`<h3>🎉 兌換成功！</h3><p>「${esc(p.nm)}」的兌換券已經放進你的帳戶。<br>請在 <b>${r.ticket.expiry}</b> 前來店出示，老師會幫你領取。<br><small>目前紅利剩 ${r.bonus.toLocaleString()} 點</small></p>`,[{t:'太好了',cls:'pri',v:1}])
+    await spModal(`<h3>🎉 兌換成功！</h3><p>「${esc(p.nm)}」的兌換券已經放進你的帳戶。<br>請在 <b>${r.ticket.expiry}</b> 前來店出示，老師會幫你領取。<br><small>目前紅利剩 ${r.bonus.toLocaleString()} 點</small>${cvTip(p.nm)}</p>`,[{t:'太好了',cls:'pri',v:1}])
   }catch(e){shopLoad(true).then(()=>renderShop()).catch(()=>{});await spModal(`<h3>沒有兌換成功</h3><p>${esc(e.message||'請稍後再試')}</p>`,[{t:'好的',cls:'pri',v:1}])}}
 $('spX').addEventListener('click',()=>hideShopPage());
 /* 底部四個分頁跟主畫面一模一樣（直接複製主畫面那排），點了先關商品頁再過去 */
@@ -4803,7 +4825,7 @@ async function load(extra){
   try {
     var j = await call("/gacha/state", extra);
     if (j.needPhone) { st = j; return renderPhone(j.guess) }
-    st = j; render(false);
+    st = j; render(false); try { cvCheck(j) } catch(e){}
   } catch(e) {
     if (e.code === "PHONE_TAKEN" || e.code === "BAD_PHONE" || e.code === "FAMILY_FULL" || e.code === "FAMILY_SENT") { renderPhone(extra && extra.phone, e.message, e.code === "FAMILY_SENT"); return }
     ov.innerHTML = shell('<div class="gc-msg">' + esc(e.message) + '<br><br><button class="gc-btn sec" id="gcRe" style="max-width:200px;margin:0 auto">再試一次</button></div>');
@@ -4974,7 +4996,7 @@ function myPrizes(){
   var t = st.me && st.me.tickets; if (!t) return "";
   var ok = t.filter(function(x){ return x.status === "ok" }).length;
   var row = function(x){
-    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配一堂課（課程費另計）" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
     return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
       (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
   };
@@ -5244,7 +5266,7 @@ function showModal(p){
   $("gcMIc").textContent = p.ic;
   $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "今天的紅利中滿囉！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
-    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
+    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm)
     : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
@@ -5275,7 +5297,7 @@ function showModal(p){
       var ms = spun.milestone; spun.milestone = null;
       setTimeout(function(){
         showModal2("🏅", "集滿 " + ms.d + " 天！", '集章保底送你 <b style="color:#1E2B4F">' + esc(ms.nm) + '</b>' +
-          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" : "<br>已存進你的帳戶"));
+          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" + cvTip(ms.nm) : "<br>已存進你的帳戶"));
       }, 400);
       return;
     }

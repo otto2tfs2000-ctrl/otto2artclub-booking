@@ -344,6 +344,28 @@ var SYMBOLS = '<svg width="0" height="0" style="position:absolute" aria-hidden="
   '<path d="M13 38 L18 42 L25 37 L24 36 L18 40 L14 37 Z" fill="#fff"/></symbol></svg>';
 
 /* 紅利兌換表（跟店裡的「紅利點數兌換」海報一致），中獎時提示下一個目標 */
+/* 2026-10-26 大熊：畫布是上課用的材料，抽到／集章／兌換／手上有畫布券都要跳提醒：要搭配一堂課（課程費另計） */
+window.CV_NOTE = window.CV_NOTE || '畫布是上課用的材料，要搭配預約一堂課使用（課程費另計），上課當天就畫在這塊畫布上 🎨';
+window.cvIs = window.cvIs || function(nm){ return /畫布/.test(String(nm || '')) };
+window.cvTip = window.cvTip || function(nm){ return window.cvIs(nm) ? '<div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#FFF4E5;color:#9A4B12;font-size:13px;line-height:1.6;text-align:left">⚠️ ' + window.CV_NOTE + '</div>' : '' };
+window.cvPop = window.cvPop || function(title, html){
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(20,26,45,.55);display:flex;align-items:center;justify-content:center;padding:24px';
+  d.innerHTML = '<div style="background:#fff;border-radius:18px;padding:22px 20px 18px;max-width:340px;width:100%;text-align:center;color:#1E2B4F;font-size:14.5px;line-height:1.7;box-shadow:0 10px 30px rgba(0,0,0,.25)">' +
+    '<div style="font-size:34px">🖼️</div><div style="font-size:18px;font-weight:700;margin:4px 0 8px">' + title + '</div>' + html +
+    '<button type="button" style="margin-top:14px;width:100%;border:0;border-radius:999px;padding:11px;background:#1E2B4F;color:#fff;font-size:15px;font-weight:700">我知道了</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('button').onclick = function(){ d.remove() };
+};
+/* 手上有還沒領的畫布券：每支電話在這台手機提醒一次 */
+window.cvCheck = window.cvCheck || function(s){
+  if (!s || !s.me || !s.me.phone || s.sim || window.GUEST || window.KIOSK) return;
+  var t = (s.me.tickets || []).filter(function(x){ return x.status === 'ok' && window.cvIs(x.nm) });
+  if (!t.length) return;
+  var k = 'otto2-cvnote-' + s.me.phone;
+  try { if (localStorage.getItem(k)) return; localStorage.setItem(k, '1') } catch(e){ return }
+  window.cvPop('關於你的畫布', '你有一張「<b>' + String(t[0].nm).replace(/[&<>"']/g, '') + '</b>」可以領取。' + window.cvTip(t[0].nm) + '<div style="margin-top:8px;font-size:13px;color:#5A6070">預約上課時跟小編說要用這塊畫布就可以了！</div>');
+};
 var TIERS = [[15,"一塊 6 號畫布"],[35,"23cm 流動熊"],[55,"33cm 流動熊"],[85,"30cm 流動畫"],[105,"40cm 水晶掛畫"],[150,"60x60cm 地毯作品"],[170,"3500 儲值點"]];
 var CAPC = ["#E8836B","#E3B34C","#7FB2A0","#8FA6D9","#D98FB8","#F2C14E"];
 var BALLC = ["#E0322F","#F2C94C","#7BBF3F","#6E3FA3","#F08A3C","#4FA3C7","#E88BB0","#3E7BC4"];
@@ -423,7 +445,7 @@ async function load(extra){
   try {
     var j = await call("/gacha/state", extra);
     if (j.needPhone) { st = j; return renderPhone(j.guess) }
-    st = j; render(false);
+    st = j; render(false); try { cvCheck(j) } catch(e){}
   } catch(e) {
     if (e.code === "PHONE_TAKEN" || e.code === "BAD_PHONE" || e.code === "FAMILY_FULL" || e.code === "FAMILY_SENT") { renderPhone(extra && extra.phone, e.message, e.code === "FAMILY_SENT"); return }
     ov.innerHTML = shell('<div class="gc-msg">' + esc(e.message) + '<br><br><button class="gc-btn sec" id="gcRe" style="max-width:200px;margin:0 auto">再試一次</button></div>');
@@ -592,7 +614,7 @@ function myPrizes(){
   var t = st.me && st.me.tickets; if (!t) return "";
   var ok = t.filter(function(x){ return x.status === "ok" }).length;
   var row = function(x){
-    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配一堂課（課程費另計）" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
     return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
       (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
   };
@@ -861,7 +883,7 @@ function showModal(p){
   $("gcMIc").textContent = p.ic;
   $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "今天的紅利中滿囉！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
-    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用'
+    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm)
     : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
@@ -888,7 +910,7 @@ function showModal(p){
       var ms = spun.milestone; spun.milestone = null;
       setTimeout(function(){
         showModal2("🏅", "集滿 " + ms.d + " 天！", '集章保底送你 <b style="color:#1E2B4F">' + esc(ms.nm) + '</b>' +
-          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" : "<br>已存進你的帳戶"));
+          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" + cvTip(ms.nm) : "<br>已存進你的帳戶"));
       }, 400);
       return;
     }
