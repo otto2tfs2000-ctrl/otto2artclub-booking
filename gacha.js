@@ -883,7 +883,7 @@ function showModal(p){
   $("gcMIc").textContent = p.ic;
   $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "今天的紅利中滿囉！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
-    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm)
+    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(p.exp || spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm)
     : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
