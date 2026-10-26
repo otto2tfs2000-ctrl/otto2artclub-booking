@@ -347,6 +347,12 @@ var SYMBOLS = '<svg width="0" height="0" style="position:absolute" aria-hidden="
 /* 2026-10-26 大熊：送畫布是為了讓客人來預約課程。畫布要搭配課程使用（不一定一堂，課程費另計）、不可折現；
    抽到／集章／兌換／手上有畫布券都跳提醒，附「預約課程」按鈕。期限照券上的（十月 11/30、聖誕季 12/31） */
 window.cvIs = window.cvIs || function(nm){ return /畫布/.test(String(nm || '')) };
+/* 2026-10-26 大熊：課程折抵券的使用規則，抽到時講清楚，免得客人拿來要求折現或換別的 */
+window.cpTip = window.cpTip || function(kind){
+  if (kind !== 'cash') return '';
+  return '<div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#EEF4FA;color:#2F5573;font-size:12.5px;line-height:1.65;text-align:left">' +
+    '💡 <b>折抵券使用規則</b><br>・只能折抵<b>原價</b>課程，已經有優惠的課程（例如當月優惠價）不適用<br>・也可以折抵加購的材料（例如加大畫布）<br>・要有消費才能折抵，不可折現、不可兌換其他商品<br>・一次限用一張，最多兩個月內使用</div>';
+};
 /* exp＝這張券的期限（2026-12-31 這種寫法），十月發的到 11/30、聖誕季發的到 12/31 */
 window.cvMd = window.cvMd || function(d){ d = String(d || '').replace(/\//g, '-'); return /^\d{4}-\d{2}-\d{2}$/.test(d) ? (+d.slice(5, 7)) + '/' + (+d.slice(8)) : '' };
 window.cvTip = window.cvTip || function(nm, exp){
@@ -626,7 +632,7 @@ function myPrizes(){
   var t = st.me && st.me.tickets; if (!t) return "";
   var ok = t.filter(function(x){ return x.status === "ok" }).length;
   var row = function(x){
-    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配課程、不可折現，快來預約" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配課程、不可折現，快來預約" : x.kind === "cash" ? "・原價課程才能折抵、不可折現" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
     return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
       (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
   };
@@ -895,7 +901,7 @@ function showModal(p){
   $("gcMIc").textContent = p.ic;
   $("gcMT").textContent = none ? "今天沒中，別灰心" : p.type === "lottery" ? "紅利已經領滿了！" : p.type === "bear" ? "今天的紅利中滿囉！" : "恭喜獲得！";
   $("gcMP").innerHTML = none ? "今天的集章已經幫你蓋好了<br>明天再來試試手氣 🍀"
-    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(p.exp || spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm, p.exp || spun.state.expiry)
+    : p.type === "ticket" ? '<b style="color:#1E2B4F">' + esc(p.nm) + '</b><br>已放進你的票券，請在 ' + esc(md(p.exp || spun.state.expiry)) + ' 前來店出示使用' + cvTip(p.nm, p.exp || spun.state.expiry) + cpTip(p.kind)
     : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
