@@ -344,8 +344,8 @@ var SYMBOLS = '<svg width="0" height="0" style="position:absolute" aria-hidden="
   '<path d="M13 38 L18 42 L25 37 L24 36 L18 40 L14 37 Z" fill="#fff"/></symbol></svg>';
 
 /* 紅利兌換表（跟店裡的「紅利點數兌換」海報一致），中獎時提示下一個目標 */
-/* 2026-10-26 大熊：畫布是上課用的材料，抽到／集章／兌換／手上有畫布券都要跳提醒：要搭配一堂課（課程費另計） */
-window.CV_NOTE = window.CV_NOTE || '畫布是上課用的材料，要搭配預約一堂課使用（課程費另計），上課當天就畫在這塊畫布上 🎨';
+/* 2026-10-26 大熊：畫布要搭配課程使用（不一定一堂，課程費另計）、不可折現、11/30 前用；抽到／集章／兌換／手上有畫布券都要跳提醒 */
+window.CV_NOTE = window.CV_NOTE || '畫布要搭配課程使用（課程費另計），不可折現，請在 11/30 前使用 🎨';
 window.cvIs = window.cvIs || function(nm){ return /畫布/.test(String(nm || '')) };
 window.cvTip = window.cvTip || function(nm){ return window.cvIs(nm) ? '<div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#FFF4E5;color:#9A4B12;font-size:13px;line-height:1.6;text-align:left">⚠️ ' + window.CV_NOTE + '</div>' : '' };
 window.cvPop = window.cvPop || function(title, html){
@@ -364,7 +364,7 @@ window.cvCheck = window.cvCheck || function(s){
   if (!t.length) return;
   var k = 'otto2-cvnote-' + s.me.phone;
   try { if (localStorage.getItem(k)) return; localStorage.setItem(k, '1') } catch(e){ return }
-  window.cvPop('關於你的畫布', '你有一張「<b>' + String(t[0].nm).replace(/[&<>"']/g, '') + '</b>」可以領取。' + window.cvTip(t[0].nm) + '<div style="margin-top:8px;font-size:13px;color:#5A6070">預約上課時跟小編說要用這塊畫布就可以了！</div>');
+  window.cvPop('關於你的畫布', '你有一張「<b>' + String(t[0].nm).replace(/[&<>"']/g, '') + '</b>」可以領取。' + window.cvTip(t[0].nm) + '<div style="margin-top:8px;font-size:13px;color:#5A6070">預約課程時跟小編說要用這塊畫布就可以了！</div>');
 };
 var TIERS = [[15,"一塊 6 號畫布"],[35,"23cm 流動熊"],[55,"33cm 流動熊"],[85,"30cm 流動畫"],[105,"40cm 水晶掛畫"],[150,"60x60cm 地毯作品"],[170,"3500 儲值點"]];
 var CAPC = ["#E8836B","#E3B34C","#7FB2A0","#8FA6D9","#D98FB8","#F2C14E"];
@@ -614,7 +614,7 @@ function myPrizes(){
   var t = st.me && st.me.tickets; if (!t) return "";
   var ok = t.filter(function(x){ return x.status === "ok" }).length;
   var row = function(x){
-    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配一堂課（課程費另計）" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配課程、不可折現" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
     return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
       (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
   };
