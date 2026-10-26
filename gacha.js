@@ -928,7 +928,7 @@ function showModal(p){
       var ms = spun.milestone; spun.milestone = null;
       setTimeout(function(){
         showModal2("🏅", "集滿 " + ms.d + " 天！", '集章保底送你 <b style="color:#1E2B4F">' + esc(ms.nm) + '</b>' +
-          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" + cvTip(ms.nm, ms.exp || spun.state.expiry) : "<br>已存進你的帳戶"));
+          (ms.type === "ticket" ? "<br>已放進你的票券，來店出示就能領" + cvTip(ms.nm, ms.exp || spun.state.expiry) + cpTip(ms.kind) : "<br>已存進你的帳戶"));
       }, 400);
       return;
     }
