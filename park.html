@@ -40,6 +40,16 @@ body{-webkit-user-select:none; -webkit-touch-callout:none; margin:0; background:
 .colR .matlbl{order:2; text-align:right}
 .colR .mats{order:1}
 .colR .gchip{order:3}
+.colR .schip{order:4}.colR .bchip{order:5}
+/* 2026-10-28 紅利進度條、銀色扭蛋入口（走格子才顯示） */
+.bchip{background:rgba(255,250,240,.92); border-radius:12px; padding:5px 8px; font-size:11px; line-height:1.35; color:#3b2a1a; box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.bchip b{font-size:13px}.bchip .bb{height:5px; border-radius:3px; background:#eadfcd; margin-top:3px; overflow:hidden}.bchip .bb i{display:block; height:100%; background:linear-gradient(90deg,#e3b34c,#d9822b); border-radius:3px}
+.schip{border:2px solid #8c97a8; background:linear-gradient(180deg,#f4f6fa,#c9d1dc); color:#2d3644; font:inherit; font-size:13px; font-weight:700; border-radius:99px; padding:6px 10px; justify-content:center; animation:schipPulse 2.2s ease-in-out infinite}
+@keyframes schipPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,210,225,.0)}50%{box-shadow:0 0 0 6px rgba(200,210,225,.55)}}
+body.oct .bchip,body.oct .schip{display:none!important}
+#goldG.silver{background:rgba(214,222,234,.32)}
+#goldG.silver canvas,#goldG.silver .gg-glow,#goldG.silver .sp-coin{filter:saturate(0) brightness(1.1)}
+#goldG.silver .gg-top,#goldG.silver .gg-fb{color:#34404f}
 body.busy .colR .mats,body.busy .colR .matlbl{opacity:0; pointer-events:none}
 .colR .mats,.colR .matlbl{transition:opacity .25s}
 .gchip{justify-content:center; padding-inline:8px}
@@ -677,6 +687,8 @@ body:not(.oct) #evPill{display:none}
         <div class="chip gchip"><img id="giftIcon" alt=""><span>禮物 <b id="gifts">0</b></span></div>
         <div class="mats" id="mats"></div>
         <div class="matlbl" id="matlbl">集滿四個聖誕吊飾</div>
+        <button type="button" class="chip schip" id="silverBtn" hidden>🥈 銀色扭蛋 ×<b id="silverN">1</b></button>
+        <div class="bchip" id="bonusChip" hidden></div>
       </div>
     </div>
     <div class="levels" role="group" aria-label="選擇關卡">
@@ -1236,7 +1248,19 @@ async function xmasPull(){if(!window.PROD||!token())return;
     if(G.tree>from&&G.phase!=='oct'){setTreeVisual(from);await quickLight(from,G.tree)}else setTreeVisual(G.tree);
     if(j.gain&&(j.gain.open||j.gain.klass))toast(j.gain.klass?`今天來上課，幫聖誕樹點了 ${j.gain.klass+j.gain.open} 盞燈！`:`今天打開遊戲，幫聖誕樹點了 ${j.gain.open} 盞燈`);
     if(j.visits&&j.visits.n>0)xmasVisitShow(j.visits);
+    silverRefresh().then(()=>{if(j.gain&&j.gain.reward)xmasKlassShow(j.gain.reward)});
     setTimeout(xmasClaimPrompt,1200)}catch(e){XS=null}}
+/* 來上課的獎勵（伺服器發好了，這裡只講）：11 月銀色扭蛋、12 月聖誕吊飾 */
+async function xmasKlassShow(r,tries=0){if(busy||!$('pop').hidden){if(tries<60)setTimeout(()=>xmasKlassShow(r,tries+1),1000);return}
+  if(r.silver){const go=await popup('giftbig','謝謝你來上課！',`送你 ${r.silver} 顆銀色扭蛋 🥈，一個月內要轉喔。`,[{t:'現在去轉',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);if(go)silverOpen();return}
+  if(r.orn){await popup('giftbig','謝謝你來上課！',`送你 ${r.orn} 個聖誕吊飾 🔔，已經掛上去了。`)}
+  else if(r.gift){await popup('giftbig','謝謝你來上課！',`吊飾已經集滿了，改送你 ${r.gift} 個聖誕禮物，可以拿去幫聖誕樹點燈。`)}
+  hud()}
+/* 銀色扭蛋（2026-10-28）：跟黃金扭蛋共用機台畫面，換成銀色、打 /gacha/silver/*；跟買方案的金色扭蛋分開 */
+var SILVER=null;
+async function silverRefresh(){if(!window.PROD||!token()||window.KIOSK||window.GUEST){SILVER=null;return}
+  try{SILVER=await gcall('/gacha/silver/state',{})}catch(e){SILVER=null}try{bonusUI()}catch(e){}}
+async function silverOpen(){if(GGBUSY)return;await xmasFlush();if(!SILVER)await silverRefresh();if(!SILVER||!SILVER.coins){toast('目前沒有銀色扭蛋，11 月來上課就會拿到');return}goldGachaOpen(SILVER.coins,false,true)}
 /* 上次打開之後有人來拜訪我的小屋（伺服器只回一次，不發 LINE）：等畫面空下來再跳 */
 function xmasVisitShow(v,tries=0){if(busy||!$('pop').hidden||G.phase==='oct'){if(tries<60)setTimeout(()=>xmasVisitShow(v,tries+1),1000);return}
   const who=v.names.length?`（${v.names.join('、')}${v.n>v.names.length?' 等':''}）`:'';
@@ -1488,9 +1512,13 @@ async function goldRefresh(){const was=goldHas()?GOLD.coins:0;if(!token()||windo
   if((goldHas()?GOLD.coins:0)!==was){try{hud()}catch(e){}}}
 function ggSparkles(){const sp=$('ggSp');sp.innerHTML='';for(let k=0;k<18;k++){const i=document.createElement('i'),a=Math.random()*6.28,r=18+Math.random()*30;
   i.style.cssText=`left:${50+Math.cos(a)*r*.9}%;top:${46+Math.sin(a)*r*.72}%;--s:${14+Math.random()*22}px;--d:${1.4+Math.random()*1.6}s;--l:${(Math.random()*2).toFixed(2)}s`;sp.appendChild(i)}}
-function goldGachaOpen(n,demo){ggLoadImgs();if(GGBUSY)return;const g=$('goldG');GGMODE.demo=!!demo;GGMODE.tier='';let sub='買方案送的金幣，轉一次試試手氣';
+var GGSILV=false;
+function goldGachaOpen(n,demo,silver){ggLoadImgs();if(GGBUSY)return;const g=$('goldG');GGMODE.demo=!!demo;GGMODE.tier='';GGSILV=!!silver;g.classList.toggle('silver',GGSILV);
+  g.querySelector('.gg-top b').textContent=GGSILV?'銀色扭蛋':'黃金扭蛋';g.querySelector('.gg-coin').childNodes[1].nodeValue=GGSILV?'銀色扭蛋 ×':'黃金扭蛋金幣 ×';
+  let sub='買方案送的金幣，轉一次試試手氣';
+  if(GGSILV)sub=SILVER&&SILVER.expiry?`來上課送的銀色扭蛋，${SILVER.expiry.slice(5).replace('-','/')} 前要轉`:'來上課送的銀色扭蛋，轉一次試試手氣';
   /* 2026-10-28：金幣拿到後一個月內要轉，伺服器回最快到期那枚的日期 */
-  if(!demo&&GOLD&&GOLD.expiry)sub=`金幣 ${GOLD.expiry.slice(5).replace('-','/')} 前要轉，過期自動失效`;
+  if(!demo&&!GGSILV&&GOLD&&GOLD.expiry)sub=`金幣 ${GOLD.expiry.slice(5).replace('-','/')} 前要轉，過期自動失效`;
   if(demo){const T=(GOLD&&GOLD.tiers)||[];if(T.length){const t=T[GGDT++%T.length];GGMODE.tier=t.id;sub='示範：'+t.nm+'的機率（不入帳）'}else sub='示範（不入帳）'}
   $('ggSub').textContent=sub;$('ggN').textContent=demo?'∞':(n||1);$('ggPrize').hidden=true;$('ggGo').disabled=false;$('ggGo').textContent='轉一下';ggSparkles();
   g.hidden=false;void g.offsetWidth;g.classList.add('show');try{sfx('chime')}catch(e){}
@@ -1566,17 +1594,18 @@ async function goldGachaSpin(){if(GGBUSY)return;GGBUSY=true;$('ggGo').disabled=t
   if(anim)ggFb(false);else ggFb(true,'金色機台的圖沒載到，不影響抽獎');
   try{sfx('tick')}catch(e){}
   /* 轉盤開始轉的同時就請伺服器抽，結果回來才開蛋（結果是伺服器決定的，網頁改不了） */
-  const req=gcall('/gacha/gold/spin',{demo:GGMODE.demo,tier:GGMODE.tier}).then(j=>({j}),e=>({e}));
+  const req=gcall(GGSILV?'/gacha/silver/spin':'/gacha/gold/spin',{demo:GGMODE.demo,tier:GGMODE.tier}).then(j=>({j}),e=>({e}));
   await play(GGT.dial0,GGT.open0);
   const R=await req,pz=$('ggPrize');
   if(R.e){pz.innerHTML=`<div class="gg-pc"><small>哎呀</small><div class="ic">😅</div><h3>沒有轉成功</h3><p>${esc(R.e.message||'連線不穩，請稍後再試')}</p><button type="button" id="ggOk">好</button></div>`;pz.hidden=false;
-    $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();goldRefresh();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)};return}
+    $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();if(GGSILV)silverRefresh();else goldRefresh();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)};return}
   const prize=R.j.prize;try{sfx('thunk')}catch(e){}
   await play(GGT.open0,GGT.open1);try{sfx('sparkle')}catch(e){}ggBurst();ggBurst();await sleep(300);
-  const tx=(prize.sub?prize.sub+'。':'')+(prize.type==='bonus'?'已經加進你的紅利點數':prize.type==='ticket'?(prize.exp?`兌換券已放進你的帳戶，請在 ${prize.exp.slice(5).replace('-','/')} 前來店領取，沒領會自動失效`:'兌換券已放進你的帳戶，來店出示領取'):'謝謝參加，下次再來')+(R.j.sim?'（示範，不入帳）':'');
+  if(GGSILV&&!R.j.sim){if(prize.type==='gift')G.gifts+=prize.n||0;else if(prize.type==='orn'){if(prize.orn!=null)G.orn[prize.orn]=true;else G.gifts+=prize.gift||0}hud()} /* 伺服器已經存好，本機跟上，免得 /xmas/save 把數字改回去 */
+  const tx=(prize.sub?prize.sub+'。':'')+(prize.type==='gift'?`${prize.n||''} 個聖誕禮物已經放進你的口袋，可以拿去幫聖誕樹點燈`:prize.type==='orn'?(prize.orn!=null?'聖誕吊飾已經掛上去了':`吊飾已經集滿了，改送 ${prize.gift||3} 個聖誕禮物`):prize.type==='bonus'?'已經加進你的紅利點數':prize.type==='ticket'?(prize.exp?`兌換券已放進你的帳戶，請在 ${prize.exp.slice(5).replace('-','/')} 前來店領取，沒領會自動失效`:'兌換券已放進你的帳戶，來店出示領取'):'謝謝參加，下次再來')+(R.j.sim?'（示範，不入帳）':'');
   pz.innerHTML=`<div class="gg-pc"><small>${prize.type==='none'?'這次':'恭喜獲得'}</small><div class="ic">${esc(prize.ic||'🎁')}</div><h3>${esc(prize.nm)}</h3><p>${esc(tx)}</p><button type="button" id="ggOk">收下</button></div>`;pz.hidden=false;
   if(!R.j.sim)$('ggN').textContent=R.j.coins;
-  $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();goldRefresh();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)}}
+  $('ggOk').onclick=()=>{pz.hidden=true;GGBUSY=false;goldGachaClose();if(GGSILV)silverRefresh();else goldRefresh();setTimeout(()=>ggDraw($('ggCv').getContext('2d'),GGT.pop),450)}}
 $('ggGo').addEventListener('click',goldGachaSpin);$('ggX').addEventListener('click',()=>{if(!GGBUSY)goldGachaClose()});
 /* 入口：有黃金扭蛋金幣、而且後台「開放」了 → 主按鈕「轉一下」變金色「黃金轉一下」（見 hud／spin）。
    工作人員（示範模式／員工 LINE）或網址帶 ?gold=1 → 左下角另外多一顆「工作人員試玩」，用後台填的機率轉，不用金幣、不入帳 */
@@ -3705,10 +3734,19 @@ function hud(){
   [...$('mats').children].forEach((m,i)=>m.classList.toggle('got',G.orn[i]));
   const lk=layersOf(G.tree);
   if(lk>=5){$('treeFill').style.width='100%';$('treeNum').textContent='全部亮了！'}
-  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=(G.treeReal||0)>=LAYERS[lk]?'燈夠了！':`${Math.floor(G.tree-layerStart(lk)).toLocaleString()} / ${(LAYERS[lk]-layerStart(lk)).toLocaleString()}`;if((G.treeReal||0)>=LAYERS[lk])$('treeFill').style.width='100%'; /* 2026-10-25 燈數夠、日期還沒到：以前卡在差一盞，點了燈看起來沒變 */{const dd=layerDates()[lk],t=(XW&&XW.today)||twToday();$('treeBtn').querySelector('.tt>span').textContent=`聖誕樹・第${lk+1}層`+(dd&&t<dd?`・${md2(dd)} 點亮`:'')}}
+  else{$('treeFill').style.width=(layerFill(G.tree,lk)*100)+'%';$('treeNum').textContent=(G.treeReal||0)>=LAYERS[lk]?'燈夠了！':`全體再 ${Math.max(1,Math.ceil(LAYERS[lk]-(G.treeReal||G.tree))).toLocaleString()} 盞`;if((G.treeReal||0)>=LAYERS[lk])$('treeFill').style.width='100%'; /* 2026-10-25 燈數夠、日期還沒到：以前卡在差一盞，點了燈看起來沒變 */{const dd=layerDates()[lk],t=(XW&&XW.today)||twToday();$('treeBtn').querySelector('.tt>span').textContent=`聖誕樹・第${lk+1}層`+(dd&&t<dd?`・${md2(dd)} 點亮`:'')}}
   lock2.visible=!G.booked;
+  bonusUI();
   save();
 }
+/* 2026-10-28 紅利進度：「紅利 N 點・再 X 點換 OO」（價格照選品館，伺服器 shopTiers） */
+function bonusUI(){const el=$('bonusChip'),sb=$('silverBtn');if(!el)return;
+  if(sb){const n=(SILVER&&SILVER.enabled&&SILVER.coins)||0;sb.hidden=!n||G.phase==='oct';$('silverN').textContent=n}
+  const p=XS&&XS.p,b=p&&p.bonus;if(b==null||G.phase==='oct'){el.hidden=true;return}
+  const T=(XS.shopTiers||[]),nx=T.find(t=>t[0]>b),prev=[...T].reverse().find(t=>t[0]<=b);
+  const from=prev?prev[0]:0,pct=nx?Math.max(4,Math.min(100,(b-from)/(nx[0]-from)*100)):100;
+  el.innerHTML=`紅利 <b>${b}</b> 點<br>${nx?`再 ${nx[0]-b} 點換「${esc(nx[1])}」`:T.length?'可以去選品館換好禮了 🎁':'可以到選品館換好禮'}<div class="bb"><i style="width:${pct}%"></i></div>`;
+  el.hidden=false}
 function placeBear(){if(G.phase==='oct'){bear.position.copy(STAND);bear.rotation.y=-1.25;return}const p=tilePos(G.cur,G.lv[G.cur].pos);bear.position.set(p.x,p.y+TILE_H-.06,p.z);bear.rotation.y=0}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
 // modal card: returns the value of the button pressed
@@ -4392,7 +4430,7 @@ $('book').addEventListener('click',()=>{
 });
 $('nextday').addEventListener('click',nextDay);
 $('classBtn').addEventListener('click',classCheckin);
-$('treeBtn').addEventListener('click',donate);
+$('treeBtn').addEventListener('click',donate);$('silverBtn').addEventListener('click',silverOpen);
 {const lv=document.querySelector('.levels');$('places').before(lv)} /* 2026-10-05 第一層/第二層搬到下方（十月本來就藏起來） */
 $('test').addEventListener('click',()=>{if(busy)return;G.test=!G.test;hud();toast(G.test?'測試模式：可以一直擲':'改回正式規則：每層每天一次')});
 $('room').addEventListener('click',gameRoom);
