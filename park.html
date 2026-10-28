@@ -46,13 +46,15 @@ body{-webkit-user-select:none; -webkit-touch-callout:none; margin:0; background:
 .bchip b{font-size:13px}.bchip .bb{height:5px; border-radius:3px; background:#eadfcd; margin-top:3px; overflow:hidden}.bchip .bb i{display:block; height:100%; background:linear-gradient(90deg,#e3b34c,#d9822b); border-radius:3px}
 .schip{border:2px solid #8c97a8; background:linear-gradient(180deg,#f4f6fa,#c9d1dc); color:#2d3644; font:inherit; font-size:13px; font-weight:700; border-radius:99px; padding:6px 10px; justify-content:center; animation:schipPulse 2.2s ease-in-out infinite}
 @keyframes schipPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,210,225,.0)}50%{box-shadow:0 0 0 6px rgba(200,210,225,.55)}}
-body.oct .bchip,body.oct .schip,body.oct .advchip{display:none!important}
-.advchip{font:inherit; font-size:13px; font-weight:700; cursor:pointer; justify-content:center; background:linear-gradient(180deg,#fff4e0,#ffd9a8); border:2px solid #b5573f; border-radius:99px; padding:6px 10px; color:#7a2e1c}
-.advchip.new{animation:schipPulse 2.2s ease-in-out infinite}
-body:not(.oct) .advchip{align-self:flex-start; margin-bottom:4px}
+body.oct .bchip,body.oct .schip{display:none!important}
+/* 2026-10-28 大熊嫌上方卡片太高：月曆改成右上角圓鈕、紅利進度條變薄 */
+body.oct #advBtn{display:none!important}
+#advBtn.new i{animation:schipPulse 2.2s ease-in-out infinite; color:#d63a2f}
 body:not(.oct) .colR{flex-wrap:wrap}
-body:not(.oct) .colR .schip{order:4; flex:1 1 100%; padding:5px 10px; font-size:13px; box-shadow:none}
-body:not(.oct) .colR .bchip{order:5; flex:1 1 100%; box-shadow:none; background:#fff6e6; font-size:12px; color:var(--navy)}
+body:not(.oct) .colR .schip{order:4; flex:1 1 100%; padding:3px 10px; font-size:13px; box-shadow:none; border-width:1.5px}
+body:not(.oct) .colR .bchip{order:5; flex:1 1 100%; box-shadow:none; background:none; font-size:12px; color:var(--navy); padding:2px 0 0; display:flex; align-items:center; gap:8px; white-space:nowrap; overflow:hidden}
+body:not(.oct) .colR .bchip .bt{flex:none; overflow:hidden; text-overflow:ellipsis; max-width:72%}
+body:not(.oct) .colR .bchip .bb{flex:1; height:4px; margin:0}
 .adv{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:10px 0}
 .adv button{font:inherit; aspect-ratio:1; border-radius:10px; border:2px solid #b5573f; background:#fff4e0; color:#7a2e1c; font-size:15px; font-weight:700; cursor:pointer; padding:0}
 .adv button.op{background:#e9f5ec; border-color:#2f8f58; color:#2f8f58; font-size:18px}
@@ -518,6 +520,12 @@ body .places button,#miUI .places button{flex-direction:column; gap:1px; font-si
 body .places .pi{width:26px; height:26px}
 body .places button.on::before{bottom:3px; height:3px}
 body .places button.dot::after{top:3px; right:10px}
+/* 2026-10-28 大熊：分頁再壓扁 → 圖示改放字的左邊、一行 */
+body .places{padding:3px}
+body .places button,#miUI .places button{flex-direction:row; gap:3px; font-size:13px; padding:6px 0 8px; letter-spacing:-.02em}
+body .places .pi{width:20px; height:20px}
+body .places button.on::before{bottom:2px; height:3px}
+body .places button.dot::after{top:1px; right:2px; width:9px; height:9px}
 .octinfo{cursor:pointer}
 body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那行小字拿掉 */
 #hopVeil{position:fixed; inset:0; background:#eef6fb; opacity:0; pointer-events:none; z-index:60; transition:opacity .35s}
@@ -698,12 +706,11 @@ body:not(.oct) #evPill{display:none}
 <div class="loading" id="loading">遊樂島準備中…</div>
 <div class="hud" id="hud" hidden>
   <div>
-    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k" id="ohK">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t"><span id="ohT">畢卡索扭扭樂</span><span class="oh-demo" id="ohDemo2" hidden>示範</span></h1><p class="oh-s" id="ohS">點一下，轉出你的藝術驚喜。</p><button type="button" id="evPill" hidden></button></div><div class="oh-r"><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
+    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k" id="ohK">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t"><span id="ohT">畢卡索扭扭樂</span><span class="oh-demo" id="ohDemo2" hidden>示範</span></h1><p class="oh-s" id="ohS">點一下，轉出你的藝術驚喜。</p><button type="button" id="evPill" hidden></button></div><div class="oh-r"><button class="ohb advb" id="advBtn" type="button" aria-label="聖誕倒數月曆" hidden><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="12" cy="14.8" r="1.6" fill="currentColor" stroke="none"/></svg></i>月曆</button><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
     <div class="top">
       <div class="colL">
         <div class="chip brand"><span id="brandT">OTTO2 遊樂島</span><small id="brandS">示範版</small></div>
         <div class="chip soon" id="soon"><span id="soonIc"></span><span>聖誕走格子<small>11/1 開放・現在先暗著</small></span></div>
-        <button type="button" class="chip advchip" id="advBtn" hidden>📅 聖誕倒數月曆</button>
         <button type="button" class="tree" id="treeBtn"><span class="tt"><span>聖誕樹</span><em>點燈</em></span><div class="bar"><i id="treeFill"></i></div><b id="treeNum"></b></button>
       </div>
       <div class="colR">
@@ -3803,7 +3810,7 @@ function bonusUI(){const el=$('bonusChip'),sb=$('silverBtn');if(!el)return;
   const p=XS&&XS.p,b=p&&p.bonus;if(b==null||G.phase==='oct'){el.hidden=true;return}
   const T=(XS.shopTiers||[]),nx=T.find(t=>t[0]>b),prev=[...T].reverse().find(t=>t[0]<=b);
   const from=prev?prev[0]:0,pct=nx?Math.max(4,Math.min(100,(b-from)/(nx[0]-from)*100)):100;
-  el.innerHTML=`紅利 <b>${b}</b> 點・${nx?`再 ${nx[0]-b} 點換「${esc(nx[1])}」`:T.length?'可以去選品館換好禮了 🎁':'可以到選品館換好禮'}<div class="bb"><i style="width:${pct}%"></i></div>`;
+  el.innerHTML=`<span class="bt">紅利 <b>${b}</b>・${nx?`再 ${nx[0]-b} 點換「${esc(nx[1])}」`:T.length?'可以去選品館換好禮了 🎁':'可以到選品館換好禮'}</span><div class="bb"><i style="width:${pct}%"></i></div>`;
   el.hidden=false}
 function placeBear(){if(G.phase==='oct'){bear.position.copy(STAND);bear.rotation.y=-1.25;return}const p=tilePos(G.cur,G.lv[G.cur].pos);bear.position.set(p.x,p.y+TILE_H-.06,p.z);bear.rotation.y=0}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
