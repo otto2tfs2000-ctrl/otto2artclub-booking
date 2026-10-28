@@ -638,7 +638,13 @@ function myPrizes(){
   };
   var lot = st.me.lottery ? '<div class="gc-pr"><span class="ic">🎫</span><span class="nm">月底大抽獎券 ×' + st.me.lottery + '<small>月底抽獎時自動參加</small></span></div>' : "";
   var body = t.map(row).join("") + lot;
-  return '<div class="gc-sec"><div class="gc-sh"><h2>我的獎品</h2><small>' + (ok ? ok + ' 張可使用' : '扭蛋抽到的券會收在這裡') + '</small></div>' +
+  /* 2026-10-28 十月月底大抽獎：大家都看得到獎項，有券的人另外提示 */
+  var o = st.octLot, oct = "";
+  if (o) oct = '<div class="gc-sec"><div class="gc-sh"><h2>🎫 ' + esc(o.title) + '</h2><small>' + md(o.draw) + ' 抽出</small></div><div class="gc-pool">' +
+    o.prizes.map(function(p){ return '<div class="gc-pr"><span class="ic">🎁</span><span class="nm">' + esc(p.nm) + '<small>' + p.n + ' 名</small></span></div>' }).join("") +
+    '<div class="gc-pr"><span class="ic">' + (o.mine ? '✅' : 'ℹ️') + '</span><span class="nm">' + (o.mine ? '你有 1 張抽獎券，會自動參加' : '十月扭蛋紅利領滿的家長，每人 1 張抽獎券') +
+    '<small>' + (o.mine ? '中獎會另外通知你' : '每人只有一張，大家中獎機會一樣') + '</small></span></div></div></div>';
+  return oct + '<div class="gc-sec"><div class="gc-sh"><h2>我的獎品</h2><small>' + (ok ? ok + ' 張可使用' : '扭蛋抽到的券會收在這裡') + '</small></div>' +
     '<div class="gc-pool">' + (body || '<div class="gc-empty">還沒有獎品券。<br>扭蛋抽到材料升級券這類獎品，都會收在這裡。</div>') + '</div></div>';
 }
 function pool(){
