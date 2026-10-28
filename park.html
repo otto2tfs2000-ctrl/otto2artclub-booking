@@ -46,7 +46,20 @@ body{-webkit-user-select:none; -webkit-touch-callout:none; margin:0; background:
 .bchip b{font-size:13px}.bchip .bb{height:5px; border-radius:3px; background:#eadfcd; margin-top:3px; overflow:hidden}.bchip .bb i{display:block; height:100%; background:linear-gradient(90deg,#e3b34c,#d9822b); border-radius:3px}
 .schip{border:2px solid #8c97a8; background:linear-gradient(180deg,#f4f6fa,#c9d1dc); color:#2d3644; font:inherit; font-size:13px; font-weight:700; border-radius:99px; padding:6px 10px; justify-content:center; animation:schipPulse 2.2s ease-in-out infinite}
 @keyframes schipPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,210,225,.0)}50%{box-shadow:0 0 0 6px rgba(200,210,225,.55)}}
-body.oct .bchip,body.oct .schip{display:none!important}
+body.oct .bchip,body.oct .schip,body.oct .advchip{display:none!important}
+.advchip{font:inherit; font-size:13px; font-weight:700; cursor:pointer; justify-content:center; background:linear-gradient(180deg,#fff4e0,#ffd9a8); border:2px solid #b5573f; border-radius:99px; padding:6px 10px; color:#7a2e1c}
+.advchip.new{animation:schipPulse 2.2s ease-in-out infinite}
+body:not(.oct) .advchip{align-self:flex-start; margin-bottom:4px}
+body:not(.oct) .colR{flex-wrap:wrap}
+body:not(.oct) .colR .schip{order:4; flex:1 1 100%; padding:5px 10px; font-size:13px; box-shadow:none}
+body:not(.oct) .colR .bchip{order:5; flex:1 1 100%; box-shadow:none; background:#fff6e6; font-size:12px; color:var(--navy)}
+.adv{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:10px 0}
+.adv button{font:inherit; aspect-ratio:1; border-radius:10px; border:2px solid #b5573f; background:#fff4e0; color:#7a2e1c; font-size:15px; font-weight:700; cursor:pointer; padding:0}
+.adv button.op{background:#e9f5ec; border-color:#2f8f58; color:#2f8f58; font-size:18px}
+.adv button.td{background:#d63a2f; color:#fff; border-color:#8c1f17; box-shadow:0 0 0 3px #ffd84a}
+.adv button.lk,.adv button.ms{opacity:.45; cursor:default}
+.rk{text-align:left; font-size:13px; max-height:52vh; overflow:auto; margin:8px 0}
+.rk div{padding:6px 2px; border-top:1px solid #eadfcd}.rk b{display:block; font-size:14px}.rk .me{color:#d63a2f; font-weight:700}
 #goldG.silver{background:rgba(214,222,234,.32)}
 #goldG.silver canvas,#goldG.silver .gg-glow,#goldG.silver .sp-coin{filter:saturate(0) brightness(1.1)}
 #goldG.silver .gg-top,#goldG.silver .gg-fb{color:#34404f}
@@ -681,6 +694,7 @@ body:not(.oct) #evPill{display:none}
       <div class="colL">
         <div class="chip brand"><span id="brandT">OTTO2 遊樂島</span><small id="brandS">示範版</small></div>
         <div class="chip soon" id="soon"><span id="soonIc"></span><span>聖誕走格子<small>11/1 開放・現在先暗著</small></span></div>
+        <button type="button" class="chip advchip" id="advBtn" hidden>📅 聖誕倒數月曆</button>
         <button type="button" class="tree" id="treeBtn"><span class="tt"><span>聖誕樹</span><em>點燈</em></span><div class="bar"><i id="treeFill"></i></div><b id="treeNum"></b></button>
       </div>
       <div class="colR">
@@ -1249,6 +1263,7 @@ async function xmasPull(){if(!window.PROD||!token())return;
     if(j.gain&&(j.gain.open||j.gain.klass))toast(j.gain.klass?`今天來上課，幫聖誕樹點了 ${j.gain.klass+j.gain.open} 盞燈！`:`今天打開遊戲，幫聖誕樹點了 ${j.gain.open} 盞燈`);
     if(j.visits&&j.visits.n>0)xmasVisitShow(j.visits);
     silverRefresh().then(()=>{if(j.gain&&j.gain.reward)xmasKlassShow(j.gain.reward)});
+    try{const k='otto2-anim-hint',t=twToday();if(localStorage.getItem(k)!==t){localStorage.setItem(k,t);setTimeout(()=>toast(`今天${animalWho()[1]}躲在有 🥕 的格子，踩到有驚喜！`),2600)}}catch(e){}
     setTimeout(xmasClaimPrompt,1200)}catch(e){XS=null}}
 /* 來上課的獎勵（伺服器發好了，這裡只講）：11 月銀色扭蛋、12 月聖誕吊飾 */
 async function xmasKlassShow(r,tries=0){if(busy||!$('pop').hidden){if(tries<60)setTimeout(()=>xmasKlassShow(r,tries+1),1000);return}
@@ -1260,6 +1275,39 @@ async function xmasKlassShow(r,tries=0){if(busy||!$('pop').hidden){if(tries<60)s
 var SILVER=null;
 async function silverRefresh(){if(!window.PROD||!token()||window.KIOSK||window.GUEST){SILVER=null;return}
   try{SILVER=await gcall('/gacha/silver/state',{})}catch(e){SILVER=null}try{bonusUI()}catch(e){}}
+/* ── 聖誕倒數月曆（2026-10-28）：12/1～12/25 每天開一格，全部虛擬；只能開今天，員工示範每格都能開 ── */
+function advOn(){const t=(XW&&XW.today)||twToday();return !!XS&&((t>='2026-12-01'&&t<='2026-12-25')||!!XS.sim||/[?&]advent=1/.test(location.search))}
+function advDay(){const t=(XW&&XW.today)||twToday();return t>='2026-12-01'&&t<='2026-12-25'?+t.slice(8):0}
+function advToday(){const d=advDay(),a=(XS&&XS.p&&XS.p.adv)||{};return !d||!!a[d]}
+async function advOpen(){if(busy||!XS)return;const d0=advDay(),a=(XS.p&&XS.p.adv)||{},sim=!!XS.sim;
+  const cells=Array.from({length:25},(_,i)=>{const d=i+1,op=!!a[d],cls=op?'op':d===d0||(sim&&!op)?'td':d0&&d<d0?'ms':'lk';return `<button type="button" class="${cls}" data-d="${d}">${op?'🎁':d}</button>`}).join('');
+  const pick=await new Promise(res=>{
+    $('card').innerHTML=`<h2>聖誕倒數月曆</h2><p>12/1 到 12/25，每天打開一格小驚喜！${d0?`今天開第 <b style="color:var(--red)">${d0}</b> 格。`:''}錯過的就開不了，記得每天來。</p><div class="adv">${cells}</div><div class="acts"><button type="button" class="btn ghost" id="advX">關閉</button></div>`;
+    $('pop').hidden=false;$('advX').onclick=()=>{$('pop').hidden=true;res(0)};
+    $('card').querySelectorAll('.adv button').forEach(b=>b.onclick=()=>{const d=+b.dataset.d;
+      if(b.classList.contains('op'))toast('這一格已經開過了');else if(b.classList.contains('ms'))toast('這一格已經過了，明天記得來開新的');else if(b.classList.contains('lk'))toast(`第 ${d} 格要到 12/${d} 才能開`);else{$('pop').hidden=true;res(d)}})});
+  if(!pick)return;
+  try{const j=await xcall('/xmas/advent',{d:pick});const r=j.advRes;hud();sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),16,['#d63a2f','#ffd84a','#ffffff','#2f8f58']);
+    await popup('giftbig',`第 ${pick} 格打開了！`,r.t+(r.orn!=null?'。吊飾已經掛上去了':'')+(r.light?'。聖誕樹變得更亮了':'')+(r.g?`。禮物可以拿去幫聖誕樹點燈`:'')+'。');
+    if(r.light)xmasTreeSync('',false,r.light)}catch(e){toast(e.message||'打不開，稍後再試')}}
+/* ── 教室動物驚喜格（2026-10-28）：每天每層有一格躲著嘎逼／卡布／摩卡（格子上有 🥕），踩到多送禮物，每天每層一次 ── */
+const ANIM=[['gabi','嘎逼','嘎逼躲在這裡偷吃，被你抓到了！牠吐出 3 個禮物給你。'],['kabu','卡布','卡布又迷路了，剛好被你找到！牠送你 3 個禮物。'],['moka','摩卡','最會躲的摩卡竟然被你發現了！牠送你 3 個禮物。']];
+function _xh(s){let x=2166136261;for(let i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)}return x>>>0}
+function animalIdx(){const t=(XW&&XW.today)||twToday(),L=luckyIdx();return [0,1].map(lv=>{const n=LEVELS[lv].path.length;let i=1+_xh('anim'+t+lv)%(n-1);if(i===L[lv])i=1+(i%(n-1));return i})}
+function animalWho(){return ANIM[_xh('who'+((XW&&XW.today)||twToday()))%3]}
+function animSprite(){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');x.font='72px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🥕',48,54);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));sp.scale.setScalar(.8);scene.add(sp);return sp}
+async function animalLand(){const lv=G.cur,t=twToday(),k='otto2-anim-'+t+'-'+lv;if(G.lv[lv].pos!==animalIdx()[lv])return;
+  try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){if(animalLand._k===k)return;animalLand._k=k}
+  const w=animalWho();addGifts(3);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14,['#ff9a3c','#ffd84a','#5ee08a']);
+  await popup('giftbig',`找到${w[1]}了！`,w[2]+'明天牠會躲到別的格子。')}
+/* ── 小遊戲每週排行榜（2026-10-28）：只有榮譽，沒有獎品 ── */
+function scoreSend(kind,r){if(!window.PROD||!XS||window.GUEST||!token())return;
+  gcall('/xmas/score',{kind,s:r.s,lbl:r.lbl}).then(j=>{if(j&&j.rank&&j.rank<=3)toast(`本週「${MG[kind].t}」排行第 ${j.rank} 名！`)}).catch(()=>{})}
+async function rankShow(){let j;try{j=await gcall('/xmas/rank',{})}catch(e){toast('排行榜讀不到，稍後再試');return}
+  const html=`<div class="rk">${Object.entries(MG).map(([k,m])=>{const g=(j.games||{})[k]||{top:[]};
+    return `<div><b>${esc(m.t)}</b>${g.top.length?g.top.slice(0,3).map((x,i)=>`<span class="${x.me?'me':''}">${['🥇','🥈','🥉'][i]} ${esc(x.n)}　${esc(x.lbl)}</span>`).join('<br>'):'<span style="color:#9a8f80">這週還沒有人玩</span>'}${g.me>3?`<br><span class="me">你：第 ${g.me} 名</span>`:''}</div>`}).join('')}</div>`;
+  await popup('',`本週小遊戲排行榜`,'每週一重新開始，只看這週最好的一次。',[{t:'好',v:1}],html)}
 async function silverOpen(){if(GGBUSY)return;await xmasFlush();if(!SILVER)await silverRefresh();if(!SILVER||!SILVER.coins){toast('目前沒有銀色扭蛋，11 月來上課就會拿到');return}goldGachaOpen(SILVER.coins,false,true)}
 /* 上次打開之後有人來拜訪我的小屋（伺服器只回一次，不發 LINE）：等畫面空下來再跳 */
 function xmasVisitShow(v,tries=0){if(busy||!$('pop').hidden||G.phase==='oct'){if(tries<60)setTimeout(()=>xmasVisitShow(v,tries+1),1000);return}
@@ -3742,10 +3790,11 @@ function hud(){
 /* 2026-10-28 紅利進度：「紅利 N 點・再 X 點換 OO」（價格照選品館，伺服器 shopTiers） */
 function bonusUI(){const el=$('bonusChip'),sb=$('silverBtn');if(!el)return;
   if(sb){const n=(SILVER&&SILVER.enabled&&SILVER.coins)||0;sb.hidden=!n||G.phase==='oct';$('silverN').textContent=n}
+  {const ab=$('advBtn');if(ab){const on=advOn();ab.hidden=!on||G.phase==='oct';ab.classList.toggle('new',on&&!advToday())}}
   const p=XS&&XS.p,b=p&&p.bonus;if(b==null||G.phase==='oct'){el.hidden=true;return}
   const T=(XS.shopTiers||[]),nx=T.find(t=>t[0]>b),prev=[...T].reverse().find(t=>t[0]<=b);
   const from=prev?prev[0]:0,pct=nx?Math.max(4,Math.min(100,(b-from)/(nx[0]-from)*100)):100;
-  el.innerHTML=`紅利 <b>${b}</b> 點<br>${nx?`再 ${nx[0]-b} 點換「${esc(nx[1])}」`:T.length?'可以去選品館換好禮了 🎁':'可以到選品館換好禮'}<div class="bb"><i style="width:${pct}%"></i></div>`;
+  el.innerHTML=`紅利 <b>${b}</b> 點・${nx?`再 ${nx[0]-b} 點換「${esc(nx[1])}」`:T.length?'可以去選品館換好禮了 🎁':'可以到選品館換好禮'}<div class="bb"><i style="width:${pct}%"></i></div>`;
   el.hidden=false}
 function placeBear(){if(G.phase==='oct'){bear.position.copy(STAND);bear.rotation.y=-1.25;return}const p=tilePos(G.cur,G.lv[G.cur].pos);bear.position.set(p.x,p.y+TILE_H-.06,p.z);bear.rotation.y=0}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
@@ -3787,6 +3836,7 @@ async function minigame(kind,room){
   const r=await Promise.race([{mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs}[kind](),qp]);$('mgX').hidden=true;
   if(!r){if(room)return -1;addGifts(1);toast('這次先不玩，送你 1 個禮物');return 1}
   const old=G.arc.best[kind],isBest=!old||r.s>old.s;if(isBest)G.arc.best[kind]={s:r.s,lbl:r.lbl};
+  scoreSend(kind,r);
   let g=r.g,note='';
   if(room){if(G.arc.n<ROOM_DAILY){G.arc.n++;note=`（今天遊戲室還有 ${ROOM_DAILY-G.arc.n} 次有禮物）`}else{g=0;note='（今天遊戲室的禮物次數用完了，現在玩只記最高分）'}}
   addGifts(g);
@@ -3799,12 +3849,14 @@ async function gameRoom(){
   const left=Math.max(0,ROOM_DAILY-G.arc.n);
   const html=`<div class="room">${Object.entries(MG).map(([k,m])=>`<button type="button" class="rg" data-k="${k}"><img alt="" src="${iconSrc(m.ic)}"><span>${m.t}</span><small>${G.arc.best[k]?'最高 '+esc(G.arc.best[k].lbl):'還沒玩過'}</small></button>`).join('')}</div>`;
   const pick=new Promise(res=>{
-    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p>${html}<div class="acts"><button type="button" class="btn ghost" id="roomX">離開</button></div>`;
+    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p>${html}<div class="acts">${XS&&!window.GUEST?'<button type="button" class="btn" id="roomRank">🏆 本週排行榜</button>':''}<button type="button" class="btn ghost" id="roomX">離開</button></div>`;
     $('pop').hidden=false;$('roomX').focus();
     $('roomX').onclick=()=>{$('pop').hidden=true;res(null)};
+    if($('roomRank'))$('roomRank').onclick=()=>{$('pop').hidden=true;res('__rank')};
     $('card').querySelectorAll('.rg').forEach(b=>b.onclick=()=>{$('pop').hidden=true;res(b.dataset.k)});
   });
   const k=await pick;if(!k)return;
+  if(k==='__rank'){await rankShow();return gameRoom()}
   busy=true;hud();const got=await minigame(k,true);busy=false;hud();
   if(got!==-1)gameRoom();
 }
@@ -4179,12 +4231,15 @@ async function landLot(i){
   await popup('house',`拜訪${name}的聖誕小屋`,`你和${name}各拿到 ${lot.lv} 個禮物。正式版會用 LINE 通知對方「有人來你家拜訪」。`);
 }
 /* 今日幸運格：格子上方一顆金色星星上下浮 */
-function luckyTick(now){if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)GA.luckyS.forEach(s=>s.visible=false);return}
+function luckyTick(now){if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)GA.luckyS.forEach(s=>s.visible=false);if(GA.animS)GA.animS.forEach(s=>s.visible=false);return}
   if(!GA.luckyS){GA.luckyS=[0,1].map(()=>{const s=santaStar();s.material.color.set('#ffd84a');s.material.blending=THREE.NormalBlending;s.scale.setScalar(.75);return s})}
+  if(!GA.animS)GA.animS=[0,1].map(()=>animSprite());
+  {const A=animalIdx();GA.animS.forEach((s,lv)=>{const t=tiles[lv][A[lv]];if(!t){s.visible=false;return}t.getWorldPosition(s.position);s.position.y+=.75+Math.abs(Math.sin(now/260+lv))*.18;s.visible=MI.state==='off'})}
   const L=luckyIdx();GA.luckyS.forEach((s,lv)=>{const t=tiles[lv][L[lv]];if(!t){s.visible=false;return}t.getWorldPosition(s.position);s.position.y+=1.05+Math.sin(now/380+lv)*.12;s.material.rotation=Math.sin(now/600)*.2;s.material.opacity=1;s.visible=MI.state==='off'})}
 async function resolve(){
   const key=LEVELS[G.cur].path[G.lv[G.cur].pos],t=T[key];
   if(G.lv[G.cur].pos===luckyIdx()[G.cur]&&resolve._lk!==twToday()+G.cur){resolve._lk=twToday()+G.cur;const lg=(XS&&XS.luckyGift)||LUCKY_G;addGifts(lg);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14);await popup('giftbig','今日幸運格！',`踩到今天的幸運格（星星那一格），多送你 ${lg} 個禮物！幸運格每天換一格。`)}
+  await animalLand();
   if(t.mg){await minigame(t.mg);return}
   if(key==='lot')return landLot(G.lv[G.cur].pos);
   if(key==='gacha'&&XS){
@@ -4430,7 +4485,7 @@ $('book').addEventListener('click',()=>{
 });
 $('nextday').addEventListener('click',nextDay);
 $('classBtn').addEventListener('click',classCheckin);
-$('treeBtn').addEventListener('click',donate);$('silverBtn').addEventListener('click',silverOpen);
+$('treeBtn').addEventListener('click',donate);$('silverBtn').addEventListener('click',silverOpen);$('advBtn').addEventListener('click',advOpen);
 {const lv=document.querySelector('.levels');$('places').before(lv)} /* 2026-10-05 第一層/第二層搬到下方（十月本來就藏起來） */
 $('test').addEventListener('click',()=>{if(busy)return;G.test=!G.test;hud();toast(G.test?'測試模式：可以一直擲':'改回正式規則：每層每天一次')});
 $('room').addEventListener('click',gameRoom);
