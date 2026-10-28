@@ -1212,13 +1212,12 @@ function localDaily(){const t=twToday();let s={};try{s=JSON.parse(localStorage.g
   try{localStorage.setItem('otto2-xm-streak',JSON.stringify({d:t,n,last:t}))}catch(e){}
   const d={streak:n,gift:1,orn:-1,pts:0,extraGift:0};G.gifts+=1;
   if(n%3===0){const m=G.orn.findIndex(o=>!o);if(m>=0){G.orn[m]=true;d.orn=m}else{d.extraGift+=1;G.gifts+=1}}
-  if(n%7===0){d.extraGift+=3;G.gifts+=3;d.memberOnly=true}return d}
+  if(n%7===0){d.extraGift+=3;G.gifts+=3}return d}
 async function showDaily(d){if(!d)return;
   const nx3=3-d.streak%3,nx7=7-d.streak%7,hint=nx3<nx7?`再連續 ${nx3} 天送吊飾`:`再連續 ${nx7} 天送${window.GUEST?'禮物':'紅利'}`;
   if(d.orn>=0){await gotOrnament(d.orn,`連續第 ${d.streak} 天！聖誕老公公送你吊飾`);}
   if(d.pts>0)await popup('giftbig',`連續第 ${d.streak} 天！`,`每天都來，送你紅利 ${d.pts} 點，已經存進會員資料。`);
-  else if(d.memberOnly&&d.extraGift)await popup('giftbig',`連續第 ${d.streak} 天！`,`送你 ${d.extraGift} 個禮物。非會員的紅利已經領滿了（最多 2 點），成為會員就能領更多喔！`);
-  if(!(d.orn>=0)&&!d.pts&&!d.memberOnly)toast(`今天第一擲 +${d.gift+d.extraGift} 個禮物・連續 ${d.streak} 天（${hint}）`);hud()}
+  if(!(d.orn>=0)&&!d.pts)toast(`今天第一擲 +${d.gift+d.extraGift} 個禮物・連續 ${d.streak} 天（${hint}）`);hud()}
 function applyX(j){const p=j.p;G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
   if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}}
 /* 全體共用的樹／森林／小屋：用伺服器的資料蓋掉本機示範資料 */
@@ -1255,11 +1254,12 @@ async function xmasTreeSync(label,big,add){const from=G.tree;await xmasWorld(tru
 async function xmasClaimPrompt(){if(!XS||!XW||busy||G.phase==='oct'||!$('pop').hidden)return;
   const k=(XW.claim.layers||[]).find(x=>!_xPrompted['t'+x]);if(k===undefined)return;_xPrompted['t'+k]=1;
   const pts=XW.treePts[k];
-  const ok=await popup('tree',`聖誕樹第 ${k+1} 層亮起來了！`,`謝謝你一起點燈。參與過的會員都可以領 ${pts} 點紅利。`,[{t:`領 ${pts} 點紅利`,v:1,cls:'red'},{t:'晚點再領',v:0,cls:'ghost'}]);
+  const ok=await popup('tree',`聖誕樹第 ${k+1} 層亮起來了！`,`謝謝你一起點燈，送你一份聖誕回饋！`,[{t:'領取',v:1,cls:'red'},{t:'晚點再領',v:0,cls:'ghost'}]);
   if(!ok){delete _xPrompted['t'+k];_xPrompted['t'+k]=1;return}
   try{const j=await xcall('/xmas/claim',{kind:'tree',layer:k});hud();const r=j.claimRes;
-    if(r.memberOnly){await popup('giftbig',`第 ${k+1} 層亮了，謝謝你！`,'非會員的紅利已經領滿了（最多 2 點），成為會員（購買課程方案）就能領更多。');await xmasWorld(true);setTimeout(xmasClaimPrompt,400);return}
-    await popup('giftbig',r.pts?`領到 ${r.pts} 點紅利！`:'這次沒有新的紅利',r.pts?(r.capped?`已經達到這次活動的紅利上限，所以只入帳了 ${r.pts} 點。`:'已經加進你的紅利點數，可以在預約頁「我的」裡看到。'):'你這次活動從遊戲拿到的紅利已經達到上限囉，謝謝你的參與！');
+    /* 2026-10-28：今天紅利送完的部分伺服器改送禮物（r.gift），不說「領滿」 */
+    await popup('giftbig',r.pts?`領到 ${r.pts} 點紅利！`:r.gift?`送你 ${r.gift} 個聖誕禮物！`:`第 ${k+1} 層亮了，謝謝你！`,
+      (r.pts?'已經加進你的紅利點數，可以在預約頁「我的」裡看到。':'')+(r.gift?(r.pts?`另外送你 ${r.gift} 個聖誕禮物，`:'')+'可以拿去幫聖誕樹點燈 🎄':''));
     await xmasWorld(true)}catch(e){toast(e.message||'領取失敗，稍後再試')}
   setTimeout(xmasClaimPrompt,400)}
 let INFO=null,gErrMsg='';
@@ -4093,9 +4093,9 @@ async function gotOrnament(i,title){
   await popup(ORN[i].k,title||`撿到${ORN[i].n}！`,`聖誕吊飾 ${n}/4。${n<4?'集滿四個有大獎（內容之後公布）。':''}`);
   if(n===4&&XS){
     confetti(60);await xmasFlush();const pk=((XW&&XW.ornPick)||{gift:5,point:3,ticket:'材料升級券'});
-    const pick=await popup('giftbig','四個吊飾集滿了！',`三選一：禮物可以繼續玩遊戲；紅利點數和材料升級券是真的，每人每週可以領一次${XW&&XW.member===false?'（紅利是會員專屬）':''}。`,[{t:`${pk.gift} 個禮物`,v:'gift',cls:'ghost'},{t:`紅利 ${pk.point} 點`,v:'point',cls:'red'},{t:pk.ticket||'材料升級券',v:'ticket',cls:'red'}]);
+    const pick=await popup('giftbig','四個吊飾集滿了！',`三選一：禮物可以繼續玩遊戲；紅利點數和材料升級券是真的，每人每週可以領一次。`,[{t:`${pk.gift} 個禮物`,v:'gift',cls:'ghost'},{t:`紅利 ${pk.point} 點`,v:'point',cls:'red'},{t:pk.ticket||'材料升級券',v:'ticket',cls:'red'}]);
     try{const j=await xcall('/xmas/claim',{kind:'orn',pick});hud();const g=j.claimRes.got;
-      await popup('giftbig',g.pick==='point'?`領到紅利 ${g.pts} 點！`:g.pick==='ticket'?`領到${g.nm}！`:`拿到 ${g.gift} 個禮物！`,g.pick==='gift'?(j.claimRes.memberOnly?'非會員的紅利已經領滿了（最多 2 點），這次改送禮物。吊飾已清空，可以再集一輪。':j.claimRes.firstOnly?'紅利和票券每週只能領一次，這次改送禮物，下週一再來換。吊飾已清空，可以再集一輪。':'吊飾已清空，可以再集一輪。'):'已經幫你存進會員資料。吊飾已清空，可以再集一輪，不過紅利和票券每人只能領一次，之後再集滿只能換禮物。')}
+      await popup('giftbig',g.pick==='point'?`領到紅利 ${g.pts} 點！`:g.pick==='ticket'?`領到${g.nm}！`:`拿到 ${g.gift} 個禮物！`,g.pick==='gift'?(g.noPts?'今天的紅利送完了，改送禮物，可以拿去幫聖誕樹點燈。吊飾已清空，可以再集一輪。':j.claimRes.firstOnly?'紅利和票券每週只能領一次，這次改送禮物，下週一再來換。吊飾已清空，可以再集一輪。':'吊飾已清空，可以再集一輪。'):'已經幫你存進會員資料。吊飾已清空，可以再集一輪，不過紅利和票券每人只能領一次，之後再集滿只能換禮物。')}
     catch(e){toast(e.message||'領取失敗，稍後再試')}
     return}
   if(n===4){confetti(60);await popup('giftbig','四個吊飾集滿了！','這裡會放集滿的大獎，內容還在規劃。吊飾清空，可以再集一輪。');G.orn=[false,false,false,false];hud()}
@@ -4151,7 +4151,7 @@ async function resolve(){
   if(key==='lot')return landLot(G.lv[G.cur].pos);
   if(key==='gacha'&&XS){
     try{const R=await xGachaShow(xcall('/xmas/gacha',{}));if(R.e)throw R.e;const j=R.j;hud();const r=j.gachaRes;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),12,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);
-      const txt=r.type==='gift'?`轉出一顆扭蛋，裡面有 ${r.n} 個禮物。`:r.type==='bonus'?(r.pts?`轉出一顆扭蛋，是「${r.nm}」！已經加進你的紅利點數。`:`轉出「${r.nm}」，但你這次活動的紅利已達上限，改天再來。`):`轉出一顆扭蛋，是「${r.nm}」！已經放進你的票券，可以在預約頁「我的」看到。`;
+      const txt=r.type==='gift'?`轉出一顆扭蛋，裡面有 ${r.n} 個禮物。`:r.type==='bonus'?(r.pts?`轉出一顆扭蛋，是「${r.nm}」！已經加進你的紅利點數。`:`轉出一顆扭蛋，是「${r.nm}」！明天再來試試手氣。`):`轉出一顆扭蛋，是「${r.nm}」！已經放進你的票券，可以在預約頁「我的」看到。`;
       await popup(r.type==='gift'?'gacha':'giftbig',r.type==='gift'?'扭蛋機！':'中獎了！',txt+(j.sim?'（示範模式，不入帳）':''))}
     catch(e){if(e.code==='GACHA_CAP')await popup('gacha','扭蛋機','今天的扭蛋機轉完了，明天再來！');else toast(e.message||'連線不穩，稍後再試')}
     return}
