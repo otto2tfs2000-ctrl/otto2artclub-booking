@@ -188,7 +188,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .soon svg{width:14px; height:14px}
 .soon small{display:block; font-size:11px; color:#aab0c0}
 body.oct #treeBtn, body.oct .colR, body.oct .levels, body.oct #roll, body.oct #room{display:none}
-body:not(.oct) #spin, body:not(.oct) #soon, body:not(.oct) #gpanel, body:not(.oct) .octinfo{display:none}
+body:not(.oct) #spin, body:not(.oct) #soon, body:not(.oct) .octinfo{display:none}
 body.oct .top{display:none}
 .places{display:flex; gap:8px; justify-content:center}
 .places button{font:inherit; font-size:13px; color:var(--ink); background:rgba(255,250,242,.95); border:2px solid var(--ink); border-radius:99px; padding:5px 13px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 0 var(--ink); cursor:pointer}
@@ -405,6 +405,15 @@ body:not(.oct) .mainbtns .rollbtn#roll:disabled{background:#a59a92; border-color
 body:not(.oct) #roll::before{content:''; display:inline-block; width:28px; height:28px; margin:-5px 10px -5px -6px; vertical-align:middle; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='4' y='4' width='32' height='32' rx='8' fill='%23fff'/%3E%3Cg fill='%23c4553b'%3E%3Ccircle cx='13' cy='13' r='3.2'/%3E%3Ccircle cx='27' cy='13' r='3.2'/%3E%3Ccircle cx='20' cy='20' r='3.2'/%3E%3Ccircle cx='13' cy='27' r='3.2'/%3E%3Ccircle cx='27' cy='27' r='3.2'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
 body:not(.oct) .mainbtns .roombtn{flex:1; min-width:0; background:#fffaf2; border:2px solid #d9c8a8; border-radius:16px; box-shadow:0 4px 0 #d9c8a8; padding:4px 6px; font-size:16px; color:var(--navy); justify-content:center; column-gap:5px}
 body:not(.oct) .roombtn img{width:32px; height:32px}
+/* 2026-10-28 大熊：走格子也要有「我的資產」，放最右邊，樣式跟遊戲室一樣 */
+body:not(.oct) .mainbtns #roll{order:1} body:not(.oct) .mainbtns #room{order:2} body:not(.oct) .mainbtns #menuBtn{order:4}
+body:not(.oct) .mainbtns #gpanel{order:3; flex:.95; min-width:0; font-size:15px; color:var(--navy); background:#fffaf2; border:2px solid #d9c8a8; border-radius:16px; box-shadow:0 4px 0 #d9c8a8; padding:6px 4px; line-height:1.2; align-self:stretch}
+body:not(.oct) .mainbtns #gpanel small{display:block; font-size:9.5px; letter-spacing:-.03em; color:#7a6d5a; margin-top:2px; white-space:nowrap}
+body:not(.oct) .mainbtns #gpanel:active{transform:translateY(3px); box-shadow:0 1px 0 #d9c8a8}
+body:not(.oct) .mainbtns #roll{flex:1}
+body:not(.oct) .mainbtns .roombtn{white-space:nowrap; font-size:15px; display:flex; align-items:center}
+body:not(.oct) .mainbtns .roombtn small{display:none}
+body:not(.oct) .mainbtns .roombtn img{width:28px; height:28px}
 body:not(.oct) .roombtn small{color:#7a6d5a; font-size:10.5px}
 body:not(.oct) #zmBack{left:auto!important; right:14px; transform:none!important; bottom:calc(env(safe-area-inset-bottom,0px) + 140px)!important}
 body.opening .hud,body.opening .xtra{opacity:0!important; pointer-events:none!important}
