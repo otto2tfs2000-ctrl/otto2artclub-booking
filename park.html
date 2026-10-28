@@ -484,6 +484,11 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 .miknow .tg.run{color:#7a5a1a; background:#fbefd6}
 .miknow .hh{display:block; font-style:normal; color:#e0607a; font-size:13px; letter-spacing:1px; margin-top:1px}
 #card .acts{flex-wrap:wrap}
+#card .xhp{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:4px 0 12px}
+#card .xhp button{background:#fffaf2; border:2px solid #e4d9c4; border-radius:12px; padding:4px 2px 5px; cursor:pointer; font:inherit; color:#2b2320; display:flex; flex-direction:column; align-items:center}
+#card .xhp button.on{border-color:#d63a2f; background:#ffecea; box-shadow:0 0 0 2px #d63a2f inset}
+#card .xhp img{width:100%; height:62px; object-fit:contain}
+#card .xhp span{font-size:12px; line-height:1.25; margin-top:2px}
 .plcards{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0}
 .plcards button{font:inherit; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; border:2px solid var(--line); border-radius:14px; background:#fffaf2; color:var(--ink); cursor:pointer}
 .plcards img{width:64px; height:64px; border-radius:12px; object-fit:cover}
@@ -820,6 +825,7 @@ body:not(.oct) #evPill{display:none}
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__parkReady})</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="xmas-houses3d.js?v=20261029a"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
 const PARK_VER='20261026f';
@@ -965,8 +971,11 @@ function buildIsland(lv){
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
     if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
-    if(k==='lot'){const d=new THREE.Group();d.position.set(p.x+.27,o.y+TILE_H-.07,p.z-.27);scene.add(d);lotDeco[i]=d}
+    if(k==='lot'){const d=new THREE.Group(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0),r=rng(i*97+13),out=.85+r()*.6,side=(r()-.5)*1.3;
+      d.position.set(p.x+ow.x*out+(ow.z?side:0),o.y-.12,p.z+ow.z*out+(ow.x?side:0));d.userData.side=[ow.z?1:0,ow.x?1:0,side];scene.add(d);lotDeco[i]=d} /* 2026-10-29 小屋蓋在空地格子外側的雪地（裡面留給種樹）；大熊要位置隨機、不要都貼著格子 → 每塊地固定一個亂數位置，大家看到的一樣 */
   });
+  /* 小屋不要跟扭蛋機擠在一起：太近就往另一邊滑 */
+  Object.values(lotDeco).forEach(d=>{const u=d.userData.side;if(!u)return;Object.values(gachaDeco).forEach(m=>{if(Math.hypot(d.position.x-m.position.x,d.position.z-m.position.z)<1.3){const mv=-2*u[2];d.position.x+=u[0]*mv;d.position.z+=u[1]*mv;u[2]=-u[2]}})});
   return g;
 }
 function buildScene(){
@@ -1214,12 +1223,40 @@ function nameplate(text,mine){
 function updateLot(i){
   const d=lotDeco[i];if(!d)return;while(d.children.length)d.remove(d.children[0]);
   const lot=G.lots[i];if(!lot)return;
-  const mine=lot.o==='me';
-  const t=makeXmasTree(.2);t.position.set(lot.lv>=3?.12:0,0,0);d.add(t);
-  if(lot.lv>=2)d.add(makeBox(mine?'#d63a2f':'#62a9ff',-.2,.12,.16));
-  if(lot.lv>=3){const h=makeHouse();h.position.set(-.12,0,-.02);h.scale.setScalar(.85);d.add(h)}
-  const sp=nameplate(`${mine?'你':(lot.n||OTHERS[lot.o])}・Lv${lot.lv}`,mine);sp.position.set(-.27,1.02,.27);d.add(sp);
+  const mine=lot.o==='me',lv=Math.min(3,lot.lv||1),hh=[.44,.52,.6][lv-1]; /* 2026-10-29 大熊：房子小一點，大家都蓋了才不會塞滿 */
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(.42,24),new THREE.MeshBasicMaterial({color:'#5a6b86',transparent:true,opacity:.28,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(1.15*hh/.76,.7*hh/.76,1);sh.position.y=.02;d.add(sh); /* 地上一圈影子，看起來是站在雪地上 */
+  /* 2026-10-29 大熊定案：改用 3D 小屋（xmas-houses3d.js 第三版）；載不到才退回紙板圖 */
+  const h3=window.XH3D?XH3D.make(xhSt(lot,i)):null,h=h3||xhCard(xhSt(lot,i),hh);
+  if(h3){h3.scale.setScalar([.42,.5,.58][lv-1]);h3.rotation.set(-.3,[-.3,.25,-.18,.3,-.25][i%5],0); /* 往鏡頭仰一點，不然從高處只看到屋頂 */
+    h3.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){m.emissive.copy(m.color).multiplyScalar(.3);if(m.map)m.emissiveMap=m.map}})})} /* 晚上的雪地比較暗，讓小屋自己亮一點（跟格子一樣） */else{h.rotation.set(-.42,[-.38,.3,-.22,.4,-.32][i%5],0);h.position.y=.1} /* 紙板版往後仰一點對著鏡頭 */
+  d.add(h);
+  if(lv>=2){const t=makeXmasTree(.09);t.position.set(.38,0,-.12);d.add(t)}
+  if(lv>=3)d.add(makeBox(mine?'#d63a2f':'#62a9ff',-.38,.08,.1));
+  const sp=nameplate(`${mine?'你':(lot.n||OTHERS[lot.o])}・Lv${lv}`,mine);sp.position.set(0,hh+.28,0);d.add(sp);
 }
+/* 2026-10-29 空地的聖誕小屋改用大熊畫的五間天竺鼠紙箱屋（houses/xh0～4.webp，已去背），認領時挑一間，之後可以換；等級越高屋子越大＋旁邊多樹和禮物 */
+const XHN=['禮物精靈的郵局','薑餅烘焙師的蛋糕屋','粉雪女王的水晶城堡','薄荷雪怪的毛毛屋','彩繪精靈的調色盤隧道'],XHA=[384/304,384/320,384/367,384/377,384/266],XHT=[];
+const xhSt=(lot,i)=>{const v=Number(lot&&lot.st);return Number.isInteger(v)&&v>=0&&v<5?v:i%5};
+function xhSprite(st,h){if(!XHT[st]){const t=new THREE.TextureLoader().load(`houses/xh${st}.webp?v=20261029a`);t.anisotropy=4;XHT[st]=t}
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:XHT[st],transparent:true,alphaTest:.35}));sp.center.set(.5,.04);sp.scale.set(h*XHA[st],h,1);return sp}
+/* 2026-10-29 大熊要「有厚度的紙板」：正面是他的圖，後面疊幾層同形狀的紙箱色剪影當厚度，背面是素紙板；固定方向（不跟著鏡頭轉），稍微斜放才看得到側邊 */
+const XHS=[];
+function xhSil(st){if(!XHS[st]){const cv=document.createElement('canvas');cv.width=cv.height=4;const e=new THREE.CanvasTexture(cv),b=new THREE.CanvasTexture(cv);XHS[st]={e,b};
+    const im=new Image();im.onload=()=>{[[e,'#8a6440'],[b,'#c49a6a']].forEach(([t,c])=>{const k=document.createElement('canvas');k.width=im.width;k.height=im.height;const x=k.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-in';x.fillStyle=c;x.fillRect(0,0,k.width,k.height);
+      if(t===b){x.globalCompositeOperation='source-atop';x.strokeStyle='rgba(120,85,50,.35)';x.lineWidth=3;for(let y=8;y<k.height;y+=14){x.beginPath();x.moveTo(0,y);x.lineTo(k.width,y);x.stroke()}} /* 背面畫幾條紙箱的瓦楞線 */
+      t.image=k;t.needsUpdate=true})};im.src=`houses/xh${st}.webp?v=20261029a`}
+  return XHS[st]}
+function xhCard(st,h){if(!XHT[st]){const t=new THREE.TextureLoader().load(`houses/xh${st}.webp?v=20261029a`);t.anisotropy=4;XHT[st]=t}
+  const w=h*XHA[st],T=h*.16,N=8,S=xhSil(st),g=new THREE.Group(),geo=new THREE.PlaneGeometry(w,h);geo.translate(0,h*.46,0);
+  for(let k=0;k<=N;k++){const z=-T/2+T*k/N,front=k===N,back=k===0;
+    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:front?XHT[st]:back?S.b:S.e,alphaTest:.4,side:back?THREE.BackSide:THREE.FrontSide}));m.position.z=z;g.add(m)}
+  return g}
+/* 挑小屋造型：回傳 0～4，取消回傳 -1 */
+async function lotPick(cur,title){let sel=cur>=0?cur:0;
+  const html=`<div class="xhp">${XHN.map((n,k)=>`<button type="button" data-k="${k}"${k===sel?' class="on"':''}><img alt="" src="houses/${window.XH3D?'xh3d':'xh'}${k}.webp?v=20261029b"><span>${n}</span></button>`).join('')}</div>`;
+  const pr=popup('',title,'挑一間你喜歡的天竺鼠聖誕小屋，之後隨時可以換。',[{t:'就這間',v:1,cls:'red'},{t:'取消',v:0,cls:'ghost'}],html);
+  $('card').querySelectorAll('.xhp button').forEach(b=>b.onclick=()=>{sel=+b.dataset.k;$('card').querySelectorAll('.xhp button').forEach(x=>x.classList.toggle('on',x===b))});
+  return (await pr)?sel:-1}
 
 /* ---------- 正式版：接 otto2-notify 的 /gacha/*（LINE 登入），抽獎結果一律由伺服器決定 ---------- */
 /* 2026-10-24 大熊：畢卡索扭扭樂到 10/31，11/1 起扭蛋改「聖誕扭扭樂」（伺服器同一天自動換設定；聖誕公仔圖還沒來，先不顯示圖鑑） */
@@ -1273,7 +1310,7 @@ function applyX(j){const p=j.p;G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.li
 function applyWorld(w,quiet){XW=w;if(w.lucky)XLUCKY=w.lucky;
   G.treeReal=w.tree.lights;G.tree=Math.min(w.tree.lights,treeCap());G.treeDone=G.tree>=TREE_GOAL;
   G.forest=w.forest.filter(f=>f.s>=0&&f.s<FOREST.spots.length).map(f=>({s:f.s,n:f.n,lv:Math.max(1,Math.min(5,f.lv)),me:!!f.me,mine:!!f.mine}));
-  const old=Object.keys(G.lots);G.lots={};Object.entries(w.lots).forEach(([i,l])=>{G.lots[i]={o:l.me?'me':'x',n:l.n,lv:l.lv}});
+  const old=Object.keys(G.lots);G.lots={};Object.entries(w.lots).forEach(([i,l])=>{G.lots[i]={o:l.me?'me':'x',n:l.n,lv:l.lv,st:l.st}});
   new Set([...old,...Object.keys(G.lots)]).forEach(i=>{try{updateLot(+i)}catch(e){}});
   if(!quiet){renderForest();setTreeVisual(G.tree)}}
 async function xmasWorld(quiet){if(!XS)return null;try{const w=await gcall('/xmas/world');applyWorld(w,quiet);return w}catch(e){return null}}
@@ -2981,7 +3018,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261028b',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029a',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -3780,7 +3817,7 @@ let LOOPERR=0;function loop(now){requestAnimationFrame(loop);if(shopCover()||(wi
 /* ---------- game state (demo, per browser) ---------- */
 let G;
 const fresh=()=>({day:1,booked:false,cur:0,lv:[{pos:0,left:1},{pos:0,left:1}],gifts:3,orn:[false,false,false,false],
-  layout:36,lots:{5:{o:'m1',lv:2},11:{o:'m4',lv:1},20:{o:'m2',lv:1},30:{o:'m3',lv:3}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
+  layout:36,lots:{5:{o:'m1',lv:2,st:1},11:{o:'m4',lv:1,st:3},20:{o:'m2',lv:1,st:2},30:{o:'m3',lv:3,st:4}},visits:{me:0,m1:12,m2:5,m3:20,m4:8},tree:312,treeDone:false,test:true,myLights:0,arc:{n:0,best:{}},avatar:{mode:'bear',img:null},teachers:[],forest:null,phase:'oct',spinLeft:1,spins:0});
 function save(){try{localStorage.setItem('otto2-xmas-walk-demo3',JSON.stringify(G))}catch(e){}xmasPushSoon()}
 function hud(){
   const oct=G.phase==='oct';try{zmLook()}catch(e){}document.body.classList.toggle('oct',oct);try{xtraRender()}catch(e){}GA.band=undefined;
@@ -4220,13 +4257,15 @@ async function landLotX(i){
       if(XS.p.lot!==null&&XS.p.lot!==undefined){await popup('lot','一塊空地','你已經有一間聖誕小屋了，每位會員可以有一間。去升級它，或等別人來拜訪吧。');return}
       if(G.gifts<cost){await popup('lot','一塊空地',`花 ${cost} 個禮物就能認領這塊地、蓋你的聖誕小屋。你現在只有 ${G.gifts} 個，先去收集吧。`);return}
       const ok=await popup('lot','這塊空地還沒有主人',`花 ${cost} 個禮物認領，掛上你的聖誕裝飾。之後別的會員走到這裡，你們兩個都會拿到禮物。`,[{t:'認領',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
-      if(ok){await xcall('/xmas/lot',{idx:i,op:'claim'});G.lots[i]={o:'me',n:'你',lv:1};updateLot(i);hud();confetti(30);toast('認領成功！這是你的聖誕小屋了')}
+      if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'claim',st});G.lots[i]={o:'me',n:'你',lv:1,st};updateLot(i);hud();confetti(30);toast(`認領成功！這是你的${XHN[st]}`)}
       return}
     if(lot.o==='me'){
-      if(lot.lv>=3){await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。');return}
+      const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'style',st});lot.st=st;updateLot(i);toast(`換成${XHN[st]}了`)};
+      if(lot.lv>=3){if(await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。',[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
       const c=(XW&&XW.lotUpg&&XW.lotUpg[lot.lv])||UPG[lot.lv];
-      if(G.gifts<c){await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${c} 個禮物，你現在有 ${G.gifts} 個。`);return}
-      const ok=await popup('house','回到自己的聖誕小屋',`花 ${c} 個禮物升到 Lv${lot.lv+1}？等級越高，別人來拜訪時你們各拿越多禮物（Lv1 各 1 個、Lv2 各 2 個、Lv3 各 3 個）。`,[{t:'升級',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
+      if(G.gifts<c){if(await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${c} 個禮物，你現在有 ${G.gifts} 個。`,[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
+      const ok=await popup('house','回到自己的聖誕小屋',`花 ${c} 個禮物升到 Lv${lot.lv+1}？等級越高，屋子越大，別人來拜訪時你們各拿越多禮物（Lv1 各 1 個、Lv2 各 2 個、Lv3 各 3 個）。`,[{t:'升級',v:1,cls:'red'},{t:'換造型',v:2,cls:'ghost'},{t:'先不要',v:0,cls:'ghost'}]);
+      if(ok===2){await restyle();return}
       if(ok){const j=await xcall('/xmas/lot',{idx:i,op:'upgrade'});lot.lv=j.lotRes.lv;updateLot(i);hud();confetti(30);toast(`升到 Lv${lot.lv}！`)}
       return}
     const j=await xcall('/xmas/lot',{idx:i,op:'visit'});hud();const r=j.lotRes;
@@ -4239,14 +4278,16 @@ async function landLot(i){
   if(!lot){
     if(G.gifts<CLAIM){await popup('lot','一塊空地',`花 ${CLAIM} 個禮物就能認領這塊地、蓋你的聖誕小屋。你現在只有 ${G.gifts} 個，先去收集吧。`);return}
     const ok=await popup('lot','這塊空地還沒有主人',`花 ${CLAIM} 個禮物認領，掛上你的聖誕裝飾。之後別的會員走到這裡，你們兩個都會拿到禮物。`,[{t:'認領',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
-    if(ok){G.gifts-=CLAIM;G.lots[i]={o:'me',lv:1};updateLot(i);hud();confetti(30);toast('認領成功！這是你的聖誕小屋了')}
+    if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;G.gifts-=CLAIM;G.lots[i]={o:'me',lv:1,st};updateLot(i);hud();confetti(30);toast(`認領成功！這是你的${XHN[st]}`)}
     return;
   }
   if(lot.o==='me'){
-    if(lot.lv>=3){await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。');return}
+    const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;lot.st=st;updateLot(i);toast(`換成${XHN[st]}了`)};
+    if(lot.lv>=3){if(await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。',[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
     const cost=UPG[lot.lv];
-    if(G.gifts<cost){await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${cost} 個禮物，你現在有 ${G.gifts} 個。`);return}
-    const ok=await popup('house','回到自己的聖誕小屋',`花 ${cost} 個禮物升到 Lv${lot.lv+1}？等級越高，別人來拜訪時你們各拿越多禮物（Lv1 各 1 個、Lv2 各 2 個、Lv3 各 3 個）。`,[{t:'升級',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
+    if(G.gifts<cost){if(await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${cost} 個禮物，你現在有 ${G.gifts} 個。`,[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
+    const ok=await popup('house','回到自己的聖誕小屋',`花 ${cost} 個禮物升到 Lv${lot.lv+1}？等級越高，屋子越大，別人來拜訪時你們各拿越多禮物（Lv1 各 1 個、Lv2 各 2 個、Lv3 各 3 個）。`,[{t:'升級',v:1,cls:'red'},{t:'換造型',v:2,cls:'ghost'},{t:'先不要',v:0,cls:'ghost'}]);
+    if(ok===2){await restyle();return}
     if(ok){G.gifts-=cost;lot.lv++;updateLot(i);hud();confetti(30);toast(`升到 Lv${lot.lv}！`)}
     return;
   }

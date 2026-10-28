@@ -51,6 +51,10 @@
 .gpb button,.gpc button{font:inherit; font-size:14px; padding:8px 2px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px}
 .gpb button.on,.gpc button.on{border-color:var(--accent); background:#fbefe2; box-shadow:0 0 0 1.5px var(--accent) inset}
 .gpb button:disabled{opacity:.35}
+.gpnest{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.gpnest button{font:inherit; font-size:12px; padding:4px 2px 5px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px}
+.gpnest button.on{border-color:var(--accent); background:#fbefe2; box-shadow:0 0 0 1.5px var(--accent) inset}
+.gpnest img{width:100%; height:46px; object-fit:contain}
 .gpc button{font-size:12px}
 .gpc i{width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.15); display:block}
 .gplove{margin:0 0 6px!important; font-size:14px; color:#e0607a!important}
@@ -1529,7 +1533,7 @@ function makeHouse(m,i){
     if(dOn('gold')){const gf=box('#d4a935',.8,.3,.02,.55,.47,fz+.33);gf.rotation.y=.25;g.add(gf)}
     /* 寵物窩：認養後出現，每多 4 件作品升一級；還沒認養的屋主會看到半透明的窩輪廓 */
     const lv=nestLevel(n),mine=typeof G!=='undefined'&&G&&G.me===m.id;
-    if((m.pet||m.frog)&&lv>0){const ng=makeNest(lv);ng.position.set(-pw/2-.65,-.2,fz-.05);g.add(ng)}
+    if(!m.pet&&m.frog&&lv>0){const ng=makeNest(lv);ng.position.set(-pw/2-.65,-.2,fz-.05);g.add(ng)}
     else if(mine&&n<8&&!DEMO_NOGHOST){const gh=new THREE.Mesh(new THREE.BoxGeometry(.34,.22,.32),new THREE.MeshBasicMaterial({color:'#1d6b68',transparent:true,opacity:.28}));gh.position.set(-pw/2-.65,-.09,fz-.05);gh.userData.own=1;g.add(gh)}
   }
   ROOF=_R[0];ROOF_D=_R[1];
@@ -2006,7 +2010,12 @@ const PK={pet:{nm:'天竺鼠',bl:'品種',cl:'花色',L:()=>PetLife.GP_BREEDS,C:
 /* 自己的寵物記在手機，遊樂島的吉祥物島會讀它，讓牠跟著主人過去玩 */
 function gpRemember(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me),ok=m&&m.works.length>=PetLife.GP_WORKS;
   try{ok&&m.pet?localStorage.setItem('otto2-mypet',JSON.stringify(m.pet)):localStorage.removeItem('otto2-mypet');ok&&m.frog?localStorage.setItem('otto2-myfrog',JSON.stringify(m.frog)):localStorage.removeItem('otto2-myfrog')}catch(e){}}
-function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bub){scene.remove(o.bub);o.bub.material.dispose()}if(o.bw){scene.remove(o.bw);o.bw.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})}o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
+/* 2026-10-29 天竺鼠的藝術家寵物窩：大熊畫的 12 間紙箱屋（houses/nest0～11.webp，已去背），放在小屋左前方；屋主在「我的天竺鼠」裡挑，沒挑過照小屋順序先給一間 */
+const NESTN=['梵谷','莫內','達利','克林姆','米羅','卡蘿','達文西','畢卡索','林布蘭','草間彌生','馬格利特','葛飾北齋'],NESTA=[384/265,384/283,384/281,384/299,384/300,384/296,384/286,384/301,384/282,384/305,384/298,384/287],NESTT=[];
+const nestOf=(P,i)=>{const v=P&&P.nest;return Number.isInteger(v)&&v>=0&&v<12?v:i%12};
+function nestSprite(k,h){if(!NESTT[k]){const t=new THREE.TextureLoader().load(`houses/nest${k}.webp?v=20261029a`);t.anisotropy=4;NESTT[k]=t}
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:NESTT[k],transparent:true,alphaTest:.35}));sp.center.set(.5,.04);sp.scale.set(h*NESTA[k],h,1);return sp}
+function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.ns){scene.remove(o.ns);o.ns.material.dispose()}if(o.bub){scene.remove(o.bub);o.bub.material.dispose()}if(o.bw){scene.remove(o.bw);o.bw.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})}o.g.traverse(x=>{if(x.isMesh){const i=picks.indexOf(x);if(i>=0)picks.splice(i,1)}})});gpPets=[];
   if(!window.PetLife)return;
   G.members.forEach((m,i)=>['pet','frog'].forEach(kind=>{const P=m[kind],K=PK[kind];if(!P||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
     const pd=normStyle(m.style,i)==='wing'?2:1.5,g=K.make(P.b,P.c);g.scale.setScalar(K.sc);
@@ -2020,7 +2029,9 @@ function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.bub)
     const bw=gpBowl(kind),bp=h.localToWorld(new THREE.Vector3(K.bx,0,pd/2+.55));bp.y=heightAt(bp.x,bp.z);bw.position.copy(bp);bw.traverse(x=>{if(x.isMesh){x.userData={gpBowl:m,kind};picks.push(x)}});scene.add(bw);
     const front=h.localToWorld(new THREE.Vector3(kind==='frog'?.3:-.2,0,pd/2+1.15));front.y=heightAt(front.x,front.z);
     const bub=aw&&aw.s==='hungry'?gpHungry():null;if(bub)scene.add(bub);
-    gpPets.push({g,bw,bp,front,home,yaw:host?houses[hi].rotation.y:h.rotation.y,ph:i*1.7+(kind==='frog'?.9:0),m,kind,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6,host,bub})}))}
+    let ns=null;if(kind==='pet'){ns=nestSprite(nestOf(P,i),.5+nestLevel(m.works.length)*.05); /* 跟原本的木頭窩同一個位置，作品越多窩越大（每 4 件一級） */
+      const np=h.localToWorld(new THREE.Vector3(-(pd===2?2.3:1.6)/2-.65,0,pd/2-.05));np.y=heightAt(np.x,np.z);ns.position.copy(np);scene.add(ns)}
+    gpPets.push({g,bw,bp,front,home,ns,yaw:host?houses[hi].rotation.y:h.rotation.y,ph:i*1.7+(kind==='frog'?.9:0),m,kind,hop:0,spin:0,eat:0,nextTrick:4+Math.random()*6,host,bub})}))}
 let _gpHungryT=null;
 function gpHungry(){if(!_gpHungryT){const c=cvs(256,96),x=c.getContext('2d');x.fillStyle='#fffaf2';x.strokeStyle='#2b2320';x.lineWidth=6;x.beginPath();x.moveTo(36,6);x.arcTo(250,6,250,76,30);x.arcTo(250,76,6,76,30);x.arcTo(6,76,6,6,30);x.arcTo(6,6,250,6,30);x.closePath();x.fill();x.stroke();
     x.beginPath();x.moveTo(110,74);x.lineTo(128,92);x.lineTo(146,74);x.fill();x.fillStyle='#c4553b';x.font='bold 38px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('肚子餓了…',128,42);_gpHungryT=new THREE.CanvasTexture(c)}
@@ -2091,14 +2102,16 @@ function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(
 /* 認養／修改視窗：上面 3D 預覽慢慢轉，下面選品種（只能選一次）、花色、名字 */
 let gpView=null;
 function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C(),locked=!!(P&&P.b),fr=kind==='frog';
-  let b=(P&&P.b)||B[0].id,c=(P&&P.c)||(fr?B[0].c:Cs[0].id);
+  let b=(P&&P.b)||B[0].id,c=(P&&P.c)||(fr?B[0].c:Cs[0].id),nest=fr?null:nestOf(P,Math.max(0,G.members.indexOf(m)));
   const lv=P?(P.love||0):0,nx=K.lv.find(x=>x.at>lv);
   modal(`<h2>${P?'我的'+K.nm:'認養一隻'+K.nm}</h2>${P?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small><br><small>3 天沒來牠會肚子餓、5 天跑去別人家作客、14 天去旅行。什麼都不會少，回來就回家，還會帶伴手禮。</small></p>
     ${DEMO?'':`<label class="gpnt" style="display:flex;gap:8px;align-items:center;font-weight:400;margin:4px 0 8px"><input type="checkbox" id="gpNt"${ME.petNotify!==false?' checked':''}> 讓牠寄訊息給我（第 3 天、第 14 天各一則 LINE）</label>`}`:''}<div class="gpv" id="gpv"></div>
     <label>${K.bl}${locked?'（認養後不能換）':'（選了就不能換喔）'}</label><div class="gpb" id="gpb">${B.map(x=>`<button type="button" data-id="${x.id}"${locked&&x.id!==b?' disabled':''}>${x.n}</button>`).join('')}</div>
     <label>${K.cl}</label><div class="gpc" id="gpc">${Cs.map(x=>`<button type="button" data-id="${x.id}" title="${x.n}"><i style="background:${x.d?`linear-gradient(135deg,${x.m} 50%,${x.d} 50%)`:fr?`radial-gradient(circle at 70% 30%,${x.a} 18%,${x.m} 20%)`:x.m}"></i>${x.n}</button>`).join('')}</div>
+    ${fr?'':`<label>寵物窩（隨時可以換）</label><div class="gpnest" id="gpnest">${NESTN.map((x,k)=>`<button type="button" data-k="${k}"><img alt="" src="houses/nest${k}.webp?v=20261029a"><span>${x}</span></button>`).join('')}</div>`}
     <label for="gpn">名字（最多 8 個字）</label><input type="text" id="gpn" maxlength="8" placeholder="${K.ph}" value="${P?esc(P.n):''}">
     <div class="acts"><button class="pill" type="button" id="gpX">取消</button><button class="pill main" type="button" id="gpO">${P?'改好了':'認養牠'}</button></div>`);
+  const nsel=()=>{if($('gpnest'))$('gpnest').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.k===nest))};if($('gpnest')){$('gpnest').querySelectorAll('button').forEach(x=>x.onclick=()=>{nest=+x.dataset.k;nsel()});nsel()}
   const sel=()=>{$('gpb').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===b));$('gpc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===c));gpPreview(b,c,kind)};
   /* 青蛙換種類時，顏色跳到那種青蛙原本的顏色（之後還能自己改） */
   $('gpb').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(locked)return;b=x.dataset.id;if(fr){const sp=B.find(q=>q.id===b);if(sp)c=sp.c}sel()});
@@ -2106,7 +2119,7 @@ function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C
   const close=()=>{gpStop();closeModal()};$('gpX').onclick=close;sel();
   if($('gpNt'))$('gpNt').onchange=async e=>{const on=e.target.checked;try{await api('/island/pet/notify',{on});ME.petNotify=on;toast(on?'好，牠想你的時候會寄 LINE 給你':'好，牠不會再寄 LINE 給你了')}catch(er){e.target.checked=!on;toast(er.message)}};
   $('gpO').onclick=async()=>{const n=$('gpn').value.trim();if(!n){toast('幫牠取個名字吧');return}$('gpO').disabled=true;$('gpO').textContent='儲存中…';
-    try{await api('/island/pet',{b,c,n,house:m.id,kind});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
+    try{await api('/island/pet',{b,c,n,house:m.id,kind,...(fr?{}:{nest})});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
     catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
 function gpPreview(b,c,kind='pet'){const el=$('gpv');if(!el)return;
   if(!gpView){const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));const sc=new THREE.Scene();
