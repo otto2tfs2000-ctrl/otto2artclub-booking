@@ -5024,8 +5024,10 @@ function myPrizes(){
   var o = st.octLot, oct = "";
   if (o) oct = '<div class="gc-sec"><div class="gc-sh"><h2>🎫 ' + esc(o.title) + '</h2><small>' + md(o.draw) + ' 抽出</small></div><div class="gc-pool">' +
     o.prizes.map(function(p){ return '<div class="gc-pr"><span class="ic">🎁</span><span class="nm">' + esc(p.nm) + '<small>' + p.n + ' 名</small></span></div>' }).join("") +
+    (o.drawn ? '<div class="gc-pr"><span class="ic">🎉</span><span class="nm">得獎名單<small>' + (o.winners || []).map(function(w){ return esc(w.nm) + '：' + esc(w.who) }).join('<br>') + '</small></span></div>' +
+      (o.won ? '<div class="gc-pr"><span class="ic">🏆</span><span class="nm">恭喜你抽中「' + esc(o.won) + '」！<small>' + (/紅利/.test(o.won) ? '紅利已經存進你的帳戶' : md(o.expiry) + ' 前來店領取，下面「我的獎品」也看得到') + '</small></span></div>' : '') :
     '<div class="gc-pr"><span class="ic">' + (o.mine ? '✅' : 'ℹ️') + '</span><span class="nm">' + (o.mine ? '你有 1 張抽獎券，會自動參加' : '十月扭蛋紅利領滿的家長，每人 1 張抽獎券') +
-    '<small>' + (o.mine ? '中獎會另外通知你' : '每人只有一張，大家中獎機會一樣') + '</small></span></div></div></div>';
+    '<small>' + (o.mine ? '中獎會用 LINE 通知你' : '每人只有一張，大家中獎機會一樣') + '</small></span></div>') + '</div></div>';
   return oct + '<div class="gc-sec"><div class="gc-sh"><h2>我的獎品</h2><small>' + (ok ? ok + ' 張可使用' : '扭蛋抽到的券會收在這裡') + '</small></div>' +
     '<div class="gc-pool">' + (body || '<div class="gc-empty">還沒有獎品券。<br>扭蛋抽到材料升級券這類獎品，都會收在這裡。</div>') + '</div></div>';
 }
