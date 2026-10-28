@@ -384,7 +384,6 @@ window.cvCheck = window.cvCheck || function(s){
   try { if (localStorage.getItem(k)) return; localStorage.setItem(k, '1') } catch(e){ return }
   window.cvPop('你的畫布在等你上色', '你有一張「<b>' + String(t[0].nm).replace(/[&<>"']/g, '') + '</b>」。' + window.cvTip(t[0].nm, t[0].expiry) + '<div style="margin-top:8px;font-size:13px;color:#5A6070">預約課程時跟小編說要用這塊畫布就可以了！</div>');
 };
-var TIERS = [[15,"一塊 6 號畫布"],[35,"23cm 流動熊"],[55,"33cm 流動熊"],[85,"30cm 流動畫"],[105,"40cm 水晶掛畫"],[150,"60x60cm 地毯作品"],[170,"3500 儲值點"]];
 var CAPC = ["#E8836B","#E3B34C","#7FB2A0","#8FA6D9","#D98FB8","#F2C14E"];
 var BALLC = ["#E0322F","#F2C94C","#7BBF3F","#6E3FA3","#F08A3C","#4FA3C7","#E88BB0","#3E7BC4"];
 
@@ -913,11 +912,14 @@ function showModal(p){
     : p.type === "bear" ? '今天已經中了 ' + (spun.state.bonusDaily || 2) + ' 次紅利（每天最多 ' + (spun.state.bonusDaily || 2) + ' 次）<br>這次送你一隻' + BU() + '，明天再來拿紅利 🍀'
     : p.type === "lottery" ? '這次送你 <b style="color:#1E2B4F">' + esc(p.nm) + '</b> 一張<br>活動結束後抽出幸運得主'
     : '<b style="color:#1E2B4F">' + esc(p.nm) + '</b> 已存進你的帳戶';
-  var next = TIERS.filter(function(t){ return t[0] > me.bonus })[0];
+  /* 2026-10-28 改看選品館的價格（伺服器 shopTiers），不再用舊海報兌換表；沒開店／舊伺服器就只說去選品館 */
+  var tiers = spun.state.shopTiers, next = tiers && tiers.filter(function(t){ return t[0] > me.bonus })[0];
   $("gcMBal").innerHTML = (me.member
     ? '你目前有：儲值點數 <b>' + me.points.toLocaleString() + '</b>　堂數 <b>' + me.sessions + '</b>　紅利 <b>' + me.bonus + '</b>'
     : '你目前有：紅利 <b>' + me.bonus + '</b> 點') +
-    (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能換' + next[1] + ' 🎁</div>' : '<div class="next">紅利可以換好禮了！來店告訴小編 🎁</div>');
+    (next ? '<div class="next">再 ' + (next[0] - me.bonus) + ' 點紅利就能在選品館換「' + esc(next[1]) + '」🎁</div>'
+      : tiers && tiers.length && me.bonus >= tiers[0][0] ? '<div class="next">紅利已經可以到選品館換好禮了 🎁</div>'
+      : '<div class="next">紅利可以到藝享選品館換好禮 🎁</div>');
   if (spun.state.sim) $("gcMP").innerHTML += '<br><span style="font-size:12px;color:#8FA6D9">（測試模式，不會入帳）</span>';
   var bb = spun.bear;
   $("gcMBear").onclick = bb ? function(){ zoomBear(bb.id) } : null;
