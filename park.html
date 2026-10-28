@@ -526,6 +526,11 @@ body .places button,#miUI .places button{flex-direction:row; gap:3px; font-size:
 body .places .pi{width:20px; height:20px}
 body .places button.on::before{bottom:2px; height:3px}
 body .places button.dot::after{top:1px; right:2px; width:9px; height:9px}
+/* 2026-10-28 大熊：分頁列和下面的按鈕要一樣高（48px），不要一個扁一個寬 */
+body .places{height:48px; box-sizing:border-box}
+body .places button{height:100%; padding-top:0; padding-bottom:2px}
+body .mainbtns>button:not(#menuBtn){height:48px; box-sizing:border-box; padding-top:0; padding-bottom:0}
+body.oct .mainbtns .rollbtn#spin{height:48px; padding-top:0; padding-bottom:0; font-size:24px; line-height:1}
 .octinfo{cursor:pointer}
 body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那行小字拿掉 */
 #hopVeil{position:fixed; inset:0; background:#eef6fb; opacity:0; pointer-events:none; z-index:60; transition:opacity .35s}
@@ -1162,9 +1167,9 @@ async function plant(why){
       const j=await xcall('/xmas/plant',{pref,why});hud();
       if(j.full){await popup('sapling','森林滿了！','島上已經種滿樹了，改送你 1 個禮物。');return}
       const pr=j.plant;
-      if(pr.kind==='new'){G.forest=G.forest.filter(t=>!t.me);G.forest.push({s:pr.s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[pr.s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);
-        await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，其他會員打開遊戲也看得到。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。');overviewFocus(null)}
-      else if(pr.kind==='max'){const mi=G.forest.findIndex(t=>t.me);if(mi>=0){overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1700);const w=FOREST.spots[G.forest[mi].s].clone();w.y+=1.2;sparkle(w,12,['#ffd84a','#ffffff'])}await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');overviewFocus(null)}
+      if(pr.kind==='new'){G.forest.forEach(t=>{if(t.me){t.me=false;t.mine=true}});G.forest.push({s:pr.s,n:'你',lv:1,me:true,mine:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[pr.s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);
+        await popup('sapling',pr.more?`${why}，又種下一棵新樹苗！`:`${why}，種下一棵樹苗！`,pr.more?'你的上一棵樹已經長到最大、頂端亮起星星，這次在旁邊再種一棵。一棵一棵種下去，聖誕森林就會越來越大！':'這是你在聖誕森林的樹，其他會員打開遊戲也看得到。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。長到最大就會再種一棵新的。');overviewFocus(null)}
+      else if(pr.kind==='max'){const mi=G.forest.findIndex(t=>t.me);if(mi>=0){overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1700);const w=FOREST.spots[G.forest[mi].s].clone();w.y+=1.2;sparkle(w,12,['#ffd84a','#ffffff'])}await popup('sapling',`${why}，你的森林種滿了`,'你種的樹都長到最大了！改送你 1 個禮物。');overviewFocus(null)}
       else{let mi=G.forest.findIndex(t=>t.me);if(mi<0){G.forest.push({s:pr.s,n:'你',lv:Math.max(1,pr.lv-1),me:true});mi=G.forest.length-1;renderForest()} /* 本機森林還沒同步到自己的樹，用伺服器回的位置補上 */
         if(mi>=0){const from=G.forest[mi].lv;overviewFocus(FOREST.spots[G.forest[mi].s]);await sleep(1700);await growAnim(mi,from,pr.lv);await sleep(1200);
         await popup('sapling',`你的樹長大了：${LVN[pr.lv]}`,pr.lv<5?`下一級是「${LVN[pr.lv+1]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');overviewFocus(null)}}
@@ -1175,7 +1180,9 @@ async function plant(why){
     G.forest.push({s,n:'你',lv:1,me:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);save();
     await popup('sapling',`${why}，種下一棵樹苗！`,'這是你在聖誕森林的樹，就種在你旁邊。之後每次經過起點或踩到「種樹」，它都會長大一級：樹苗 → 小樹 → 聖誕樹 → 掛上彩燈 → 頂端星星。');overviewFocus(null);return}
   const t=G.forest[mi];
-  if(t.lv>=5){addGifts(1);await popup('sapling',`${why}，你的樹已經最大了`,'頂端都有星星了！改送你 1 個禮物。');return}
+  if(t.lv>=5){const s=freeSpotNear(FOREST.spots[t.s]);if(s<0||G.forest.filter(x=>x.mine||x.me).length>=8){addGifts(1);await popup('sapling',`${why}，你的森林種滿了`,'你種的樹都長到最大了！改送你 1 個禮物。');return}
+    t.me=false;t.mine=true;G.forest.push({s,n:'你',lv:1,me:true,mine:true});const i=G.forest.length-1;overviewFocus(FOREST.spots[s]);await sleep(1700);await growAnim(i,0,1);await sleep(1200);save();
+    await popup('sapling',`${why}，又種下一棵新樹苗！`,'你的上一棵樹已經長到最大，這次在旁邊再種一棵。一棵一棵種下去，聖誕森林就會越來越大！');overviewFocus(null);return}
   const from=t.lv;overviewFocus(FOREST.spots[t.s]);await sleep(1700);await growAnim(mi,from,from+1);await sleep(1200);save();
   await popup('sapling',`你的樹長大了：${LVN[from+1]}`,from+1<5?`下一級是「${LVN[from+2]}」。其他會員打開遊戲，也都看得到你的樹。`:'長到最大了，頂端亮起星星！');
   overviewFocus(null);
@@ -1187,7 +1194,7 @@ function forestTap(e){
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
   const hits=rc.intersectObjects([FOREST.parts.c1,FOREST.parts.c2,FOREST.parts.c3,FOREST.parts.trunk]);
-  if(hits.length){const t=G.forest[hits[0].instanceId];if(t)toast(t.me?`你的聖誕樹・${LVN[t.lv]}`:`${t.n}的聖誕樹・${LVN[t.lv]}`)}
+  if(hits.length){const t=G.forest[hits[0].instanceId];if(t)toast(t.me||t.mine?`你的聖誕樹・${LVN[t.lv]}`:`${t.n}的聖誕樹・${LVN[t.lv]}`)}
 }
 function makeBox(c,x,z,s){const g=new THREE.Group();s=s||.35+Math.random()*.15;g.add(mesh(new THREE.BoxGeometry(s,s,s),toon(c),0,s/2-.12,0));g.add(mesh(new THREE.BoxGeometry(s+.02,s+.02,.07),toon('#fff'),0,s/2-.12,0));g.add(mesh(new THREE.BoxGeometry(.07,s+.02,s+.02),toon('#fff'),0,s/2-.12,0));g.position.set(x,0,z);g.rotation.y=Math.random();return g}
 function makeSnowman(){const g=new THREE.Group(),w=toon('#ffffff');g.add(mesh(new THREE.SphereGeometry(.36,16,12),w,0,.32,0));g.add(mesh(new THREE.SphereGeometry(.25,16,12),w,0,.8,0));
@@ -1265,7 +1272,7 @@ function applyX(j){const p=j.p;G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.li
 /* 全體共用的樹／森林／小屋：用伺服器的資料蓋掉本機示範資料 */
 function applyWorld(w,quiet){XW=w;if(w.lucky)XLUCKY=w.lucky;
   G.treeReal=w.tree.lights;G.tree=Math.min(w.tree.lights,treeCap());G.treeDone=G.tree>=TREE_GOAL;
-  G.forest=w.forest.filter(f=>f.s>=0&&f.s<FOREST.spots.length).map(f=>({s:f.s,n:f.n,lv:Math.max(1,Math.min(5,f.lv)),me:!!f.me}));
+  G.forest=w.forest.filter(f=>f.s>=0&&f.s<FOREST.spots.length).map(f=>({s:f.s,n:f.n,lv:Math.max(1,Math.min(5,f.lv)),me:!!f.me,mine:!!f.mine}));
   const old=Object.keys(G.lots);G.lots={};Object.entries(w.lots).forEach(([i,l])=>{G.lots[i]={o:l.me?'me':'x',n:l.n,lv:l.lv}});
   new Set([...old,...Object.keys(G.lots)]).forEach(i=>{try{updateLot(+i)}catch(e){}});
   if(!quiet){renderForest();setTreeVisual(G.tree)}}
@@ -1316,7 +1323,7 @@ function animSprite(){const c=document.createElement('canvas');c.width=c.height=
 async function animalLand(){const lv=G.cur,t=twToday(),k='otto2-anim-'+t+'-'+lv;if(G.lv[lv].pos!==animalIdx()[lv])return;
   try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){if(animalLand._k===k)return;animalLand._k=k}
   const w=animalWho();addGifts(3);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14,['#ff9a3c','#ffd84a','#5ee08a']);
-  await popup('giftbig',`找到${w[1]}了！`,w[2]+'明天牠會躲到別的格子。')}
+  await popup('giftbig',`找到${w[1]}了！`,w[2]+'禮物可以拿去幫聖誕樹點燈、蓋聖誕小屋。明天牠會躲到別的格子。');return true}
 /* ── 小遊戲每週排行榜（2026-10-28）：只有榮譽，沒有獎品 ── */
 function scoreSend(kind,r){if(!window.PROD||!XS||window.GUEST||!token())return;
   gcall('/xmas/score',{kind,s:r.s,lbl:r.lbl}).then(j=>{if(j&&j.rank&&j.rank<=3)toast(`本週「${MG[kind].t}」排行第 ${j.rank} 名！`)}).catch(()=>{})}
@@ -2974,7 +2981,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261028a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261028b',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4254,8 +4261,9 @@ function luckyTick(now){if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)G
   const L=luckyIdx();GA.luckyS.forEach((s,lv)=>{const t=tiles[lv][L[lv]];if(!t){s.visible=false;return}t.getWorldPosition(s.position);s.position.y+=1.05+Math.sin(now/380+lv)*.12;s.material.rotation=Math.sin(now/600)*.2;s.material.opacity=1;s.visible=MI.state==='off'})}
 async function resolve(){
   const key=LEVELS[G.cur].path[G.lv[G.cur].pos],t=T[key];
-  if(G.lv[G.cur].pos===luckyIdx()[G.cur]&&resolve._lk!==twToday()+G.cur){resolve._lk=twToday()+G.cur;const lg=(XS&&XS.luckyGift)||LUCKY_G;addGifts(lg);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14);await popup('giftbig','今日幸運格！',`踩到今天的幸運格（星星那一格），多送你 ${lg} 個禮物！幸運格每天換一格。`)}
-  await animalLand();
+  /* 2026-10-28 大熊：踩到星星／🥕 又接著跳扭蛋、小遊戲會搞混 → 幸運格、動物格當天就只給自己的獎，蓋掉那格原本的效果 */
+  if(G.lv[G.cur].pos===luckyIdx()[G.cur]&&resolve._lk!==twToday()+G.cur){resolve._lk=twToday()+G.cur;const lg=(XS&&XS.luckyGift)||LUCKY_G;addGifts(lg);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14);await popup('giftbig','今日幸運格！',`踩到今天的幸運格（星星那一格），多送你 ${lg} 個聖誕禮物！禮物可以拿去幫聖誕樹點燈、蓋聖誕小屋。幸運格每天換一格。`);return}
+  if(await animalLand())return;
   if(t.mg){await minigame(t.mg);return}
   if(key==='lot')return landLot(G.lv[G.cur].pos);
   if(key==='gacha'&&XS){
