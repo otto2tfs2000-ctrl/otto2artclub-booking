@@ -122,6 +122,8 @@ button:focus-visible{outline:3px solid var(--gold); outline-offset:3px}
 .flash.on{opacity:1; transform:translate(-50%,-50%) scale(1)}
 .toast{position:fixed; left:50%; top:26%; transform:translateX(-50%); background:var(--gold); border:2.5px solid var(--ink); border-radius:14px; padding:6px 16px; font-size:17px; box-shadow:0 4px 0 var(--ink); opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; white-space:nowrap}
 .toast.on{opacity:1; transform:translateX(-50%) translateY(-8px)}
+.ptstip{position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 150px); transform:translate(-50%,-10px); width:min(330px,calc(100vw - 40px)); box-sizing:border-box; background:#fffaf2; border:2px solid #d63a2f; border-radius:16px; padding:10px 14px; box-shadow:0 6px 18px rgba(0,0,0,.25); z-index:30; opacity:0; transition:opacity .3s, transform .3s; text-align:center; color:var(--navy); pointer-events:none}
+.ptstip.on{opacity:1; transform:translate(-50%,0)}.ptstip b{display:block; font-weight:400; color:#d63a2f; font-size:18px}.ptstip span{display:block; font-size:14px; line-height:1.5}
 .pop{position:fixed; inset:0; display:grid; place-items:center; background:rgba(10,16,40,.5); padding:16px; z-index:5}
 .card{width:min(340px,100%); max-height:calc(100% - 20px); overflow:auto; background:var(--paper); border:3px solid var(--ink); border-radius:24px; box-shadow:0 8px 0 var(--ink); padding:20px 18px 18px; text-align:center; animation:popin .35s cubic-bezier(.3,1.5,.5,1)}
 @keyframes popin{from{transform:scale(.6); opacity:0}}
@@ -168,6 +170,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .sb.lit{opacity:1; transform:scale(1.06); box-shadow:0 0 26px 6px var(--gl)}
 .chars{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
 #giftChip{cursor:pointer}
+.card ul.news{text-align:left; margin:4px 0 6px; padding-left:4px; list-style:none; font-size:15px; line-height:1.55}.card ul.news li{margin:6px 0}.card ul.news b{font-weight:400; color:#d63a2f}
 /* 聖誕衣櫥 */
 .wdtab{display:flex; gap:6px; margin-bottom:6px}
 .wdtab button{flex:1; font:inherit; font-size:14px; padding:6px; border-radius:12px; border:2px solid #e4d9c4; background:#fffaf2; color:var(--ink); cursor:pointer}
@@ -181,7 +184,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .wdi small{font-size:10.5px; color:#a0703c}
 .wdi.on{border-color:#2f8f58; background:#eaf7ee}
 .wdi.sel{border-color:#d63a2f; background:#ffecea}
-.wdi.wdoff{flex:.7}
+.wdi.wdoff{flex:0 0 calc(25% - 3px)}
 .ch{font-family:var(--round); background:#fff; color:var(--ink); border:2.5px solid var(--ink); border-radius:16px; padding:10px 6px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:15px; box-shadow:0 3px 0 var(--ink)}
 .ch.on{background:#fff3c4; outline:3px solid var(--red)}
 .ch img{width:72px; height:72px; border-radius:50%; object-fit:cover; background:#eef2f7}
@@ -423,7 +426,11 @@ body:not(.oct) #roll::before{content:''; display:inline-block; width:28px; heigh
 body:not(.oct) .mainbtns .roombtn{flex:1; min-width:0; background:#fffaf2; border:2px solid #d9c8a8; border-radius:16px; box-shadow:0 4px 0 #d9c8a8; padding:4px 6px; font-size:16px; color:var(--navy); justify-content:center; column-gap:5px}
 body:not(.oct) .roombtn img{width:32px; height:32px}
 /* 2026-10-28 大熊：走格子也要有「我的資產」，放最右邊，樣式跟遊戲室一樣 */
-body:not(.oct) .mainbtns #roll{order:1} body:not(.oct) .mainbtns #room{order:2} body:not(.oct) .mainbtns #menuBtn{order:4}
+body:not(.oct) .mainbtns #roll{order:1} body:not(.oct) .mainbtns #wdBtn{order:2}
+body:not(.oct) .mainbtns #wdBtn,body:not(.oct) .mainbtns #room{flex:.8; font-size:14px; padding:4px 2px}
+body:not(.oct) .mainbtns #roll{flex:1.35!important; letter-spacing:.06em}
+body:not(.oct) .mainbtns #gpanel{flex:.85; font-size:13px; white-space:nowrap; overflow:hidden} body:not(.oct) .mainbtns #room{order:2}
+body.oct #wdBtn{display:none} /* 2026-10-29 大熊：擲骰子旁邊放「小衣櫥」，家長才知道可以換衣服 */ body:not(.oct) .mainbtns #menuBtn{order:4}
 body:not(.oct) .mainbtns #gpanel{order:3; flex:.95; min-width:0; font-size:15px; color:var(--navy); background:#fffaf2; border:2px solid #d9c8a8; border-radius:16px; box-shadow:0 4px 0 #d9c8a8; padding:6px 4px; line-height:1.2; align-self:stretch}
 body:not(.oct) .mainbtns #gpanel small{display:block; font-size:9.5px; letter-spacing:-.03em; color:#7a6d5a; margin-top:2px; white-space:nowrap}
 body:not(.oct) .mainbtns #gpanel:active{transform:translateY(3px); box-shadow:0 1px 0 #d9c8a8}
@@ -762,7 +769,7 @@ body:not(.oct) #evPill{display:none}
     <div class="octinfo"><b>OTTO2 遊樂島・畢卡索月</b><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" fill-opacity=".15"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>聖誕走格子｜11/1 開放</span></div>
         <div class="left" id="left"></div>
     <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button></div>
-    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">我的資產<small>紅利・券・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="room" type="button"><img id="roomIcon" alt="">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
+    <div class="mainbtns"><button class="rollbtn" id="spin" type="button">轉一下</button><button class="gpanel" id="gpanel" type="button">我的資產<small>紅利・券・圖鑑</small></button><button class="rollbtn" id="roll" type="button">擲骰子</button><button class="roombtn" id="wdBtn" type="button">小衣櫥</button><button class="roombtn" id="room" type="button">遊戲室<small>可以一直玩</small></button><button class="menubtn" id="menuBtn" type="button" aria-label="選單"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>選單</button></div>
   </div>
 </div>
 <div class="demotag" id="demoTag" hidden>示範</div>
@@ -802,7 +809,7 @@ body:not(.oct) #evPill{display:none}
 <button type="button" id="skipOpen" hidden>略過 ›</button>
 <div class="tour" id="tour" hidden></div>
 <div class="flash" id="flash"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div><div class="ptstip" id="ptsTip" hidden role="status"></div>
 <!-- 2026-10-07 藝享選品館（紅利商店）店門口：點廣場上的店面先看到這一頁，店員說歡迎光臨，選「進去逛逛」或「下次再考慮」 -->
 <div id="shopGate" hidden aria-label="藝享選品館">
   <div class="sg-stage"><img class="sg-bg" src="shop-gate-bg.webp?v=20261008a" alt="">
@@ -848,7 +855,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029g';
+const PARK_VER='20261029h';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -993,11 +1000,9 @@ function buildIsland(lv){
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
     if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
-    if(k==='lot'){const d=new THREE.Group(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0),r=rng(i*97+13),out=.85+r()*.6,side=(r()-.5)*1.3;
-      d.position.set(p.x+ow.x*out+(ow.z?side:0),o.y-.12,p.z+ow.z*out+(ow.x?side:0));d.userData.side=[ow.z?1:0,ow.x?1:0,side];scene.add(d);lotDeco[i]=d} /* 2026-10-29 小屋蓋在空地格子外側的雪地（裡面留給種樹）；大熊要位置隨機、不要都貼著格子 → 每塊地固定一個亂數位置，大家看到的一樣 */
+    if(k==='lot'){const d=new THREE.Group(),q=LOT_POS[i]||[p.x,p.z],r=rng(i*97+13),jx=(r()-.5)*.5,jz=(r()-.5)*.5;
+      d.position.set(q[0]+jx,o.y-.12,q[1]+jz);scene.add(d);lotDeco[i]=d} /* 2026-10-29 晚 大熊：小屋貼著格子很怪、外圈又被畫面切掉看不到 → 搬進格子圈裡面的雪地，散在森林之間 */
   });
-  /* 小屋不要跟扭蛋機擠在一起：太近就往另一邊滑 */
-  Object.values(lotDeco).forEach(d=>{const u=d.userData.side;if(!u)return;Object.values(gachaDeco).forEach(m=>{if(Math.hypot(d.position.x-m.position.x,d.position.z-m.position.z)<1.3){const mv=-2*u[2];d.position.x+=u[0]*mv;d.position.z+=u[1]*mv;u[2]=-u[2]}})});
   return g;
 }
 function buildScene(){
@@ -1144,6 +1149,10 @@ function sparkle(at,n=6,cols=['#ffd84a','#fff4c2','#ffffff']){
     p.userData={v:new THREE.Vector3((Math.random()-.5)*1.6,1+Math.random()*1.8,(Math.random()-.5)*1.6),life:.9,float:true};scene.add(p);parts.push(p)}}
 async function starPulses(n){for(let i=0;i<n;i++){TREE.pulse=1;const w=new THREE.Vector3();TREE.star.getWorldPosition(w);sparkle(w,2,['#fff1c9','#ffe39a']);await sleep(1300)}}
 const FOREST={spots:[],parts:{},max:420,mine:null};
+/* 空地小屋蓋在格子圈裡面（key＝空地格子的編號）；附近的種樹位置不再種樹，伺服器 forestSkip 是同一份（用 lotSkip() 算出來的） */
+const LOT_POS={1:[-2.9,2.2],5:[.7,2.4],11:[4.3,1.9],17:[4.4,-1.2],20:[1.6,-2.2],30:[-4.4,.1],32:[-4.6,1.8]};
+const lotNear=sp=>Object.values(LOT_POS).some(q=>Math.hypot(sp.x-q[0],sp.z-q[1])<.95);
+const lotSkip=()=>FOREST.spots.map((sp,i)=>lotNear(sp)?i:-1).filter(i=>i>=0);
 const LVN=['','樹苗','小樹','聖誕樹','掛上彩燈','頂端星星'],LVS=[0,.45,.6,.72,.78,.86];
 const FAKE=['宥宥','小安','芊芊','阿哲','米米','樂樂','Emma','Leo','豆豆','恩恩','圓圓','橘子','糖糖','布丁','可可','小熊','晴晴','Ian','柚子','妞妞','凱凱','Mia','安安','小寶','Ruby','阿布','語語','皮皮'];
 function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
@@ -1187,7 +1196,7 @@ function renderForest(){
 function seedForest(){const r=rng(11),used=new Set(),out=[];const n=FOREST.spots.length||300;
   for(let k=0;k<26;k++){let s;do{s=Math.floor(r()*n)}while(used.has(s));used.add(s);out.push({s,n:FAKE[k%FAKE.length],lv:1+Math.floor(r()*r()*4.2)})}return out}
 function freeSpotNear(pos){const used=new Set(G.forest.map(t=>t.s));let best=-1,bd=1e9;
-  FOREST.spots.forEach((sp,i)=>{if(used.has(i))return;const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);if(d<bd){bd=d;best=i}});return best}
+  FOREST.spots.forEach((sp,i)=>{if(used.has(i)||lotNear(sp))return;const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);if(d<bd){bd=d;best=i}});return best}
 async function growAnim(i,from,to){const t=G.forest[i];const a=LVS[from]||0;
   await tween(750,p=>{const e=p<.7?p/.7*1.12:1.12-(p-.7)/.3*.12;const k=(a+(LVS[to]-a)*Math.min(1,e))/LVS[to]*(e>1?e:1);t.lv=to;setForestTree(i,t,Math.max(.01,k));Object.values(FOREST.parts).forEach(m=>m.instanceMatrix.needsUpdate=true)});
   renderForest();const w=FOREST.spots[t.s].clone();w.y+=.6;sparkle(w,8,['#5ee08a','#ffffff','#ffd84a'])}
@@ -1332,7 +1341,11 @@ async function showDaily(d){if(!d)return;
   if(d.orn>=0){await gotOrnament(d.orn,`連續第 ${d.streak} 天！聖誕老公公送你吊飾`);}
   if(d.pts>0)await popup('giftbig',`連續第 ${d.streak} 天！`,`每天都來，送你紅利 ${d.pts} 點，已經存進會員資料。`);
   if(!(d.orn>=0)&&!d.pts)toast(`今天第一擲 +${d.gift+d.extraGift} 個禮物・連續 ${d.streak} 天（${hint}）`);hud()}
-function applyX(j){const p=j.p;G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
+/* 拿到紅利時跳一張小卡：這次 +N、現在有幾點、再幾點換什麼、這次活動還能拿幾點（不擋遊戲，5 秒自己收） */
+function ptsTip(add,p){const T=(XS&&XS.shopTiers)||[],b=p.bonus,nx=b!=null?T.find(t=>t[0]>b):null,left=p.pointCap!=null?Math.max(0,p.pointCap-p.pts):null;
+  const el=$('ptsTip');el.innerHTML=`<b>🎁 紅利 +${add} 點</b>${b!=null?`<span>你現在有 ${b} 點${nx?`，再 ${nx[0]-b} 點可以換「${esc(nx[1])}」`:'，可以去選品館換好禮了'}</span>`:''}${left!=null?`<span>${left?`這次活動還能再拿 ${left} 點`:'這次活動的紅利都拿到了，之後改送禮物'}</span>`:''}`;
+  el.hidden=false;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.hidden=true,300)},5500)}
+function applyX(j){const p=j.p;if(p.pts!=null){if(applyX._pts!=null&&p.pts>applyX._pts)ptsTip(p.pts-applyX._pts,p);applyX._pts=p.pts}G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
   if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}
   if(p.wear){const k=JSON.stringify(p.wear.bear||{});if(k!==applyX._w){applyX._w=k;try{applyAvatar()}catch(e){}}}}
 /* 全體共用的樹／森林／小屋：用伺服器的資料蓋掉本機示範資料 */
@@ -2377,7 +2390,7 @@ async function openPark(){ // 10/16 起：開門、小黑熊從路口走過去�
   HOPPING=false;try{localStorage.setItem('otto2-park-opened','1');localStorage.setItem('otto2-park-last','nov')}catch(e){}
   if(first)await popup('start','聖誕走格子開放了！',xRange()+'：每天擲一次骰子、有預約上課多一次；8 個小遊戲在格子上和遊戲室。',[{t:'開始玩',v:1}]);
   if(xp){await xp;placeBear()}
-  await dailyOpen();busy=false;hud();
+  await newsOpen();await dailyOpen();busy=false;hud();
 }
 function toOct(){if(busy||G.phase==='oct')return;overview=false;G.phase='oct';SKYHOLD=false;SKY=0;setPhaseLook(true);placeBear();showBubbles();hud();toast('回到 10 月：走格子還沒開放')}
 
@@ -3048,7 +3061,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029c',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029d',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -3882,6 +3895,7 @@ function hud(){
 function bonusUI(){const el=$('bonusChip'),sb=$('silverBtn');if(!el)return;
   if(sb){const n=(SILVER&&SILVER.enabled&&SILVER.coins)||0;sb.hidden=!n||G.phase==='oct';$('silverN').textContent=n}
   {const ab=$('advBtn');if(ab){const on=advOn();ab.hidden=!on||G.phase==='oct';ab.classList.toggle('new',on&&!advToday())}}
+  el.hidden=true;return; /* 2026-10-29 大熊：上面那行紅利拿掉，改成拿到紅利時跳 ptsTip 提醒還差多少 */
   const p=XS&&XS.p,b=p&&p.bonus;if(b==null||G.phase==='oct'){el.hidden=true;return}
   const T=(XS.shopTiers||[]),nx=T.find(t=>t[0]>b),prev=[...T].reverse().find(t=>t[0]<=b);
   const from=prev?prev[0]:0,pct=nx?Math.max(4,Math.min(100,(b-from)/(nx[0]-from)*100)):100;
@@ -4170,7 +4184,7 @@ function wdPreview(who,pet,w){const el=$('wdv');if(!el)return;
   WD.sc.add(WD.g);cancelAnimationFrame(WD.raf);const spin=t=>{if(!$('wdv')){wdStop();return}WD.g.rotation.y=Math.sin(t/1400)*.7;WD.r.render(WD.sc,WD.cam);WD.raf=requestAnimationFrame(spin)};WD.raf=requestAnimationFrame(spin)}
 /* 第一次存到 5 個禮物：提醒一次可以去衣櫥換裝（每支手機只跳一次） */
 async function wdTip(){try{if(G.phase==='oct'||G.gifts<5||localStorage.getItem('otto2-wd-tip')||!$('pop').hidden)return;localStorage.setItem('otto2-wd-tip','1')}catch(e){return}
-  const go=await popup('giftbig','禮物可以換裝扮囉！',`你已經有 ${G.gifts} 個聖誕禮物，可以去聖誕衣櫥幫小熊${plMyLoad('pet')?'和天竺鼠':''}換上麋鹿角、精靈帽、聖誕毛衣。之後點小熊或上面的禮物數字，也能打開衣櫥。`,[{t:'去看看',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);
+  const go=await popup('giftbig','禮物可以換裝扮囉！',`你已經有 ${G.gifts} 個聖誕禮物，可以去聖誕衣櫥幫小熊${plMyLoad('pet')?'和天竺鼠':''}換上麋鹿角、精靈帽、聖誕毛衣。之後按擲骰子旁邊的「小衣櫥」，或點小熊、上面的禮物數字，都能打開。`,[{t:'去看看',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);
   if(go)wardrobe()}
 function wdStop(){if(!WD)return;cancelAnimationFrame(WD.raf);try{WD.r.dispose();WD.r.forceContextLoss()}catch(e){}WD=null}
 async function charPanel(){
@@ -4364,6 +4378,8 @@ async function gotOrnament(i,title){
     return}
   if(n===4){confetti(60);await popup('giftbig','四個吊飾集滿了！','這裡會放集滿的大獎，內容還在規劃。吊飾清空，可以再集一輪。');G.orn=[false,false,false,false];hud()}
 }
+/* 認領／升級／換造型／走回自己的地：鏡頭飛過去看小屋（大熊：蓋了都看不到自己的房子） */
+async function lotShow(i){const d=lotDeco[i];if(!d)return;const p=d.position.clone();overviewFocus(p);await camArrive();sparkle(p.clone().add(new THREE.Vector3(0,.7,0)),10);await sleep(900)}
 async function landLotX(i){
   const lot=G.lots[i],cost=(XW&&XW.lotCost)||CLAIM;
   try{
@@ -4371,16 +4387,16 @@ async function landLotX(i){
       if(XS.p.lot!==null&&XS.p.lot!==undefined){await popup('lot','一塊空地','你已經有一間聖誕小屋了，每位會員可以有一間。去升級它，或等別人來拜訪吧。');return}
       if(G.gifts<cost){await popup('lot','一塊空地',`花 ${cost} 個禮物就能認領這塊地、蓋你的聖誕小屋。你現在只有 ${G.gifts} 個，先去收集吧。`);return}
       const ok=await popup('lot','這塊空地還沒有主人',`花 ${cost} 個禮物認領，掛上你的聖誕裝飾。之後別的會員走到這裡，你們兩個都會拿到禮物。`,[{t:'認領',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
-      if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'claim',st});G.lots[i]={o:'me',n:'你',lv:1,st};updateLot(i);hud();confetti(30);toast(`認領成功！這是你的${XHN[st]}`)}
+      if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'claim',st});G.lots[i]={o:'me',n:'你',lv:1,st};updateLot(i);hud();await lotShow(i);confetti(30,lotDeco[i].position);toast(`認領成功！這是你的${XHN[st]}`);await sleep(1600);focusAt=null;hud()}
       return}
-    if(lot.o==='me'){
-      const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'style',st});lot.st=st;updateLot(i);toast(`換成${XHN[st]}了`)};
+    if(lot.o==='me'){await lotShow(i);
+      const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;await xcall('/xmas/lot',{idx:i,op:'style',st});lot.st=st;updateLot(i);await lotShow(i);toast(`換成${XHN[st]}了`);await sleep(1600);focusAt=null;hud()};
       if(lot.lv>=3){if(await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。',[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
       const c=(XW&&XW.lotUpg&&XW.lotUpg[lot.lv])||UPG[lot.lv];
       if(G.gifts<c){if(await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${c} 個禮物，你現在有 ${G.gifts} 個。`,[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
       const ok=await popup('house','回到自己的聖誕小屋',`花 ${c} 個禮物升到 Lv${lot.lv+1}？等級越高，屋子越大，別人來拜訪時你們各拿越多禮物（Lv1 各 1 個、Lv2 各 2 個、Lv3 各 3 個）。`,[{t:'升級',v:1,cls:'red'},{t:'換造型',v:2,cls:'ghost'},{t:'先不要',v:0,cls:'ghost'}]);
       if(ok===2){await restyle();return}
-      if(ok){const j=await xcall('/xmas/lot',{idx:i,op:'upgrade'});lot.lv=j.lotRes.lv;updateLot(i);hud();confetti(30);toast(`升到 Lv${lot.lv}！`)}
+      if(ok){const j=await xcall('/xmas/lot',{idx:i,op:'upgrade'});lot.lv=j.lotRes.lv;updateLot(i);hud();await lotShow(i);confetti(30,lotDeco[i].position);toast(`升到 Lv${lot.lv}！`);await sleep(1600);focusAt=null;hud()}
       return}
     const j=await xcall('/xmas/lot',{idx:i,op:'visit'});hud();const r=j.lotRes;
     await popup('house',`拜訪${r.owner}的聖誕小屋`,r.gift?`你和${r.owner}各拿到 ${r.gift} 個禮物。對方會收到 LINE 通知，知道有人來拜訪。`:(r.again?'你今天已經來拜訪過這間小屋了，明天再來又有禮物！':'今天拜訪拿到的禮物已經達到上限囉，明天再來！'))
@@ -4392,11 +4408,11 @@ async function landLot(i){
   if(!lot){
     if(G.gifts<CLAIM){await popup('lot','一塊空地',`花 ${CLAIM} 個禮物就能認領這塊地、蓋你的聖誕小屋。你現在只有 ${G.gifts} 個，先去收集吧。`);return}
     const ok=await popup('lot','這塊空地還沒有主人',`花 ${CLAIM} 個禮物認領，掛上你的聖誕裝飾。之後別的會員走到這裡，你們兩個都會拿到禮物。`,[{t:'認領',v:1,cls:'red'},{t:'先不要',v:0,cls:'ghost'}]);
-    if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;G.gifts-=CLAIM;G.lots[i]={o:'me',lv:1,st};updateLot(i);hud();confetti(30);toast(`認領成功！這是你的${XHN[st]}`)}
+    if(ok){const st=await lotPick(0,'選你的聖誕小屋');if(st<0)return;G.gifts-=CLAIM;G.lots[i]={o:'me',lv:1,st};updateLot(i);hud();await lotShow(i);confetti(30,lotDeco[i].position);toast(`認領成功！這是你的${XHN[st]}`);await sleep(1600);focusAt=null;hud()}
     return;
   }
-  if(lot.o==='me'){
-    const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;lot.st=st;updateLot(i);toast(`換成${XHN[st]}了`)};
+  if(lot.o==='me'){await lotShow(i);
+    const restyle=async()=>{const st=await lotPick(xhSt(lot,i),'換一間小屋');if(st<0)return;lot.st=st;updateLot(i);await lotShow(i);toast(`換成${XHN[st]}了`);await sleep(1600);focusAt=null;hud()};
     if(lot.lv>=3){if(await popup('house','回到自己的聖誕小屋','已經升到最高級了。別人來拜訪時，你們各拿 3 個禮物。',[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
     const cost=UPG[lot.lv];
     if(G.gifts<cost){if(await popup('house','回到自己的聖誕小屋',`升到 Lv${lot.lv+1} 要 ${cost} 個禮物，你現在有 ${G.gifts} 個。`,[{t:'好',v:0},{t:'換造型',v:1,cls:'ghost'}]))await restyle();return}
@@ -4420,7 +4436,7 @@ async function resolve(){
   if(G.lv[G.cur].pos===luckyIdx()[G.cur]&&resolve._lk!==twToday()+G.cur){resolve._lk=twToday()+G.cur;const lg=(XS&&XS.luckyGift)||LUCKY_G;addGifts(lg);sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),14);await popup('giftbig','今日幸運格！',`踩到今天的幸運格（星星那一格），多送你 ${lg} 個聖誕禮物！禮物可以拿去幫聖誕樹點燈、蓋聖誕小屋。幸運格每天換一格。`);return}
   if(await animalLand())return;
   if(t.mg){await minigame(t.mg);return}
-  if(key==='lot')return landLot(G.lv[G.cur].pos);
+  if(key==='lot'){try{return await landLot(G.lv[G.cur].pos)}finally{if(focusAt){focusAt=null;hud()}}} /* 看完小屋鏡頭回到小熊 */
   if(key==='gacha'&&XS){
     try{const R=await xGachaShow(xcall('/xmas/gacha',{lv:G.cur}));if(R.e)throw R.e;const j=R.j;hud();const r=j.gachaRes;sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),12,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);
       const txt=r.type==='gift'?`轉出一顆扭蛋，裡面有 ${r.n} 個禮物。`:r.type==='bonus'?(r.pts?`轉出一顆扭蛋，是「${r.nm}」！已經加進你的紅利點數。`:`轉出一顆扭蛋，是「${r.nm}」！明天再來試試手氣。`):`轉出一顆扭蛋，是「${r.nm}」！已經放進你的票券，可以在預約頁「我的」看到。`;
@@ -4523,6 +4539,12 @@ async function showRank(){
   const html=`<table class="rank"><tr><th></th><th style="text-align:left">會員</th><th>小屋</th><th>被拜訪</th><th>分數</th></tr>${rows.map((r,i)=>`<tr class="${r.id==='me'?'me':''}"><td>${i+1}</td><td>${esc(r.n)}</td><td>${r.c}</td><td>${r.v}</td><td>${r.s}</td></tr>`).join('')}</table>`;
   await popup(null,'聖誕村地主排行','分數＝小屋等級加總 × 5 ＋ 被拜訪次數。每週公布前幾名。',[{t:'關閉',v:1}],html);
 }
+/* 更新公告：每次有新東西改 NEWS_VER，每支手機看一次（2026-10-29 大熊：第一次打開要告訴家長我們更新了什麼） */
+const NEWS_VER='20261029';
+async function newsOpen(){try{if(localStorage.getItem('otto2-news')===NEWS_VER)return;localStorage.setItem('otto2-news',NEWS_VER)}catch(e){return}
+  const go=await popup('giftbig','走格子更新了！','',[{t:'去小衣櫥看看',v:1,cls:'red'},{t:'知道了',v:0,cls:'ghost'}],
+    `<ul class="news"><li>🧸 <b>小衣櫥</b>：用禮物幫小熊和天竺鼠換裝，新增藝術家的帽子、翹鬍子、條紋衫</li><li>🏠 <b>聖誕小屋</b>搬進森林裡，認領後鏡頭會帶你去看</li><li>👼 <b>第二層</b>：有預約就能玩，金色天使、預約大禮盒</li><li>🎁 拿到紅利會告訴你還差幾點換好禮</li></ul>`);
+  if(go){const b=busy;busy=false;await wardrobe();busy=b}}
 async function dailyOpen(){ // opening the game once a day lights one bulb, no play needed
   if(XS)return;
   if(G.openDay===G.day)return;G.openDay=G.day;
@@ -4586,7 +4608,7 @@ G.tree=Math.min(Number(G.tree)||0,treeCap()); /* 本機示範的燈數也照點�
     if(XOPEN&&!/[?&]isl=oct/.test(location.search))G.phase='nov'} /* 2026-10-24 走格子是重點：開放期間一打開就進走格子島，只有 ?isl=oct（從別的島點「扭蛋島」）才進扭蛋廣場 */
   setPhaseLook(G.phase==='oct');renderFigs();buildPets();trimShadows();if(!/[?&]nomerge/.test(location.search))try{mergePlaza()}catch(e){console.warn('mergePlaza',e)}
   placeBear();const g=camGoal();camera.position.copy(g.pos);look.copy(g.at);
-  $('giftIcon').src=iconURL('gift',64);$('soonIc').innerHTML=LOCK_SVG;$('roomIcon').src=iconURL('elf',64);
+  $('giftIcon').src=iconURL('gift',64);$('soonIc').innerHTML=LOCK_SVG;
   $('mats').innerHTML=ORN.map(m=>`<div class="mat" title="${m.n}"><img alt="${m.n}" src="${iconURL(m.k,96)}"></div>`).join('');
   $('loading').hidden=true;$('hud').hidden=false;hud();window.__parkReady=true;
   requestAnimationFrame(loop);
@@ -4594,7 +4616,7 @@ G.tree=Math.min(Number(G.tree)||0,treeCap()); /* 本機示範的燈數也照點�
   petsNotice();
   /* 吉祥物島的目的地按鈕：管理者帶 ?phase=oct / nov 直接進 10 月或 11–12 月（要等員工身分確認後才生效） */
   (function(){const m=/[?&]phase=(oct|nov)/.exec(location.search);if(!m)return;let n=0;const t=setInterval(()=>{n++;if(document.documentElement.classList.contains('demoq')){clearInterval(t);if(busy)return;if(m[1]==='nov'&&G.phase==='oct')openPark();else if(m[1]==='oct'&&G.phase!=='oct')toOct()}else if(n>30)clearInterval(t)},400)})();
-  setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;(window.PROD?xmasPull():Promise.resolve()).then(()=>dailyOpen()).then(()=>{busy=false;hud()})}},1500);
+  setTimeout(()=>{if(!busy&&G.phase!=='oct'){busy=true;(window.PROD?xmasPull():Promise.resolve()).then(()=>newsOpen()).then(()=>dailyOpen()).then(()=>{busy=false;hud()})}},1500);
   /* 11/1 之後第一次打開：播開門、小熊跳過去的轉場；之後直接進走格子島 */
   xmasIntro();
 }
@@ -4678,7 +4700,8 @@ let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.cl
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
 $('wardBtn').addEventListener('click',()=>{$('menu').hidden=true;wardrobe()});
-$('giftChip').addEventListener('click',()=>{if(G&&G.phase!=='oct')wardrobe()}); /* 點上面的禮物數字也能打開衣櫥 */
+$('giftChip').addEventListener('click',()=>{if(G&&G.phase!=='oct')wardrobe()});
+$('wdBtn').addEventListener('click',()=>{if(G&&G.phase!=='oct')wardrobe()}); /* 點上面的禮物數字也能打開衣櫥 */
 $('mascotBtn').addEventListener('click',()=>{if(!busy)mascotGo()});
 $('verTxt').textContent='版本 '+PARK_VER;
 $('teachBtn').addEventListener('click',teacherPanel);

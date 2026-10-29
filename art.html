@@ -2143,9 +2143,9 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
   const show=w=>{const o=gpPets.find(x=>x.m.id===m.id&&x.kind==='pet');if(o)PetLife.dress(THREE,x=>toon(x),o.g,w,'gp')};
   const sync=r=>{if(r&&r.p){C.own=r.p.own||{};C.gifts=r.p.gifts;wear=Object.assign({},r.p.wear&&r.p.wear.gp)}m.pet.wear=Object.assign({},wear)};
   const put=async(slot,item)=>{const r=await api('/xmas/outfit',{op:'wear',who:'gp',slot,item});sync(r)};
-  const soon=C.status==='soon'||C.status==='ended';
+  const soon=false; /* 2026-10-29 大熊：不用等 11/1，現在就能買、能穿 */
   const paint=()=>{const L=C.outfits||[],so=sel&&L.find(o=>o.id===sel);
-    drawer.innerHTML=`<h3>${esc(m.pet.n)}的服裝衣櫥</h3><p class="hint">用聖誕走格子拿到的禮物換裝扮，買一次小熊和天竺鼠都能穿，大家逛到你家都看得到。你有 <b>${C.gifts}</b> 個禮物。${C.status==='soon'?'<br>11/1 聖誕走格子開始才能買、能穿，現在可以先點來試穿。':C.status==='ended'?'<br>聖誕走格子結束了，只能試穿看看。':''}</p>
+    drawer.innerHTML=`<h3>${esc(m.pet.n)}的服裝衣櫥</h3><p class="hint">用聖誕走格子拿到的禮物換裝扮，買一次小熊和天竺鼠都能穿，大家逛到你家都看得到。你有 <b>${C.gifts}</b> 個禮物。${C.gifts<5?'<br>還沒有禮物的話可以先點來試穿，11/1 開始玩聖誕走格子就能收集禮物。':''}</p>
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
         return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
           return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${sel===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
