@@ -183,7 +183,34 @@ function palette(){const g=new THREE.Group(),L=1.05,AW=.7,AH=.6;
     f.position.set(.06+Math.cos(a)*.24,.02+Math.sin(a)*.2,.07);pal.add(f)});
   return g}
 
-const MAKERS=[postOffice,bakery,castle,monster,palette],NAMES=['禮物精靈的郵局','薑餅烘焙師的蛋糕屋','粉雪女王的水晶城堡','薄荷雪怪的毛毛屋','彩繪精靈的調色盤隧道'];
+
+/* ---------- 06 聖誕老公公工作坊（2026-10-29：第二層走完一圈才能蓋）---------- */
+function workshop(){const g=new THREE.Group(),W=1.1,H=.6,D=.8,kraft=cardM(),red=cardM('#c8362c'),snow=toon('#fffaf2');
+  g.add(doorWall(W,H,[[-.12,.4,.46]],kraft).translateZ(D/2-.08));
+  g.add(box(W,H,D-.1,kraft,0,0,-.05));
+  /* 窗戶（暖黃色＋十字窗框） */
+  g.add(box(.22,.2,.02,toon('#ffd27a'),.3,.22,D/2+.035));g.add(box(.22,.025,.03,toon('#8a5a36'),.3,.31,D/2+.04));g.add(box(.025,.2,.03,toon('#8a5a36'),.3,.22,D/2+.04));
+  /* 紅色斜屋頂＋雪 */
+  [-1,1].forEach(sg=>{const r=M(rbox(W+.16,.07,D*.62),red,0,H+.17,sg*D*.22-.05);r.rotation.x=sg*.62;g.add(r);
+    for(let k=0;k<9;k++)g.add(ball(.045,'#fffaf2',-W/2+.02+k*(W-.04)/8,H+.03,sg*(D*.47)-.05,1.2,.6,1))});
+  g.add(M(new THREE.CylinderGeometry(.06,.06,W+.18,12),snow,0,H+.36,-.05).rotateZ(Math.PI/2));
+  /* 前面三角牆 */
+  const tri=new THREE.Shape();tri.moveTo(-W/2,0);tri.lineTo(W/2,0);tri.lineTo(0,.34);tri.lineTo(-W/2,0);
+  const gw=new THREE.Mesh(new THREE.ExtrudeGeometry(tri,{depth:.06,bevelEnabled:true,bevelThickness:.015,bevelSize:.015,bevelSegments:3}),[kraft,edgeM]);gw.position.set(0,H,D/2-.1);g.add(gw);
+  const st=star(.06,'#f2c14e');st.position.set(0,H+.14,D/2-.02);g.add(st);
+  /* 煙囪 */
+  g.add(box(.16,.3,.16,red,.3,H+.18,-.18));g.add(box(.2,.06,.2,snow,.3,H+.47,-.18));
+  /* 門上的花圈 */
+  const wr=M(new THREE.TorusGeometry(.085,.035,8,20),toon('#2f7a46'),-.12,.52,D/2+.02);g.add(wr);
+  [[0,.085],[.06,.06],[-.06,.06]].forEach(([x,y])=>g.add(ball(.02,'#d3231b',-.12+x,.52-y,D/2+.05)));
+  g.add(ball(.035,'#d63a2f',-.12,.6,D/2+.05,1.4,.8,.6));
+  /* 右邊疊起來的禮物 */
+  [[.62,0,.3,.2,'#d63a2f'],[.64,.2,.28,.15,'#3e8a57'],[.6,.35,.24,.12,'#f2c14e']].forEach(([x,y,z,s,c])=>{g.add(box(s,s,s,toon(c),x,y,z));g.add(box(s+.01,s+.01,.03,toon('#fffaf2'),x,y,z));g.add(box(.03,s+.01,s+.01,toon('#fffaf2'),x,y,z))});
+  /* 左邊小雪橇 */
+  const sl=new THREE.Group();sl.add(box(.3,.08,.18,cardM('#c8362c'),0,.05,0));[-.07,.07].forEach(z=>{sl.add(box(.36,.02,.025,toon('#8a5a36'),0,0,z));sl.add(M(new THREE.TorusGeometry(.04,.012,6,10,Math.PI),toon('#8a5a36'),.18,.04,z).rotateZ(-Math.PI/2))});
+  sl.position.set(-.72,0,.28);sl.rotation.y=.4;g.add(sl);
+  return g}
+const MAKERS=[postOffice,bakery,castle,monster,palette,workshop],NAMES=['禮物精靈的郵局','薑餅烘焙師的蛋糕屋','粉雪女王的水晶城堡','薄荷雪怪的毛毛屋','彩繪精靈的調色盤隧道','聖誕老公公工作坊'];
 
 window.XH3D={make:k=>MAKERS[k](),names:NAMES};
 })();
