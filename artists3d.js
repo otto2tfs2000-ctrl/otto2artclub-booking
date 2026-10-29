@@ -234,6 +234,12 @@ function mondrian(){const c=document.createElement('canvas');c.width=512;c.heigh
   x.save();x.translate(268,52);x.strokeStyle='#1a1a1a';x.lineWidth=5;x.beginPath();x.moveTo(-26,0);x.quadraticCurveTo(0,-22,26,0);x.quadraticCurveTo(0,22,-26,0);x.stroke();x.fillStyle='#1a1a1a';x.beginPath();x.arc(0,0,9,0,7);x.fill();x.restore();
   [[255,215],[275,225],[300,215],[320,228]].forEach(([a,b])=>{x.fillStyle='#d8382c';x.beginPath();x.arc(a,b,4,0,7);x.fill()});
   const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.offset.x=268/512;return t}
+function picBands(){const c=document.createElement('canvas');c.width=64;c.height=128;const x=c.getContext('2d');x.fillStyle='#f4efe2';x.fillRect(0,0,64,128);x.fillStyle='#2f5fb8';[10,50,90].forEach(y=>x.fillRect(0,y,64,18));return new THREE.CanvasTexture(c)}
+function picBeret(){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');['#d8382c','#f0c23a','#2f5fb8','#f0c23a','#d8382c','#2f5fb8'].forEach((col,i)=>{x.fillStyle=col;x.fillRect(i*86,0,86,128)});
+  x.fillStyle='#1a1a1a';for(let i=0;i<6;i++)x.fillRect(i*86-3,0,6,128);x.fillRect(0,60,512,6);x.fillRect(0,118,512,10);return new THREE.CanvasTexture(c)}
+/* 2026-10-30 大熊第三版參考圖：畢卡索＝禿頭、兩側白髮往上翹、大大的白眼珠往上看、小粉鼻、臉上立體派色塊。
+   v=0 土色版（橘紅/黃土色塊＋灰綠交領外套），v=1 紅衣版（藍粉臉、藍粉荷葉領、芥末黃披肩、酒紅外套） */
+function cvTex(w,h,draw,wrap){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);if(wrap){t.wrapS=THREE.RepeatWrapping}return t}
 const FIGX={
 '梵谷'(A){const P='#eaa0aa';const f=figBase({coat:P,sleeve:P,legs:'#4a6ea8',cuff:'#4a6ea8',shoe:'#3a2a20',cuffArm:P,skin:'#f6d6bc',mouth:'none',coatH:.52}),h=f.head,R='#c46a2c';
   f.body.add(flathe([[.2,.26],[.24,.28],[.2,.52]],toon(P,{side:THREE.DoubleSide}),18));
@@ -343,18 +349,31 @@ const FIGX={
   const ts=new THREE.Shape();ts.moveTo(0,0);ts.lineTo(.26,0);ts.lineTo(0,.3);ts.lineTo(0,0);const th=new THREE.Path();th.moveTo(.045,.045);th.lineTo(.045,.19);th.lineTo(.165,.045);th.lineTo(.045,.045);ts.holes.push(th);
   const tri=new THREE.Mesh(new THREE.ExtrudeGeometry(ts,{depth:.025,bevelEnabled:false}),toon('#8a5634'));tri.position.set(-.04,-.5,.1);tri.rotation.set(0,-.2,.1);f.armR.add(tri);f.armR.rotation.set(-.6,0,.25); /* 三角尺 */
   keep(f.g);return figDoneX(f,A)},
-'畢卡索'(A){const f=figBase({coat:mondrian(),sleeve:'#2f5fb8',legs:'#2b4a9a',shoe:'#1a1a1c',skin:'#f3cfb4',mouth:'smile'}),h=f.head,W='#b9b8b4';
-  /* 2026-10-30 大熊給參考圖：黑色貝雷帽、灰捲髮、臉上藍三角＋黃線（立體派）、蒙德里安色塊上衣上有眼睛、調色盤和藍筆 */
-  f.armL.children[0].material=toon('#d8382c');
-  backHair(h,W,.36,.8,1);for(let k=0;k<4;k++)[-1,1].forEach(s=>h.add(ball(W,.085,.27*s,.04-k*.07,-.02-k*.05,1,1.1,1,true)));
-  for(let k=0;k<7;k++){const a=Math.PI+.35+k/6*(Math.PI-.7);h.add(ball(W,.085,-Math.cos(a)*.3,-.1-(k%2)*.04,Math.sin(a)*.29,1,1,1,true))}
-  brow(h,'#9a9a98',1,-.1,.13,.09,.026);rnose(h);
-  const ts=new THREE.Shape();ts.moveTo(-.075,.08);ts.lineTo(.085,.075);ts.lineTo(.01,-.1);ts.lineTo(-.075,.08);
-  const tr=new THREE.Mesh(new THREE.ShapeGeometry(ts),toon('#3f7fd6'));tr.position.set(.1,.02,.262);tr.rotation.y=.36;h.add(tr);
-  [[-.12,-.06,.4],[-.17,-.02,.6],[.06,-.19,-.3]].forEach(([x,y,r])=>{const k=fbox('#f0c23a',.08,.016,.006,x,y,0);const R=.3;k.position.z=Math.sqrt(Math.max(0,R*R-x*x-y*y))*.96+.006;k.rotation.set(-y*2.5,Math.asin(x/R),r);h.add(k)});
-  [-1,1].forEach(s=>{h.children.filter(o=>o.position&&Math.abs(o.position.x-.095*s)<.001&&Math.abs(o.position.z-.268)<.001).forEach(o=>o.position.z=.275)});
-  const bt=new THREE.Group();bt.position.set(.02,.24,0);bt.rotation.z=-.22;h.add(bt);bt.add(ball('#1c1c1f',.34,0,0,0,1.1,.36,1.05));bt.add(cyl('#1c1c1f',.025,.03,.09,0,.09,0,8));
-  noBrush(f);const br=pbrush('#3f7fd6');br.position.set(0,-.36,.05);f.armR.add(br);f.armR.rotation.set(-.35,0,.25);
+'畢卡索'(A){/* 2026-10-30 大熊挑的組合：色塊貝雷帽＋白捲髮＋藍三角臉（第二版頭）、藍粉荷葉領＋芥末黃鋸齒披肩＋酒紅糖果扣外套（紅衣版身體）、左手調色盤、右手藍白條紋袖＋黃色畫筆 */
+  const coat=cvTex(512,256,(x,w,h)=>{x.fillStyle='#8e1f2a';x.fillRect(0,0,w,h);x.strokeStyle='#1a1214';x.lineWidth=4;
+      for(let i=0;i<46;i++){const a=(i*61)%w,b=(i*37)%h;x.beginPath();x.moveTo(a,b);x.lineTo(a+18,b+3);x.stroke()}
+      x.lineWidth=7;x.beginPath();x.moveTo(250,0);x.lineTo(262,256);x.stroke()},1);coat.offset.x=256/512;
+  const legs=cvTex(64,128,(x,w,h)=>{x.fillStyle='#8e1f2a';x.fillRect(0,0,w,h);x.fillStyle='#1a1214';for(let i=0;i<8;i++)x.fillRect(4,i*16+4,26,4)});
+  const f=figBase({coat,sleeve:'#d8382c',legs,shoe:'#1c1c1f',skin:'#f3cfb4',mouth:'none'}),h=f.head,W='#e4e1da';
+  f.armR.children[0].material=new THREE.MeshLambertMaterial({map:picBands()});
+  backHair(h,W,.3,.78,1);for(let k=0;k<4;k++)[-1,1].forEach(s=>h.add(ball(W,.09,.27*s,.08-k*.07,-.02-k*.05,1,1.15,1,true)));
+  for(let k=0;k<7;k++){const a=Math.PI+.35+k/6*(Math.PI-.7);h.add(ball(W,.085,-Math.cos(a)*.3,-.08-(k%2)*.04,Math.sin(a)*.29,1,1,1,true))}
+  brow(h,'#9a9a98',1,-.1,.14,.09,.026);rnose(h);
+  h.children.filter(o=>o.position&&Math.abs(Math.abs(o.position.x)-.095)<.001&&Math.abs(o.position.z-.268)<.001).forEach(o=>o.position.z=.285);
+  h.children.filter(o=>o.position&&Math.abs(o.position.y-.018)<.001&&Math.abs(o.position.z-.29)<.001).forEach(o=>o.position.z=.318);
+  [-1,1].forEach(s=>h.add(ball('#ffffff',.058,.095*s,.0,.262,1,1.08,.62,true))); /* 白眼球 */
+  {const c=document.createElement('canvas');c.width=256;c.height=256;const x=c.getContext('2d');
+    x.fillStyle='#3f7fd6';x.beginPath();x.moveTo(89,45);x.lineTo(240,42);x.lineTo(175,168);x.closePath();x.fill();
+    x.fillStyle='#f0c23a';x.fillRect(197,160,30,30);x.fillStyle='#1a1a1a';x.fillRect(170,150,5,78);
+    const pt=new THREE.Mesh(new THREE.SphereGeometry(.303,40,30,Math.PI/2-.8,1.6,.9,1.8),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));
+    pt.scale.set(1,1.06,.96);h.add(pt)} /* 臉上的立體派色塊畫在貼著臉的薄殼上 */
+  h.add(fbox('#c8463c',.04,.01,.01,-.01,-.165,.285)); /* 平平的小嘴 */
+  const bt=new THREE.Group();bt.position.set(.03,.25,0);bt.rotation.z=-.25;h.add(bt);
+  const top=new THREE.Mesh(SPH,new THREE.MeshLambertMaterial({map:picBeret()}));top.scale.set(.37,.13,.36);bt.add(top);bt.add(ball('#1c1c1f',.04,.18,.07,.08,1,1,1,true));
+  const rf=new THREE.Group();for(let i=0;i<20;i++){const a=i/20*Math.PI*2;rf.add(ball(Math.sin(a)>=0?'#e48fbd':'#2f55c0',.055,Math.sin(a)*.2,0,Math.cos(a)*.2,1.1,.8,.6,true))}rf.position.y=.82;f.body.add(rf); /* 藍粉荷葉領 */
+  const cp=new THREE.Mesh(new THREE.CylinderGeometry(.19,.32,.17,28,1,true),new THREE.MeshLambertMaterial({side:THREE.DoubleSide,map:cvTex(512,64,(x,w,h)=>{x.fillStyle='#e3b040';x.fillRect(0,0,w,h);x.strokeStyle='#1a1a1a';x.lineWidth=5;x.beginPath();for(let i=0;i<=40;i++)x.lineTo(i*13,i%2?44:30);x.stroke()})}));cp.position.y=.7;f.body.add(cp); /* 芥末黃鋸齒披肩 */
+  [.62,.5,.38].forEach(y=>{f.body.add(ball('#1a1214',.035,0,y,.205,1,1,.4,true));f.body.add(ball('#ffffff',.026,0,y,.215,1,1,.4,true));f.body.add(ball('#d8382c',.012,0,y,.225,1,1,.4,true))}); /* 糖果扣 */
+  noBrush(f);const br=pbrush('#f0c23a');br.position.set(0,-.36,.05);f.armR.add(br);f.armR.rotation.set(-.35,0,.25);
   const pl=palette();pl.position.set(-.04,-.38,.1);f.armL.add(pl);f.armL.rotation.set(-.55,0,-.35);
   keep(f.g);return figDoneX(f,A)},
 '林布蘭'(A){const f=figBase({robe:'#5a5650',sleeve:'#5a5650',feet:'boot',shoe:'#3a2a20',skin:'#f6d6bc',mouth:'smile',

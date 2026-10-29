@@ -875,7 +875,7 @@ body:not(.oct) #evPill{display:none}
 
 <script src="ferry.js?v=20261024f"></script>
 <script src="petlife.js?v=20261029c"></script>
-<script src="artists3d.js?v=20261030b"></script>
+<script src="artists3d.js?v=20261030c"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
 <script src="anniv26.js?v=20261024a"></script>
@@ -885,7 +885,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030d';
+const PARK_VER='20261030e';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3117,7 +3117,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030a',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030b',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
