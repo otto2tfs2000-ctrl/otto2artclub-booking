@@ -167,6 +167,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .sb{aspect-ratio:1; border-radius:50% 50% 46% 46%; border:3px solid var(--ink); cursor:pointer; opacity:.35; transition:opacity .1s, transform .1s; padding:0}
 .sb.lit{opacity:1; transform:scale(1.06); box-shadow:0 0 26px 6px var(--gl)}
 .chars{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
+#giftChip{cursor:pointer}
 /* 聖誕衣櫥 */
 .wdtab{display:flex; gap:6px; margin-bottom:6px}
 .wdtab button{flex:1; font:inherit; font-size:14px; padding:6px; border-radius:12px; border:2px solid #e4d9c4; background:#fffaf2; color:var(--ink); cursor:pointer}
@@ -742,7 +743,7 @@ body:not(.oct) #evPill{display:none}
         <button type="button" class="tree" id="treeBtn"><span class="tt"><span>聖誕樹</span><em>點燈</em></span><div class="bar"><i id="treeFill"></i></div><b id="treeNum"></b></button>
       </div>
       <div class="colR">
-        <div class="chip gchip"><img id="giftIcon" alt=""><span>禮物 <b id="gifts">0</b></span></div>
+        <div class="chip gchip" id="giftChip" role="button" tabindex="0" title="聖誕衣櫥"><img id="giftIcon" alt=""><span>禮物 <b id="gifts">0</b></span></div>
         <div class="mats" id="mats"></div>
         <div class="matlbl" id="matlbl">集滿四個聖誕吊飾</div>
         <button type="button" class="chip schip" id="silverBtn" hidden>🥈 銀色扭蛋 ×<b id="silverN">1</b></button>
@@ -847,7 +848,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029d';
+const PARK_VER='20261029f';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1225,6 +1226,8 @@ function forestTap(e){
   if(parkTap(e))return;
   const r=renderer.domElement.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
+  /* 2026-10-29 點走格子上的小熊＝打開聖誕衣櫥 */
+  if(G&&G.phase!=='oct'&&!busy&&!parkCam&&bear&&bear.visible&&rc.intersectObject(bear,true).length){wardrobe();return}
   const hits=rc.intersectObjects([FOREST.parts.c1,FOREST.parts.c2,FOREST.parts.c3,FOREST.parts.trunk]);
   if(hits.length){const t=G.forest[hits[0].instanceId];if(t)toast(t.me||t.mine?`你的聖誕樹・${LVN[t.lv]}`:`${t.n}的聖誕樹・${LVN[t.lv]}`)}
 }
@@ -4122,6 +4125,7 @@ const outfitList=()=>(XS&&XS.outfits||PetLife.OUTFITS.map(o=>Object.assign({p:OU
 let WD=null;
 async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const pet=plMyLoad('pet');let who='bear',sel=null,working=false;
+  const start={bear:myWear('bear'),gp:myWear('gp',pet)}; /* 按「取消」就換回打開衣櫥時穿的（買過的東西還是你的） */
   let done;const closed=new Promise(r=>done=r);
   const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),slots=[['head','頭上'],['neck','脖子'],['body','身上']];
     $('card').innerHTML=`<h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
@@ -4130,8 +4134,8 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
       ${slots.map(([sl,nm])=>`<div class="wdrow"><span>${nm}</span>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
         return `<button type="button" class="wdi${on?' on':''}${sel===o.id?' sel':''}" data-i="${o.id}"><i>${OUTFIT_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':`🎁 ${o.p}`}</small></button>`}).join('')}
         <button type="button" class="wdi wdoff" data-off="${sl}"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`).join('')}
-      <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下${esc((L.find(o=>o.id===sel)||{}).nm||'')}（${(L.find(o=>o.id===sel)||{}).p} 個禮物）</button>`:''}<button type="button" class="btn" id="wdOk">好了</button></div>`;
-    $('pop').hidden=false;wdPreview(who,pet,w);
+      <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下${esc((L.find(o=>o.id===sel)||{}).nm||'')}（${(L.find(o=>o.id===sel)||{}).p} 個禮物）</button>`:''}<button type="button" class="btn ghost" id="wdNo">取消</button><button type="button" class="btn" id="wdOk">好了</button></div>`;
+    $('pop').hidden=false;{const so=sel&&L.find(o=>o.id===sel);wdPreview(who,pet,so?Object.assign({},w,{[so.slot]:so.id}):w)} /* 還沒買的先試穿給你看（大熊：點了要看得到） */
     $('card').querySelectorAll('.wdtab button').forEach(b=>b.onclick=()=>{who=b.dataset.w;sel=null;draw()});
     $('card').querySelectorAll('.wdi[data-i]').forEach(b=>b.onclick=async()=>{if(working)return;const o=L.find(x=>x.id===b.dataset.i);if(!o)return;
       if(o.p&&!own[o.id]){sel=o.id;draw();return}
@@ -4141,11 +4145,15 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
       if(G.gifts<o.p){toast(`要 ${o.p} 個禮物，你現在有 ${G.gifts} 個，先去走格子收集吧`);return}
       working=true;try{if(XS)await xcall('/xmas/outfit',{op:'buy',item:o.id});else{G.gifts-=o.p;G.own=Object.assign({},G.own,{[o.id]:true});save()}
         hud();sfx('tap');toast(`買到${o.nm}了！`);await wdWear(who,o.slot,o.id,pet)}catch(e){toast(e.message||'連線不穩，稍後再試')}working=false;sel=null;draw()};
-    $('wdOk').onclick=()=>{$('pop').hidden=true;done()}};
+    $('wdOk').onclick=()=>{$('pop').hidden=true;done()};
+    $('wdNo').onclick=async()=>{if(working)return;working=true;
+      for(const w of ['bear','gp']){if(w==='gp'&&!pet)continue;const now=myWear(w,pet);
+        for(const sl of ['head','neck','body']){const a=start[w][sl]||'def',b=now[sl]||'def';if(a!==b)await wdWear(w,sl,a==='none'?'':a,pet)}}
+      working=false;$('pop').hidden=true;done()}};
   draw();await closed;wdStop();
 }
 async function wdWear(who,slot,item,pet){
-  try{if(XS)await xcall('/xmas/outfit',{op:'wear',who,slot,item});else{G.wear=G.wear||{};G.wear[who]=Object.assign({},G.wear[who],{[slot]:item||'none'});save()}}
+  try{if(XS)await xcall('/xmas/outfit',{op:'wear',who,slot,item});else{G.wear=G.wear||{};G.wear[who]=Object.assign({},G.wear[who],{[slot]:item||'none'});if(item==='def')delete G.wear[who][slot];save()}}
   catch(e){toast(e.message||'連線不穩，稍後再試');return}
   if(who==='bear')applyAvatar();
   else{const w=myWear('gp',pet);if(pet){pet.wear=w;try{localStorage.setItem('otto2-mypet',JSON.stringify(pet))}catch(e){}}if(PL.my)PetLife.dress(THREE,c=>toon(c),PL.my.g,w,'gp')}}
@@ -4159,6 +4167,10 @@ function wdPreview(who,pet,w){const el=$('wdv');if(!el)return;
   if(who==='gp'&&pet){WD.g=PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);PetLife.dress(THREE,c=>toon(c),WD.g,w,'gp');WD.cam.position.set(0,1.3,3.4);WD.cam.lookAt(0,.45,0)}
   else{WD.g=makeBear('#1c1c1f',1,false,true,!!w.neck);PetLife.dress(THREE,c=>toon(c),WD.g,{head:w.head||'santa',neck:w.neck,body:w.body},'bear');WD.cam.position.set(0,1.1,3.2);WD.cam.lookAt(0,.62,0)}
   WD.sc.add(WD.g);cancelAnimationFrame(WD.raf);const spin=t=>{if(!$('wdv')){wdStop();return}WD.g.rotation.y=Math.sin(t/1400)*.7;WD.r.render(WD.sc,WD.cam);WD.raf=requestAnimationFrame(spin)};WD.raf=requestAnimationFrame(spin)}
+/* 第一次存到 5 個禮物：提醒一次可以去衣櫥換裝（每支手機只跳一次） */
+async function wdTip(){try{if(G.phase==='oct'||G.gifts<5||localStorage.getItem('otto2-wd-tip')||!$('pop').hidden)return;localStorage.setItem('otto2-wd-tip','1')}catch(e){return}
+  const go=await popup('giftbig','禮物可以換裝扮囉！',`你已經有 ${G.gifts} 個聖誕禮物，可以去聖誕衣櫥幫小熊${plMyLoad('pet')?'和天竺鼠':''}換上麋鹿角、精靈帽、聖誕毛衣。之後點小熊或上面的禮物數字，也能打開衣櫥。`,[{t:'去看看',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);
+  if(go)wardrobe()}
 function wdStop(){if(!WD)return;cancelAnimationFrame(WD.raf);try{WD.r.dispose();WD.r.forceContextLoss()}catch(e){}WD=null}
 async function charPanel(){
   if(busy)return;
@@ -4496,7 +4508,7 @@ async function doRoll(){
       catch(e){if(e.code){toast(e.message);xmasPull();return -1}}} /* 伺服器說不行（次數用完等）就停；只是連不上才用本機骰子 */
     if(!v){if(!G.test)L.left--;v=1+Math.floor(Math.random()*6);if(!XS)DAILY=localDaily()}return v})();
   passedStart=false;passedStart2=false;const v=await rollDie(vp);if(v<0){busy=false;hud();return}await walk(v);await resolve();if(passedStart){passedStart=false;await plant('經過起點')}if(passedStart2){passedStart2=false;await openBox()}if(DAILY){const d=DAILY;DAILY=null;await showDaily(d)}await lightTree(LIGHTS_PER_ROLL,null,false,true);
-  busy=false;hud();
+  busy=false;hud();wdTip();
   if(!G.test&&L.left<=0)toast(G.cur===0&&G.booked&&G.lv[1].left>0?'第二層還可以擲一次喔':'今天的次數用完了，明天再來');
 }
 async function pickLevel(lv){
@@ -4665,6 +4677,7 @@ let _down=null;$('game').addEventListener('pointerdown',e=>_down=[e.clientX,e.cl
 $('game').addEventListener('pointerup',e=>{if(_down&&Math.hypot(e.clientX-_down[0],e.clientY-_down[1])<8&&Date.now()-(ZM.pinchAt||0)>500)forestTap(e);_down=null});
 $('charBtn').addEventListener('click',charPanel);
 $('wardBtn').addEventListener('click',()=>{$('menu').hidden=true;wardrobe()});
+$('giftChip').addEventListener('click',()=>{if(G&&G.phase!=='oct')wardrobe()}); /* 點上面的禮物數字也能打開衣櫥 */
 $('mascotBtn').addEventListener('click',()=>{if(!busy)mascotGo()});
 $('verTxt').textContent='版本 '+PARK_VER;
 $('teachBtn').addEventListener('click',teacherPanel);
