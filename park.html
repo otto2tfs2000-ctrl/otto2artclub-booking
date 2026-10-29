@@ -885,7 +885,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030b';
+const PARK_VER='20261030c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1900,10 +1900,11 @@ function evOpen(){const e=evSel();if(!e)return;sfx('tap');EV.detail=false;EV.pi=
 const evHasDetail=e=>!!(e.fee||e.place||e.detail);
 function evRender(){const e=evSel();if(!e)return;const det=evHasDetail(e),inD=det&&EV.detail;
   $('evImg').parentNode.hidden=inD||!e.poster;if(!inD)evSetImg();
-  const wantBtn=`<button type="button" class="ev-want${e.mine?' on':''}" id="evWant">${e.mine?'💐 已 ＋1（再按一下收回）':det?'💐 ＋1 我想去':'💐 我想去'}</button>`;
+  const wk=G.phase!=='oct'; /* 2026-10-30 大熊：走格子上「我想去」＝在格子旁邊種一朵花 */
+  const wantBtn=`<button type="button" class="ev-want${e.mine?' on':''}" id="evWant">${e.mine?'🌸 已種下你的花（再按一下收回）':(det?'🌸 ＋1 我想去':'🌸 我想去')+'・種一朵花'}</button>`;
   const cnt=`<div class="ev-n">${e.wantN?`已經有 <b>${e.wantN}</b> 人想去，島上種了 ${e.wantN} 朵花`:'還沒有人按，第一朵花等你種！'}</div>`;
   const names=e.names&&e.names.length?`<div class="ev-names">${e.names.slice(0,30).map(n=>`<span>${esc(n)}</span>`).join('')}</div>`:'';
-  const note=`<p class="ev-note">報名請直接跟櫃檯說喔！按「${det?'＋1 ':''}我想去」不是報名，是讓大家知道你也想參加，島上外圈會多長一朵花。</p>`;
+  const note=`<p class="ev-note">報名請直接跟櫃檯說喔！按「${det?'＋1 ':''}我想去」不是報名，是讓大家知道你也想參加，${wk?'走格子的格子旁邊':'島上外圈'}會多長一朵花。</p>`;
   if(inD){
     $('evBody').innerHTML=`<button type="button" class="ev-back" id="evBack">← 回海報</button><h3>${esc(e.title)}</h3><p class="ev-when">${esc(e.date.replace(/-/g,'/'))}${e.time?'　'+esc(e.time):''}・${esc(evLeft(e))}</p>
       ${e.fee?`<div class="ev-fee">💰 費用：${esc(e.fee)}</div>`:''}${e.place?`<div class="ev-row"><b>📍 地點</b>　${esc(e.place)}</div>`:''}${e.detail?`<div class="ev-detail">${esc(e.detail)}</div>`:''}
@@ -1918,7 +1919,7 @@ async function evWant(){const e=evSel();if(!e||EV.busy)return;sfx('tap');
   if(window.KIOSK){toast('店內體驗版不能按，請用 LINE 打開遊樂島');return}
   EV.busy=true;const on=!e.mine;$('evWant').disabled=true;
   try{const r=await fetch(NOTIFY_URL+'/event/want',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:token(),id:e.id,on})});const j=await r.json();
-    if(!j.ok)throw new Error(j.error||'沒有成功');EV.list=EV.list.map(x=>x.id===j.event.id?j.event:x);if(EV.cur&&EV.cur.id===j.event.id)EV.cur=j.event;evApply();if(on){sfx('chime');toast('島上多了一朵你的花 💐')}}
+    if(!j.ok)throw new Error(j.error||'沒有成功');EV.list=EV.list.map(x=>x.id===j.event.id?j.event:x);if(EV.cur&&EV.cur.id===j.event.id)EV.cur=j.event;evApply();if(on){sfx('chime');if(G.phase!=='oct'&&EV.wpos&&!busy){const v=EV.wpos[Math.min(40,j.event.wantN||1)-1];if(v){$('evPop').hidden=true;overviewFocus(v);await camArrive();sparkle(v.clone().add(new THREE.Vector3(0,.6,0)),14,['#f47ba0','#ffe08a','#ffffff']);toast('格子旁邊多了一朵你的花 🌸');await sleep(1600);overviewFocus(null);return}}toast('島上多了一朵你的花 💐')}}
   catch(err){toast(err.message||'連線不穩，稍後再試')}finally{EV.busy=false;const b=$('evWant');if(b)b.disabled=false}}
 $('evX').addEventListener('click',()=>{$('evPop').hidden=true});
 $('evPop').addEventListener('click',ev=>{if(ev.target.id==='evPop')$('evPop').hidden=true});
@@ -1960,7 +1961,7 @@ function evFlowers(){const e=EV.cur,P=GA.PR;if(!P||typeof scene==='undefined')re
   /* 走格子島：2026-10-30 大熊：鐵軌外圈在手機上都被切掉 → 改種在格子外側一圈（鏡頭跟著小熊走，走到哪都看得到），想去的花和開花的花平均散在整圈，避開格子旁的扭蛋機 */
   if(ISL[0]){const L0=LEVELS[0],hw=(L0.w-1)*GAP/2,hd=(L0.h-1)*GAP/2,pts=rrShape(hw*2+1.62,hd*2+1.62,.9).getSpacedPoints(500),R2=rng(20261030),p2=[],gd=Object.values(gachaDeco);
     const put=(f,h,o,k)=>{const q=pts[Math.floor(((f%1)+1)%1*500)],x=q.x,z=-q.y;if(gd.some(d=>Math.hypot(d.position.x-x,d.position.z-z)<1.05))return;evFlower(p2,x,z,h,o,k,R2)};
-    const n=want+Math.round(deco*1.4);for(let i=0;i<n;i++)put(i/n+(R2()-.5)*.4/n,i<want?.24+R2()*.08:.18+R2()*.1,i<want?bl:Math.min(1,bl*1.2),i<want?i:i+3);
+    const n=want+Math.round(deco*1.4);EV.wpos=[];for(let i=0;i<n;i++){if(i<want){const q=pts[Math.floor((((i/n)%1)+1)%1*500)];EV.wpos[i]=new THREE.Vector3(q.x,0,-q.y)}put(i/n+(R2()-.5)*.4/n,i<want?.24+R2()*.08:.18+R2()*.1,i<want?bl:Math.min(1,bl*1.2),i<want?i:i+3)}
     if(p2.length){const m2=new THREE.Mesh(evMerge(p2),new THREE.MeshLambertMaterial({vertexColors:true}));m2.position.y=-.1;m2.userData.ev=1;EV.flw2=m2;ISL[0].add(m2)}}}
 /* 熱氣球倒數布條：天藍底白字（跟海報同色系） */
 function evBanTex(e){const c=document.createElement('canvas');c.width=1024;c.height=220;const x=c.getContext('2d');
