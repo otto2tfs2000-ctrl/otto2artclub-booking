@@ -185,10 +185,18 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .wdi.on{border-color:#2f8f58; background:#eaf7ee}
 .wdi.sel{border-color:#d63a2f; background:#ffecea}
 .wdi.wdoff{flex:0 0 calc(25% - 3px)}
-.card{position:relative}.wdchar{position:absolute; right:14px; top:14px; font:inherit; font-size:13px; padding:5px 10px; border-radius:99px; border:2px solid #d9c8a8; background:#fffaf2; color:var(--navy); cursor:pointer}
+.card{position:relative}
 #wdBuy{white-space:nowrap; font-size:18px} /* 2026-10-29 大熊：買下按鈕字太多會擠成兩行 */
-.wdrow{gap:7px}.wdi,.wdi.wdoff{flex:0 0 calc((100% - 14px)/3); padding:8px 4px; gap:3px; font-size:13.5px; line-height:1.35} /* 一排三格，字不要擠 */
-.wdi i{font-size:20px}.wdrow>span{margin-top:8px}
+/* 2026-10-30 大熊：一排兩個一排四個很亂、換角色被擋 → 每個部位一條橫排（左右滑），每格一樣大；換角色放標題下面 */
+.wdtop{display:flex; align-items:center; justify-content:space-between; gap:8px; margin:-4px 0 8px; font-size:14px; color:#6a5a48; text-align:left}
+.wdchar{flex:none; font:inherit; font-size:14px; padding:6px 12px; border-radius:99px; border:2px solid var(--ink); background:#fff3c4; color:var(--ink); cursor:pointer; box-shadow:0 2px 0 var(--ink)}
+.wdrow{display:block; margin:6px 0 2px; text-align:left}
+.wdrow>span{display:block; width:auto; font-size:13px; color:#7a6a58; margin:0 0 4px 2px}
+.wdstrip{display:flex; gap:7px; overflow-x:auto; padding:2px 2px 6px; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+.wdstrip::-webkit-scrollbar{display:none}
+.wdi,.wdi.wdoff{flex:0 0 74px; width:74px; min-height:76px; padding:7px 3px 6px; gap:3px; font-size:13px; line-height:1.3; justify-content:center}
+.wdi i{font-size:22px}.wdi small{font-size:11px}
+.wdi.busy{opacity:.5}
 .ch{font-family:var(--round); background:#fff; color:var(--ink); border:2.5px solid var(--ink); border-radius:16px; padding:10px 6px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:15px; box-shadow:0 3px 0 var(--ink)}
 .ch.on{background:#fff3c4; outline:3px solid var(--red)}
 .ch img{width:72px; height:72px; border-radius:50%; object-fit:cover; background:#eef2f7}
@@ -362,7 +370,8 @@ body.octload{background:linear-gradient(180deg,#86cdf5 0%,#bfe6fb 42%,#fff1d9 78
 body.octload .loading{color:#1d2a44; text-shadow:0 0 8px #fff}
 @media (max-height:640px){.oh-s{display:none}}
 body.oct .oxtra,body.oct .places,body.oct .octinfo{transition:opacity .25s}
-body.oct.busy .oxtra,body.oct.busy .places,body.oct.busy .octinfo{opacity:0; pointer-events:none}
+body.oct.busy .octinfo{opacity:0; pointer-events:none}
+body.oct.busy .oxtra,body.oct.busy .places{opacity:.5; pointer-events:none} /* 2026-10-30 大熊：轉扭蛋時下面兩排整個不見像壞掉 → 留著、變淡、暫時不能按 */
 body.oct.busy .bottom{background:none}
 @media (max-height:800px){
   .oh-logo{font-size:25px} .oh-bar{margin:6px 0 7px; height:3.5px} .oh-k{font-size:14px} .oh-t{font-size:32px; margin:1px 0 3px} .oh-s{font-size:13px}
@@ -579,7 +588,8 @@ body.oct .octinfo{display:none} /* 2026-10-07 大熊：「轉一下」上面那�
 /* 2026-10-12 倒數看板：放在「藝術問答」那排上面，進島就看得到（輪播後台的活動公告）；在版面流裡，所以島會自動往上讓出位置 */
 .evboard{order:0; position:relative; width:100%; box-sizing:border-box; background:rgba(255,250,240,.97); border:2px solid #8a6a4a; border-radius:14px; box-shadow:0 5px 0 rgba(90,60,30,.2),0 8px 18px rgba(30,40,70,.16); padding:7px 12px 12px; margin-top:-2px; z-index:3}
 .evboard[hidden]{display:none}
-body:not(.oct) .evboard{display:none}
+body:not(.oct) .evboard{padding:5px 10px 8px; margin:0 0 6px} /* 2026-10-30 大熊：一打開就是走格子，活動看板也要看得到 */
+body:not(.oct) .evboard small{display:none}
 .evboard .eb-in{width:100%; display:flex; align-items:center; gap:10px; background:none; border:0; padding:0; font:inherit; color:#1e2b4f; text-align:left; cursor:pointer; transition:opacity .28s}
 .evboard .eb-in.fade{opacity:0}
 .evboard .eb-ic{flex:none; font-size:22px; width:28px; text-align:center}
@@ -862,7 +872,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029k';
+const PARK_VER='20261030a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1056,6 +1066,7 @@ function buildScene(){
   const n0=scene.children.length;buildPlaza();brightenMachine();buildMist();buildEasels();
   /* 把廣場上的東西收進 GA.PR（原點、不旋轉不縮放，座標照舊），11/1 走過橋後整座沉下去，不然大扭蛋機會擋住走格子島的鏡頭 */
   GA.PR=new THREE.Group();scene.add(GA.PR);scene.children.slice(n0).forEach(o=>{if(o!==GA.PR&&o!==GA.gate&&o!==GA.mist&&o!==GA.bridge)GA.PR.add(o)});
+  try{buildWalkRail(i1)}catch(e){console.warn('walk rail',e)}
   dieG=new THREE.Group();die=mesh(new THREE.BoxGeometry(.72,.72,.72),[3,4,1,6,2,5].map(v=>toon('#ffffff',{map:dieFace(v)})));dieG.add(die);dieG.visible=false;scene.add(dieG);
   addEventListener('resize',resize);resize();
 }
@@ -1924,7 +1935,7 @@ function evFlower(parts,x,z,h,o,k,R){const g=evGeo(),m=new THREE.Matrix4(),S=new
 function evFlowers(){const e=EV.cur,P=GA.PR;if(!P||typeof scene==='undefined')return;
   const want=e?Math.min(40,e.wantN||0):0,bl=e?evBloom(e):0,deco=e&&evHasBloom(e)?Math.round(bl*36):0,key=e?[e.id,want,bl.toFixed(2)].join('|'):'';
   if(key===EV.flwKey)return;EV.flwKey=key;
-  if(EV.flw){P.remove(EV.flw);EV.flw.geometry.dispose();EV.flw=null}
+  if(EV.flw){P.remove(EV.flw);EV.flw.geometry.dispose();EV.flw=null}if(EV.flw2){EV.flw2.parent&&EV.flw2.parent.remove(EV.flw2);EV.flw2.geometry.dispose();EV.flw2=null}
   if(!e||(!want&&!deco))return;
   const parts=[],R=rng(20261220);
   /* 想去的花：從左前、右前斜角開始，一朵一朵往兩側排（手機看得到前緣但兩側被切掉；電腦正前方被按鈕列擋住，斜角兩邊都看得到）；
@@ -1932,7 +1943,13 @@ function evFlowers(){const e=EV.cur,P=GA.PR;if(!P||typeof scene==='undefined')re
   for(let i=0;i<want;i++){const step=Math.floor(i/2),a=Math.PI/2+(i%2?1:-1)*(.42+step*.085)+(R()-.5)*.03,rr=6.78+(R()-.5)*.22;
     evFlower(parts,PLAZA.x+Math.cos(a)*rr,PLAZA.z+Math.sin(a)*rr,.26+R()*.12,bl,i,R)}
   for(let i=0;i<deco;i++){let a=R()*6.28;if(Math.sin(a)<-.8)a+=1.2;if(Math.sin(a)>.8)a+=(R()<.5?-1:1)*.75;const rr=6.74+R()*.3;evFlower(parts,PLAZA.x+Math.cos(a)*rr,PLAZA.z+Math.sin(a)*rr,.2+R()*.14,Math.min(1,bl*1.2),i+3,R)}
-  const mesh=new THREE.Mesh(evMerge(parts),new THREE.MeshLambertMaterial({vertexColors:true}));mesh.userData.ev=1;EV.flw=mesh;P.add(mesh)}
+  const mesh=new THREE.Mesh(evMerge(parts),new THREE.MeshLambertMaterial({vertexColors:true}));mesh.userData.ev=1;EV.flw=mesh;P.add(mesh);
+  /* 走格子島：鐵軌外側那圈一樣長花（想去的花從正前方往兩邊排，開花的裝飾花整圈） */
+  if(WT.c&&ISL[0]){const{W,D}=wtCurve(),out=rrShape(W+2.05,D+2.05,1.75),pts=out.getSpacedPoints(400),at=f=>{const q=pts[Math.floor(((f%1)+1)%1*400)];return[q.x,-q.y]},R2=rng(20261030),p2=[];
+    const f0=(()=>{let b=0,bd=1e9;pts.forEach((q,i)=>{const d=Math.abs(q.x)+Math.abs(-q.y-(D/2+1.02))*3;if(d<bd){bd=d;b=i}});return b/400})(); /* 正前方中間 */
+    for(let i=0;i<want;i++){const st=Math.floor(i/2)+1,[x,z]=at(f0+(i%2?1:-1)*st*.012+(R2()-.5)*.003);evFlower(p2,x,z,.24+R2()*.1,bl,i,R2)}
+    for(let i=0;i<Math.round(deco*1.6);i++){const[x,z]=at(R2());evFlower(p2,x,z,.18+R2()*.12,Math.min(1,bl*1.2),i+3,R2)}
+    if(p2.length){const m2=new THREE.Mesh(evMerge(p2),new THREE.MeshLambertMaterial({vertexColors:true}));m2.position.y=WT.Y;m2.userData.ev=1;EV.flw2=m2;ISL[0].add(m2)}}}
 /* 熱氣球倒數布條：天藍底白字（跟海報同色系） */
 function evBanTex(e){const c=document.createElement('canvas');c.width=1024;c.height=220;const x=c.getContext('2d');
   x.fillStyle='#3fb4ea';x.fillRect(0,0,1024,220);x.fillStyle='#ef6f8d';x.fillRect(0,0,1024,12);x.fillRect(0,208,1024,12);
@@ -1947,7 +1964,7 @@ function evBalloon(){if(EV.bal&&typeof scene!=='undefined'){scene.remove(EV.bal)
   if(EV.bal){scene.remove(EV.bal);EV.bal=null}if(EV.balTex){EV.balTex.dispose();EV.balTex=null}
   if(!e)return;EV.balTex=evBanTex(e);const b=Anniv26.Bx(EV.balTex,1.5,3.4);b.userData.o={cx:MACH.x,cz:MACH.z-4,rad:13,y:9.5,a:4.4,sp:-.045,bob:3};b.userData.ev=1;scene.add(b);EV.bal=b}
 function evTick(dt,now){if(!EV.bal)return;const mi=/^mascot/.test(parkCam||'');EV.bal.visible=!mi&&G.phase==='oct';if(!RM&&EV.bal.visible)Anniv26.drift(EV.bal,dt,now)}
-function evTap(rc){if(!EV.cur)return false;const hit=[EV.bal,EV.flw].filter(o=>o&&o.visible);if(hit.length&&rc.intersectObjects(hit,true).length){EV.sel=EV.cur;evOpen();return true}return false}
+function evTap(rc){if(!EV.cur)return false;const hit=(G.phase==='oct'?[EV.bal,EV.flw]:[EV.flw2]).filter(o=>o&&o.visible); /* 走格子只點得到走格子島的花（廣場的花沉在底下） */if(hit.length&&rc.intersectObjects(hit,true).length){EV.sel=EV.cur;evOpen();return true}return false}
 /* 跨日（倒數、開花）每 10 分鐘重抓一次 */
 setInterval(()=>{if(!document.hidden)evFetch()},600000);
 let _shopTok=0;
@@ -2166,6 +2183,8 @@ function parkTap(e){
   const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);
   if(MI.state!=='off'){if(MI.state==='on'&&!MI.food){if(santaTap(rc))return true;if(elfTap(rc))return true;if(plMyTap(rc))return true;if(plDiaryTap(rc))return true;miFocus(rc);if(!frTap(rc))petTap(rc,true)}return true}
   if(plTripTap(rc))return true;
+  /* 2026-10-30 大熊：走格子上亂點會跳「十月扭蛋已經結束囉」、跳到選品館 → 廣場沉在走格子島底下，射線穿過雪地打到它。走格子時只看兩座島都有的東西 */
+  if(G.phase!=='oct'){if(!busy&&petTap(rc))return true;if(!busy&&evTap(rc))return true;if(santaTap(rc))return true;return false}
   if(GA.capReady){openCapsule();return true}
   if(!busy&&petTap(rc))return true;
   if(G.phase==='oct'&&!busy){const bh=rc.intersectObjects(GA.bubs.filter(b=>b.visible),true);if(bh.length){let o=bh[0].object;while(o&&!o.userData.bid)o=o.parent;if(o){popBubble(o);return true}}}
@@ -2446,8 +2465,25 @@ function buildTrain(){
       if((i+j)%2===0){const bl=new THREE.Group();bl.add(mesh(new THREE.CylinderGeometry(.008,.008,.8,4),toon('#555555'),0,.4,0));const bb=mesh(new THREE.SphereGeometry(.18,14,10),toon(['#b5573f','#d4a347','#3f5f8a'][(i+j)%3]),0,.9,0);bb.scale.y=1.18;bl.add(bb);bl.position.set(.28,.45,0);b.add(bl);b.userData.bal=bl}});
     scene.add(car);GA.train.push({g:car,off:.95+i*.8,bears})}
 }
+/* 2026-10-30 大熊：走格子島最外圈也要有扭蛋島的小火車，還有活動的花 → 島外面多一圈低一階的雪地平台，鐵軌鋪在上面，火車用同一套 */
+const WT={};
+function wtCurve(){const L=LEVELS[0],W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.pad||0);return{W,D,c:new THREE.CatmullRomCurve3(rrShape(W+1.25,D+1.25,1.6).getSpacedPoints(160).slice(0,-1).map(p=>new THREE.Vector3(p.x,0,-p.y)),true,'centripetal')}}
+function buildWalkRail(i1){const{W,D,c}=wtCurve(),Y=-.2;WT.c=c;WT.L=c.getLength();WT.Y=Y;
+  const sh=rrShape(W+2.5,D+2.5,1.9);sh.holes.push(rrShape(W-.6,D-.6,.8));
+  const g=new THREE.ExtrudeGeometry(sh,{depth:.42,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:2,curveSegments:10});g.rotateX(-Math.PI/2);
+  const ring=mesh(g,[toon('#eef3fa',{emissive:'#dfe7f3',emissiveIntensity:.25}),toon('#8a5a3b')],0,Y-.47,0);ring.castShadow=false;i1.add(ring);
+  const sp=c.getSpacedPoints(420);[-.18,.18].forEach(o=>{const rp=sp.slice(0,-1).map((p,i)=>{const t=c.getTangentAt(i/420),n=new THREE.Vector3(-t.z,0,t.x).normalize();return p.clone().addScaledVector(n,o)});
+    const tb=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp,true),420,.03,5,true),toon('#8d8480'),0,Y+.06,0);tb.castShadow=false;i1.add(tb)});
+  {const sl=[],nS=Math.round(WT.L/.4),bg=new THREE.BoxGeometry(.5,.04,.1);for(let k=0;k<nS;k++){const u=k/nS,p=c.getPointAt(u),t=c.getTangentAt(u);sl.push([bg,'#7a4c30',new THREE.Matrix4().makeTranslation(p.x,Y+.03,p.z).multiply(new THREE.Matrix4().makeRotationY(Math.atan2(t.x,t.z)))])}
+    const m=new THREE.Mesh(evMerge(sl),new THREE.MeshLambertMaterial({vertexColors:true}));i1.add(m)} /* 枕木合成一個網格，一次畫完 */
+  const keep={t:GA.train,th:GA.th,sm:GA.smoke};buildTrain();WT.cars=GA.train;GA.train=keep.t;GA.th=keep.th;GA.smoke=keep.sm;
+  WT.cars.forEach(t=>{t.g.scale.setScalar(.8);t.off*=.8;i1.add(t.g)});WT.th=4}
+function wtTick(dt,now){if(!WT.cars||G.phase==='oct'||!ISL[0]||!ISL[0].visible)return;WT.th+=.16*(RM?.5:1)*dt;
+  WT.cars.forEach((t,i)=>{let u=((WT.th*TR_R-t.off)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),tg=WT.c.getTangentAt(u);
+    t.g.position.set(p.x,WT.Y+.02+(i?Math.abs(Math.sin(now/170+i))*.02:0),p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);
+    t.bears.forEach((b,j)=>{b.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z)-t.g.rotation.y;b.position.y=.36+Math.max(0,Math.sin(now/260+i*1.3+j))*.04;if(b.userData.bal)b.userData.bal.rotation.z=Math.sin(now/400+i+j)*.15})})}
 const _tv=new THREE.Vector3();
-function trainTick(dt,now){if(!GA.train)return;const sp=(party?.75:.2)*(RM?.5:1);GA.th+=sp*dt;const L=GA.trkL;
+function trainTick(dt,now){wtTick(dt,now);if(!GA.train)return;const sp=(party?.75:.2)*(RM?.5:1);GA.th+=sp*dt;const L=GA.trkL;
   GA.train.forEach((t,i)=>{let u=((GA.th*TR_R-t.off)/L)%1;if(u<0)u+=1;const p=GA.trk.getPointAt(u),tg=GA.trk.getTangentAt(u),x=PLAZA.x+p.x,z=PLAZA.z+p.z;t.g.position.set(x,.02+(i?Math.abs(Math.sin(now/170+i))*.02:0),z);
     t.g.rotation.y=Math.atan2(tg.x,tg.z);
     t.bears.forEach((b,j)=>{const yaw=Math.atan2(camera.position.x-x,camera.position.z-z);b.rotation.y=yaw-t.g.rotation.y;b.position.y=.36+Math.max(0,Math.sin(now/(party?110:260)+i*1.3+j))*(party?.12:.04);if(b.userData.bal)b.userData.bal.rotation.z=Math.sin(now/400+i+j)*.15})});
@@ -4150,20 +4186,25 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const start={bear:myWear('bear'),gp:myWear('gp',pet)}; /* 按「取消」就換回打開衣櫥時穿的（買過的東西還是你的） */
   let done;const closed=new Promise(r=>done=r);
   const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),fig=who==='bear'&&G.avatar&&G.avatar.mode==='artist'&&avName(),slots=[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].filter(([k])=>!(fig&&k==='head')); /* 藝術家本來就戴帽子，頭上那排不給 */
-    $('card').innerHTML=`<button type="button" class="wdchar" id="wdChar">🎭 換角色</button><h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
+    const sv={top:$('card').scrollTop,x:{}};$('card').querySelectorAll('.wdstrip').forEach(e=>sv.x[e.dataset.s]=e.scrollLeft); /* 重畫後停在原本的位置，不要跳回最上面 */
+    $('card').innerHTML=`<h2>聖誕衣櫥</h2><div class="wdtop"><span>你有 <b>${G.gifts}</b> 個禮物</span><button type="button" class="wdchar" id="wdChar">🎭 換角色</button></div>
       ${pet?`<div class="wdtab"><button type="button" data-w="bear" class="${who==='bear'?'on':''}">${fig?esc(fig):'小黑熊'}</button><button type="button" data-w="gp" class="${who==='gp'?'on':''}">${esc(pet.n||'天竺鼠')}</button></div>`:''}
       <div class="wdv" id="wdv"></div>
-      ${slots.map(([sl,nm])=>`<div class="wdrow"><span>${nm}</span>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
-        return `<button type="button" class="wdi${on?' on':''}${sel===o.id?' sel':''}" data-i="${o.id}"><i>${OUTFIT_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':`🎁 ${o.p}`}</small></button>`}).join('')}
-        <button type="button" class="wdi wdoff" data-off="${sl}"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`).join('')}
+      ${slots.map(([sl,nm])=>{const bare=w[sl]==='none'||(!w[sl]&&!(who==='bear'&&!fig&&(sl==='head'||sl==='neck'))); /* 小黑熊沒換過＝聖誕帽＋綠圍巾，不算沒戴 */
+        return `<div class="wdrow"><span>${nm}</span><div class="wdstrip" data-s="${sl}"><button type="button" class="wdi wdoff${bare?' on':''}" data-off="${sl}"><i>✖️</i>不戴<small>${bare?'現在':'&nbsp;'}</small></button>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
+        return `<button type="button" class="wdi${on?' on':''}${sel===o.id?' sel':''}" data-i="${o.id}"><i>${OUTFIT_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':`🎁 ${o.p}`}</small></button>`}).join('')}</div></div>`}).join('')}
       <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下這件・🎁 ${(L.find(o=>o.id===sel)||{}).p}</button>`:''}<button type="button" class="btn ghost" id="wdNo">取消</button><button type="button" class="btn" id="wdOk">好了</button></div>`;
-    $('pop').hidden=false;{const so=sel&&L.find(o=>o.id===sel);wdPreview(who,pet,so?Object.assign({},w,{[so.slot]:so.id}):w)} /* 還沒買的先試穿給你看（大熊：點了要看得到） */
+    $('pop').hidden=false;$('card').scrollTop=sv.top;$('card').querySelectorAll('.wdstrip').forEach(e=>{if(sv.x[e.dataset.s])e.scrollLeft=sv.x[e.dataset.s]});
+    {const so=sel&&L.find(o=>o.id===sel);wdPreview(who,pet,so?Object.assign({},w,{[so.slot]:so.id}):w)} /* 還沒買的先試穿給你看（大熊：點了要看得到） */
     $('card').querySelectorAll('.wdtab button').forEach(b=>b.onclick=()=>{who=b.dataset.w;sel=null;draw()});
     $('wdChar').onclick=()=>{if(working)return;$('pop').hidden=true;done();setTimeout(charPanel,350)}; /* 換成藝術家或自己的照片 */
     $('card').querySelectorAll('.wdi[data-i]').forEach(b=>b.onclick=async()=>{if(working)return;const o=L.find(x=>x.id===b.dataset.i);if(!o)return;
       if(o.p&&!own[o.id]){sel=o.id;draw();return}
-      await wdWear(who,o.slot,o.id,pet);sel=null;draw()});
-    $('card').querySelectorAll('.wdi[data-off]').forEach(b=>b.onclick=async()=>{if(working)return;await wdWear(who,b.dataset.off,'',pet);sel=null;draw()});
+      working=true;b.classList.add('busy');sfx('tap');await wdWear(who,o.slot,o.id,pet);working=false;sel=null;draw()});
+    /* 2026-10-30 大熊：「不戴」有時沒反應 → 本來就沒戴時看不出變化、連線慢時也沒有任何回饋；現在按下去先變淡，沒戴的那格會標「現在」 */
+    $('card').querySelectorAll('.wdi[data-off]').forEach(b=>b.onclick=async()=>{if(working)return;sfx('tap');sel=null;
+      if(b.classList.contains('on')){draw();toast('這裡現在就沒戴東西');return}
+      working=true;b.classList.add('busy');await wdWear(who,b.dataset.off,'',pet);working=false;draw()});
     if($('wdBuy'))$('wdBuy').onclick=async()=>{if(working)return;const o=L.find(x=>x.id===sel);if(!o)return;
       if(G.gifts<o.p){toast(`要 ${o.p} 個禮物，你現在有 ${G.gifts} 個，先去走格子收集吧`);return}
       working=true;try{if(XS)await xcall('/xmas/outfit',{op:'buy',item:o.id});else{G.gifts-=o.p;G.own=Object.assign({},G.own,{[o.id]:true});save()}
@@ -4201,7 +4242,7 @@ function wdStop(){if(!WD)return;cancelAnimationFrame(WD.raf);try{WD.r.dispose();
 const AV_TH={};
 function avThumbs(){if(!window.Artists3D)return;const need=AV_ALL.filter(n=>!AV_TH[n]);if(!need.length)return;
   const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setSize(150,170);r.setPixelRatio(1);
-  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.95));const sun=new THREE.DirectionalLight('#fff4e0',.55);sun.position.set(2,4,3);sc.add(sun);
+  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.72));const sun=new THREE.DirectionalLight('#fff4e0',.6);sun.position.set(2,4,3);sc.add(sun);
   const cam=new THREE.PerspectiveCamera(28,150/170,.1,20);cam.position.set(0,1.05,3.9);cam.lookAt(0,.92,0);
   need.forEach(n=>{const f=Artists3D.make(n);if(!f)return;f.rotation.y=.25;sc.add(f);r.render(sc,cam);AV_TH[n]=r.domElement.toDataURL();sc.remove(f)});
   try{r.dispose();r.forceContextLoss()}catch(e){}}
@@ -4210,6 +4251,7 @@ async function charPanel(){
   let done;const closed=new Promise(r=>done=r);avThumbs();
   const pick=()=>$('chFile').click();
   const draw=()=>{const m=G.avatar.mode,photo=m==='photo'&&G.avatar.img,an=m==='artist'?avName():null;
+    const top=$('pop').hidden?0:$('card').scrollTop; /* 2026-10-30 大熊：點角色會「跳掉」→ 整張重畫捲回最上面；記住捲到哪 */
     const tile=(n,i)=>`<button type="button" class="ch art ${an===n?'on':''}" data-n="${n}"><img alt="" src="${AV_TH[n]||(i<12?avArtUrl(i):'')}">${n}</button>`;
     $('card').innerHTML=`<h2>換角色</h2><div class="chars">
       <button type="button" class="ch ${m==='bear'||(m==='photo'&&!photo)?'on':''}" id="chBear"><img alt="" src="${iconSrc('bearblack')}">小黑熊</button>
@@ -4219,7 +4261,7 @@ async function charPanel(){
       <input type="file" accept="image/*" id="chFile" hidden>
       <p class="note">點「我的照片」可以拍照或選照片，臉放中間、越大越好。選的角色只存在這支手機。衣櫥的臉上、脖子、身上裝扮，藝術家也能穿。</p>
       <div class="acts"><button type="button" class="btn" id="chOk">好了</button></div>`;
-    $('pop').hidden=false;
+    $('pop').hidden=false;$('card').scrollTop=top;
     $('chBear').onclick=()=>{G.avatar.mode='bear';draw()};
     $('chPhoto').onclick=()=>{if(G.avatar.img&&G.avatar.mode!=='photo'){G.avatar.mode='photo';draw()}else pick()}; /* 已經選了照片再點一次＝換一張 */
     $('card').querySelectorAll('.ch.art').forEach(b=>b.onclick=()=>{G.avatar.mode='artist';G.avatar.art=b.dataset.n;draw()});
@@ -4272,7 +4314,7 @@ function photoHead(src,r){const head=new THREE.Group(),tex=new THREE.TextureLoad
   head.add(new THREE.Mesh(new THREE.RingGeometry(r,r*1.07,40),new THREE.MeshBasicMaterial({color:'#2b2320'})));return head}
 function makeArtistAv(n){const f=window.Artists3D&&Artists3D.make(n);if(!f)return null;
   const g=new THREE.Group(),u=f.userData;f.scale.setScalar(.7);f.position.y=-.02;g.add(f);
-  f.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){o.material=o.material.clone();if(o.material.emissive){o.material.emissive.copy(o.material.color).multiplyScalar(.38);if(o.material.map)o.material.emissiveMap=o.material.map}}}); /* 晚上的格子島比較暗，角色自己亮一點（同空地小屋） */
+  f.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){o.material=o.material.clone();if(o.material.emissive){o.material.emissive.copy(o.material.color).multiplyScalar(.26);if(o.material.map)o.material.emissiveMap=o.material.map}}}); /* 晚上的格子島比較暗，角色自己亮一點（同空地小屋） */
   g.userData.fig=u;g.userData.figName=n;
   if(G.avatar.face&&G.avatar.img){u.head.visible=false;const ph=photoHead(G.avatar.img,.42);ph.position.set(0,1.16,.02);u.body.add(ph);g.userData.head=ph} /* 藝術家的身體＋家長自己的大頭 */
   const sh=new THREE.Mesh(new THREE.CircleGeometry(.34,24),new THREE.MeshBasicMaterial({color:'#2a3550',transparent:true,opacity:.25,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.01;g.add(sh);
