@@ -123,8 +123,8 @@ body.tour .tourstop{display:block}
 .drawer{position:fixed; left:0; right:0; bottom:0; max-height:46vh; overflow:auto; background:var(--cream); border-top:1px solid var(--line); border-radius:22px 22px 0 0; padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 12px); z-index:6; box-shadow:0 -10px 40px rgba(40,70,90,.18)}
 .drawer[hidden]{display:none}
 /* 服裝衣櫥（2026-10-29） */
-.clrow{display:flex; flex-wrap:wrap; gap:4px; margin:4px 0}.clrow>span{width:100%; font-size:12px; color:var(--ink2); margin-top:2px}
-.cli{flex:0 0 calc(25% - 3px); box-sizing:border-box; font:inherit; font-size:12px; line-height:1.2; padding:4px 2px; border-radius:12px; border:2px solid #e4d9c4; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px}
+.clrow{display:flex; flex-wrap:wrap; gap:7px; margin:4px 0}.clrow>span{width:100%; font-size:12px; color:var(--ink2); margin-top:2px}
+.cli{flex:0 0 calc((100% - 14px)/3); box-sizing:border-box; font:inherit; font-size:12px; line-height:1.2; padding:8px 4px; border-radius:12px; border:2px solid #e4d9c4; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:13.5px; line-height:1.35}
 .cli i{font-style:normal; font-size:18px}.cli small{font-size:10.5px; color:#a0703c}.cli.on{border-color:#2f8f58; background:#eaf7ee}.cli.sel{border-color:#d63a2f; background:#ffecea}
 .drawer h3{margin:12px 0 4px; font-size:14px; letter-spacing:.06em; color:var(--ink)}.drawer h3:first-child{margin-top:0}
 .drawer .hint{margin:0 0 6px; font-size:12.5px; color:var(--ink2); line-height:1.6}
@@ -2149,7 +2149,7 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
         return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
           return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${sel===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
-      <div class="acts">${so&&!soon?`<button class="pill main" type="button" data-a="buy">買下${esc(so.nm)}（${so.p} 個禮物）</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
+      <div class="acts">${so&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下這件・🎁 ${so.p}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
     show(so?Object.assign({},wear,{[so.slot]:so.id}):wear)}; /* 還沒買的先穿在門口的天竺鼠身上給你看 */
   const cancel=async()=>{show(start);m.pet.wear=Object.assign({},start);
     try{for(const sl of ['head','face','neck','body'])if((start[sl]||'')!==(wear[sl]||''))await put(sl,!start[sl]?'def':start[sl]==='none'?'':start[sl])}catch(e){}

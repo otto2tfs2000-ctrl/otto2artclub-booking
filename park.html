@@ -170,7 +170,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .sb.lit{opacity:1; transform:scale(1.06); box-shadow:0 0 26px 6px var(--gl)}
 .chars{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
 #giftChip{cursor:pointer}
-.card ul.news{text-align:left; margin:4px 0 6px; padding-left:4px; list-style:none; font-size:15px; line-height:1.55}.card ul.news li{margin:6px 0}.card ul.news b{font-weight:400; color:#d63a2f}
+.card ul.news{text-align:left; margin:6px auto 10px; padding:0; list-style:none; font-size:16px; line-height:1.6; width:fit-content; max-width:100%}.card ul.news li{margin:12px 0; white-space:nowrap}.card ul.news b{font-weight:400; color:#d63a2f}
 /* 聖誕衣櫥 */
 .wdtab{display:flex; gap:6px; margin-bottom:6px}
 .wdtab button{flex:1; font:inherit; font-size:14px; padding:6px; border-radius:12px; border:2px solid #e4d9c4; background:#fffaf2; color:var(--ink); cursor:pointer}
@@ -185,6 +185,9 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .wdi.on{border-color:#2f8f58; background:#eaf7ee}
 .wdi.sel{border-color:#d63a2f; background:#ffecea}
 .wdi.wdoff{flex:0 0 calc(25% - 3px)}
+#wdBuy{white-space:nowrap; font-size:18px} /* 2026-10-29 大熊：買下按鈕字太多會擠成兩行 */
+.wdrow{gap:7px}.wdi,.wdi.wdoff{flex:0 0 calc((100% - 14px)/3); padding:8px 4px; gap:3px; font-size:13.5px; line-height:1.35} /* 一排三格，字不要擠 */
+.wdi i{font-size:20px}.wdrow>span{margin-top:8px}
 .ch{font-family:var(--round); background:#fff; color:var(--ink); border:2.5px solid var(--ink); border-radius:16px; padding:10px 6px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:15px; box-shadow:0 3px 0 var(--ink)}
 .ch.on{background:#fff3c4; outline:3px solid var(--red)}
 .ch img{width:72px; height:72px; border-radius:50%; object-fit:cover; background:#eef2f7}
@@ -855,7 +858,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029h';
+const PARK_VER='20261029i';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3061,7 +3064,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029e',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029f',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4149,7 +4152,7 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
       ${slots.map(([sl,nm])=>`<div class="wdrow"><span>${nm}</span>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
         return `<button type="button" class="wdi${on?' on':''}${sel===o.id?' sel':''}" data-i="${o.id}"><i>${OUTFIT_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':`🎁 ${o.p}`}</small></button>`}).join('')}
         <button type="button" class="wdi wdoff" data-off="${sl}"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`).join('')}
-      <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下${esc((L.find(o=>o.id===sel)||{}).nm||'')}（${(L.find(o=>o.id===sel)||{}).p} 個禮物）</button>`:''}<button type="button" class="btn ghost" id="wdNo">取消</button><button type="button" class="btn" id="wdOk">好了</button></div>`;
+      <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下這件・🎁 ${(L.find(o=>o.id===sel)||{}).p}</button>`:''}<button type="button" class="btn ghost" id="wdNo">取消</button><button type="button" class="btn" id="wdOk">好了</button></div>`;
     $('pop').hidden=false;{const so=sel&&L.find(o=>o.id===sel);wdPreview(who,pet,so?Object.assign({},w,{[so.slot]:so.id}):w)} /* 還沒買的先試穿給你看（大熊：點了要看得到） */
     $('card').querySelectorAll('.wdtab button').forEach(b=>b.onclick=()=>{who=b.dataset.w;sel=null;draw()});
     $('card').querySelectorAll('.wdi[data-i]').forEach(b=>b.onclick=async()=>{if(working)return;const o=L.find(x=>x.id===b.dataset.i);if(!o)return;
@@ -4543,7 +4546,7 @@ async function showRank(){
 const NEWS_VER='20261029';
 async function newsOpen(){try{if(localStorage.getItem('otto2-news')===NEWS_VER)return;localStorage.setItem('otto2-news',NEWS_VER)}catch(e){return}
   const go=await popup('giftbig','走格子更新了！','',[{t:'去小衣櫥看看',v:1,cls:'red'},{t:'知道了',v:0,cls:'ghost'}],
-    `<ul class="news"><li>🧸 <b>小衣櫥</b>：用禮物幫小熊和天竺鼠換裝，新增藝術家的帽子、翹鬍子、條紋衫</li><li>🏠 <b>聖誕小屋</b>搬進森林裡，認領後鏡頭會帶你去看</li><li>👼 <b>第二層</b>：有預約就能玩，金色天使、預約大禮盒</li><li>🎁 拿到紅利會告訴你還差幾點換好禮</li></ul>`);
+    `<ul class="news"><li>🧸 <b>小衣櫥</b>：幫小熊和天竺鼠換裝</li><li>🏠 <b>聖誕小屋</b>搬進森林裡</li><li>👼 <b>第二層</b>：有預約就能玩</li><li>🎁 拿到<b>紅利</b>會提醒你還差幾點</li></ul>`);
   if(go){const b=busy;busy=false;await wardrobe();busy=b}}
 async function dailyOpen(){ // opening the game once a day lights one bulb, no play needed
   if(XS)return;
