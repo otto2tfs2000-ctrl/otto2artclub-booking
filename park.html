@@ -174,9 +174,9 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .wdtab button.on{border-color:#d63a2f; background:#ffecea}
 .wdv{width:100%; aspect-ratio:1.7; border-radius:14px; background:linear-gradient(#e9f1fa,#fffaf2); overflow:hidden; margin-bottom:6px}
 .wdv canvas{display:block; width:100%!important; height:100%!important}
-.wdrow{display:flex; align-items:stretch; gap:5px; margin:4px 0}
-.wdrow>span{width:34px; font-size:12px; color:#7a6a58; display:flex; align-items:center}
-.wdi{flex:1; font:inherit; font-size:12px; line-height:1.2; padding:4px 2px; border-radius:12px; border:2px solid #e4d9c4; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px}
+.wdrow{display:flex; flex-wrap:wrap; align-items:stretch; gap:4px; margin:4px 0}
+.wdrow>span{width:100%; font-size:12px; color:#7a6a58; margin-top:2px}
+.wdi{flex:0 0 calc(25% - 3px); box-sizing:border-box; font:inherit; font-size:12px; line-height:1.2; padding:4px 2px; border-radius:12px; border:2px solid #e4d9c4; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px}
 .wdi i{font-style:normal; font-size:18px}
 .wdi small{font-size:10.5px; color:#a0703c}
 .wdi.on{border-color:#2f8f58; background:#eaf7ee}
@@ -838,7 +838,7 @@ body:not(.oct) #evPill{display:none}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261029a"></script>
+<script src="petlife.js?v=20261029b"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
 <script src="anniv26.js?v=20261024a"></script>
@@ -848,7 +848,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029f';
+const PARK_VER='20261029g';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3048,7 +3048,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029b',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261029c',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4118,7 +4118,8 @@ async function teacherElves(){ // teacher face with an elf hat, for the chimney 
 }
 /* ── 聖誕衣櫥（2026-10-29 大熊：用聖誕禮物幫小熊和天竺鼠換裝）──
    買一次兩邊都能穿；價格以伺服器 XS.outfits 為準；天竺鼠的裝扮伺服器會同步到作品小屋，大家都看得到。示範版存在 G.own／G.wear */
-const OUTFIT_P={santa:0,antler:8,elf:8,scarfR:5,bell:5,sweater:12},OUTFIT_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶'};
+const OUTFIT_P={santa:0,antler:8,elf:8,scarfR:5,bell:5,sweater:12,beret:6,straw:8,bowler:8,flower:10,mustache:6,bowtie:6,marin:10,klimt:12},
+  OUTFIT_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
 function myWear(who,pet){const w=XS&&XS.p&&XS.p.wear?XS.p.wear[who]:(G.wear||{})[who];return Object.assign({},who==='gp'&&pet&&pet.wear||{},w||{})}
 const myOwn=()=>XS&&XS.p&&XS.p.own?XS.p.own:(G.own||{});
 const outfitList=()=>(XS&&XS.outfits||PetLife.OUTFITS.map(o=>Object.assign({p:OUTFIT_P[o.id]},o)));
@@ -4127,7 +4128,7 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const pet=plMyLoad('pet');let who='bear',sel=null,working=false;
   const start={bear:myWear('bear'),gp:myWear('gp',pet)}; /* 按「取消」就換回打開衣櫥時穿的（買過的東西還是你的） */
   let done;const closed=new Promise(r=>done=r);
-  const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),slots=[['head','頭上'],['neck','脖子'],['body','身上']];
+  const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),slots=[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']];
     $('card').innerHTML=`<h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
       ${pet?`<div class="wdtab"><button type="button" data-w="bear" class="${who==='bear'?'on':''}">小黑熊</button><button type="button" data-w="gp" class="${who==='gp'?'on':''}">${esc(pet.n||'天竺鼠')}</button></div>`:''}
       <div class="wdv" id="wdv"></div>
@@ -4148,7 +4149,7 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
     $('wdOk').onclick=()=>{$('pop').hidden=true;done()};
     $('wdNo').onclick=async()=>{if(working)return;working=true;
       for(const w of ['bear','gp']){if(w==='gp'&&!pet)continue;const now=myWear(w,pet);
-        for(const sl of ['head','neck','body']){const a=start[w][sl]||'def',b=now[sl]||'def';if(a!==b)await wdWear(w,sl,a==='none'?'':a,pet)}}
+        for(const sl of ['head','face','neck','body']){const a=start[w][sl]||'def',b=now[sl]||'def';if(a!==b)await wdWear(w,sl,a==='none'?'':a,pet)}}
       working=false;$('pop').hidden=true;done()}};
   draw();await closed;wdStop();
 }
@@ -4165,7 +4166,7 @@ function wdPreview(who,pet,w){const el=$('wdv');if(!el)return;
   const wd=el.clientWidth||280,ht=Math.round(wd/1.7);WD.r.setSize(wd,ht);WD.cam.aspect=wd/ht;WD.cam.updateProjectionMatrix();
   if(WD.g)WD.sc.remove(WD.g);
   if(who==='gp'&&pet){WD.g=PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);PetLife.dress(THREE,c=>toon(c),WD.g,w,'gp');WD.cam.position.set(0,1.3,3.4);WD.cam.lookAt(0,.45,0)}
-  else{WD.g=makeBear('#1c1c1f',1,false,true,!!w.neck);PetLife.dress(THREE,c=>toon(c),WD.g,{head:w.head||'santa',neck:w.neck,body:w.body},'bear');WD.cam.position.set(0,1.1,3.2);WD.cam.lookAt(0,.62,0)}
+  else{WD.g=makeBear('#1c1c1f',1,false,true,!!w.neck);PetLife.dress(THREE,c=>toon(c),WD.g,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear');WD.cam.position.set(0,1.1,3.2);WD.cam.lookAt(0,.62,0)}
   WD.sc.add(WD.g);cancelAnimationFrame(WD.raf);const spin=t=>{if(!$('wdv')){wdStop();return}WD.g.rotation.y=Math.sin(t/1400)*.7;WD.r.render(WD.sc,WD.cam);WD.raf=requestAnimationFrame(spin)};WD.raf=requestAnimationFrame(spin)}
 /* 第一次存到 5 個禮物：提醒一次可以去衣櫥換裝（每支手機只跳一次） */
 async function wdTip(){try{if(G.phase==='oct'||G.gifts<5||localStorage.getItem('otto2-wd-tip')||!$('pop').hidden)return;localStorage.setItem('otto2-wd-tip','1')}catch(e){return}
@@ -4224,7 +4225,7 @@ function applyAvatar(){
   const photo=G.avatar&&G.avatar.mode==='photo'&&G.avatar.img;
   const w=myWear('bear');
   bear.remove(bearBody);bearBody=photo?makePhotoKid(G.avatar.img):makeBear('#1c1c1f',1,false,true,!!w.neck);bear.add(bearBody);
-  if(!photo&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
+  if(!photo&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
 }
 const _q=new THREE.Quaternion();
 function billboardHead(){const h=bearBody.userData.head;if(!h)return;h.parent.getWorldQuaternion(_q);_q.invert().multiply(camera.quaternion);h.quaternion.copy(_q)}

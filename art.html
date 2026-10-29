@@ -122,6 +122,10 @@ body.tour .tourstop{display:block}
 .x{position:absolute; right:10px; top:8px; background:none; border:0; color:var(--ink2); font-size:24px; cursor:pointer; padding:4px 8px; line-height:1}
 .drawer{position:fixed; left:0; right:0; bottom:0; max-height:46vh; overflow:auto; background:var(--cream); border-top:1px solid var(--line); border-radius:22px 22px 0 0; padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 12px); z-index:6; box-shadow:0 -10px 40px rgba(40,70,90,.18)}
 .drawer[hidden]{display:none}
+/* 服裝衣櫥（2026-10-29） */
+.clrow{display:flex; flex-wrap:wrap; gap:4px; margin:4px 0}.clrow>span{width:100%; font-size:12px; color:var(--ink2); margin-top:2px}
+.cli{flex:0 0 calc(25% - 3px); box-sizing:border-box; font:inherit; font-size:12px; line-height:1.2; padding:4px 2px; border-radius:12px; border:2px solid #e4d9c4; background:#fff; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px}
+.cli i{font-style:normal; font-size:18px}.cli small{font-size:10.5px; color:#a0703c}.cli.on{border-color:#2f8f58; background:#eaf7ee}.cli.sel{border-color:#d63a2f; background:#ffecea}
 .drawer h3{margin:12px 0 4px; font-size:14px; letter-spacing:.06em; color:var(--ink)}.drawer h3:first-child{margin-top:0}
 .drawer .hint{margin:0 0 6px; font-size:12.5px; color:var(--ink2); line-height:1.6}
 .dsw{display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 4px}
@@ -269,7 +273,7 @@ body.tour .pcTag{display:none!important}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261029a"></script>
+<script src="petlife.js?v=20261029b"></script>
 <script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
@@ -1791,10 +1795,10 @@ function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floor
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
     gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'')+gpAwayTxt(m)+
       G.members.filter(x=>x.away&&x.away.s==='visit'&&x.away.at===m.id).map(x=>` ${['pet','frog'].map(k=>x[k]&&x[k].n).filter(Boolean).join('和')}（${x.name}家）來這裡作客。`).join('');
-  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),...(window.GUEST?[['我也想要一間',()=>GuestCTA('house')]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
+  sheet(`${m.name}的小屋`,(m.staff?'老師・':'')+(n?`${HSTYLES[st]}・${F} 層・${n} 件作品・${m.since} 年開始上課`:`${HSTYLES[st]}・剛搬進來，還沒有作品`),next+gpN,[['走進小屋',()=>houseWall(m),true],...(canGP?[[m.pet?'我的天竺鼠':'認養天竺鼠',()=>gpPanel(m,'pet'),!m.pet],[m.frog?'我的青蛙':'認養青蛙',()=>gpPanel(m,'frog'),!m.frog]]:[]),...(m.id===G.me?[['裝飾小屋',()=>lookPanel(m)]]:[]),...(canGP?[['服裝衣櫥',()=>closetPanel(m)]]:[]),...(canRen?[['改名字',()=>renamePanel(m)]]:[]),...(window.GUEST?[['我也想要一間',()=>GuestCTA('house')]]:[]),['下一間',()=>openHouseSheet(G.members[(idx+1)%G.members.length])]])}
 /* 裝飾小屋（2026-10-09）：牆色（整棟／每層）、屋頂色、每層裝飾、門口與屋頂裝飾開關。邊選邊看，按「存好了」才寫進去 */
 let lookSt=null;
-function closeLook(revert){const d=$('drawer');if(d.hidden)return;if(revert&&lookSt){lookSt.m.look=lookSt.orig;const i=G.members.indexOf(lookSt.m);if(i>=0)rebuildOne(i)}d.hidden=true;lookSt=null}
+function closeLook(revert){const d=$('drawer');if(d.hidden)return;if(clSt){const c=clSt;clSt=null;d.hidden=true;if(revert)c.cancel();return}if(revert&&lookSt){lookSt.m.look=lookSt.orig;const i=G.members.indexOf(lookSt.m);if(i>=0)rebuildOne(i)}d.hidden=true;lookSt=null}
 function lookPanel(m){
   const idx=G.members.indexOf(m),n=m.works.length,F=floorsOf(n),defC=idx%WALLS.length;
   lookSt={m,orig:m.look?JSON.parse(JSON.stringify(m.look)):null};
@@ -1829,10 +1833,11 @@ function lookPanel(m){
   const redraw=()=>{rebuildOne(idx);const hh=houses[idx];if(hh&&focus)focus.obj=hh;paint()};
   aim('floor',sel2); /* 一打開就看第 2 層（每層裝飾預設選的那層） */
   drawer.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
-    if(a==='cancel'){closeLook(true);return}
+    const back=()=>{const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm)}; /* 2026-10-29 大熊：存好後畫面不要空掉，回到小屋卡片看整棟改好的樣子 */
+    if(a==='cancel'){closeLook(true);back();return}
     if(a==='save'){b.disabled=true;b.textContent='儲存中…';
       try{if(!DEMO)await api('/island/look',{c:L.c,r:L.r,fc:L.fc,fd:L.fd,off:L.off,tp:L.tp});
-        lookSt.orig=null;closeLook(false);toast('小屋的樣子存好了')}
+        lookSt.orig=null;closeLook(false);back();toast('小屋的樣子存好了')}
       catch(err){toast(err.message);b.disabled=false;b.textContent='存好了'}return}
     if(a==='mode'){if(v==='one'&&F<ONE_F){toast(`每層各自換色要蓋到 ${ONE_F} 樓，再 ${need(ONE_F)} 件作品`);return}mode=v;aim(mode==='one'?'floor':'all',sel);paint();return}
     if(a==='fl'){sel=+v;aim('floor',sel);paint();return}
@@ -2102,7 +2107,7 @@ function gpAsk(){if(DEMO||!ME.ok||!window.PetLife)return;const m=G.members.find(
   $('gaX').onclick=closeModal;$('gaF').onclick=()=>gpPanel(m,'frog');if($('gaO'))$('gaO').onclick=()=>gpPanel(m,'pet')}
 /* 認養／修改視窗：上面 3D 預覽慢慢轉，下面選品種（只能選一次）、花色、名字 */
 let gpView=null;
-function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C(),locked=!!(P&&P.b),fr=kind==='frog';
+function gpPanel(m,kind='pet'){if(m[kind])aimPet(m,kind);const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C(),locked=!!(P&&P.b),fr=kind==='frog';
   let b=(P&&P.b)||B[0].id,c=(P&&P.c)||(fr?B[0].c:Cs[0].id),nest=fr?null:nestOf(P,Math.max(0,G.members.indexOf(m)));
   const lv=P?(P.love||0):0,nx=K.lv.find(x=>x.at>lv);
   modal(`<h2>${P?'我的'+K.nm:'認養一隻'+K.nm}</h2>${P?`<p class="gplove">親密度 ♥ ${lv}${nx?`・到 ${nx.at}：${nx.t}`:'・全部解鎖了！'}<br><small>每天在家門口摸摸牠、點碗餵牠，帶牠去吉祥物島一起玩，各 +1</small><br><small>3 天沒來牠會肚子餓、5 天跑去別人家作客、14 天去旅行。什麼都不會少，回來就回家，還會帶伴手禮。</small></p>
@@ -2120,8 +2125,47 @@ function gpPanel(m,kind='pet'){const K=PK[kind],P=m[kind],had=!!P,B=K.L(),Cs=K.C
   const close=()=>{gpStop();closeModal()};$('gpX').onclick=close;sel();
   if($('gpNt'))$('gpNt').onchange=async e=>{const on=e.target.checked;try{await api('/island/pet/notify',{on});ME.petNotify=on;toast(on?'好，牠想你的時候會寄 LINE 給你':'好，牠不會再寄 LINE 給你了')}catch(er){e.target.checked=!on;toast(er.message)}};
   $('gpO').onclick=async()=>{const n=$('gpn').value.trim();if(!n){toast('幫牠取個名字吧');return}$('gpO').disabled=true;$('gpO').textContent='儲存中…';
-    try{await api('/island/pet',{b,c,n,house:m.id,kind,...(fr?{}:{nest})});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast(had?'改好了':`${n}搬進你家了！`)}
+    try{await api('/island/pet',{b,c,n,house:m.id,kind,...(fr?{}:{nest})});await reload();rebuildHouses();gpStop();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm){openHouseSheet(nm);aimPet(nm,kind)}toast(had?'改好了':`${n}搬進你家了！`)}
     catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
+/* 鏡頭對到某間小屋門口的天竺鼠／青蛙（2026-10-29 大熊：按哪個按鈕就要看到那個東西，不要跑不見） */
+function aimPet(m,kind){const o=gpPets.find(x=>x.m.id===m.id&&x.kind===kind);
+  if(o&&o.g.visible){focusOn(o.g,kind==='frog'?3:3.4,.3,.26);return}
+  const i=G.members.findIndex(x=>x.id===m.id);if(houses[i])focusOn(houses[i],5,.4,.3)}
+/* 服裝衣櫥（2026-10-29 大熊：作品小屋也要能換衣服，點了直接看到自家門口的天竺鼠穿上）
+   清單、價格、擁有的以伺服器 /xmas/closet 為準；買和穿跟走格子共用 /xmas/outfit，是同一個衣櫥（小熊在走格子換） */
+const CL_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
+let clSt=null;
+async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就能幫牠換聖誕裝扮');return}if(!window.PetLife||!PetLife.dress)return;
+  const drawer=$('drawer'),back=()=>{const nm=G.members.find(x=>x.id===m.id);if(nm){openHouseSheet(nm);aimPet(nm,'pet')}};
+  $('sheet').hidden=true;closeModal();aimPet(m,'pet');drawer.innerHTML='<p class="hint">打開衣櫥中…</p>';drawer.hidden=false;
+  let C;try{C=await api('/xmas/closet')}catch(e){drawer.hidden=true;toast(e.message);back();return}
+  const start=Object.assign({},C.wear);let wear=Object.assign({},C.wear),sel=null,working=false;
+  const show=w=>{const o=gpPets.find(x=>x.m.id===m.id&&x.kind==='pet');if(o)PetLife.dress(THREE,x=>toon(x),o.g,w,'gp')};
+  const sync=r=>{if(r&&r.p){C.own=r.p.own||{};C.gifts=r.p.gifts;wear=Object.assign({},r.p.wear&&r.p.wear.gp)}m.pet.wear=Object.assign({},wear)};
+  const put=async(slot,item)=>{const r=await api('/xmas/outfit',{op:'wear',who:'gp',slot,item});sync(r)};
+  const soon=C.status==='soon'||C.status==='ended';
+  const paint=()=>{const L=C.outfits||[],so=sel&&L.find(o=>o.id===sel);
+    drawer.innerHTML=`<h3>${esc(m.pet.n)}的服裝衣櫥</h3><p class="hint">用聖誕走格子拿到的禮物換裝扮，買一次小熊和天竺鼠都能穿，大家逛到你家都看得到。你有 <b>${C.gifts}</b> 個禮物。${C.status==='soon'?'<br>11/1 聖誕走格子開始才能買、能穿，現在可以先點來試穿。':C.status==='ended'?'<br>聖誕走格子結束了，只能試穿看看。':''}</p>
+      ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
+        return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
+          return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${sel===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
+      <div class="acts">${so&&!soon?`<button class="pill main" type="button" data-a="buy">買下${esc(so.nm)}（${so.p} 個禮物）</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
+    show(so?Object.assign({},wear,{[so.slot]:so.id}):wear)}; /* 還沒買的先穿在門口的天竺鼠身上給你看 */
+  const cancel=async()=>{show(start);m.pet.wear=Object.assign({},start);
+    try{for(const sl of ['head','face','neck','body'])if((start[sl]||'')!==(wear[sl]||''))await put(sl,!start[sl]?'def':start[sl]==='none'?'':start[sl])}catch(e){}
+    m.pet.wear=Object.assign({},start);show(start)};
+  clSt={cancel};
+  drawer.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b||working)return;const a=b.dataset.a,v=b.dataset.v,L=C.outfits||[];
+    if(a==='ok'){clSt=null;drawer.hidden=true;show(wear);back();return}
+    if(a==='cancel'){clSt=null;drawer.hidden=true;await cancel();back();return}
+    working=true;
+    try{if(a==='it'){const o=L.find(x=>x.id===v);if(o){if((o.p&&!C.own[o.id])||soon)sel=o.id;else{await put(o.slot,o.id);sel=null}}}
+      else if(a==='off'){if(!soon)await put(v,'');sel=null}
+      else if(a==='buy'){const o=L.find(x=>x.id===sel);if(o){if(C.gifts<o.p)toast(`要 ${o.p} 個禮物，你現在有 ${C.gifts} 個，先去走格子收集吧`);
+        else{sync(await api('/xmas/outfit',{op:'buy',item:o.id}));await put(o.slot,o.id);sel=null;toast(`買到${o.nm}了！`)}}}}
+    catch(err){toast(err.message)}
+    working=false;if(clSt)paint()};
+  paint()}
 function gpPreview(b,c,kind='pet'){const el=$('gpv');if(!el)return;
   if(!gpView){const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));const sc=new THREE.Scene();
     sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.75));const sun=new THREE.DirectionalLight('#fff4e0',.6);sun.position.set(2,4,3);sc.add(sun);
@@ -2239,7 +2283,7 @@ async function start(data){
   if(location.hash==='#album')setTimeout(openAlbum,800);
   window.claude?.hot?.snapshot?.(()=>G);
 }
-$('myBtn').onclick=()=>{if(window.GUEST){GuestCTA('house');return}const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine);houseWall(mine)}else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
+$('myBtn').onclick=()=>{if(window.GUEST){GuestCTA('house');return}const mine=G.members.find(m=>m.id===G.me);if(mine){openHouseSheet(mine)} /* 2026-10-29 大熊：先停在「大熊的小屋」卡片，要看作品再按「走進小屋」 */else if(!DEMO&&!ME.ok)toast(ME.err||'正在確認你的 LINE 身分，請稍等一下');else joinPanel()};
 $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!confirm('確定要刪除這張照片嗎？刪了就找不回來。'))return;
   try{await api('/island/delete',Object.assign({id:w.id},lb.del));await reload();$('lb').hidden=true;closeModal();rebuildHouses();toast('刪除了')}catch(e){toast(e.message)}};
 /* 2026-10-24 作品小屋背景音樂〈畫室午後〉：跟遊樂島共用靜音設定（otto2-park-mute），第一次點畫面才會出聲（iPhone 規定） */
