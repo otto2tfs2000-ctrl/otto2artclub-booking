@@ -219,6 +219,21 @@ function crystalCrown(c,flowers){const g=new THREE.Group();const M=new THREE.Mes
 
 // 介紹卡用的正面圖檔案順序（xmas-figs/f01～f12.webp）
 const XFIGS=['梵谷','莫內','達利','克林姆','米羅','卡蘿','達文西','畢卡索','林布蘭','草間彌生','馬格利特','葛飾北齋'];
+/* 2026-10-30 大熊參考圖要的小道具：五瓣花、畫筆、調色盤、蒙德里安色塊衣 */
+function pflower(c,mid,r){const g=new THREE.Group();for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const p=ball(c,r*.55,Math.cos(a)*r*.6,Math.sin(a)*r*.6,0,1,1,.45,true);g.add(p)}g.add(ball(mid,r*.38,0,0,r*.12,1,1,.6,true));return keep(g)}
+function pbrush(tip){const b=new THREE.Group();const st=cyl('#8a5634',.018,.022,.36,0,0,0,8);b.add(st);b.add(cyl('#c9c4bc',.024,.024,.05,0,.36,0,8));const t=new THREE.Mesh(new THREE.ConeGeometry(.03,.09,10),toon(tip));t.position.y=.45;b.add(t);b.rotation.x=.4;return keep(b)}
+function palette(){const p=new THREE.Group();const s=new THREE.Shape();s.absellipse(0,0,.19,.15,0,Math.PI*2,false,0);const ho=new THREE.Path();ho.absellipse(-.1,-.05,.035,.03,0,Math.PI*2,true,0);s.holes.push(ho);
+  const g=new THREE.ExtrudeGeometry(s,{depth:.025,bevelEnabled:true,bevelThickness:.008,bevelSize:.008,bevelSegments:2});const m=new THREE.Mesh(g,toon('#ecd7ae'));p.add(m);
+  [['#e2402a',-.02,.08],['#2f6fd0',.07,.07],['#f2c42a',.12,-.01],['#1a1a1a',.06,-.08],['#ffffff',-.03,-.08],['#3f9a5a',-.1,.04]].forEach(([c,x,y])=>p.add(ball(c,.032,x,y,.035,1,1,.5,true)));
+  p.rotation.set(-.2,.5,.3);return keep(p)}
+function mondrian(){const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d');
+  x.fillStyle='#f6f2e8';x.fillRect(0,0,512,256);
+  const R=(col,a,b,w,h)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+  R('#d8382c',150,0,80,256);R('#2f5fb8',300,0,70,90);R('#f0c23a',300,110,60,70);R('#2f5fb8',380,160,132,96);R('#f0c23a',0,0,90,110);R('#d8382c',430,0,82,70);
+  x.fillStyle='#1a1a1a';[[150,0,7,256],[230,0,7,256],[300,0,7,256],[370,0,7,256],[90,0,7,256],[237,90,140,7],[237,180,140,7],[0,110,90,7],[377,160,135,7],[430,0,7,160]].forEach(a=>x.fillRect(...a));
+  x.save();x.translate(268,52);x.strokeStyle='#1a1a1a';x.lineWidth=5;x.beginPath();x.moveTo(-26,0);x.quadraticCurveTo(0,-22,26,0);x.quadraticCurveTo(0,22,-26,0);x.stroke();x.fillStyle='#1a1a1a';x.beginPath();x.arc(0,0,9,0,7);x.fill();x.restore();
+  [[255,215],[275,225],[300,215],[320,228]].forEach(([a,b])=>{x.fillStyle='#d8382c';x.beginPath();x.arc(a,b,4,0,7);x.fill()});
+  const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.offset.x=268/512;return t}
 const FIGX={
 '梵谷'(A){const P='#eaa0aa';const f=figBase({coat:P,sleeve:P,legs:'#4a6ea8',cuff:'#4a6ea8',shoe:'#3a2a20',cuffArm:P,skin:'#f6d6bc',mouth:'none',coatH:.52}),h=f.head,R='#c46a2c';
   f.body.add(flathe([[.2,.26],[.24,.28],[.2,.52]],toon(P,{side:THREE.DoubleSide}),18));
@@ -274,10 +289,12 @@ const FIGX={
   const c=cat();c.position.set(.06,.46,.32);c.rotation.y=-.15;c.scale.setScalar(1.5);f.body.add(c);f.pet=c;
   f.armL.rotation.set(-1.0,0,-.7);f.armR.rotation.z=-.5;return figDoneX(f,A)},
 '米羅'(A){const FM=mat(xt('fur','#f494ac','#fbb3c4','#e07c96',3,2));const f=figBase({coat:xt('fur','#f494ac','#fbb3c4','#e07c96',3,2),sleeve:xt('fur','#f494ac','#fbb3c4','#e07c96',3,2),legs:xt('fur','#f494ac','#fbb3c4','#e07c96',3,2),shoe:'#f4efe6',skin:'#f6d6bc',mouth:'smile'}),h=f.head,G='#f2f0ea';
+  /* 2026-10-30 大熊給參考圖：顏色不要灰（keep）、加紅花、左手調色盤右手畫筆、肚子大藍圓 */
   [-1,1].forEach(s=>{f.body.add(ball('#f4efe6',.09,.095*s,.05,.05,1,.6,1.3,true));[-1,0,1].forEach(k=>f.body.add(ball('#f4efe6',.03,.095*s+k*.035,.04,.15,1,.8,1,true)))});
   const tm2=new THREE.Mesh(new THREE.CylinderGeometry(.2,.22,.12,18),FM);tm2.position.y=.32;f.body.add(tm2);
-  const st=xstar('#f0c23a',.07,.03);st.position.set(-.06,.6,.2);f.body.add(st);
-  [['#2340b8',.1,.52],['#3f8a4a',.12,.4],['#3f8a4a',-.13,.42]].forEach(([c,x,y])=>f.body.add(ball(c,.035,x,y,.2,1,1,.5,true)));
+  const st=xstar('#f2c42a',.08,.03);st.position.set(-.06,.6,.2);f.body.add(st);
+  f.body.add(ball('#2340b8',.07,.09,.5,.19,1,1,.45,true));
+  [['#e2402a',-.12,.42],['#e2402a',.0,.38],['#1a1a1a',.12,.64],['#3f8a4a',-.14,.52]].forEach(([c,x,y])=>f.body.add(ball(c,.03,x,y,.205,1,1,.5,true)));
   [-1,1].forEach(s=>{for(let k=0;k<3;k++)h.add(ball(G,.09,.27*s,.06-k*.09,.02-k*.03,1,1.1,1,true))});
   hood(h,FM,'#eea5b6');brow(h,'#b4b4b2',1,-.1,.13,.09,.026);rnose(h);
   [-1,1].forEach(s=>{const a=antler('#7fbca6',s);a.position.set(.2*s,.24,-.02);a.rotation.z=-.25*s;h.add(a)});
@@ -287,51 +304,59 @@ const FIGX={
   fh.add(ball('#f2e08a',.07,0,0,.08,1.2,.8,.35,true));[-1,1].forEach(s=>fh.add(ball('#1a1a1a',.014,.025*s,.0,.105,1,1,.5,true)));
   [-1,0,1].forEach(k=>{const cv=new THREE.CatmullRomCurve3([[k*.05,.08,0],[k*.07,.15,0],[k*.09,.19,.03],[k*.06,.2,.06]].map(p=>new THREE.Vector3(...p)));fh.add(new THREE.Mesh(new THREE.TubeGeometry(cv,10,.018,6),toon(B)));fh.add(ball(B,.03,k*.06,.2,.06,1,1,1,true))});
   [[.2,-.04,.1,.5],[.16,-.05,-.12,-.4],[-.06,-.06,.14,.2]].forEach(([x,y,z,r])=>{const l=ball(B,.04,x,y-.04,z,1,2,1,true);l.rotation.x=r;c.add(l)});
+  const fl=pflower('#e2402a','#f2c42a',.075);fl.position.set(.22,.28,.17);fl.rotation.set(-.5,.5,0);h.add(fl);
   f.g.add(ball('#eea5b6',.08,0,.35,-.22,1,1,1,true));
-  return figDoneX(f,A)},
-'卡蘿'(A){const f=figBase({robe:xt('snow','#86c6ae','#f6f1e7',4,2),sleeve:'#86c6ae',feet:'shoe',shoe:'#3a2a20',skin:'#f3cfac',mouth:'smile',
+  noBrush(f);const br=pbrush('#e2402a');br.position.set(0,-.36,.05);f.armR.add(br);f.armR.rotation.set(-.35,0,.25);
+  const pl=palette();pl.position.set(-.04,-.38,.1);f.armL.add(pl);f.armL.rotation.set(-.55,0,-.35);
+  keep(f.g);return figDoneX(f,A)},
+'卡蘿'(A){const f=figBase({robe:xt('snow','#7cc79f','#f6f1e7',4,2),sleeve:'#7cc79f',feet:'shoe',shoe:'#3a2a20',skin:'#f3cfac',mouth:'smile',
     robeProf:[[0,.04],[.31,.04],[.32,.1],[.25,.4],[.19,.62],[.16,.76],[.13,.82],[0,.84]]}),h=f.head,H='#1a1517';
-  const cape=flathe([[.34,.03],[.35,.08],[.29,.36],[.24,.58],[.2,.72],[.17,.82],[.13,.86]],mat(xt('snow','#f1e8d4','#d8b25a',3,2)),20);cape.material.side=THREE.DoubleSide;
+  /* 2026-10-30 大熊給參考圖：顏色不要灰、頭上粉紅花、裙子和披肩有小花 */
+  const cape=flathe([[.34,.03],[.35,.08],[.29,.36],[.24,.58],[.2,.72],[.17,.82],[.13,.86]],mat(xt('snow','#f4ecd8','#e8a0b0',3,2)),20);cape.material.side=THREE.DoubleSide;
   const cp=new THREE.Group();cp.add(cape);cape.geometry=new THREE.LatheGeometry([[.34,.03],[.35,.08],[.29,.36],[.24,.58],[.2,.72],[.17,.82],[.13,.86]].map(([r,y])=>new THREE.Vector2(r,y)),20,Math.PI*.22,Math.PI*1.56);f.body.add(cp);
-  f.body.add(keep(ball('#f2a0b4',.03,0,.5,.21,1,1,.5,true)));
+  [[-.06,.22,.292],[.08,.36,.26],[-.1,.5,.222],[.02,.12,.316]].forEach(([x,y,r],i)=>{const fl=pflower('#ffffff',i%2?'#f2c42a':'#e85a7a',.035);const R=r;fl.position.set(x,y,Math.sqrt(Math.max(0,R*R-x*x))+.012);fl.rotation.set(-.25,Math.asin(x/R),0);f.body.add(fl)});
   const hb=new THREE.Mesh(SPH,toon(H));hb.scale.set(.32,.3,.3);hb.position.set(0,.1,-.05);h.add(hb);
   for(let i=0;i<9;i++){const a=Math.PI*(-.1+i/8*1.2);h.add(ball(H,.075,Math.cos(a)*.27,.2+Math.sin(a)*.08,-.04-Math.sin(a)*.1,1,1,1,true))}
   [-1,1].forEach(s=>h.add(ball(H,.13,.24*s,.02,-.1,1,1,1)));h.add(ball(H,.15,0,.05,-.25,1.3,1,.8));backHair(h,H,.0,.84,1);
   h.add(fbox('#3a3034',.006,.06,.01,0,.25,.24));
   h.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([[-.18,.09,.24],[-.1,.125,.265],[0,.1,.285],[.1,.125,.265],[.18,.09,.24]].map(p=>new THREE.Vector3(...p))),20,.014,5),toon(H)));
-  [-1,1].forEach(s=>h.add(keep(ball('#e9b42a',.035,.3*s,-.14,0,1,1.2,1,true))));rnose(h);
-  const cr=crystalCrown('#a8d8ee',true);cr.position.set(0,.26,0);h.add(cr);
+  [-1,1].forEach(s=>h.add(ball('#e9b42a',.035,.3*s,-.14,0,1,1.2,1,true)));rnose(h);
+  [-1,1].forEach(s=>[[.12,.27,.2],[.23,.22,.14]].forEach(([x,y,z],k)=>{const fl=pflower('#f39ab0','#f2c42a',k?.055:.065);fl.position.set(x*s,y,z);fl.rotation.set(-.6,.5*s,0);h.add(fl)})); /* 頭上的粉紅花 */
+  const cr=crystalCrown('#bfe6f6',false);cr.position.set(0,.26,0);h.add(cr);
   const m=monkey();m.position.set(.24,.6,.18);m.rotation.y=-.3;m.scale.setScalar(1.3);f.body.add(m);f.pet=m;
-  f.armL.rotation.set(-.9,0,-.4);return figDoneX(f,A)},
-'達文西'(A){const M='#9ccfae';const f=figBase({robe:M,sleeve:M,wide:1,feet:'shoe',shoe:'#3a2a20',skin:'#f6d6bc',mouth:'smile',
-    robeProf:[[0,.1],[.28,.1],[.29,.16],[.25,.4],[.21,.62],[.17,.76],[.14,.82],[0,.84]]}),h=f.head,G='#e4e2dc';
+  f.armL.rotation.set(-.9,0,-.4);keep(f.g);return figDoneX(f,A)},
+'達文西'(A){const M='#86c49c',R='#b2506a';const f=figBase({robe:M,sleeve:M,wide:1,feet:'shoe',shoe:'#4a3022',skin:'#f6d6bc',mouth:'smile',
+    robeProf:[[0,.1],[.28,.1],[.29,.16],[.25,.4],[.21,.62],[.17,.76],[.14,.82],[0,.84]]}),h=f.head,G='#e9e6de';
+  /* 2026-10-30 大熊給參考圖：粉紅扁帽、白鬍子、綠袍＋酒紅披掛、皮帶兩個小包、左手卷軸右手三角尺 */
   [-1,1].forEach(s=>f.body.add(cyl('#3a6a50',.07,.075,.14,.09*s,.0,0,10)));
-  // leather apron with pockets full of brushes
-  const ap=flathe([[.27,.18],[.24,.4],[.22,.62]],toon('#8a5634',{side:THREE.DoubleSide}),16);ap.geometry=new THREE.LatheGeometry([[.275,.18],[.255,.4],[.225,.6]].map(([r,y])=>new THREE.Vector2(r,y)),12,-.75,1.5);f.body.add(ap);
-  const belt=new THREE.Mesh(new THREE.TorusGeometry(.225,.02,6,20),toon('#6b4429'));belt.rotation.x=Math.PI/2;belt.position.y=.5;f.body.add(belt);
-  [-1,1].forEach(s=>{f.body.add(fbox('#7a4a2a',.11,.1,.03,.09*s,.33,.26));[0,1,2].forEach(k=>{const b=cyl(['#e8b42a','#d8382c','#f6f1e7'][k],.008,.008,.12,.06*s+k*.025*s,.33,.26,5);f.body.add(b);f.body.add(ball(['#e8b42a','#d8382c','#3a6ab8'][k],.014,.06*s+k*.025*s,.46,.26,1,1.4,1,true))})});
-  const bow=fbox('#6b4429',.12,.05,.03,0,.5,-.24);f.body.add(bow);[-1,1].forEach(s=>{const t=fbox('#6b4429',.035,.16,.02,.03*s,.4,-.25);t.rotation.z=.2*s;f.body.add(t)});
+  const sash=new THREE.Mesh(new THREE.LatheGeometry([[.29,.14],[.27,.32],[.245,.5],[.215,.66],[.18,.78]].map(([r,y])=>new THREE.Vector2(r,y)),14,Math.PI*.12,Math.PI*.5),toon(R,{side:THREE.DoubleSide}));f.body.add(sash);
+  const belt=new THREE.Mesh(new THREE.TorusGeometry(.245,.028,6,22),toon('#7a4a2a'));belt.rotation.x=Math.PI/2;belt.position.y=.42;f.body.add(belt);
+  f.body.add(fbox('#d8a83a',.06,.05,.02,0,.42,.262));
+  [-1,1].forEach(s=>{const p=fbox('#8a5634',.1,.1,.05,.12*s,.36,.24);p.rotation.y=.45*s;f.body.add(p);const fl=fbox('#6b4429',.105,.04,.055,.12*s,.4,.243);fl.rotation.y=.45*s;f.body.add(fl);f.body.add(ball('#d8a83a',.012,.12*s+.01*s,.38,.275,1,1,.6,true))});
   [-1,1].forEach(s=>{for(let k=0;k<6;k++)h.add(ball(G,.09,.24*s,.06-k*.1,-.08-k*.02,1,1.2,1,true))});
-  backHair(h,G,.24,.86,1);beard(h,'#f6f4ee',{y:-.24,lumps:9,long:.5,w:1.15});brow(h,'#c4c4c2',1,-.15,.13,.09,.026);rnose(h);
+  backHair(h,G,.24,.86,1);beard(h,'#f6f4ee',{y:-.24,lumps:9,long:.5,w:1.15});brow(h,'#bdbdbb',1,-.15,.13,.09,.026);rnose(h);
   [-1,1].forEach(s=>{const m=ball('#f6f4ee',.06,.06*s,-.11,.28,1.6,.7,.7,true);m.rotation.z=.35*s;h.add(m)});
-  const cap=new THREE.Group();cap.position.y=.22;h.add(cap);cap.add(ball('#eea0b0',.38,0,.04,-.02,1,.42,1));cap.add(cyl('#e290a2',.32,.33,.07,0,-.08,0,22));
-  for(let k=0;k<6;k++){const a=k/6*6.28;cap.add(ball('#f2aab8',.12,Math.cos(a)*.2,.08,Math.sin(a)*.2,1,.6,1,true))}
-  const pl=plane();pl.position.set(0,-.38,.12);pl.rotation.set(0,-.4,.1);pl.scale.setScalar(1.2);f.armL.add(pl);
-  f.armL.rotation.set(-.8,0,-.2);return figDoneX(f,A)},
-'畢卡索'(A){const FM=mat(xt('fur','#7fd0b0','#9de0c6','#68bc9a',3,2));const fur=xt('fur','#7fd0b0','#9de0c6','#68bc9a',3,2);
-  const f=figBase({coat:fur,sleeve:fur,legs:fur,shoe:'#1a1a1c',skin:'#f3cfb4',mouth:'smile'}),h=f.head,W='#f4f1ea';
-  f.body.add(flathe([[.18,.32],[.21,.34],[.2,.46]],FM,18));
-  const sh=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,.24,14,1,false,-.7,1.4),mat(xt('stripe','#f4f1ea','#1f1f22',8,1,1)));sh.position.set(0,.64,.08);f.body.add(sh);
-  [-1,1].forEach(s=>{const fl=new THREE.Mesh(new THREE.CylinderGeometry(.06,.075,.3,10),FM);fl.position.set(.12*s,.62,.13);f.body.add(fl)});
-  const st=xstar('#f0c23a',.08,.03);st.position.set(.1,.42,.22);st.rotation.z=.2;f.body.add(st);
-  backHair(h,W,.36,.8,1);for(let k=0;k<5;k++)[-1,1].forEach(s=>h.add(ball(W,.08,.26*s,.02-k*.06,.0-k*.05,1,1.1,1,true)));
-  for(let k=0;k<9;k++){const a=Math.PI+.2+k/8*(Math.PI-.4);h.add(ball(W,.08,-Math.cos(a)*.3,-.12-(k%2)*.03,Math.sin(a)*.29,1,1,1,true))}
-  const hb=new THREE.Mesh(new THREE.TorusGeometry(.31,.06,8,24,Math.PI),FM);hb.position.set(0,.02,.0);hb.scale.set(1,1.05,1);hb.rotation.x=-.25;h.add(hb);
-  for(let k=0;k<11;k++){const a=.1+k/10*(Math.PI-.2);h.add(ball('#93cdb6',.06,Math.cos(a)*.31,Math.sin(a)*.31*1.05*Math.cos(.25)+.02,Math.sin(a)*.31*Math.sin(.25)*-1+.0,1,1,1,true))}
-  brow(h,'#c4c4c2',1,-.1,.13,.09,.026);rnose(h);
-  [-1,1].forEach(s=>{const a=antler('#eea0b0',s);a.position.set(.18*s,.3,-.02);a.rotation.z=-.3*s;h.add(a)});
-  const b=snowBird();b.position.set(0,.36,0);b.scale.setScalar(1.15);h.add(b);
-  return figDoneX(f,A)},
+  const cap=new THREE.Group();cap.position.y=.22;h.add(cap);cap.add(ball('#ec8fa8',.4,0,.06,-.02,1,.4,1));cap.add(cyl('#e07f99',.31,.32,.08,0,-.08,0,24));
+  noBrush(f);
+  const sc=new THREE.Group();sc.add(fbox('#f6efdf',.13,.26,.012,0,0,0));[-1,1].forEach(k=>{const r=cyl('#efe5cf',.035,.035,.16,-.08,k*.13,0,12);r.rotation.z=Math.PI/2;r.position.set(.08,k*.13,0);sc.add(r)});
+  sc.position.set(.03,-.4,.12);sc.rotation.set(.35,.4,-.15);f.armL.add(keep(sc));f.armL.rotation.set(-.4,0,-.3); /* 卷軸 */
+  const ts=new THREE.Shape();ts.moveTo(0,0);ts.lineTo(.26,0);ts.lineTo(0,.3);ts.lineTo(0,0);const th=new THREE.Path();th.moveTo(.045,.045);th.lineTo(.045,.19);th.lineTo(.165,.045);th.lineTo(.045,.045);ts.holes.push(th);
+  const tri=new THREE.Mesh(new THREE.ExtrudeGeometry(ts,{depth:.025,bevelEnabled:false}),toon('#8a5634'));tri.position.set(-.04,-.5,.1);tri.rotation.set(0,-.2,.1);f.armR.add(tri);f.armR.rotation.set(-.6,0,.25); /* 三角尺 */
+  keep(f.g);return figDoneX(f,A)},
+'畢卡索'(A){const f=figBase({coat:mondrian(),sleeve:'#2f5fb8',legs:'#2b4a9a',shoe:'#1a1a1c',skin:'#f3cfb4',mouth:'smile'}),h=f.head,W='#b9b8b4';
+  /* 2026-10-30 大熊給參考圖：黑色貝雷帽、灰捲髮、臉上藍三角＋黃線（立體派）、蒙德里安色塊上衣上有眼睛、調色盤和藍筆 */
+  f.armL.children[0].material=toon('#d8382c');
+  backHair(h,W,.36,.8,1);for(let k=0;k<4;k++)[-1,1].forEach(s=>h.add(ball(W,.085,.27*s,.04-k*.07,-.02-k*.05,1,1.1,1,true)));
+  for(let k=0;k<7;k++){const a=Math.PI+.35+k/6*(Math.PI-.7);h.add(ball(W,.085,-Math.cos(a)*.3,-.1-(k%2)*.04,Math.sin(a)*.29,1,1,1,true))}
+  brow(h,'#9a9a98',1,-.1,.13,.09,.026);rnose(h);
+  const ts=new THREE.Shape();ts.moveTo(-.075,.08);ts.lineTo(.085,.075);ts.lineTo(.01,-.1);ts.lineTo(-.075,.08);
+  const tr=new THREE.Mesh(new THREE.ShapeGeometry(ts),toon('#3f7fd6'));tr.position.set(.1,.02,.262);tr.rotation.y=.36;h.add(tr);
+  [[-.12,-.06,.4],[-.17,-.02,.6],[.06,-.19,-.3]].forEach(([x,y,r])=>{const k=fbox('#f0c23a',.08,.016,.006,x,y,0);const R=.3;k.position.z=Math.sqrt(Math.max(0,R*R-x*x-y*y))*.96+.006;k.rotation.set(-y*2.5,Math.asin(x/R),r);h.add(k)});
+  [-1,1].forEach(s=>{h.children.filter(o=>o.position&&Math.abs(o.position.x-.095*s)<.001&&Math.abs(o.position.z-.268)<.001).forEach(o=>o.position.z=.275)});
+  const bt=new THREE.Group();bt.position.set(.02,.24,0);bt.rotation.z=-.22;h.add(bt);bt.add(ball('#1c1c1f',.34,0,0,0,1.1,.36,1.05));bt.add(cyl('#1c1c1f',.025,.03,.09,0,.09,0,8));
+  noBrush(f);const br=pbrush('#3f7fd6');br.position.set(0,-.36,.05);f.armR.add(br);f.armR.rotation.set(-.35,0,.25);
+  const pl=palette();pl.position.set(-.04,-.38,.1);f.armL.add(pl);f.armL.rotation.set(-.55,0,-.35);
+  keep(f.g);return figDoneX(f,A)},
 '林布蘭'(A){const f=figBase({robe:'#5a5650',sleeve:'#5a5650',feet:'boot',shoe:'#3a2a20',skin:'#f6d6bc',mouth:'smile',
     robeProf:[[0,.2],[.26,.2],[.27,.24],[.24,.46],[.2,.62],[.17,.76],[.14,.82],[0,.84]]}),h=f.head,H='#8e8a88';
   [-1,1].forEach(s=>f.body.add(cyl('#3a3634',.075,.08,.24,.095*s,.0,0,10)));
@@ -404,6 +429,8 @@ function mergeGroup(R){R.updateMatrixWorld(true);const inv=new THREE.Matrix4().c
       g.dispose();c.parent.remove(c)});
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
     const m=list[0].material.clone();m.color.set('#ffffff');m.vertexColors=true;const M=new THREE.Mesh(g,m);M.castShadow=list[0].castShadow;M.receiveShadow=list[0].receiveShadow;M.userData.mg=1;R.add(M)})}
+function flake(c,r){const g=new THREE.Group(),m=toon(c);for(let i=0;i<3;i++){const bx=new THREE.Mesh(new THREE.BoxGeometry(r*2,r*.22,r*.18),m);bx.rotation.z=i*Math.PI/3;g.add(bx)}
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;const t=new THREE.Mesh(SPH_LO,m);t.scale.setScalar(r*.2);t.position.set(Math.cos(a)*r,Math.sin(a)*r,0);g.add(t)}return keep(g)}
 /* ===== 2026-10-29 五間聖誕小屋的主人（Claude 用同一套公仔零件設計，大熊看過再調） ===== */
 const FOLK={
 '禮物精靈'(A){const R='#c8443a',G='#3f8a5a';const f=figBase({coat:R,sleeve:R,legs:G,cuff:'#f6f1e7',shoe:'#5a3a24',cuffArm:'#f6f1e7',skin:'#f6d6bc',mouth:'smile'}),h=f.head;
@@ -431,25 +458,51 @@ const FOLK={
   [-1,1].forEach(s=>{const hd=cyl('#9a6a3e',.022,.022,.1,0,0,0,8);hd.rotation.z=Math.PI/2;hd.position.set(.17*s+(s>0?0:-.1),0,0);pin.add(hd)});
   pin.position.set(0,-.38,.1);f.armR.add(pin);f.armR.rotation.set(-.5,0,.25);
   const gb=gingerbread();gb.scale.setScalar(1.2);gb.position.set(0,-.42,.12);f.armL.add(gb);f.armL.rotation.set(-.6,0,-.3);return figDoneX(f,A)},
-'粉雪女王'(A){const P='#f4c6d4';const f=figBase({robe:xt('snow',P,'#ffffff',1,1),sleeve:xt('snow',P,'#ffffff',1,1),feet:'shoe',shoe:'#f6f1e7',skin:'#f8dccb',mouth:'lips',
-    robeProf:[[0,.0],[.34,.0],[.36,.06],[.3,.3],[.22,.56],[.17,.74],[.14,.8],[0,.82]]}),h=f.head,W='#f7f2f6';
-  const cape=new THREE.Mesh(new THREE.CylinderGeometry(.24,.42,.78,24,1,true,Math.PI*.55,Math.PI*.9),toon('#cfe3f7',{side:THREE.DoubleSide}));cape.position.set(0,.43,-.02);f.body.add(cape);
-  const col=new THREE.Mesh(new THREE.TorusGeometry(.19,.05,8,24),toon(W));col.rotation.x=Math.PI/2;col.position.y=.8;f.body.add(col);
-  backHair(h,W,.2,.95,1);sideHair(h,W,4,.1,.1);brow(h,'#d8c8d0',1,.0);
-  [-1,1].forEach(s=>{for(let k=0;k<3;k++)h.add(ball(W,.08,.2*s,-.2-k*.1,-.12,1,1.1,1,true))});
-  const cr=crystalCrown('#bfe0f5',true);cr.position.y=.22;cr.scale.setScalar(.95);h.add(cr);
-  noBrush(f);const wand=new THREE.Group();wand.add(cyl('#e8e4f0',.014,.014,.4,0,-.2,0,8));const st=xstar('#ffffff',.08,.03);st.position.y=.24;wand.add(keep(st));
-  wand.position.set(0,-.38,.06);wand.rotation.x=.3;f.armR.add(wand);f.armR.rotation.set(-.7,0,.35);return figDoneX(f,A,1.08)},
-'薄荷雪怪'(A){const M='#9fd8c4';const fur=xt('fur',M,'#c6ecdf','#7fbfa8',1,1);const f=figBase({coat:fur,sleeve:fur,legs:fur,shoe:M,skin:'#eaf6f0',mouth:'none',cheeks:true}),h=f.head;
-  hood(h,mat(fur),M);
-  [-1,1].forEach(s=>{const hn=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,10),toon('#f6efe0'));hn.position.set(.16*s,.33,.02);hn.rotation.z=-.35*s;h.add(hn)}); /* 小角（大熊：角要小） */
-  const mo=keep(ball('#7a4a3a',.06,0,-.15,.255,1.3,.7,.5,true));h.add(mo);
-  [-1,1].forEach(s=>h.add(keep(fbox('#ffffff',.032,.04,.02,.019*s,-.135,.288)))); /* 兩顆門牙：從綠毛和咖啡色嘴巴的交界垂下來 */
-  [-1,1].forEach(s=>{f.body.add(ball(M,.13,.1*s,.04,.06,1,.5,1.4,true))}); /* 大腳 */
-  f.body.add(ball('#c6ecdf',.17,0,.56,.12,1,1.1,.6));
-  noBrush(f);const cane=new THREE.Mesh(new THREE.TorusGeometry(.06,.018,6,14,Math.PI),toon('#e85a6a'));cane.position.set(0,-.26,.06);f.armR.add(cane);
-  const st2=cyl('#e85a6a',.018,.018,.3,0,-.6,.06,8);f.armR.add(st2);[0,1,2].forEach(i=>f.armR.add(cyl('#ffffff',.019,.019,.03,0,-.55+i*.08,.06,8)));
-  f.armR.rotation.set(-.3,0,.3);return figDoneX(f,A,1.1)},
+/* 2026-10-30 大熊給參考圖重捏：粉雪女王＝紫色捲髮＋金皇冠＋白毛領＋粉紅雪花長裙＋雪花魔杖；薄荷雪怪＝一整顆毛毛圓球、大肚子、咖啡色角、兩顆門牙。顏色照參考圖不做灰化（keep） */
+'粉雪女王'(A){const P='#f5b9c9',W='#ffffff',HR='#c4a6d8',GD='#e3b64c',SK='#f7d4b8';
+  const f=figBase({robe:P,sleeve:P,feet:'shoe',shoe:W,skin:SK,mouth:'none',nose:'#f2a07c',
+    robeProf:[[0,0],[.42,0],[.43,.05],[.35,.28],[.25,.55],[.18,.74],[.15,.8],[0,.82]]}),h=f.head,b=f.body;
+  const sm=new THREE.Mesh(new THREE.TorusGeometry(.035,.009,6,12,Math.PI),toon('#e0607a'));sm.rotation.z=Math.PI;sm.position.set(0,-.13,.27);h.add(sm);
+  brow(h,'#a68ac2',1,0,.15,.08,.018);
+  backHair(h,HR,0,.8,1);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.33,28,14,0,Math.PI*2,0,Math.PI*.33),toon(HR));cap.scale.set(1,1.04,.98);h.add(cap); /* 瀏海 */
+  [[-.16,.15,.2,.11,1.3],[-.02,.18,.23,.1,1.1],[.14,.15,.21,.11,1.3]].forEach(([x,y,z,r,sx],i)=>{const l=ball(HR,r,x,y,z,sx,.75,.55);l.rotation.z=(i-1)*-.35;h.add(l)}); /* 額頭上三撮瀏海 */
+  [-1,1].forEach(s=>{[[.31,.02,-.02,.14],[.35,-.2,-.04,.15],[.3,-.42,-.06,.14],[.2,-.05,-.22,.15],[.22,-.3,-.24,.15]].forEach(([x,y,z,r])=>h.add(ball(HR,r,x*s,y,z,1,1,1)));
+    [[.4,-.08,.08],[.36,-.36,.07],[.3,.12,.1]].forEach(([x,y,z])=>h.add(ball(W,.026,x*s,y,z,1,1,1,true))); /* 頭髮上的珍珠 */
+    const fl=flake(W,.07);fl.position.set(.3*s,-.06,.17);fl.rotation.y=.6*s;h.add(fl)});
+  const cr=new THREE.Group();cr.position.y=.26;h.add(cr);cr.add(cyl(GD,.16,.17,.09,0,0,0,24));
+  for(let i=0;i<3;i++){const a=(i-1)*.75,x=Math.sin(a)*.16,z=Math.cos(a)*.16,big=i===1;const sp=new THREE.Mesh(new THREE.ConeGeometry(big?.07:.06,big?.19:.15,8),toon(GD));sp.position.set(x,big?.17:.15,z);cr.add(sp);cr.add(ball(GD,big?.036:.032,x,big?.27:.23,z,1,1,1,true))}
+  cr.add(ball('#e8789a',.035,0,.06,.17,1,1,.6,true));cr.rotation.x=-.12;
+  const col=new THREE.Mesh(new THREE.TorusGeometry(.17,.075,10,24),toon(W));col.rotation.x=Math.PI/2;col.position.y=.79;col.scale.set(1.15,1,1);b.add(col);
+  b.add(ball(GD,.035,0,.74,.22,1,1,.6,true)); /* 毛領的金扣子 */
+  b.add(cyl(W,.43,.43,.05,0,.0,0,32)); /* 裙擺白邊 */
+  const sk=(y)=>{const pr=[[.43,.05],[.35,.28],[.25,.55]];for(let i=0;i<2;i++){const[r0,y0]=pr[i],[r1,y1]=pr[i+1];if(y<=y1)return r0+(r1-r0)*(y-y0)/(y1-y0)}return .25};
+  [[0,.36,.07],[-.17,.15,.065],[.17,.15,.065]].forEach(([x,y,r])=>{const R=sk(y),fl=flake(W,r);fl.position.set(x,y,Math.sqrt(Math.max(0,R*R-x*x))+.01);fl.rotation.set(-.3,Math.asin(x/R),0);b.add(fl)});
+  [[0,.53],[-.09,.25],[.09,.25],[0,.12]].forEach(([x,y])=>{const R=sk(y),d=fbox(W,.035,.035,.01,x,y,Math.sqrt(Math.max(0,R*R-x*x))+.01);d.rotation.set(-.3,Math.asin(x/R),Math.PI/4);b.add(d)});
+  const cape=new THREE.Mesh(new THREE.CylinderGeometry(.2,.47,.8,28,1,true,Math.PI*.42,Math.PI*1.16),new THREE.MeshLambertMaterial({color:'#fbf3f6',transparent:true,opacity:.85,side:THREE.DoubleSide}));cape.position.set(0,.42,-.02);b.add(cape);
+  [f.armL,f.armR].forEach(a=>{const c=new THREE.Mesh(new THREE.TorusGeometry(.068,.03,8,16),toon(W));c.rotation.x=Math.PI/2;c.position.y=-.3;a.add(c)});
+  noBrush(f);const wand=new THREE.Group();wand.add(cyl(GD,.015,.015,.46,0,-.2,0,8));const st=flake(W,.1);st.position.y=.3;wand.add(st);wand.add(ball('#f2a6b8',.03,0,.3,.02,1,1,1,true));
+  wand.position.set(0,-.38,.06);wand.rotation.x=.15;f.armR.add(wand);f.armR.rotation.set(-.6,0,.3);
+  keep(f.g);return figDoneX(f,A,1.08)},
+'薄荷雪怪'(A){const M='#93d3b8',D='#7cc2a5',L='#d6eedc',HN='#8a5a3a';
+  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+  body.add(ball(M,.5,0,.58,0,1,1.06,.9));
+  const R=rng(7);for(let i=0;i<46;i++){const th=R()*Math.PI*2,ph=.15+R()*1.25,x=Math.sin(ph)*Math.sin(th)*.5,y=.58+Math.cos(ph)*.53,z=Math.sin(ph)*Math.cos(th)*.45;
+    if(z>.18&&y<.95&&Math.abs(x)<.38)continue; /* 臉和肚子不放毛 */
+    const t=ball(i%3?M:D,.1,x,y,z,1,.75,.6);t.lookAt(x*3,y*3-1.2,z*3);body.add(t)}
+  [[-.12,1.12,.08,.13],[.1,1.13,.1,.12],[0,1.15,-.05,.14],[-.24,1.06,.0,.11],[.25,1.05,.0,.11],[0,1.08,.2,.1]].forEach(([x,y,z,r])=>body.add(ball(M,r,x,y,z,1.2,.8,1))); /* 頭頂捲毛 */
+  body.add(ball(L,.3,0,.42,.27,1.05,1.12,.5)); /* 大肚子 */
+  [-1,1].forEach(s=>body.add(ball('#6fb898',.14,.2*s,.06,.08,1.15,.6,1.3)));
+  const head=new THREE.Group();head.position.set(0,.76,0);body.add(head);
+  [-1,1].forEach(s=>{head.add(ball('#121214',.055,.16*s,0,.39,1,1.1,.6,true));head.add(ball('#ffffff',.015,.16*s+.02,.025,.42,1,1,1,true));
+    head.add(ball('#f19aa6',.06,.3*s,-.1,.33,1,.8,.4,true));
+    const hn=new THREE.Mesh(new THREE.ConeGeometry(.075,.22,12),toon(HN));hn.position.set(.3*s,.42,-.02);hn.rotation.z=-.55*s;head.add(hn)}); /* 咖啡色角 */
+  head.add(ball('#ee9a6a',.04,0,-.07,.45,1.2,.9,.8,true));
+  head.add(ball('#7a4a32',.08,0,-.18,.42,1.5,.7,.45,true));
+  [-1,1].forEach(s=>head.add(keep(fbox('#ffffff',.045,.055,.02,.026*s,-.155,.465))));
+  const armL=new THREE.Group(),armR=new THREE.Group();armL.position.set(-.44,.72,0);armR.position.set(.44,.72,0);body.add(armL,armR);
+  [armL,armR].forEach((a,i)=>{const s=i?1:-1;a.add(ball(M,.14,.03*s,-.16,0,.85,1.5,.85));[[.0,-.04],[.06,-.2],[-.02,-.32]].forEach(([x,y])=>a.add(ball(D,.07,x*s+.05*s,y,.04,1,.8,.8,true)));a.rotation.z=.15*s});
+  const f={g,body,armL,armR,head};keep(g);return figDoneX(f,A,1.05)},
 '彩繪精靈'(A){const S='#f6efe0';const f=figBase({coat:xt('dots','#8fc6e8','#ffffff',1,1,6),sleeve:'#8fc6e8',legs:'#e98aa0',cuff:'#e98aa0',shoe:'#f2c14e',skin:'#f6d6bc',mouth:'smile'}),h=f.head;
   const sm=flathe([[0,.3],[.23,.3],[.215,.55],[.18,.74],[0,.74]],toon(S,{side:THREE.DoubleSide}),20);sm.scale.set(1,1,.62);sm.position.z=.04;f.body.add(sm);
   [['#e85a6a',-.06,.62],['#f2c14e',.07,.52],['#5aa0e8',-.02,.45],['#6cc08a',.08,.66]].forEach(([c,x,y])=>f.body.add(keep(ball(c,.03,x,y,.215,1.3,1,.4,true)))); /* 圍裙上的顏料 */
