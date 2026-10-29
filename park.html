@@ -185,12 +185,14 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .wdi.on{border-color:#2f8f58; background:#eaf7ee}
 .wdi.sel{border-color:#d63a2f; background:#ffecea}
 .wdi.wdoff{flex:0 0 calc(25% - 3px)}
+.card{position:relative}.wdchar{position:absolute; right:14px; top:14px; font:inherit; font-size:13px; padding:5px 10px; border-radius:99px; border:2px solid #d9c8a8; background:#fffaf2; color:var(--navy); cursor:pointer}
 #wdBuy{white-space:nowrap; font-size:18px} /* 2026-10-29 大熊：買下按鈕字太多會擠成兩行 */
 .wdrow{gap:7px}.wdi,.wdi.wdoff{flex:0 0 calc((100% - 14px)/3); padding:8px 4px; gap:3px; font-size:13.5px; line-height:1.35} /* 一排三格，字不要擠 */
 .wdi i{font-size:20px}.wdrow>span{margin-top:8px}
 .ch{font-family:var(--round); background:#fff; color:var(--ink); border:2.5px solid var(--ink); border-radius:16px; padding:10px 6px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:15px; box-shadow:0 3px 0 var(--ink)}
 .ch.on{background:#fff3c4; outline:3px solid var(--red)}
 .ch img{width:72px; height:72px; border-radius:50%; object-fit:cover; background:#eef2f7}
+.chars{grid-template-columns:repeat(3,1fr); gap:8px}.ch{font-size:14px; padding:8px 4px 6px; border-width:2px}.ch img{width:58px; height:58px}.ch.art img{object-fit:contain; object-position:center top; border-radius:12px; background:#f3ead8}
 .upl{display:inline-block; font-family:var(--round); font-size:14px; background:var(--gold); border:2px solid var(--ink); border-radius:99px; padding:6px 14px; cursor:pointer; box-shadow:0 3px 0 var(--ink); margin-bottom:8px}
 .upl input{position:absolute; width:1px; height:1px; opacity:0}
 .note{font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 12px}
@@ -858,7 +860,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029i';
+const PARK_VER='20261029j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2668,7 +2670,7 @@ function walkTick(dt,now){Object.values(GA.figs||{}).forEach(f=>{const o=f.fig;i
   const st=Math.min(dist,dt*.45);o.position.addScaledVector(d.normalize(),st);const yaw=Math.atan2(d.x,d.z);let dy=yaw-o.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.rotation.y+=dy*Math.min(1,dt*6);
   const ph=now/140;(u.legs||[]).forEach((l,i)=>l.rotation.x=Math.sin(ph+i*Math.PI)*.5);if(!u.hop)o.position.y=w.home.y+Math.abs(Math.sin(ph))*.03})}
 // 玩家的小黑熊：十月穿上畢卡索條紋衫
-function playerStripes(){if(!bearBody||(G.avatar&&G.avatar.mode==='photo'))return;let s=bearBody.userData.stripe;
+function playerStripes(){if(!bearBody||(G.avatar&&G.avatar.mode!=='bear'))return;let s=bearBody.userData.stripe;
   if(!s){s=new THREE.Group();[.26,.36,.46].forEach(y=>{const t=mesh(new THREE.TorusGeometry(.31,.03,6,24),toon('#ffffff'),0,y,0);t.rotation.x=Math.PI/2;t.scale.set(1,.92,1);s.add(t)});bearBody.add(s);bearBody.userData.stripe=s}
   s.visible=G.phase==='oct'}
 
@@ -4146,7 +4148,7 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const start={bear:myWear('bear'),gp:myWear('gp',pet)}; /* 按「取消」就換回打開衣櫥時穿的（買過的東西還是你的） */
   let done;const closed=new Promise(r=>done=r);
   const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),slots=[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']];
-    $('card').innerHTML=`<h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
+    $('card').innerHTML=`<button type="button" class="wdchar" id="wdChar">🎭 換角色</button><h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
       ${pet?`<div class="wdtab"><button type="button" data-w="bear" class="${who==='bear'?'on':''}">小黑熊</button><button type="button" data-w="gp" class="${who==='gp'?'on':''}">${esc(pet.n||'天竺鼠')}</button></div>`:''}
       <div class="wdv" id="wdv"></div>
       ${slots.map(([sl,nm])=>`<div class="wdrow"><span>${nm}</span>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
@@ -4155,6 +4157,7 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
       <div class="acts">${sel?`<button type="button" class="btn red" id="wdBuy">買下這件・🎁 ${(L.find(o=>o.id===sel)||{}).p}</button>`:''}<button type="button" class="btn ghost" id="wdNo">取消</button><button type="button" class="btn" id="wdOk">好了</button></div>`;
     $('pop').hidden=false;{const so=sel&&L.find(o=>o.id===sel);wdPreview(who,pet,so?Object.assign({},w,{[so.slot]:so.id}):w)} /* 還沒買的先試穿給你看（大熊：點了要看得到） */
     $('card').querySelectorAll('.wdtab button').forEach(b=>b.onclick=()=>{who=b.dataset.w;sel=null;draw()});
+    $('wdChar').onclick=()=>{if(working)return;$('pop').hidden=true;done();setTimeout(charPanel,350)}; /* 換成藝術家或自己的照片 */
     $('card').querySelectorAll('.wdi[data-i]').forEach(b=>b.onclick=async()=>{if(working)return;const o=L.find(x=>x.id===b.dataset.i);if(!o)return;
       if(o.p&&!own[o.id]){sel=o.id;draw();return}
       await wdWear(who,o.slot,o.id,pet);sel=null;draw()});
@@ -4193,19 +4196,22 @@ function wdStop(){if(!WD)return;cancelAnimationFrame(WD.raf);try{WD.r.dispose();
 async function charPanel(){
   if(busy)return;
   let done;const closed=new Promise(r=>done=r);
-  const draw=()=>{const photo=G.avatar.mode==='photo'&&G.avatar.img;
-    $('card').innerHTML=`<h2>換角色</h2><div class="chars">
-      <button type="button" class="ch ${photo?'':'on'}" id="chBear"><img alt="" src="${iconSrc('bearblack')}">小黑熊</button>
-      <button type="button" class="ch ${photo?'on':''}" id="chPhoto"><img alt="" src="${G.avatar.img||iconSrc('santa')}">我的照片</button></div>
+  const draw=()=>{const m=G.avatar.mode,photo=m==='photo'&&G.avatar.img,art=m==='artist'?G.avatar.art:-1;
+    $('card').innerHTML=`<h2>換角色</h2><p class="note" style="margin:0 0 8px">選一個角色在走格子上走。藝術家是作品小屋的島民。</p><div class="chars">
+      <button type="button" class="ch ${m==='bear'||(m==='photo'&&!photo)?'on':''}" id="chBear"><img alt="" src="${iconSrc('bearblack')}">小黑熊</button>
+      <button type="button" class="ch ${photo?'on':''}" id="chPhoto"><img alt="" src="${G.avatar.img||iconSrc('santa')}">我的照片</button>
+      ${AV_ART.map((n,i)=>`<button type="button" class="ch art ${art===i?'on':''}" data-a="${i}"><img alt="" src="${avArtUrl(i)}">${n}</button>`).join('')}</div>
       <label class="upl">上傳照片<input type="file" accept="image/*" id="chFile"></label>
-      <p class="note">臉放在照片中間、越大越好。照片會變成圓形大頭，身體穿聖誕毛衣、戴聖誕帽，小遊戲裡也會用這個頭像。示範版的照片只存在這支手機裡。</p>
+      <p class="note">照片：臉放在中間、越大越好，會變成圓形大頭。照片和角色都只存在這支手機裡。藝術家角色已經穿好聖誕裝，衣櫥的裝扮只有小黑熊穿得到。</p>
       <div class="acts"><button type="button" class="btn" id="chOk">好了</button></div>`;
     $('pop').hidden=false;
     $('chBear').onclick=()=>{G.avatar.mode='bear';draw()};
     $('chPhoto').onclick=()=>{if(G.avatar.img){G.avatar.mode='photo';draw()}else $('chFile').click()};
+    $('card').querySelectorAll('.ch.art').forEach(b=>b.onclick=()=>{G.avatar.mode='artist';G.avatar.art=+b.dataset.a;draw()});
     $('chFile').onchange=async e=>{const fl=e.target.files[0];if(!fl)return;try{G.avatar.img=await fileToSquare(fl);G.avatar.mode='photo';draw()}catch(err){toast('這張照片讀不到，換一張試試')}};
     $('chOk').onclick=()=>{$('pop').hidden=true;done()}};
-  draw();await closed;await refreshAvatarImg();applyAvatar();save();toast(G.avatar.mode==='photo'?'換成你的照片了！':'換回小黑熊了');
+  draw();await closed;await refreshAvatarImg();applyAvatar();save();
+  toast(G.avatar.mode==='photo'?'換成你的照片了！':G.avatar.mode==='artist'?`換成${AV_ART[G.avatar.art]}了！`:'換回小黑熊了');
 }
 async function teacherPanel(){
   if(busy)return;
@@ -4238,11 +4244,18 @@ function makePhotoKid(src){
   const hat=santaHat(.27,1.25);hat.position.z=-.02;head.add(hat);
   g.userData.head=head;return g;
 }
+/* 2026-10-29 大熊：家長可以選作品小屋的 12 位藝術家當走格子的角色（大熊的聖誕公仔圖去背 xmas-figs/cut，當立牌） */
+const AV_ART=['梵谷','莫內','達利','克林姆','米羅','卡蘿','達文西','畢卡索','林布蘭','草間彌生','馬格利特','葛飾北齋'],AV_AR=[.64,.812,.68,.585,.605,.807,.723,.642,.703,.605,.583,.73];
+const avArtUrl=i=>`xmas-figs/cut/f${String(i+1).padStart(2,'0')}.webp?v=20261029a`;
+function makeArtistAv(i){const g=new THREE.Group(),H=1.35,tx=new THREE.TextureLoader().load(avArtUrl(i));tx.anisotropy=4;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,alphaTest:.4}));sp.center.set(.5,0);sp.scale.set(H*AV_AR[i],H,1);sp.position.y=.02;g.add(sp);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(.34,24),new THREE.MeshBasicMaterial({color:'#2a3550',transparent:true,opacity:.25,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.01;g.add(sh);
+  return g}
 function applyAvatar(){
-  const photo=G.avatar&&G.avatar.mode==='photo'&&G.avatar.img;
+  const photo=G.avatar&&G.avatar.mode==='photo'&&G.avatar.img,art=G.avatar&&G.avatar.mode==='artist'&&AV_ART[G.avatar.art]?G.avatar.art:-1;
   const w=myWear('bear');
-  bear.remove(bearBody);bearBody=photo?makePhotoKid(G.avatar.img):makeBear('#1c1c1f',1,false,true,!!w.neck);bear.add(bearBody);
-  if(!photo&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
+  bear.remove(bearBody);bearBody=art>=0?makeArtistAv(art):photo?makePhotoKid(G.avatar.img):makeBear('#1c1c1f',1,false,true,!!w.neck);bear.add(bearBody);
+  if(!photo&&art<0&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
 }
 const _q=new THREE.Quaternion();
 function billboardHead(){const h=bearBody.userData.head;if(!h)return;h.parent.getWorldQuaternion(_q);_q.invert().multiply(camera.quaternion);h.quaternion.copy(_q)}
