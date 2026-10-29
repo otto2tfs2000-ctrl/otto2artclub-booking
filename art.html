@@ -269,7 +269,7 @@ body.tour .pcTag{display:none!important}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261005za"></script>
+<script src="petlife.js?v=20261029a"></script>
 <script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
@@ -2019,6 +2019,7 @@ function rebuildGP(){gpRemember();gpPets.forEach(o=>{scene.remove(o.g);if(o.ns){
   if(!window.PetLife)return;
   G.members.forEach((m,i)=>['pet','frog'].forEach(kind=>{const P=m[kind],K=PK[kind];if(!P||m.works.length<PetLife.GP_WORKS)return;const h=houses[i];if(!h)return;
     const pd=normStyle(m.style,i)==='wing'?2:1.5,g=K.make(P.b,P.c);g.scale.setScalar(K.sc);
+    if(kind==='pet'&&P.wear&&PetLife.dress)PetLife.dress(THREE,x=>toon(x),g,P.wear,'gp'); /* 2026-10-29 走格子聖誕衣櫥換的裝扮 */
     h.updateMatrixWorld(true);let home=h.localToWorld(new THREE.Vector3(K.x,0,pd/2+.55));home.y=heightAt(home.x,home.z);
     /* 2026-10-24 離家出走：5 天沒來去別人家門口作客、14 天去旅行（不在島上），3 天頭上冒「肚子餓」；碗留在自己家 */
     const aw=m.away,hi=aw&&aw.s==='visit'?G.members.findIndex(x=>x.id===aw.at):-1,host=hi>=0?G.members[hi]:null;

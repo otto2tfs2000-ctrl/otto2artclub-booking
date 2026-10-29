@@ -156,5 +156,43 @@ function makeFrogPet(THREE,mat,sp,color){var P=frParams(sp),C=gpFind(FR_COLORS,c
     if(P.pat==='thigh'){var th=M(S(.1*L,8,6),'#f08a3a',d*sx*1.02,.12*L,-sz*.48);th.scale.set(.5,.6,1.1);Q.add(th)}
     if(P.pads)[[sx*.72,sz*.7],[sx*.95,.05]].forEach(function(a,j){for(var k=-1;k<=1;k++){var t=M(S(.035,6,5),C.l,d*a[0]+k*.06*d,.03,a[1]+(j?-.0:.08)+Math.abs(k)*-.03);Q.add(t)}})});
   g.userData={P:Q,body:B,eyes:eyes,frog:true};return g}
-window.PetLife={ANIMALS:ANIMALS,CARD_AT:CARD_AT,today:today,trip:trip,tripFound:tripFound,tripPlaceName:tripPlaceName,love:love,hearts:hearts,cardDay:cardDay,fedToday:fedToday,heartsHtml:heartsHtml,diarySeen:diarySeen,diaryMark:diaryMark,makeXiong:makeXiong,GP_FLOOR:GP_FLOOR,GP_WORKS:GP_WORKS,GP_BREEDS:GP_BREEDS,GP_COLORS:GP_COLORS,gpFind:gpFind,makeGP:makeGP,FR_SPECIES:FR_SPECIES,FR_COLORS:FR_COLORS,makeFrogPet:makeFrogPet};
+/* ===== 聖誕衣櫥（2026-10-29 大熊：用走格子的聖誕禮物幫小熊和天竺鼠換裝）=====
+   OUTFITS 價格以伺服器為準（XMAS_DEFAULT.outfits），這裡只放名字和部位給畫面用。
+   dress(THREE,mat,g,wear,kind)：kind 'bear'（遊樂島小黑熊）或 'gp'（天竺鼠，用 makeGP 的 userData.head）；重複呼叫會先拿掉舊的 */
+var OUTFITS=[{id:'santa',slot:'head',nm:'聖誕帽'},{id:'antler',slot:'head',nm:'麋鹿角'},{id:'elf',slot:'head',nm:'精靈帽'},
+  {id:'scarfR',slot:'neck',nm:'紅條紋圍巾'},{id:'bell',slot:'neck',nm:'鈴鐺項圈'},{id:'sweater',slot:'body',nm:'聖誕毛衣'}];
+var _dt={};
+function dTex(k){if(_dt[k])return _dt[k];var c=document.createElement('canvas');c.width=c.height=128;var x=c.getContext('2d');
+  if(k==='stripe'){x.fillStyle='#d63a2f';x.fillRect(0,0,128,128);x.fillStyle='#fff6ea';for(var i=0;i<128;i+=32)x.fillRect(i,0,14,128)}
+  else{x.fillStyle='#c8362c';x.fillRect(0,0,128,128);x.fillStyle='#fff6ea';x.fillRect(0,54,128,20);x.fillStyle='#2f7a46';for(var j=0;j<128;j+=16){x.beginPath();x.moveTo(j,58);x.lineTo(j+8,70);x.lineTo(j+16,58);x.closePath();x.fill()}
+    x.fillStyle='#fff6ea';for(var k2=0;k2<10;k2++){x.beginPath();x.arc((k2*37)%128,(k2*53)%40+6,3,0,7);x.fill();x.beginPath();x.arc((k2*29)%128,(k2*41)%40+84,3,0,7);x.fill()}}
+  var t=new window.THREE.CanvasTexture(c);t.wrapS=t.wrapT=window.THREE.RepeatWrapping;return _dt[k]=t}
+function dress(THREE,mat,g,wear,kind){wear=wear||{};
+  (g.userData.dress||[]).forEach(function(o){if(o.parent)o.parent.remove(o)});var out=[];g.userData.dress=out;
+  var gp=kind==='gp',R=gp?.37:.27;
+  function M(geo,c,x,y,z){var o=new THREE.Mesh(geo,typeof c==='string'?mat(c):c);o.position.set(x||0,y||0,z||0);o.castShadow=true;return o}
+  function tm(k){var m=mat('#ffffff').clone();m.map=dTex(k);return m}
+  var head=gp?g.userData.head:null;if(!head){head=new THREE.Group();head.position.set(0,.84,.02);g.add(head);out.push(head)}
+  function H(o){head.add(o);if(gp)out.push(o);return o}   /* 小熊的頭是另外加的一個 group（整個會被拿掉）；天竺鼠的頭是本體的，要一個一個記 */
+  if(wear.head==='santa'){var sh=new THREE.Group();var cone=M(new THREE.ConeGeometry(R*.78,R*1.55,16),'#d63a2f',R*.12,R*.62,0);cone.rotation.z=-.35;sh.add(cone);
+    var br=M(new THREE.TorusGeometry(R*.74,R*.2,8,20),'#ffffff');br.rotation.x=Math.PI/2;sh.add(br);sh.add(M(new THREE.SphereGeometry(R*.24,10,8),'#ffffff',R*.62,R*1.3,0));
+    sh.position.set(0,R*.82,-R*.08);sh.rotation.x=-.18;H(sh)}
+  if(wear.head==='antler'){[-1,1].forEach(function(d){var a=new THREE.Group(),c='#8a5a36';var m1=M(new THREE.CylinderGeometry(R*.07,R*.1,R*1.0,8),c,0,R*.5,0);a.add(m1);
+      var b1=M(new THREE.CylinderGeometry(R*.06,R*.07,R*.5,8),c,d*R*.18,R*.62,0);b1.rotation.z=-d*.9;a.add(b1);var b2=M(new THREE.CylinderGeometry(R*.05,R*.06,R*.4,8),c,-d*R*.12,R*.85,0);b2.rotation.z=d*.8;a.add(b2);
+      a.add(M(new THREE.SphereGeometry(R*.08,8,6),c,0,R*1.0,0));a.position.set(d*R*.5,R*.62,-R*.05);a.rotation.z=-d*.35;H(a)});
+    H(M(new THREE.SphereGeometry(R*.16,10,8),'#d3231b',0,gp?-R*.25:-R*.2,gp?R*1.05:R*1.15))} /* 魯道夫紅鼻子 */
+  if(wear.head==='elf'){var e=new THREE.Group();var cn=M(new THREE.ConeGeometry(R*.72,R*2.0,16),'#2f8f58',0,R*.95,0);e.add(cn);
+    var eb=M(new THREE.TorusGeometry(R*.7,R*.17,8,20),'#d63a2f');eb.rotation.x=Math.PI/2;e.add(eb);e.add(M(new THREE.SphereGeometry(R*.2,10,8),'#f2c14e',0,R*1.95,0));
+    e.position.set(0,R*.8,-R*.1);e.rotation.x=-.55;H(e)}
+  /* 脖子 */
+  var nk=new THREE.Group();if(gp){nk.position.set(0,.34,.3);nk.rotation.x=-.3}else nk.position.set(0,.63,.02);g.add(nk);out.push(nk);var NR=gp?.42:.2; /* 天竺鼠頭很大會擋住，圍巾放低、放寬一點 */
+  if(wear.neck==='scarfR'){var sc=M(new THREE.TorusGeometry(NR,NR*.3,10,24),tm('stripe'));sc.rotation.x=Math.PI/2;nk.add(sc);
+    var tl=M(new THREE.BoxGeometry(NR*.45,NR*1.1,NR*.18),tm('stripe'),NR*.55,-NR*.45,NR*.85);tl.rotation.z=-.3;nk.add(tl)}
+  if(wear.neck==='bell'){var cl=M(new THREE.TorusGeometry(NR*.98,NR*.12,8,24),'#c8362c');cl.rotation.x=Math.PI/2;nk.add(cl);
+    var bl=M(new THREE.SphereGeometry(NR*.32,12,10),'#f2c14e',0,-NR*.22,NR*1.05);nk.add(bl);nk.add(M(new THREE.BoxGeometry(NR*.35,NR*.06,NR*.06),'#6a4a1a',0,-NR*.3,NR*1.33))}
+  /* 身體：聖誕毛衣 */
+  if(wear.body==='sweater'){var sw=M(new THREE.SphereGeometry(gp?.5:.32,24,16),tm('sweater'),0,gp?.43:.36,gp?-.05:0);
+    if(gp)sw.scale.set(.93,.83,1.24);else sw.scale.set(1.06,1.1,.97);g.add(sw);out.push(sw)}
+  return g}
+window.PetLife={OUTFITS:OUTFITS,dress:dress,ANIMALS:ANIMALS,CARD_AT:CARD_AT,today:today,trip:trip,tripFound:tripFound,tripPlaceName:tripPlaceName,love:love,hearts:hearts,cardDay:cardDay,fedToday:fedToday,heartsHtml:heartsHtml,diarySeen:diarySeen,diaryMark:diaryMark,makeXiong:makeXiong,GP_FLOOR:GP_FLOOR,GP_WORKS:GP_WORKS,GP_BREEDS:GP_BREEDS,GP_COLORS:GP_COLORS,gpFind:gpFind,makeGP:makeGP,FR_SPECIES:FR_SPECIES,FR_COLORS:FR_COLORS,makeFrogPet:makeFrogPet};
 })();
