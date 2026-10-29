@@ -193,6 +193,7 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .ch.on{background:#fff3c4; outline:3px solid var(--red)}
 .ch img{width:72px; height:72px; border-radius:50%; object-fit:cover; background:#eef2f7}
 .chars{grid-template-columns:repeat(3,1fr); gap:8px}.ch{font-size:14px; padding:8px 4px 6px; border-width:2px}.ch img{width:58px; height:58px}.ch.art img{object-fit:contain; object-position:center top; border-radius:12px; background:#f3ead8}
+.chface{display:flex; align-items:center; justify-content:center; gap:8px; font-size:15px; margin:0 0 6px; color:var(--navy)}.chface input{width:20px; height:20px}
 .upl{display:inline-block; font-family:var(--round); font-size:14px; background:var(--gold); border:2px solid var(--ink); border-radius:99px; padding:6px 14px; cursor:pointer; box-shadow:0 3px 0 var(--ink); margin-bottom:8px}
 .upl input{position:absolute; width:1px; height:1px; opacity:0}
 .note{font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 12px}
@@ -850,7 +851,8 @@ body:not(.oct) #evPill{display:none}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261029b"></script>
+<script src="petlife.js?v=20261029c"></script>
+<script src="artists3d.js?v=20261029a"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
 <script src="anniv26.js?v=20261024a"></script>
@@ -860,7 +862,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261029j';
+const PARK_VER='20261029k';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1005,7 +1007,7 @@ function buildIsland(lv){
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
     if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
-    if(k==='lot'){const d=new THREE.Group(),q=LOT_POS[i]||[p.x,p.z],r=rng(i*97+13),jx=(r()-.5)*.5,jz=(r()-.5)*.5;
+    if(k==='lot'){const d=new THREE.Group(),q=LOT_POS[i]||[p.x,p.z],r=rng(i*97+13),jx=(r()-.5)*.2,jz=(r()-.5)*.2;
       d.position.set(q[0]+jx,o.y-.12,q[1]+jz);scene.add(d);lotDeco[i]=d} /* 2026-10-29 晚 大熊：小屋貼著格子很怪、外圈又被畫面切掉看不到 → 搬進格子圈裡面的雪地，散在森林之間 */
   });
   return g;
@@ -1155,7 +1157,7 @@ function sparkle(at,n=6,cols=['#ffd84a','#fff4c2','#ffffff']){
 async function starPulses(n){for(let i=0;i<n;i++){TREE.pulse=1;const w=new THREE.Vector3();TREE.star.getWorldPosition(w);sparkle(w,2,['#fff1c9','#ffe39a']);await sleep(1300)}}
 const FOREST={spots:[],parts:{},max:420,mine:null};
 /* 空地小屋蓋在格子圈裡面（key＝空地格子的編號）；附近的種樹位置不再種樹，伺服器 forestSkip 是同一份（用 lotSkip() 算出來的） */
-const LOT_POS={1:[-2.9,2.2],5:[.7,2.4],11:[4.3,1.9],17:[4.4,-1.2],20:[1.6,-2.2],30:[-4.4,.1],32:[-4.6,1.8]};
+const LOT_POS={17:[2.3,0],11:[2.0,1.4],5:[1.0,2.3],20:[-.3,2.5],1:[-1.5,2.1],32:[-2.3,.1],30:[-1.9,-.9]}; /* 2026-10-29 大熊：圍在大聖誕樹下一圈比較可愛 */
 const lotNear=sp=>Object.values(LOT_POS).some(q=>Math.hypot(sp.x-q[0],sp.z-q[1])<.95);
 const lotSkip=()=>FOREST.spots.map((sp,i)=>lotNear(sp)?i:-1).filter(i=>i>=0);
 const LVN=['','樹苗','小樹','聖誕樹','掛上彩燈','頂端星星'],LVS=[0,.45,.6,.72,.78,.86];
@@ -1276,7 +1278,7 @@ function updateLot(i){
 }
 /* 2026-10-29 空地的聖誕小屋改用大熊畫的五間天竺鼠紙箱屋（houses/xh0～4.webp，已去背），認領時挑一間，之後可以換；等級越高屋子越大＋旁邊多樹和禮物 */
 const XHN=['禮物精靈的郵局','薑餅烘焙師的蛋糕屋','粉雪女王的水晶城堡','薄荷雪怪的毛毛屋','彩繪精靈的調色盤隧道','聖誕老公公工作坊'],XHA=[384/304,384/320,384/367,384/377,384/266],XHT=[];
-const xhSt=(lot,i)=>{const v=Number(lot&&lot.st);return Number.isInteger(v)&&v>=0&&v<(window.XH3D?6:5)?v:i%5}; /* 第 6 間（工作坊）只有 3D 版 */
+const xhSt=(lot,i)=>{const v=lot&&lot.st!=null?Number(lot.st):NaN; /* 2026-10-29 沒挑過造型的舊小屋（st 空的）照位置輪流，不要全部變郵局 */return Number.isInteger(v)&&v>=0&&v<(window.XH3D?6:5)?v:i%5}; /* 第 6 間（工作坊）只有 3D 版 */
 const lap2On=()=>XS?!!(XS.p&&XS.p.lap2)||!!XS.sim:!!G.lap2;
 function xhSprite(st,h){if(!XHT[st]){const t=new THREE.TextureLoader().load(`houses/xh${st}.webp?v=20261029a`);t.anisotropy=4;XHT[st]=t}
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:XHT[st],transparent:true,alphaTest:.35}));sp.center.set(.5,.04);sp.scale.set(h*XHA[st],h,1);return sp}
@@ -4147,9 +4149,9 @@ async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const pet=plMyLoad('pet');let who='bear',sel=null,working=false;
   const start={bear:myWear('bear'),gp:myWear('gp',pet)}; /* 按「取消」就換回打開衣櫥時穿的（買過的東西還是你的） */
   let done;const closed=new Promise(r=>done=r);
-  const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),slots=[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']];
+  const draw=()=>{const L=outfitList(),own=myOwn(),w=myWear(who,pet),fig=who==='bear'&&G.avatar&&G.avatar.mode==='artist'&&avName(),slots=[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].filter(([k])=>!(fig&&k==='head')); /* 藝術家本來就戴帽子，頭上那排不給 */
     $('card').innerHTML=`<button type="button" class="wdchar" id="wdChar">🎭 換角色</button><h2>聖誕衣櫥</h2><p class="note" style="margin:0 0 6px">用走格子拿到的聖誕禮物換裝扮，買一次小熊和天竺鼠都能穿。你有 <b>${G.gifts}</b> 個禮物。</p>
-      ${pet?`<div class="wdtab"><button type="button" data-w="bear" class="${who==='bear'?'on':''}">小黑熊</button><button type="button" data-w="gp" class="${who==='gp'?'on':''}">${esc(pet.n||'天竺鼠')}</button></div>`:''}
+      ${pet?`<div class="wdtab"><button type="button" data-w="bear" class="${who==='bear'?'on':''}">${fig?esc(fig):'小黑熊'}</button><button type="button" data-w="gp" class="${who==='gp'?'on':''}">${esc(pet.n||'天竺鼠')}</button></div>`:''}
       <div class="wdv" id="wdv"></div>
       ${slots.map(([sl,nm])=>`<div class="wdrow"><span>${nm}</span>${L.filter(o=>o.slot===sl).map(o=>{const has=!o.p||own[o.id],on=w[sl]===o.id||(who==='bear'&&sl==='head'&&!w.head&&o.id==='santa');
         return `<button type="button" class="wdi${on?' on':''}${sel===o.id?' sel':''}" data-i="${o.id}"><i>${OUTFIT_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':`🎁 ${o.p}`}</small></button>`}).join('')}
@@ -4186,6 +4188,8 @@ function wdPreview(who,pet,w){const el=$('wdv');if(!el)return;
   const wd=el.clientWidth||280,ht=Math.round(wd/1.7);WD.r.setSize(wd,ht);WD.cam.aspect=wd/ht;WD.cam.updateProjectionMatrix();
   if(WD.g)WD.sc.remove(WD.g);
   if(who==='gp'&&pet){WD.g=PetLife.makeGP(THREE,c=>toon(c),pet.b,pet.c);PetLife.dress(THREE,c=>toon(c),WD.g,w,'gp');WD.cam.position.set(0,1.3,3.4);WD.cam.lookAt(0,.45,0)}
+  else if(G.avatar&&G.avatar.mode==='artist'&&avName()&&window.Artists3D){WD.g=makeArtistAv(avName())||new THREE.Group();const fu=WD.g.userData.fig;
+    if(fu)PetLife.dress(THREE,c=>toon(c),fu.body.parent,{face:G.avatar.face?null:w.face,neck:w.neck,body:w.body},'fig');WD.cam.position.set(0,1.0,3.4);WD.cam.lookAt(0,.62,0)}
   else{WD.g=makeBear('#1c1c1f',1,false,true,!!w.neck);PetLife.dress(THREE,c=>toon(c),WD.g,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear');WD.cam.position.set(0,1.1,3.2);WD.cam.lookAt(0,.62,0)}
   WD.sc.add(WD.g);cancelAnimationFrame(WD.raf);const spin=t=>{if(!$('wdv')){wdStop();return}WD.g.rotation.y=Math.sin(t/1400)*.7;WD.r.render(WD.sc,WD.cam);WD.raf=requestAnimationFrame(spin)};WD.raf=requestAnimationFrame(spin)}
 /* 第一次存到 5 個禮物：提醒一次可以去衣櫥換裝（每支手機只跳一次） */
@@ -4193,25 +4197,37 @@ async function wdTip(){try{if(G.phase==='oct'||G.gifts<5||localStorage.getItem('
   const go=await popup('giftbig','禮物可以換裝扮囉！',`你已經有 ${G.gifts} 個聖誕禮物，可以去聖誕衣櫥幫小熊${plMyLoad('pet')?'和天竺鼠':''}換上麋鹿角、精靈帽、聖誕毛衣。之後按擲骰子旁邊的「小衣櫥」，或點小熊、上面的禮物數字，都能打開。`,[{t:'去看看',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);
   if(go)wardrobe()}
 function wdStop(){if(!WD)return;cancelAnimationFrame(WD.raf);try{WD.r.dispose();WD.r.forceContextLoss()}catch(e){}WD=null}
+/* 角色小圖：用同一份 3D 公仔畫一張正面（打開換角色時畫一次，存著） */
+const AV_TH={};
+function avThumbs(){if(!window.Artists3D)return;const need=AV_ALL.filter(n=>!AV_TH[n]);if(!need.length)return;
+  const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setSize(150,170);r.setPixelRatio(1);
+  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight('#ffffff','#9c8c72',.95));const sun=new THREE.DirectionalLight('#fff4e0',.55);sun.position.set(2,4,3);sc.add(sun);
+  const cam=new THREE.PerspectiveCamera(28,150/170,.1,20);cam.position.set(0,1.05,3.9);cam.lookAt(0,.92,0);
+  need.forEach(n=>{const f=Artists3D.make(n);if(!f)return;f.rotation.y=.25;sc.add(f);r.render(sc,cam);AV_TH[n]=r.domElement.toDataURL();sc.remove(f)});
+  try{r.dispose();r.forceContextLoss()}catch(e){}}
 async function charPanel(){
   if(busy)return;
-  let done;const closed=new Promise(r=>done=r);
-  const draw=()=>{const m=G.avatar.mode,photo=m==='photo'&&G.avatar.img,art=m==='artist'?G.avatar.art:-1;
-    $('card').innerHTML=`<h2>換角色</h2><p class="note" style="margin:0 0 8px">選一個角色在走格子上走。藝術家是作品小屋的島民。</p><div class="chars">
+  let done;const closed=new Promise(r=>done=r);avThumbs();
+  const pick=()=>$('chFile').click();
+  const draw=()=>{const m=G.avatar.mode,photo=m==='photo'&&G.avatar.img,an=m==='artist'?avName():null;
+    const tile=(n,i)=>`<button type="button" class="ch art ${an===n?'on':''}" data-n="${n}"><img alt="" src="${AV_TH[n]||(i<12?avArtUrl(i):'')}">${n}</button>`;
+    $('card').innerHTML=`<h2>換角色</h2><div class="chars">
       <button type="button" class="ch ${m==='bear'||(m==='photo'&&!photo)?'on':''}" id="chBear"><img alt="" src="${iconSrc('bearblack')}">小黑熊</button>
-      <button type="button" class="ch ${photo?'on':''}" id="chPhoto"><img alt="" src="${G.avatar.img||iconSrc('santa')}">我的照片</button>
-      ${AV_ART.map((n,i)=>`<button type="button" class="ch art ${art===i?'on':''}" data-a="${i}"><img alt="" src="${avArtUrl(i)}">${n}</button>`).join('')}</div>
-      <label class="upl">上傳照片<input type="file" accept="image/*" id="chFile"></label>
-      <p class="note">照片：臉放在中間、越大越好，會變成圓形大頭。照片和角色都只存在這支手機裡。藝術家角色已經穿好聖誕裝，衣櫥的裝扮只有小黑熊穿得到。</p>
+      <button type="button" class="ch ${photo?'on':''}" id="chPhoto"><img alt="" src="${G.avatar.img||iconSrc('santa')}">${G.avatar.img?(photo?'換一張照片':'我的照片'):'上傳照片'}</button>
+      ${AV_ALL.map(tile).join('')}</div>
+      ${an?`<label class="chface"><input type="checkbox" id="chFace"${G.avatar.face&&G.avatar.img?' checked':''}> 用我的照片當${esc(an)}的頭</label>`:''}
+      <input type="file" accept="image/*" id="chFile" hidden>
+      <p class="note">點「我的照片」可以拍照或選照片，臉放中間、越大越好。選的角色只存在這支手機。衣櫥的臉上、脖子、身上裝扮，藝術家也能穿。</p>
       <div class="acts"><button type="button" class="btn" id="chOk">好了</button></div>`;
     $('pop').hidden=false;
     $('chBear').onclick=()=>{G.avatar.mode='bear';draw()};
-    $('chPhoto').onclick=()=>{if(G.avatar.img){G.avatar.mode='photo';draw()}else $('chFile').click()};
-    $('card').querySelectorAll('.ch.art').forEach(b=>b.onclick=()=>{G.avatar.mode='artist';G.avatar.art=+b.dataset.a;draw()});
-    $('chFile').onchange=async e=>{const fl=e.target.files[0];if(!fl)return;try{G.avatar.img=await fileToSquare(fl);G.avatar.mode='photo';draw()}catch(err){toast('這張照片讀不到，換一張試試')}};
+    $('chPhoto').onclick=()=>{if(G.avatar.img&&G.avatar.mode!=='photo'){G.avatar.mode='photo';draw()}else pick()}; /* 已經選了照片再點一次＝換一張 */
+    $('card').querySelectorAll('.ch.art').forEach(b=>b.onclick=()=>{G.avatar.mode='artist';G.avatar.art=b.dataset.n;draw()});
+    if($('chFace'))$('chFace').onchange=e=>{if(e.target.checked&&!G.avatar.img){e.target.checked=false;G.avatar._faceNext=true;pick();return}G.avatar.face=e.target.checked};
+    $('chFile').onchange=async e=>{const fl=e.target.files[0];if(!fl)return;try{G.avatar.img=await fileToSquare(fl);if(G.avatar._faceNext&&G.avatar.mode==='artist')G.avatar.face=true;else G.avatar.mode='photo';delete G.avatar._faceNext;draw()}catch(err){toast('這張照片讀不到，換一張試試')}};
     $('chOk').onclick=()=>{$('pop').hidden=true;done()}};
   draw();await closed;await refreshAvatarImg();applyAvatar();save();
-  toast(G.avatar.mode==='photo'?'換成你的照片了！':G.avatar.mode==='artist'?`換成${AV_ART[G.avatar.art]}了！`:'換回小黑熊了');
+  toast(G.avatar.mode==='photo'?'換成你的照片了！':G.avatar.mode==='artist'?`換成${avName()}了！`:'換回小黑熊了');
 }
 async function teacherPanel(){
   if(busy)return;
@@ -4244,18 +4260,29 @@ function makePhotoKid(src){
   const hat=santaHat(.27,1.25);hat.position.z=-.02;head.add(hat);
   g.userData.head=head;return g;
 }
-/* 2026-10-29 大熊：家長可以選作品小屋的 12 位藝術家當走格子的角色（大熊的聖誕公仔圖去背 xmas-figs/cut，當立牌） */
-const AV_ART=['梵谷','莫內','達利','克林姆','米羅','卡蘿','達文西','畢卡索','林布蘭','草間彌生','馬格利特','葛飾北齋'],AV_AR=[.64,.812,.68,.585,.605,.807,.723,.642,.703,.605,.583,.73];
+/* 2026-10-29 大熊：家長可以選作品小屋的 12 位藝術家＋5 間聖誕小屋的主人當走格子的角色。
+   用作品小屋同一份 3D 公仔（artists3d.js），會舉手丟骰子、能穿衣櫥的臉／脖子／身上（頭上本來就戴帽子，不疊）；可以勾「用我的照片當頭」 */
+const AV_ART=['梵谷','莫內','達利','克林姆','米羅','卡蘿','達文西','畢卡索','林布蘭','草間彌生','馬格利特','葛飾北齋'],AV_FOLK=['禮物精靈','薑餅烘焙師','粉雪女王','薄荷雪怪','彩繪精靈'];
+const AV_ALL=[...AV_ART,...AV_FOLK];
 const avArtUrl=i=>`xmas-figs/cut/f${String(i+1).padStart(2,'0')}.webp?v=20261029a`;
-function makeArtistAv(i){const g=new THREE.Group(),H=1.35,tx=new THREE.TextureLoader().load(avArtUrl(i));tx.anisotropy=4;
-  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,alphaTest:.4}));sp.center.set(.5,0);sp.scale.set(H*AV_AR[i],H,1);sp.position.y=.02;g.add(sp);
+const avName=()=>{const a=G.avatar&&G.avatar.art;return typeof a==='number'?AV_ART[a]:AV_ALL.includes(a)?a:null};
+function photoHead(src,r){const head=new THREE.Group(),tex=new THREE.TextureLoader().load(src);
+  const face=new THREE.Mesh(new THREE.CircleGeometry(r*.89,40),new THREE.MeshBasicMaterial({map:tex}));face.position.z=.01;head.add(face);
+  head.add(new THREE.Mesh(new THREE.CircleGeometry(r,40),new THREE.MeshBasicMaterial({color:'#ffffff'})));
+  head.add(new THREE.Mesh(new THREE.RingGeometry(r,r*1.07,40),new THREE.MeshBasicMaterial({color:'#2b2320'})));return head}
+function makeArtistAv(n){const f=window.Artists3D&&Artists3D.make(n);if(!f)return null;
+  const g=new THREE.Group(),u=f.userData;f.scale.setScalar(.7);f.position.y=-.02;g.add(f);
+  f.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){o.material=o.material.clone();if(o.material.emissive){o.material.emissive.copy(o.material.color).multiplyScalar(.38);if(o.material.map)o.material.emissiveMap=o.material.map}}}); /* 晚上的格子島比較暗，角色自己亮一點（同空地小屋） */
+  g.userData.fig=u;g.userData.figName=n;
+  if(G.avatar.face&&G.avatar.img){u.head.visible=false;const ph=photoHead(G.avatar.img,.42);ph.position.set(0,1.16,.02);u.body.add(ph);g.userData.head=ph} /* 藝術家的身體＋家長自己的大頭 */
   const sh=new THREE.Mesh(new THREE.CircleGeometry(.34,24),new THREE.MeshBasicMaterial({color:'#2a3550',transparent:true,opacity:.25,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.01;g.add(sh);
   return g}
 function applyAvatar(){
-  const photo=G.avatar&&G.avatar.mode==='photo'&&G.avatar.img,art=G.avatar&&G.avatar.mode==='artist'&&AV_ART[G.avatar.art]?G.avatar.art:-1;
-  const w=myWear('bear');
-  bear.remove(bearBody);bearBody=art>=0?makeArtistAv(art):photo?makePhotoKid(G.avatar.img):makeBear('#1c1c1f',1,false,true,!!w.neck);bear.add(bearBody);
-  if(!photo&&art<0&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
+  const photo=G.avatar&&G.avatar.mode==='photo'&&G.avatar.img,an=G.avatar&&G.avatar.mode==='artist'?avName():null;
+  const w=myWear('bear'),av=an?makeArtistAv(an):null;
+  bear.remove(bearBody);bearBody=av||(photo?makePhotoKid(G.avatar.img):makeBear('#1c1c1f',1,false,true,!!w.neck));bear.add(bearBody);
+  if(av&&window.PetLife&&PetLife.dress){PetLife.dress(THREE,c=>toon(c),bearBody.userData.fig.body.parent,{face:G.avatar.face?null:w.face,neck:w.neck,body:w.body},'fig');return}
+  if(!photo&&!av&&window.PetLife&&PetLife.dress)PetLife.dress(THREE,c=>toon(c),bearBody,{head:w.head||'santa',face:w.face,neck:w.neck,body:w.body},'bear'); /* 聖誕衣櫥：沒換過就是原本的聖誕帽＋綠圍巾 */
 }
 const _q=new THREE.Quaternion();
 function billboardHead(){const h=bearBody.userData.head;if(!h)return;h.parent.getWorldQuaternion(_q);_q.invert().multiply(camera.quaternion);h.quaternion.copy(_q)}
@@ -4324,6 +4351,7 @@ async function rollDie(vp){
   const sx=(3+Math.floor(Math.random()*2))*Math.PI*2*(Math.random()<.5?1:-1),sy=Math.PI*(1+Math.random()),sz=(2+Math.floor(Math.random()*2))*Math.PI*2;
   dieG.visible=true;dieG.scale.setScalar(1);dieG.position.copy(P0);
   tween(220,p=>{bearBody.rotation.x=-.35+.75*Math.sin(p*Math.PI*.5)}).then(()=>tween(260,p=>{bearBody.rotation.x=.4*(1-p)}));
+  {const fa=bearBody.userData.fig&&bearBody.userData.fig.armR;if(fa){const r0=fa.rotation.x;tween(480,p=>{fa.rotation.x=r0-Math.sin(p*Math.PI)*2.6})}} /* 3D 角色舉手把骰子丟出去 */
   let thump=0;
   await tween(T,p=>{let t=p*T,d=0,k=0;while(k<seg.length-1&&t>seg[k][2]){t-=seg[k][2];d+=seg[k][0];k++}
     const q=Math.min(1,t/seg[k][2]),fwd=d+seg[k][0]*(k===seg.length-1?easeOut(q):q);

@@ -176,11 +176,11 @@ function dTex(k){if(_dt[k])return _dt[k];var c=document.createElement('canvas');
   var t=new window.THREE.CanvasTexture(c);t.wrapS=t.wrapT=window.THREE.RepeatWrapping;return _dt[k]=t}
 function dress(THREE,mat,g,wear,kind){wear=wear||{};
   (g.userData.dress||[]).forEach(function(o){if(o.parent)o.parent.remove(o)});var out=[];g.userData.dress=out;
-  var gp=kind==='gp',R=gp?.37:.27;
+  var gp=kind==='gp',fg=kind==='fig',R=gp?.37:fg?.3:.27;   /* fig＝走格子的 3D 藝術家（artists3d.js），頭是公仔自己的 */
   function M(geo,c,x,y,z){var o=new THREE.Mesh(geo,typeof c==='string'?mat(c):c);o.position.set(x||0,y||0,z||0);o.castShadow=true;return o}
   function tm(k){var m=mat('#ffffff').clone();m.map=dTex(k);return m}
-  var head=gp?g.userData.head:null;if(!head){head=new THREE.Group();head.position.set(0,.84,.02);g.add(head);out.push(head)}
-  function H(o){head.add(o);if(gp)out.push(o);return o}   /* 小熊的頭是另外加的一個 group（整個會被拿掉）；天竺鼠的頭是本體的，要一個一個記 */
+  var head=gp||fg?g.userData.head:null;if(!head){head=new THREE.Group();head.position.set(0,.84,.02);g.add(head);out.push(head)}
+  function H(o){head.add(o);if(gp||fg)out.push(o);return o}   /* 小熊的頭是另外加的一個 group（整個會被拿掉）；天竺鼠的頭是本體的，要一個一個記 */
   if(wear.head==='santa'){var sh=new THREE.Group();var cone=M(new THREE.ConeGeometry(R*.78,R*1.55,16),'#d63a2f',R*.12,R*.62,0);cone.rotation.z=-.35;sh.add(cone);
     var br=M(new THREE.TorusGeometry(R*.74,R*.2,8,20),'#ffffff');br.rotation.x=Math.PI/2;sh.add(br);sh.add(M(new THREE.SphereGeometry(R*.24,10,8),'#ffffff',R*.62,R*1.3,0));
     sh.position.set(0,R*.82,-R*.08);sh.rotation.x=-.18;H(sh)}
@@ -206,9 +206,9 @@ function dress(THREE,mat,g,wear,kind){wear=wear||{};
   /* 臉上：達利翹鬍子（鼻子下面，兩邊往上捲） */
   if(wear.face==='mustache'){var mu=new THREE.Group();[-1,1].forEach(function(d){var a1=M(new THREE.CylinderGeometry(R*.025,R*.06,R*.4,8),'#1b1714',d*R*.19,R*.04,0);a1.rotation.z=d*(Math.PI/2-.3);mu.add(a1);
       var cu=M(new THREE.TorusGeometry(R*.075,R*.024,6,14,Math.PI*1.3),'#1b1714',d*R*.42,R*.15,0);cu.rotation.z=d>0?-.9:Math.PI-.4;cu.scale.x=d;mu.add(cu)});
-    mu.position.set(0,gp?-R*.44:-R*.4,gp?R*1.15:R*1.26);H(mu)}
+    mu.position.set(0,gp?-R*.44:fg?-R*.38:-R*.4,gp?R*1.15:fg?R*.98:R*1.26);H(mu)}
   /* 脖子 */
-  var nk=new THREE.Group();if(gp){nk.position.set(0,.34,.3);nk.rotation.x=-.3}else nk.position.set(0,.63,.02);g.add(nk);out.push(nk);var NR=gp?.42:.2; /* 天竺鼠頭很大會擋住，圍巾放低、放寬一點 */
+  var nk=new THREE.Group();if(gp){nk.position.set(0,.34,.3);nk.rotation.x=-.3}else if(fg)nk.position.set(0,.8,0);else nk.position.set(0,.63,.02);g.add(nk);out.push(nk);var NR=gp?.42:fg?.19:.2; /* 天竺鼠頭很大會擋住，圍巾放低、放寬一點 */
   if(wear.neck==='scarfR'){var sc=M(new THREE.TorusGeometry(NR,NR*.3,10,24),tm('stripe'));sc.rotation.x=Math.PI/2;nk.add(sc);
     var tl=M(new THREE.BoxGeometry(NR*.45,NR*1.1,NR*.18),tm('stripe'),NR*.55,-NR*.45,NR*.85);tl.rotation.z=-.3;nk.add(tl)}
   if(wear.neck==='bell'){var cl=M(new THREE.TorusGeometry(NR*.98,NR*.12,8,24),'#c8362c');cl.rotation.x=Math.PI/2;nk.add(cl);
@@ -216,11 +216,11 @@ function dress(THREE,mat,g,wear,kind){wear=wear||{};
   if(wear.neck==='bowtie'){var bo=new THREE.Group();[-1,1].forEach(function(d){var w2=M(new THREE.ConeGeometry(NR*.32,NR*.6,4),tm('dots'),d*NR*.28,0,0);w2.rotation.z=d*Math.PI/2;bo.add(w2)});
     bo.add(M(new THREE.SphereGeometry(NR*.13,10,8),tm('dots')));if(gp){bo.scale.setScalar(1.05);bo.position.set(0,.2,.86);g.add(bo);out.push(bo)}else{bo.position.set(0,-NR*.12,NR*1.0);nk.add(bo)}} /* 天竺鼠沒有脖子：蝴蝶結放在下巴前面 */
   /* 身體：聖誕毛衣、畢卡索條紋衫、克林姆金色衣（同一個殼，換花紋） */
-  ['sweater','marin','klimt'].forEach(function(k){if(wear.body!==k||k==='sweater')return;var sh2=M(new THREE.SphereGeometry(gp?.5:.32,24,16),tm(k),0,gp?.43:.36,gp?-.05:0);
-    if(gp)sh2.scale.set(.93,.83,1.24);else sh2.scale.set(1.06,1.1,.97);g.add(sh2);out.push(sh2)});
+  ['sweater','marin','klimt'].forEach(function(k){if(wear.body!==k||k==='sweater')return;var sh2=M(new THREE.SphereGeometry(gp?.5:fg?.25:.32,24,16),tm(k),0,gp?.43:fg?.56:.36,gp?-.05:0);
+    if(gp)sh2.scale.set(.93,.83,1.24);else if(fg)sh2.scale.set(.95,1.25,.92);else sh2.scale.set(1.06,1.1,.97);g.add(sh2);out.push(sh2)});
   /* 身體：聖誕毛衣 */
   if(wear.body==='sweater'){var sw=M(new THREE.SphereGeometry(gp?.5:.32,24,16),tm('sweater'),0,gp?.43:.36,gp?-.05:0);
-    if(gp)sw.scale.set(.93,.83,1.24);else sw.scale.set(1.06,1.1,.97);g.add(sw);out.push(sw)}
+    if(gp)sw.scale.set(.93,.83,1.24);else if(fg)sw.scale.set(.95,1.25,.92);else sw.scale.set(1.06,1.1,.97);g.add(sw);out.push(sw)}
   return g}
 window.PetLife={OUTFITS:OUTFITS,dress:dress,ANIMALS:ANIMALS,CARD_AT:CARD_AT,today:today,trip:trip,tripFound:tripFound,tripPlaceName:tripPlaceName,love:love,hearts:hearts,cardDay:cardDay,fedToday:fedToday,heartsHtml:heartsHtml,diarySeen:diarySeen,diaryMark:diaryMark,makeXiong:makeXiong,GP_FLOOR:GP_FLOOR,GP_WORKS:GP_WORKS,GP_BREEDS:GP_BREEDS,GP_COLORS:GP_COLORS,gpFind:gpFind,makeGP:makeGP,FR_SPECIES:FR_SPECIES,FR_COLORS:FR_COLORS,makeFrogPet:makeFrogPet};
 })();
