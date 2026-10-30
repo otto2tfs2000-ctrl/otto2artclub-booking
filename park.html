@@ -142,6 +142,19 @@ table.rank tr.me td{color:var(--red)}
 table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px 4px}
 /* minigames */
 .mgcv{display:block; margin:0 auto 12px; border:2.5px solid var(--ink); border-radius:16px; background:#eaf4ff; touch-action:none; max-width:100%}
+/* 2026-10-31 萬聖節限定：點南瓜小遊戲 */
+#hwBtn{position:fixed; right:12px; top:calc(env(safe-area-inset-top,0px) + 132px); z-index:30; width:52px; height:52px; border-radius:50%; border:3px solid var(--ink); background:#ff9b3d; font-size:28px; box-shadow:0 4px 0 var(--ink); cursor:pointer; animation:hwBob 1.6s ease-in-out infinite}
+#hwBtn small{position:absolute; right:-6px; top:-6px; background:#d63a2f; color:#fff; font-size:11px; border-radius:10px; padding:1px 6px; border:2px solid var(--ink)}
+@keyframes hwBob{50%{transform:translateY(-5px) rotate(-6deg)}}
+.hwbig{font-size:64px; line-height:1; margin:2px 0 6px; animation:hwBob 1.6s ease-in-out infinite}
+.hwrule{text-align:left; background:#fff6ea; border:2px solid #f0d2a8; border-radius:14px; padding:8px 12px; font-size:14px; line-height:1.7; margin:8px 0 12px}
+.hwsc{font-size:34px; font-weight:900; color:#e86a10; margin:4px 0}
+#hwFull{position:fixed; inset:0; z-index:60; background:#160f2e; display:flex; flex-direction:column; touch-action:none; user-select:none; -webkit-user-select:none}
+#hwFull canvas{flex:1; width:100%; min-height:0; display:block; touch-action:none}
+.hwhud{display:flex; justify-content:space-between; gap:8px; padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 8px; color:#fff; font-size:18px; font-weight:800}
+.hwhud span{background:rgba(255,255,255,.12); border-radius:20px; padding:5px 12px}
+.hwhud b{color:#ffd447; font-size:22px}
+.hwtip{margin:0; padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 10px); text-align:center; color:#d9c8ef; font-size:13px}
 .mgstat{display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px}
 .mgstat b{font-weight:400; color:var(--red)}
 .swatches{display:flex; justify-content:center; gap:18px; margin-bottom:10px}
@@ -886,7 +899,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030e';
+const PARK_VER='20261030i';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3118,7 +3131,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030h',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030i',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4088,6 +4101,104 @@ function gMemo(){return new Promise(res=>{
       if(deck[a.dataset.i]===deck[c.dataset.i]){a.classList.replace('open','done');c.classList.replace('open','done');open=[];done++;toast(`找到${faces[deck[a.dataset.i]].name}！`);$('mmD').textContent=done;if(done===6)setTimeout(end,400)}
       else{lock=true;setTimeout(()=>{a.classList.remove('open');c.classList.remove('open');open=[];lock=false},650)}}});
 })}
+// ---- 2026-10-31 萬聖節限定：Trick or Treat 點南瓜（只有 10/31 當天；?hw=1 預覽）
+/* 全螢幕夜空，東西從上面掉下來，點到就拿：南瓜＝聖誕禮物（普通 +1、🎀禮物南瓜 +2、✨金南瓜 +5），紅利金幣＝紅利點數 +1，
+   💣 炸彈＝禮物和紅利一起歸零。一天最多玩 3 次，禮物、紅利各算最高的那次（禮物最多 HW_CAP 個、紅利最多 HW_BCAP 點） */
+const HW_DAY='2026-10-31',HW_PLAYS=3,HW_CAP=20,HW_BCAP=3,HW_SEC=20;
+const hwOn=()=>!window.KIOSK&&(/[?&]hw=1/.test(location.search)||gToday()===HW_DAY);
+const hwReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token()); /* 有登入：次數、最高分、發獎都在伺服器（/xmas/hw）；訪客體驗版只記在這支手機 */
+let HWS=null;
+async function hwSync(){if(!hwReal())return;try{const j=await xcall('/xmas/hw',{op:'info'});HWS=j.hw}catch(e){}}
+const hwKey='otto2-hw-'+HW_DAY;
+function hwLoad(){if(hwReal()&&HWS)return{plays:HWS.plays,best:HWS.best,bbest:HWS.bbest};try{return Object.assign({plays:0,best:0,bbest:0},JSON.parse(localStorage.getItem(hwKey)||'{}'))}catch(e){return{plays:0,best:0,bbest:0}}}
+function hwSave(st){try{localStorage.setItem(hwKey,JSON.stringify(st))}catch(e){}}
+function hwBtn(){let b=$('hwBtn');const st=hwLoad(),left=HW_PLAYS-st.plays;
+  if(!hwOn()||left<=0){if(b)b.remove();return}
+  if(!b){b=document.createElement('button');b.id='hwBtn';b.type='button';b.setAttribute('aria-label','萬聖節小遊戲');b.onclick=()=>{if(!busy&&$('pop').hidden)hwIntro()};document.body.appendChild(b)}
+  b.innerHTML=`🎃<small>${left}</small>`}
+let _hwAuto=0,_hwWait=0;
+async function hwMaybe(){if(!hwOn())return;
+  if(window.PROD&&!window.GUEST&&token()&&!XS&&_hwWait++<10){setTimeout(hwMaybe,1500);return} /* 等走格子資料載入，才知道今天玩過幾次 */
+  if(hwReal()&&!HWS)await hwSync();hwBtn();if(_hwAuto||hwLoad().plays>=HW_PLAYS)return;
+  if(busy||!$('pop').hidden){setTimeout(hwMaybe,1500);return}_hwAuto=1;hwIntro()}
+function hwIntro(){const st=hwLoad(),left=HW_PLAYS-st.plays;if($('hwBtn'))$('hwBtn').remove(); /* 視窗打開時角落的南瓜先收起來，不要蓋住 */
+  card(`<div class="hwbig">🎃</div><h2>Trick or Treat！</h2><p style="margin:0">萬聖節限定，只有今天才玩得到</p>
+    <div class="hwrule">🎃 點南瓜拿聖誕禮物<br>🎀 禮物南瓜 +2、✨ 金南瓜 +5<br>🪙 點紅利金幣拿紅利點數（最多 ${HW_BCAP} 點）<br>💣 點到炸彈，禮物和紅利全部歸零！<br>🏆 可以玩 ${HW_PLAYS} 次，算最高的那次</div>
+    ${st.plays?`<p style="margin:0 0 8px">目前最高 🎁 <b>${st.best}</b>・🪙 <b>${st.bbest}</b> 點，還可以玩 <b>${left}</b> 次</p>`:''}
+    <div class="acts"><button type="button" class="btn ghost" id="hwNo">晚點再玩</button><button type="button" class="btn red" id="hwGo">開始（還有 ${left} 次）</button></div>`);
+  $('hwNo').onclick=()=>{$('pop').hidden=true;hwBtn()};
+  $('hwGo').onclick=hwStart}
+/* 開始一局：有登入先跟伺服器扣一次 */
+async function hwStart(){if(hwStart.busy)return;hwStart.busy=1;sfx('tap');
+  try{if(hwReal()){const j=await xcall('/xmas/hw',{op:'start'});HWS=j.hw;hud()}}catch(e){hwStart.busy=0;toast(e.message||'連線不穩，稍後再試');return}
+  hwStart.busy=0;$('pop').hidden=true;hwDone(await hwPlay())}
+/* 掉下來的東西：k 種類、g 禮物、b 紅利；分數標籤放在下面，才不會擋到蝴蝶結、巫師帽 */
+const HW_KINDS=[{k:'p',w:44,g:1},{k:'hat',w:14,g:1},{k:'bow',w:16,g:2},{k:'gold',w:5,g:5},{k:'coin',w:7,b:1}];
+function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
+  const ov=document.createElement('div');ov.id='hwFull';
+  ov.innerHTML=`<div class="hwhud"><span>🎁 <b id="hwS">0</b></span><span>🪙 紅利 <b id="hwB">0</b></span><span>⏱ <b id="hwT">${HW_SEC}</b></span></div><canvas id="hwCv"></canvas><p class="hwtip">點南瓜和紅利金幣，小心炸彈 💣</p>`;
+  document.body.appendChild(ov);
+  const cv=$('hwCv'),x=cv.getContext('2d'),DP=Math.min(2,devicePixelRatio||1);
+  let W=0,H=0;const fit=()=>{const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)};fit();
+  const S=Math.max(40,Math.min(64,W/6.5)); /* 南瓜大小跟著螢幕 */
+  let gift=0,bon=0,boom=false,items=[],fx=[],spawn=.3,t0=performance.now(),start=t0,done=false,flash=0,shake=0;
+  const stars=[...Array(50)].map(()=>[Math.random(),Math.random()*.75,Math.random()*1.5+.4]);
+  const hudUp=()=>{$('hwS').textContent=gift;$('hwB').textContent=bon};
+  cv.addEventListener('pointerdown',e=>{if(done)return;const r=cv.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+    let hit=null,bd=S*.75;items.forEach(it=>{const d=Math.hypot(it.x-px,it.y-py);if(!it.hit&&d<bd){bd=d;hit=it}});if(!hit)return;hit.hit=true;
+    if(hit.k==='bomb'){gift=0;bon=0;boom=true;flash=1;shake=.4;fx.push({x:hit.x,y:hit.y,t:'💥 全部歸零！',c:'#ff5a4a',a:1});sfx('thunk')}
+    else if(hit.b){bon=Math.min(HW_BCAP,bon+hit.b);boom=false;fx.push({x:hit.x,y:hit.y,t:bon>=HW_BCAP&&hit.b?`紅利 +${hit.b}（滿了）`:`紅利 +${hit.b}`,c:'#ffd447',a:1});sfx('sparkle')}
+    else{gift+=hit.g;boom=false;fx.push({x:hit.x,y:hit.y,t:`🎁 +${hit.g}`,c:hit.k==='gold'?'#ffd447':'#fff',a:1});sfx(hit.k==='gold'?'sparkle':'pop')}
+    hudUp()});
+  const pick=el=>{if(Math.random()<.15+el*.009)return{k:'bomb'};let r=Math.random()*HW_KINDS.reduce((a,o)=>a+o.w,0);for(const o of HW_KINDS){if((r-=o.w)<0)return Object.assign({},o)}return Object.assign({},HW_KINDS[0])};
+  const badge=(t,cx,cy,bg)=>{x.font=`bold ${Math.round(S*.24)}px sans-serif`;const w=x.measureText(t).width+12,h=S*.36;
+    x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=2;x.beginPath();x.roundRect?x.roundRect(cx-w/2,cy-h/2,w,h,h/2):x.rect(cx-w/2,cy-h/2,w,h);x.fill();x.stroke();x.fillStyle='#2b2320';x.fillText(t,cx,cy+1)};
+  function draw(it){x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.rot)*.22);
+    if(it.k==='coin'){const r=S*.42,g=x.createRadialGradient(-r*.3,-r*.3,r*.1,0,0,r);g.addColorStop(0,'#fff3a8');g.addColorStop(1,'#e8a200');
+      x.shadowColor='#ffd447';x.shadowBlur=14;x.fillStyle=g;x.beginPath();x.arc(0,0,r,0,7);x.fill();x.shadowBlur=0;x.strokeStyle='#9a6a00';x.lineWidth=3;x.stroke();
+      x.beginPath();x.arc(0,0,r*.74,0,7);x.lineWidth=1.5;x.stroke();x.fillStyle='#7a4f00';x.font=`900 ${Math.round(r*.62)}px sans-serif`;x.fillText('紅利',0,1);x.restore();
+      badge('+1 點',it.x,it.y+S*.62,'#ffd447');return}
+    if(it.k==='bomb'){x.font=`${Math.round(S*1.05)}px sans-serif`;x.fillText('💣',0,0);x.restore();return}
+    if(it.k==='gold'){const hr=S*.85,hg=x.createRadialGradient(0,0,S*.2,0,0,hr);hg.addColorStop(0,'rgba(255,224,90,.85)');hg.addColorStop(.55,'rgba(255,200,40,.35)');hg.addColorStop(1,'rgba(255,200,40,0)');
+      x.fillStyle=hg;x.beginPath();x.arc(0,0,hr,0,7);x.fill();x.shadowColor='#ffd447';x.shadowBlur=24} /* 圓形金色光暈（之前整塊塗色會連夜空一起塗成方塊） */
+    x.font=`${Math.round(S)}px sans-serif`;x.fillText('🎃',0,0);x.shadowBlur=0;
+    if(it.k==='gold'){x.font=`${Math.round(S*.4)}px sans-serif`;x.fillText('✨',S*.38,-S*.36)}
+    if(it.k==='bow'){x.font=`${Math.round(S*.55)}px sans-serif`;x.fillText('🎀',0,-S*.42)}
+    if(it.k==='hat'){x.fillStyle='#3b2050';x.strokeStyle='#1a0f24';x.lineWidth=2;x.beginPath();x.ellipse(0,-S*.36,S*.42,S*.09,0,0,7);x.fill();x.stroke();
+      x.beginPath();x.moveTo(-S*.24,-S*.4);x.lineTo(S*.1,-S*.95);x.lineTo(S*.24,-S*.4);x.closePath();x.fill();x.stroke();x.fillStyle='#ff9b3d';x.fillRect(-S*.2,-S*.5,S*.42,S*.07)}
+    x.restore();badge(`+${it.g} 🎁`,it.x,it.y+S*.62,it.k==='gold'?'#ffd447':it.k==='bow'?'#ffd0dc':'#fff')}
+  function frame(now){if(gone()){ov.remove();return}const dt=Math.min(.05,(now-t0)/1000);t0=now;const el=(now-start)/1000;
+    spawn-=dt;if(spawn<=0){spawn=Math.max(.26,.52-el*.013);const o=pick(el);o.x=S*.6+Math.random()*(W-S*1.2);o.y=-S;o.v=H*(.2+Math.random()*.12)+el*H*.008;o.rot=Math.random()*6;items.push(o)}
+    items.forEach(it=>{it.y+=it.v*dt;it.rot+=dt*1.5});items=items.filter(it=>!it.hit&&it.y<H+S);
+    fx.forEach(f=>{f.y-=46*dt;f.a-=dt*1.3});fx=fx.filter(f=>f.a>0);
+    x.save();if(shake>0){shake-=dt;x.translate((Math.random()-.5)*12,(Math.random()-.5)*12)}
+    const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#160f2e');g.addColorStop(.7,'#3d2558');g.addColorStop(1,'#5a3260');x.fillStyle=g;x.fillRect(-12,-12,W+24,H+24);
+    stars.forEach(([sx,sy,sr],i)=>{x.fillStyle=`rgba(255,255,255,${.45+.35*Math.sin(now/600+i)})`;x.beginPath();x.arc(sx*W,sy*H,sr,0,7);x.fill()});
+    x.fillStyle='#fff3c4';x.shadowColor='#fff3c4';x.shadowBlur=30;x.beginPath();x.arc(W-60,70,30,0,7);x.fill();x.shadowBlur=0;x.fillStyle='#160f2e';x.beginPath();x.arc(W-47,62,27,0,7);x.fill();
+    x.fillStyle='#21142e';x.beginPath();x.moveTo(0,H);x.lineTo(0,H-40);for(let i=0;i<=10;i++)x.lineTo(i*W/10,H-40-(i%2?16:3));x.lineTo(W,H);x.fill();
+    x.textAlign='center';x.textBaseline='middle';items.forEach(draw);
+    fx.forEach(f=>{x.globalAlpha=Math.max(0,f.a);x.font=`900 ${Math.round(S*.42)}px sans-serif`;x.fillStyle=f.c;x.strokeStyle='#2b2320';x.lineWidth=4;x.strokeText(f.t,f.x,f.y);x.fillText(f.t,f.x,f.y);x.globalAlpha=1});
+    if(flash>0){flash-=dt*2.2;x.fillStyle=`rgba(255,60,40,${Math.max(0,flash)*.45})`;x.fillRect(-12,-12,W+24,H+24)}
+    x.restore();
+    const left=Math.max(0,HW_SEC-el);$('hwT').textContent=Math.ceil(left);
+    if(left<=0&&!done){done=true;setTimeout(()=>{ov.remove();res({sc:gift,b:bon,boom})},500);return}
+    requestAnimationFrame(frame)}
+  requestAnimationFrame(frame)})}
+async function hwDone(r){const st0=hwLoad(),old=st0.best,oldB=st0.bbest,sc=Math.min(HW_CAP,r.sc),b=Math.min(HW_BCAP,r.b||0);
+  let st,add,addB,swap=0;
+  if(hwReal()){let j=null;for(let i=0;i<3&&!j;i++){try{j=await xcall('/xmas/hw',{op:'end',gift:sc,bonus:b})}catch(e){if(i===2){toast(e.message||'連線不穩，獎勵沒送出去');j={hw:HWS||st0,hwRes:{addG:0,addB:0,swap:0}}}else await new Promise(z=>setTimeout(z,1200))}}
+    HWS=j.hw;st={plays:j.hw.plays,best:j.hw.best,bbest:j.hw.bbest};add=j.hwRes.addG;addB=j.hwRes.addB;swap=j.hwRes.swap||0;hud()}
+  else{st={plays:st0.plays+1,best:Math.max(old,sc),bbest:Math.max(oldB,b)};add=Math.max(0,sc-old);addB=Math.max(0,b-oldB);hwSave(st);if(add){G.gifts+=add;save();hud()}} /* 訪客體驗版：紅利不會真的入帳 */
+  const left=HW_PLAYS-st.plays,zero=!sc&&!b&&r.boom;
+  const got=[add+swap?`🎁 聖誕禮物 <b>${add+swap}</b> 個`:'',addB?`🪙 紅利 <b>${addB}</b> 點`:''].filter(Boolean).join('、');
+  card(`<div class="hwbig">${zero?'💣':'🎃'}</div><h2>${zero?'被炸彈炸到了！':'時間到！'}</h2>
+    <div class="hwsc">🎁 ${sc}　🪙 ${b}</div>
+    <p style="margin:0 0 6px">${got?`${old||oldB?'比之前高，再送你 ':'送你 '}${got}！`:old||oldB?'沒有超過之前最高的，獎勵照最高的那次算':zero?'下一次小心炸彈喔！':'南瓜掉下來的時候點它就有獎勵喔！'}</p>
+    <p style="margin:0 0 10px;font-size:14px">目前最高 🎁 <b>${st.best}</b>・🪙 <b>${st.bbest}</b> 點${left?`・還可以玩 <b>${left}</b> 次`:'・今天的 3 次玩完了'}</p>
+    <div class="acts">${left?`<button type="button" class="btn ghost" id="hwNo">先這樣</button><button type="button" class="btn red" id="hwGo">再玩一次（剩 ${left} 次）</button>`:`<button type="button" class="btn red" id="hwNo">好耶！</button>`}</div>`);
+  $('hwNo').onclick=()=>{$('pop').hidden=true;hwBtn()};
+  if($('hwGo'))$('hwGo').onclick=hwStart}
+setTimeout(hwMaybe,3500);
 // ---- catch the gifts
 function gCatch(){return new Promise(res=>{
   const W=Math.min(300,innerWidth-80),H=380;
