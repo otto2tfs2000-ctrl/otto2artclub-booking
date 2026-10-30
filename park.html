@@ -901,7 +901,7 @@ body:not(.oct) #evPill{display:none}
 <div class="pop" id="pop" hidden><div class="card" id="card"></div><button type="button" id="mgX" hidden>✕ 不玩了</button></div>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261030f"></script>
+<script src="petlife.js?v=20261030g"></script>
 <script src="artists3d.js?v=20261030f"></script>
 <div id="evPop" hidden><div class="ev-card"><button type="button" class="ev-x" id="evX" aria-label="關閉">×</button><div class="ev-pw"><img id="evImg" alt="活動海報"><button type="button" class="ev-pn l" id="evPL" aria-label="上一張" hidden>‹</button><button type="button" class="ev-pn r" id="evPR" aria-label="下一張" hidden>›</button><div class="ev-pd" id="evPd" hidden></div></div><div class="ev-body" id="evBody"></div></div></div>
 <div id="evBig" hidden><img id="evBigImg" alt="活動海報"></div>
@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030r';
+const PARK_VER='20261030t';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3208,7 +3208,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030r',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030t',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4199,9 +4199,11 @@ function hwBtn(){let b=$('hwBtn');const st=hwLoad(),left=HW_PLAYS-st.plays;
   if(!b){b=document.createElement('button');b.id='hwBtn';b.type='button';b.setAttribute('aria-label','萬聖節小遊戲');b.onclick=()=>{if(!busy&&$('pop').hidden)hwIntro()};document.body.appendChild(b)}
   b.innerHTML=`🎃<small>${left}</small>`}
 let _hwAuto=0,_hwWait=0;
+const hwExpectReal=()=>!!(window.PROD&&!window.GUEST&&!window.KIOSK&&token());
 async function hwMaybe(){if(!hwOn())return;
-  if(window.PROD&&!window.GUEST&&token()&&!XS&&_hwWait++<10){setTimeout(hwMaybe,1500);return} /* 等走格子資料載入，才知道今天玩過幾次 */
-  if(hwReal()&&!HWS)await hwSync();hwBtn();if(_hwAuto||hwLoad().plays>=HW_PLAYS)return;
+  /* 2026-10-30 大熊：打開就要直接跳出來，不要等 → 開場視窗馬上出，次數等走格子資料到了再在背景補（按開始時才一定要有） */
+  if(hwReal()&&!HWS)hwSync().then(()=>{hwBtn();if(!$('pop').hidden&&$('hwGo')&&HWS&&!(XS&&XS.sim)&&HWS.plays>=HW_PLAYS){$('pop').hidden=true;toast('今天的 3 次南瓜已經玩完了')}});else if(hwExpectReal()&&!XS&&_hwWait++<20)setTimeout(()=>{if(hwReal()&&!HWS)hwSync().then(hwBtn)},1500);
+  hwBtn();if(_hwAuto||hwLoad().plays>=HW_PLAYS)return;
   if(busy||!$('pop').hidden){setTimeout(hwMaybe,1500);return}_hwAuto=1;hwIntro()}
 function hwIntro(){const st=hwLoad(),left=HW_PLAYS-st.plays;if($('hwBtn'))$('hwBtn').remove(); /* 視窗打開時角落的南瓜先收起來，不要蓋住 */
   card(`<div class="hwbig">🎃</div><h2>Trick or Treat！</h2><p style="margin:0">萬聖節限定，只有今天才玩得到</p>
@@ -4213,7 +4215,8 @@ function hwIntro(){const st=hwLoad(),left=HW_PLAYS-st.plays;if($('hwBtn'))$('hwB
   setTimeout(()=>{try{hwSprites(hwS(),Math.min(2,devicePixelRatio||1))}catch(e){}},60)}
 /* 開始一局：有登入先跟伺服器扣一次 */
 async function hwStart(){if(hwStart.busy)return;hwStart.busy=1;sfx('tap');{const b=$('hwGo');if(b){b.disabled=true;b.textContent='南瓜準備中…'}} /* 要先跟伺服器扣次數，連線慢時讓家長知道有在動 */
-  try{if(hwReal()){const j=await xcall('/xmas/hw',{op:'start'});HWS=j.hw;hud()}}catch(e){hwStart.busy=0;toast(e.message||'連線不穩，稍後再試');return}
+  for(let i=0;i<40&&hwExpectReal()&&!XS;i++)await sleep(250); /* 走格子資料還沒到就等一下（最多 10 秒），才扣得到次數 */
+  try{if(hwReal()){const j=await xcall('/xmas/hw',{op:'start'});HWS=j.hw;hud()}}catch(e){hwStart.busy=0;{const b=$('hwGo');if(b){b.disabled=false;b.textContent='再試一次'}}toast(e.message||'連線不穩，稍後再試');return}
   hwStart.busy=0;$('pop').hidden=true;hwDone(await hwPlay())}
 /* 掉下來的東西：k 種類、g 禮物、b 紅利；分數標籤放在下面，才不會擋到蝴蝶結、巫師帽 */
 const HW_KINDS=[{k:'p',w:44,g:1},{k:'hat',w:14,g:1},{k:'bow',w:16,g:2},{k:'gold',w:5,g:5},{k:'coin',w:7,b:1}];
@@ -4295,7 +4298,7 @@ async function hwDone(r){const st0=hwLoad(),old=st0.best,oldB=st0.bbest,sc=Math.
     <div class="acts">${left?`<button type="button" class="btn ghost" id="hwNo">先這樣</button><button type="button" class="btn red" id="hwGo">再玩一次（剩 ${left} 次）</button>`:`<button type="button" class="btn red" id="hwNo">好耶！</button>`}</div>`);
   $('hwNo').onclick=()=>{$('pop').hidden=true;hwBtn()};
   if($('hwGo'))$('hwGo').onclick=hwStart}
-setTimeout(hwMaybe,3500);
+setTimeout(hwMaybe,600);
 // ---- catch the gifts
 function gCatch(){return new Promise(res=>{
   const Z=mgSize(380),W=Z.W,H=Z.H;
@@ -4397,11 +4400,11 @@ async function teacherElves(){ // teacher face with an elf hat, for the chimney 
 }
 /* ── 聖誕衣櫥（2026-10-29 大熊：用聖誕禮物幫小熊和天竺鼠換裝）──
    買一次兩邊都能穿；價格以伺服器 XS.outfits 為準；天竺鼠的裝扮伺服器會同步到作品小屋，大家都看得到。示範版存在 G.own／G.wear */
-const OUTFIT_P={santa:0,antler:8,elf:8,scarfR:5,bell:5,sweater:12,beret:6,straw:8,bowler:8,flower:10,mustache:6,bowtie:6,marin:10,klimt:12},
-  OUTFIT_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
+const OUTFIT_P={santa:0,antler:8,elf:8,scarfR:5,bell:5,sweater:12,beret:6,straw:8,bowler:8,flower:10,mustache:6,bowtie:6,marin:10,klimt:12,pumpkin:6,witch:6,batbow:5},
+  OUTFIT_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨',pumpkin:'🎃',witch:'🧙',batbow:'🦇'};
 function myWear(who,pet){const w=XS&&XS.p&&XS.p.wear?XS.p.wear[who]:(G.wear||{})[who];return Object.assign({},who==='gp'&&pet&&pet.wear||{},w||{})}
 const myOwn=()=>XS&&XS.p&&XS.p.own?XS.p.own:(G.own||{});
-const outfitList=()=>(XS&&XS.outfits||PetLife.OUTFITS.map(o=>Object.assign({p:OUTFIT_P[o.id]},o)));
+const outfitList=()=>(XS&&XS.outfits||PetLife.OUTFITS.map(o=>Object.assign({p:OUTFIT_P[o.id]},o))).filter(o=>!o.lim||twToday()<=o.lim||myOwn()[o.id]||/[?&]hw=1/.test(location.search)); /* 萬聖節限定：過了那天沒買的就不再出現，買了的一直都在 */
 let WD=null;
 async function wardrobe(){if(busy||!window.PetLife||!PetLife.dress)return;
   const pet=plMyLoad('pet');let who='bear',working=false;const tries={bear:{},gp:{}}; /* 2026-10-30 大熊：不同部位要能一起試穿 → 還沒買的每個部位各記一件（角色、天竺鼠分開） */

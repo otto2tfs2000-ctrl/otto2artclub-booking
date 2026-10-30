@@ -278,7 +278,7 @@ body.tour .pcTag{display:none!important}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261030f"></script>
+<script src="petlife.js?v=20261030g"></script>
 <script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
@@ -2184,7 +2184,7 @@ function aimPet(m,kind){const o=gpPets.find(x=>x.m.id===m.id&&x.kind===kind);
   if(houses[i]){focusOn(houses[i],5,.4,.3);focus.iso=houses[i]}}
 /* 服裝衣櫥（2026-10-29 大熊：作品小屋也要能換衣服，點了直接看到自家門口的天竺鼠穿上）
    清單、價格、擁有的以伺服器 /xmas/closet 為準；買和穿跟走格子共用 /xmas/outfit，是同一個衣櫥（小熊在走格子換） */
-const CL_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
+const CL_IC={pumpkin:'🎃',witch:'🧙',batbow:'🦇',santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
 let clSt=null;
 async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就能幫牠換聖誕裝扮');return}if(!window.PetLife||!PetLife.dress)return;
   const drawer=$('drawer'),back=()=>{const nm=G.members.find(x=>x.id===m.id);if(nm){openHouseSheet(nm);aimPet(nm,'pet')}};
@@ -2196,6 +2196,7 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
   const put=async(slot,item)=>{const r=await api('/xmas/outfit',{op:'wear',who:'gp',slot,item});sync(r)};
   const soon=false; /* 2026-10-29 大熊：不用等 11/1，現在就能買、能穿 */
   const triedL=()=>Object.values(tries).map(id=>(C.outfits||[]).find(o=>o.id===id)).filter(Boolean);
+  const twD=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'});C.outfits=(C.outfits||[]).filter(o=>!o.lim||twD<=o.lim||C.own[o.id]); /* 萬聖節限定：過了那天沒買的不出現 */
   const paint=()=>{const L=C.outfits||[],tl=triedL(),tot=tl.reduce((a,o)=>a+(o.p||0),0);
     drawer.innerHTML=`<h3>${esc(m.pet.n)}的服裝衣櫥</h3><p class="hint">用聖誕走格子拿到的禮物換裝扮，買一次小熊和天竺鼠都能穿，大家逛到你家都看得到。你有 <b>${C.gifts}</b> 個禮物。${C.gifts<5?'<br>禮物不夠的話可以先點來試穿，去玩聖誕走格子就能收集禮物。':''}</p>
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';

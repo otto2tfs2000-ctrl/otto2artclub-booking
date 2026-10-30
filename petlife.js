@@ -163,7 +163,9 @@ var OUTFITS=[{id:'santa',slot:'head',nm:'聖誕帽'},{id:'antler',slot:'head',nm
   {id:'scarfR',slot:'neck',nm:'紅條紋圍巾'},{id:'bell',slot:'neck',nm:'鈴鐺項圈'},{id:'sweater',slot:'body',nm:'聖誕毛衣'},
   /* 2026-10-29 大熊：衣櫥東西太少 → 加作品小屋島民藝術家的招牌裝扮；新部位 face（臉上） */
   {id:'beret',slot:'head',nm:'林布蘭貝雷帽'},{id:'straw',slot:'head',nm:'梵谷草帽'},{id:'bowler',slot:'head',nm:'馬格利特禮帽'},{id:'flower',slot:'head',nm:'卡蘿花冠'},
-  {id:'mustache',slot:'face',nm:'達利翹鬍子'},{id:'bowtie',slot:'neck',nm:'草間點點蝴蝶結'},{id:'marin',slot:'body',nm:'畢卡索條紋衫'},{id:'klimt',slot:'body',nm:'克林姆金色衣'}];
+  {id:'mustache',slot:'face',nm:'達利翹鬍子'},{id:'bowtie',slot:'neck',nm:'草間點點蝴蝶結'},{id:'marin',slot:'body',nm:'畢卡索條紋衫'},{id:'klimt',slot:'body',nm:'克林姆金色衣'},
+  /* 2026-10-31 萬聖節限定（只有那天買得到，買了就一直有） */
+  {id:'pumpkin',slot:'head',nm:'南瓜帽',lim:'2026-10-31'},{id:'witch',slot:'head',nm:'巫師帽',lim:'2026-10-31'},{id:'batbow',slot:'neck',nm:'蝙蝠領結',lim:'2026-10-31'}];
 var _dt={};
 function dTex(k){if(_dt[k])return _dt[k];var c=document.createElement('canvas');c.width=c.height=128;var x=c.getContext('2d');
   if(k==='stripe'){x.fillStyle='#d63a2f';x.fillRect(0,0,128,128);x.fillStyle='#fff6ea';for(var i=0;i<128;i+=32)x.fillRect(i,0,14,128)}
@@ -205,6 +207,12 @@ function dress(THREE,mat,g,wear,kind){wear=wear||{};
     ['#e2463a','#f2c14e','#e86fa0','#ff8a3d','#e2463a','#b04fc4','#f2c14e'].forEach(function(c,i){var a=-Math.PI/2+(i-3)*.42,f=M(new THREE.SphereGeometry(R*(i===3?.24:.18),10,8),c,Math.cos(a)*R*.7,R*.06,-Math.sin(a)*R*.7);f.scale.y=.7;fc.add(f);
       fc.add(M(new THREE.SphereGeometry(R*.07,6,5),'#fff3c4',Math.cos(a)*R*.7,R*.17,-Math.sin(a)*R*.7))});
     fc.position.set(0,R*.78,-R*.02);fc.rotation.x=-.2;H(fc)}
+  /* 萬聖節限定：南瓜帽（一圈一圈的南瓜瓣＋綠蒂）、巫師帽（紫色尖帽＋橘帶子） */
+  if(wear.head==='pumpkin'){var pk=new THREE.Group();for(var pi=0;pi<8;pi++){var a3=pi/8*Math.PI*2,lobe=M(new THREE.SphereGeometry(R*.34,12,10),'#f07a1c',Math.cos(a3)*R*.42,0,Math.sin(a3)*R*.42);lobe.scale.set(.85,.9,.85);pk.add(lobe)}
+    pk.add(M(new THREE.SphereGeometry(R*.5,14,10),'#e86a12'));var st2=M(new THREE.CylinderGeometry(R*.07,R*.1,R*.32,8),'#3f6b2a',R*.03,R*.42,0);st2.rotation.z=-.3;pk.add(st2);
+    var lf=M(new THREE.SphereGeometry(R*.14,8,6),'#5c9a3a',R*.2,R*.38,0);lf.scale.set(1.4,.3,.8);pk.add(lf);pk.scale.y=.72;pk.position.set(0,R*.86,-R*.04);pk.rotation.x=-.12;H(pk)}
+  if(wear.head==='witch'){var wt=new THREE.Group();wt.add(M(new THREE.CylinderGeometry(R*1.1,R*1.15,R*.06,28),'#3b2050'));var wc=M(new THREE.ConeGeometry(R*.6,R*1.7,18),'#4a2a68',0,R*.86,0);wc.rotation.z=.18;wt.add(wc);
+    wt.add(M(new THREE.CylinderGeometry(R*.6,R*.62,R*.16,20),'#ff8a2a',0,R*.1,0));wt.add(M(new THREE.SphereGeometry(R*.1,8,6),'#ffd447',R*.32,R*1.62,0));wt.position.set(0,R*.82,-R*.06);wt.rotation.x=-.14;H(wt)}
   if(fit.hatY!=null){var hg=new THREE.Group();hg.position.y=fit.hatY;hg.scale.setScalar(fit.hatS||1);head.add(hg);out.slice(hat0).forEach(function(o){if(!o.userData.nose)hg.add(o)});out.push(hg)} /* 頭比較大的角色：帽子整頂往上抬、放大 */
   /* 臉上：達利翹鬍子（鼻子下面，兩邊往上捲） */
   if(wear.face==='mustache'){var mu=new THREE.Group();[-1,1].forEach(function(d){var a1=M(new THREE.CylinderGeometry(R*.025,R*.06,R*.4,8),'#1b1714',d*R*.19,R*.04,0);a1.rotation.z=d*(Math.PI/2-.3);mu.add(a1);
@@ -218,6 +226,9 @@ function dress(THREE,mat,g,wear,kind){wear=wear||{};
     var bl=M(new THREE.SphereGeometry(NR*.32,12,10),'#f2c14e',0,-NR*.22,NR*1.05);nk.add(bl);nk.add(M(new THREE.BoxGeometry(NR*.35,NR*.06,NR*.06),'#6a4a1a',0,-NR*.3,NR*1.33))}
   if(wear.neck==='bowtie'){var bo=new THREE.Group();[-1,1].forEach(function(d){var w2=M(new THREE.ConeGeometry(NR*.32,NR*.6,4),tm('dots'),d*NR*.28,0,0);w2.rotation.z=d*Math.PI/2;bo.add(w2)});
     bo.add(M(new THREE.SphereGeometry(NR*.13,10,8),tm('dots')));if(gp){bo.scale.setScalar(1.05);bo.position.set(0,.2,.86);g.add(bo);out.push(bo)}else{bo.position.set(0,-NR*.12,NR*1.0);nk.add(bo)}} /* 天竺鼠沒有脖子：蝴蝶結放在下巴前面 */
+  if(wear.neck==='batbow'){var bb=new THREE.Group();[-1,1].forEach(function(d){var w3=M(new THREE.ConeGeometry(NR*.34,NR*.7,3),'#2a2233',d*NR*.32,0,0);w3.rotation.z=d*Math.PI/2;w3.scale.z=.35;bb.add(w3);
+      var w4=M(new THREE.ConeGeometry(NR*.2,NR*.42,3),'#2a2233',d*NR*.52,-NR*.1,0);w4.rotation.z=d*(Math.PI/2+.5);w4.scale.z=.35;bb.add(w4)});
+    bb.add(M(new THREE.SphereGeometry(NR*.14,10,8),'#ff8a2a'));if(gp){bb.scale.setScalar(1.05);bb.position.set(0,.2,.86);g.add(bb);out.push(bb)}else{bb.position.set(0,-NR*.12,NR*1.0);nk.add(bb)}} /* 萬聖節限定：黑色蝙蝠翅膀領結 */
   /* 身體：聖誕毛衣、畢卡索條紋衫、克林姆金色衣（同一個殼，換花紋） */
   ['sweater','marin','klimt'].forEach(function(k){if(wear.body!==k)return;
     var geo=fit.bodyR?new THREE.SphereGeometry(fit.bodyR,24,16,0,Math.PI*2,Math.PI*fit.bodyCut,Math.PI*(1-fit.bodyCut)):new THREE.SphereGeometry(gp?.5:fg?.25:.32,24,16); /* 雪怪：只包下半身，不蓋到臉 */
