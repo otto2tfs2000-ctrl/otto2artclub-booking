@@ -156,6 +156,19 @@ table.rank th{font-weight:400; font-size:12px; color:var(--muted); padding:0 4px
 .hwhud b{color:#ffd447; font-size:22px}
 .hwtip{margin:0; padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 10px); text-align:center; color:#d9c8ef; font-size:13px}
 .mgstat{display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px}
+/* 2026-10-30 小遊戲全螢幕 */
+.pop.mgfull{padding:0; background:var(--paper)}
+.pop.mgfull .card{box-sizing:border-box; width:100%; max-width:none; height:100%; max-height:none; border:0; border-radius:0; box-shadow:none; animation:none; display:flex; flex-direction:column; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 58px) 14px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.pop.mgfull .card>*{width:100%; max-width:520px; margin-left:auto; margin-right:auto}
+.pop.mgfull .card h2{font-size:24px}
+.pop.mgfull .mgstat{font-size:18px}
+.pop.mgfull .mgstat b{font-size:22px}
+.pop.mgfull .mgcv{width:auto; max-width:none}
+.pop.mgfull .memo,.pop.mgfull .holes{gap:12px; max-width:min(520px,calc(100dvh - 230px))}
+.pop.mgfull .hue{max-width:min(520px,calc(100dvh - 230px))}
+.pop.mgfull .simon{width:min(80vw,360px,calc(100dvh - 260px)); gap:18px}
+.pop.mgfull .sw i{width:min(32vw,140px); height:min(32vw,140px)}
+.pop.mgfull .drop{font-size:17px; padding:14px 0 10px}
 .mgstat b{font-weight:400; color:var(--red)}
 .swatches{display:flex; justify-content:center; gap:18px; margin-bottom:10px}
 .sw{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:13px}
@@ -899,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030i';
+const PARK_VER='20261030j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3131,7 +3144,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030i',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030j',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4000,6 +4013,10 @@ const MG={
   simon:{t:'聖誕燈記憶',ic:'bulbs',rule:'看聖誕燈亮的順序，照同樣的順序點一遍。每過一關會多一顆，點錯就結束。'},
 };
 function card(html){$('card').innerHTML=html;$('pop').hidden=false}
+/* 全螢幕小遊戲的畫布：邏輯寬固定 300（速度、手感跟以前一樣），高度跟著螢幕拉長，再整張放大到螢幕寬 */
+function mgSize(minH,maxH=680){const dw=Math.min(innerWidth-28,520),dh=Math.max(300,innerHeight-190),W=300,H=Math.round(Math.max(minH,Math.min(maxH,W*dh/dw))),k=Math.min(dw/W,dh/H);
+  return{W,H,k,cw:Math.round(W*k),ch:Math.round(H*k)}}
+const mgCv=Z=>`<canvas class="mgcv" id="cv" width="${Z.cw*2}" height="${Z.ch*2}" style="width:${Z.cw}px;height:${Z.ch}px"></canvas>`;
 let MGN=0;const MGS=()=>{const n=MGN;return()=>n!==MGN}; /* 小遊戲被中途關掉了沒 */
 const ROOM_DAILY=3;
 async function minigame(kind,room){
@@ -4007,8 +4024,9 @@ async function minigame(kind,room){
   const go=await popup(m.ic,m.t,m.rule,room?[{t:'開始',v:1,cls:'red'}]:[{t:'開始',v:1,cls:'red'},{t:'略過，領 1 個禮物',v:2,cls:'ghost'}]);
   if(go===2){addGifts(1);await popup('gift','這次先不玩','送你 1 個禮物。遊戲室裡可以隨時再來玩。');return 1}  /* 給不想玩小遊戲的家長：不用過關，也拿得到小禮物 */
   /* 玩到一半按右上「不玩了」：遊戲停掉回小島（MGN 加一，遊戲裡的計時器看到就自己停）。格子上的小遊戲跟「略過」一樣送 1 個禮物 */
-  MGN++;let quit;const qp=new Promise(q=>quit=q);$('mgX').hidden=false;$('mgX').onclick=()=>{MGN++;$('mgX').hidden=true;$('pop').hidden=true;quit(null)};
-  const r=await Promise.race([{mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs}[kind](),qp]);$('mgX').hidden=true;
+  MGN++;let quit;const qp=new Promise(q=>quit=q);$('mgX').hidden=false;$('mgX').onclick=()=>{MGN++;$('mgX').hidden=true;$('pop').hidden=true;$('pop').classList.remove('mgfull');quit(null)};
+  $('pop').classList.add('mgfull'); /* 2026-10-30 大熊：小遊戲改全螢幕（跟萬聖節點南瓜一樣） */
+  const r=await Promise.race([{mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs}[kind](),qp]);$('mgX').hidden=true;$('pop').classList.remove('mgfull');
   if(!r){if(room)return -1;addGifts(1);toast('這次先不玩，送你 1 個禮物');return 1}
   const old=G.arc.best[kind],isBest=!old||r.s>old.s;if(isBest)G.arc.best[kind]={s:r.s,lbl:r.lbl};
   scoreSend(kind,r);
@@ -4059,9 +4077,9 @@ function gMix(){return new Promise(res=>{
 })}
 // ---- stacker
 function gStack(){return new Promise(res=>{
-  const W=Math.min(300,innerWidth-80),H=380,BH=30;
-  card(`<h2>疊禮物塔</h2><div class="mgstat"><span>高度 <b id="stH">0</b> 層</span><span>點畫面放下</span></div><canvas class="mgcv" id="cv" width="${W*2}" height="${H*2}" style="width:${W}px;height:${H}px"></canvas>`);
-  const cv=$('cv'),x=cv.getContext('2d');x.scale(2,2);
+  const Z=mgSize(380),W=Z.W,H=Z.H,BH=30;
+  card(`<h2>疊禮物塔</h2><div class="mgstat"><span>高度 <b id="stH">0</b> 層</span><span>點畫面放下</span></div>${mgCv(Z)}`);
+  const cv=$('cv'),x=cv.getContext('2d');x.scale(2*Z.k,2*Z.k);
   const cols=['#d63a2f','#2f8f58','#f2c14e','#62a9ff','#b99af0'];
   const gone=MGS(),blocks=[{x:W/2-70,w:140}];let cur={x:0,w:140,dir:1,sp:120},over=false,t0=performance.now(),fall=null;
   const top=()=>blocks.length;
@@ -4201,17 +4219,17 @@ async function hwDone(r){const st0=hwLoad(),old=st0.best,oldB=st0.bbest,sc=Math.
 setTimeout(hwMaybe,3500);
 // ---- catch the gifts
 function gCatch(){return new Promise(res=>{
-  const W=Math.min(300,innerWidth-80),H=380;
-  card(`<h2>接禮物</h2><div class="mgstat"><span>接到 <b id="ctS">0</b></span><span>剩 <b id="ctT">15</b> 秒</span></div><canvas class="mgcv" id="cv" width="${W*2}" height="${H*2}" style="width:${W}px;height:${H}px"></canvas><p style="font-size:13px;margin:0">手指按住畫面左右拖，電腦可以用方向鍵</p>`);
-  const cv=$('cv'),x=cv.getContext('2d');x.scale(2,2);
+  const Z=mgSize(380),W=Z.W,H=Z.H;
+  card(`<h2>接禮物</h2><div class="mgstat"><span>接到 <b id="ctS">0</b></span><span>剩 <b id="ctT">15</b> 秒</span></div>${mgCv(Z)}<p style="font-size:13px;margin:0">手指按住畫面左右拖，電腦可以用方向鍵</p>`);
+  const cv=$('cv'),x=cv.getContext('2d');x.scale(2*Z.k,2*Z.k);
   let bx=W/2,score=0,items=[],spawn=0,t0=performance.now(),start=t0,keys={},done=false;const gone=MGS();
-  const setX=e=>{const r=cv.getBoundingClientRect();bx=Math.max(24,Math.min(W-24,e.clientX-r.left))};
+  const setX=e=>{const r=cv.getBoundingClientRect();bx=Math.max(24,Math.min(W-24,(e.clientX-r.left)*W/r.width))};
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);setX(e)});cv.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')setX(e)});
   const kd=e=>{if(e.code==='ArrowLeft'||e.code==='ArrowRight'){keys[e.code]=true;e.preventDefault()}},ku=e=>{keys[e.code]=false};
   addEventListener('keydown',kd);addEventListener('keyup',ku);
   function frame(now){if(gone()){removeEventListener('keydown',kd);removeEventListener('keyup',ku);return}const dt=Math.min(.05,(now-t0)/1000);t0=now;const el=(now-start)/1000;
     if(keys.ArrowLeft)bx=Math.max(24,bx-260*dt);if(keys.ArrowRight)bx=Math.min(W-24,bx+260*dt);
-    spawn-=dt;if(spawn<=0){spawn=.42;items.push({x:20+Math.random()*(W-40),y:-20,v:150+Math.random()*90+el*6,coal:Math.random()<.22})}
+    spawn-=dt;if(spawn<=0){spawn=.42;items.push({x:20+Math.random()*(W-40),y:-20,v:(150+Math.random()*90+el*6)*H/380,coal:Math.random()<.22})}
     items.forEach(it=>{it.y+=it.v*dt;if(!it.hit&&it.y>H-62&&it.y<H-20&&Math.abs(it.x-bx)<34){it.hit=true;score=Math.max(0,score+(it.coal?-2:1));$('ctS').textContent=score}});
     items=items.filter(it=>!it.hit&&it.y<H+30);
     x.clearRect(0,0,W,H);x.fillStyle='#fff';x.fillRect(0,H-14,W,14);
@@ -4462,15 +4480,15 @@ function billboardHead(){const h=bearBody.userData.head;if(!h)return;h.parent.ge
 
 // ---- down the stairs (NS-Shaft style)
 function gStairs(){return new Promise(res=>{
-  const W=Math.min(300,innerWidth-80),H=400,PW=78,R=15;
-  card(`<h2>小朋友下樓梯</h2><div class="mgstat"><span>地下 <b id="stF">0</b> 層</span><span id="stHP"></span><span>剩 <b id="stT">30</b> 秒</span></div><canvas class="mgcv" id="cv" width="${W*2}" height="${H*2}" style="width:${W}px;height:${H}px"></canvas><p style="font-size:13px;margin:0">按住畫面左半邊往左、右半邊往右，電腦可以用方向鍵</p>`);
-  const cv=$('cv'),x=cv.getContext('2d');x.scale(2,2);
+  const Z=mgSize(400),W=Z.W,H=Z.H,PW=78,R=15;
+  card(`<h2>小朋友下樓梯</h2><div class="mgstat"><span>地下 <b id="stF">0</b> 層</span><span id="stHP"></span><span>剩 <b id="stT">30</b> 秒</span></div>${mgCv(Z)}<p style="font-size:13px;margin:0">按住畫面左半邊往左、右半邊往右，電腦可以用方向鍵</p>`);
+  const cv=$('cv'),x=cv.getContext('2d');x.scale(2*Z.k,2*Z.k);
   const gone=MGS();let plats=[],p={x:W/2,y:0,vy:0,on:null},hp=3,floors=0,t0=performance.now(),start=t0,dir=0,keys={},done=false,hurt=0,nextY=0;
   const mk=(y,type)=>({x:10+Math.random()*(W-PW-20),y,type:type||(Math.random()<.16?'spike':Math.random()<.18?'spring':'n'),id:Math.random(),w:PW});
   for(let y=110;y<H+80;y+=64)plats.push(mk(y,y===110+64*2?'n':null));
   const first=plats[2];first.type='n';p.x=first.x+PW/2;p.y=first.y-R*2.2;p.on=first;let seen=new Set([first.id]);nextY=plats[plats.length-1].y;
   const setHP=()=>$('stHP').textContent='♥'.repeat(Math.max(0,hp))+'♡'.repeat(Math.max(0,3-hp));setHP();
-  const dirFrom=e=>{const r=cv.getBoundingClientRect();dir=e.clientX-r.left<W/2?-1:1};
+  const dirFrom=e=>{const r=cv.getBoundingClientRect();dir=e.clientX-r.left<r.width/2?-1:1};
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);dirFrom(e)});cv.addEventListener('pointermove',e=>{if(dir)dirFrom(e)});
   ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>dir=0));
   const kd=e=>{if(e.code==='ArrowLeft'||e.code==='ArrowRight'){keys[e.code]=true;e.preventDefault()}},ku=e=>{keys[e.code]=false};
