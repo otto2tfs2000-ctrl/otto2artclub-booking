@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030q';
+const PARK_VER='20261030r';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3208,7 +3208,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030q',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030r',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4209,26 +4209,18 @@ function hwIntro(){const st=hwLoad(),left=HW_PLAYS-st.plays;if($('hwBtn'))$('hwB
     ${st.plays?`<p style="margin:0 0 8px">目前最高 🎁 <b>${st.best}</b>・🪙 <b>${st.bbest}</b> 點，還可以玩 <b>${left}</b> 次</p>`:''}
     <div class="acts"><button type="button" class="btn ghost" id="hwNo">晚點再玩</button><button type="button" class="btn red" id="hwGo">開始（還有 ${left} 次）</button></div>`);
   $('hwNo').onclick=()=>{$('pop').hidden=true;hwBtn()};
-  $('hwGo').onclick=hwStart}
+  $('hwGo').onclick=hwStart;
+  setTimeout(()=>{try{hwSprites(hwS(),Math.min(2,devicePixelRatio||1))}catch(e){}},60)}
 /* 開始一局：有登入先跟伺服器扣一次 */
-async function hwStart(){if(hwStart.busy)return;hwStart.busy=1;sfx('tap');
+async function hwStart(){if(hwStart.busy)return;hwStart.busy=1;sfx('tap');{const b=$('hwGo');if(b){b.disabled=true;b.textContent='南瓜準備中…'}} /* 要先跟伺服器扣次數，連線慢時讓家長知道有在動 */
   try{if(hwReal()){const j=await xcall('/xmas/hw',{op:'start'});HWS=j.hw;hud()}}catch(e){hwStart.busy=0;toast(e.message||'連線不穩，稍後再試');return}
   hwStart.busy=0;$('pop').hidden=true;hwDone(await hwPlay())}
 /* 掉下來的東西：k 種類、g 禮物、b 紅利；分數標籤放在下面，才不會擋到蝴蝶結、巫師帽 */
 const HW_KINDS=[{k:'p',w:44,g:1},{k:'hat',w:14,g:1},{k:'bow',w:16,g:2},{k:'gold',w:5,g:5},{k:'coin',w:7,b:1}];
-function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
-  const ov=document.createElement('div');ov.id='hwFull';
-  ov.innerHTML=`<div class="hwhud"><span>🎁 <b id="hwS">0</b></span><span>🪙 紅利 <b id="hwB">0</b></span><span>⏱ <b id="hwT">${HW_SEC}</b></span></div><canvas id="hwCv"></canvas><p class="hwtip">點南瓜和紅利金幣，小心炸彈 💣</p>`;
-  document.body.appendChild(ov);window.HW_ON=true; /* 玩的時候後面的 3D 遊樂島暫停（loop 看這個），手機才不會卡 */
-  const cv=$('hwCv'),x=cv.getContext('2d'),DP=Math.min(2,devicePixelRatio||1);
-  let W=0,H=0;const fit=()=>{const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)};fit();
-  const S=Math.max(40,Math.min(64,W/6.5)); /* 南瓜大小跟著螢幕 */
-  /* 2026-10-30 大熊手機會卡：背景、每種掉落物（含發光和分數標籤）都先畫好存成圖，遊戲中只貼圖，不再每一格重畫發光 */
+/* 掉落物的圖（含發光、分數標籤）先畫好；開場視窗出現時就先畫，按開始才不會頓一下（2026-10-30 大熊：一開始會停頓） */
+let _hwSpr=null;
+function hwSprites(S,DP){if(_hwSpr&&_hwSpr.S===S&&_hwSpr.DP===DP)return _hwSpr;
   const mk=(w,h,f)=>{const c=document.createElement('canvas');c.width=Math.ceil(w*DP);c.height=Math.ceil(h*DP);const g=c.getContext('2d');g.setTransform(DP,0,0,DP,0,0);g.textAlign='center';g.textBaseline='middle';f(g);return c};
-  const bg=mk(W,H,g=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#160f2e');gr.addColorStop(.7,'#3d2558');gr.addColorStop(1,'#5a3260');g.fillStyle=gr;g.fillRect(0,0,W,H);
-    for(let i=0;i<50;i++){g.fillStyle=`rgba(255,255,255,${.4+Math.random()*.45})`;g.beginPath();g.arc(Math.random()*W,Math.random()*H*.75,Math.random()*1.5+.4,0,7);g.fill()}
-    g.fillStyle='#fff3c4';g.shadowColor='#fff3c4';g.shadowBlur=30;g.beginPath();g.arc(W-60,70,30,0,7);g.fill();g.shadowBlur=0;g.fillStyle='#160f2e';g.beginPath();g.arc(W-47,62,27,0,7);g.fill();
-    g.fillStyle='#21142e';g.beginPath();g.moveTo(0,H);g.lineTo(0,H-40);for(let i=0;i<=10;i++)g.lineTo(i*W/10,H-40-(i%2?16:3));g.lineTo(W,H);g.fill()});
   const SW=S*2,SH=S*2.5,CY=S*1.05; /* 每張圖：中心在 (S, CY)，分數標籤在下面 */
   const badge=(g,t,bgc)=>{g.font=`bold ${Math.round(S*.24)}px sans-serif`;const w=g.measureText(t).width+12,h=S*.36,cx=S,cy=CY+S*.62;
     g.fillStyle=bgc;g.strokeStyle='#2b2320';g.lineWidth=2;g.beginPath();g.roundRect?g.roundRect(cx-w/2,cy-h/2,w,h,h/2):g.rect(cx-w/2,cy-h/2,w,h);g.fill();g.stroke();g.fillStyle='#2b2320';g.fillText(t,cx,cy+1)};
@@ -4243,6 +4235,22 @@ function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
       g.strokeStyle='#9a6a00';g.lineWidth=3;g.stroke();g.beginPath();g.arc(S,CY,r*.74,0,7);g.lineWidth=1.5;g.stroke();g.fillStyle='#7a4f00';g.font=`900 ${Math.round(r*.62)}px sans-serif`;g.fillText('紅利',S,CY+1);badge(g,'+1 點','#ffd447')}),
     bomb:mk(SW,SH,g=>{g.font=`${Math.round(S*1.05)}px sans-serif`;g.fillText('💣',S,CY)}),
   };
+  return _hwSpr={S,DP,SW,SH,CY,SPR}}
+const hwS=()=>Math.max(40,Math.min(64,innerWidth/6.5));
+function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
+  const ov=document.createElement('div');ov.id='hwFull';
+  ov.innerHTML=`<div class="hwhud"><span>🎁 <b id="hwS">0</b></span><span>🪙 紅利 <b id="hwB">0</b></span><span>⏱ <b id="hwT">${HW_SEC}</b></span></div><canvas id="hwCv"></canvas><p class="hwtip">點南瓜和紅利金幣，小心炸彈 💣</p>`;
+  document.body.appendChild(ov);window.HW_ON=true; /* 玩的時候後面的 3D 遊樂島暫停（loop 看這個），手機才不會卡 */
+  const cv=$('hwCv'),x=cv.getContext('2d'),DP=Math.min(2,devicePixelRatio||1);
+  let W=0,H=0;const fit=()=>{const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)};fit();
+  const S=hwS(); /* 南瓜大小跟著螢幕 */
+  /* 2026-10-30 大熊手機會卡：背景、每種掉落物（含發光和分數標籤）都先畫好存成圖，遊戲中只貼圖，不再每一格重畫發光 */
+  const mk=(w,h,f)=>{const c=document.createElement('canvas');c.width=Math.ceil(w*DP);c.height=Math.ceil(h*DP);const g=c.getContext('2d');g.setTransform(DP,0,0,DP,0,0);g.textAlign='center';g.textBaseline='middle';f(g);return c};
+  const bg=mk(W,H,g=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#160f2e');gr.addColorStop(.7,'#3d2558');gr.addColorStop(1,'#5a3260');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    for(let i=0;i<50;i++){g.fillStyle=`rgba(255,255,255,${.4+Math.random()*.45})`;g.beginPath();g.arc(Math.random()*W,Math.random()*H*.75,Math.random()*1.5+.4,0,7);g.fill()}
+    g.fillStyle='#fff3c4';g.shadowColor='#fff3c4';g.shadowBlur=30;g.beginPath();g.arc(W-60,70,30,0,7);g.fill();g.shadowBlur=0;g.fillStyle='#160f2e';g.beginPath();g.arc(W-47,62,27,0,7);g.fill();
+    g.fillStyle='#21142e';g.beginPath();g.moveTo(0,H);g.lineTo(0,H-40);for(let i=0;i<=10;i++)g.lineTo(i*W/10,H-40-(i%2?16:3));g.lineTo(W,H);g.fill()});
+  const {SW,SH,CY,SPR}=hwSprites(S,DP);
   let gift=0,bon=0,boom=false,items=[],fx=[],spawn=.3,t0=performance.now(),el=0,done=false,flash=0,shake=0;
   const hudUp=()=>{$('hwS').textContent=gift;$('hwB').textContent=bon};
   cv.addEventListener('pointerdown',e=>{if(done)return;const r=cv.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
