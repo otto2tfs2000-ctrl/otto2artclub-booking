@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030k';
+const PARK_VER='20261030l';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1057,8 +1057,7 @@ function buildIsland(lv){
     const gt=grayTex(tex.image);gt.repeat.copy(tex.repeat);gt.offset.copy(tex.offset);m.userData.tex=tex;m.userData.gtex=gt;
     scene.add(m);tiles[lv].push(m);
     if(k==='gacha'){const d=makeMiniGacha(),ow=Math.abs(p.z)>Math.abs(p.x)*.55?new THREE.Vector3(0,0,Math.sign(p.z)):new THREE.Vector3(Math.sign(p.x),0,0);d.scale.setScalar(1.9);d.position.set(p.x+ow.x*1.25,o.y-.12,p.z+ow.z*1.25);scene.add(d);gachaDeco[i]=d} /* 大台扭蛋機放在格子外圍的雪地（後排和兩側），不佔種樹的位置，也不擋字 */
-    if(k==='lot'){const d=new THREE.Group(),q=LOT_POS[i]||[p.x,p.z],r=rng(i*97+13),jx=(r()-.5)*.2,jz=(r()-.5)*.2;
-      d.position.set(q[0]+jx,o.y-.12,q[1]+jz);scene.add(d);lotDeco[i]=d} /* 2026-10-29 晚 大熊：小屋貼著格子很怪、外圈又被畫面切掉看不到 → 搬進格子圈裡面的雪地，散在森林之間 */
+    /* 2026-10-30 空地格子不再蓋自己的小屋，房子都在中間的聖誕村（buildVillage） */
   });
   return g;
 }
@@ -1249,12 +1248,54 @@ function renderForest(){
   const P=FOREST.parts;for(let i=0;i<FOREST.max;i++){const t=G.forest[i];if(t)setForestTree(i,t);else{['trunk','c1','c2','c3','cap','star'].forEach(k=>P[k].setMatrixAt(i,ZERO));for(let j=0;j<6;j++)P.bulb.setMatrixAt(i*6+j,ZERO)}}
   Object.values(P).forEach(m=>m.instanceMatrix.needsUpdate=true);
   if(FOREST.mine){scene.remove(FOREST.mine);FOREST.mine=null}
+  buildVillage();
   const mi=G.forest.findIndex(t=>t.me);if(mi>=0){const t=G.forest[mi],sp=FOREST.spots[t.s];FOREST.mine=nameplate(`你的${LVN[t.lv]}`,true);FOREST.mine.scale.set(1,.26,1);FOREST.mine.position.set(sp.x,sp.y+LVS[t.lv]*1.05+.35,sp.z);scene.add(FOREST.mine)}
 }
+/* ── 2026-10-30 大熊：格子中間變成聖誕村，每個人一間房子（踩到空地就送，不用認領、不升級）──
+   位置跟伺服器 xVillagePick 同一套：用種樹位置 FOREST.spots，離大聖誕樹近的先蓋、房子彼此隔開。
+   別人的房子全部合併成幾個模型（人多也不卡），自己的那間另外放：會發光、有「你的家」名牌 */
+const VIL={g:null,mine:null,key:''};
+function villageList(){if(XS)return(XW&&XW.village)||[];if(!G.village)G.village=fakeVillage();return G.village}
+/* 不蓋在大聖誕樹、教室天竺鼠、雪人旁邊（伺服器 xVBlocked 同一份） */
+const vBlocked=(x,z)=>Math.hypot(x,z)<2.5||[[-.9,.7],[.9,.6],[.3,1.1],[-.4,-1]].some(([a,b])=>Math.hypot(x-a,z-b)<1)||[[-2.7,1.2],[2.7,-1.1]].some(([a,b])=>Math.hypot(x-a,z-b)<.8);
+function vPick(list){const sp=FOREST.spots,D=(a,b)=>Math.hypot(sp[a].x-sp[b].x,sp[a].z-sp[b].z),hs=list.map(h=>h.s),ts=(G.forest||[]).map(t=>t.s);
+  const order=sp.map((_,i)=>i).filter(i=>!vBlocked(sp[i].x,sp[i].z)).sort((a,b)=>sp[b].z-sp[a].z||sp[a].x-sp[b].x); /* 從前排（靠鏡頭）開始蓋，一排一排往後，像一條聖誕街 */
+  for(const gap of [.85,.6,0]){const s=order.find(i=>!hs.includes(i)&&!ts.includes(i)&&hs.every(h=>D(i,h)>=gap)&&(gap===0||ts.every(t=>D(i,t)>=.4)));if(s!==undefined)return s}return -1}
+function fakeVillage(){const out=[],r=rng(31);for(let k=0;k<22;k++){const s=vPick(out);if(s<0)break;out.push({s,st:Math.floor(r()*5),me:false})}return out} /* 體驗版：先放幾間假鄰居 */
+function vHouse(st,sc,s,glow){if(!window.XH3D){const h=xhCard(st,sc*1.3);h.rotation.set(-.42,[-.38,.3,-.22,.4,-.32][s%5],0);return h}
+  const h=XH3D.make(st);h.scale.setScalar(sc);h.rotation.set(-.3,[-.3,.25,-.18,.3,-.25][s%5],0); /* 往鏡頭仰一點，從高處才看得到正面 */
+  h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){if(glow)m.emissive.copy(m.color).multiplyScalar(.6);else m.emissive.set('#3a3a3a')}})});return h} /* 合併時 emissive 只能一個值，別人的房子用灰色提亮 */
+/* 別人的房子用「照片」：每種 3D 小屋先拍一張（從上方斜看、透明背景），村子裡每間都是一張貼圖，人再多也只多幾張圖、不會卡 */
+const VIMP=[];
+function vImp(st){if(VIMP[st])return VIMP[st];
+  const rt=new THREE.WebGLRenderTarget(256,256),sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8a96b8,1));const dl=new THREE.DirectionalLight(0xfff4e0,.55);dl.position.set(1,2,2);sc.add(dl);
+  const h=XH3D.make(st);h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){m.emissive.copy(m.color).multiplyScalar(.28);if(m.map)m.emissiveMap=m.map}})});h.rotation.y=-.2;sc.add(h);h.updateMatrixWorld(true);
+  const b=new THREE.Box3().setFromObject(h),c=b.getCenter(new THREE.Vector3()),r=Math.max(...b.getSize(new THREE.Vector3()).toArray())*.62;
+  const cam=new THREE.OrthographicCamera(-r,r,r,-r,.1,50);cam.position.set(c.x,c.y+r*1.1,c.z+r*2.8);cam.lookAt(c);cam.updateMatrixWorld(true);
+  const base=new THREE.Vector3(c.x,b.min.y,b.max.z).project(cam); /* 房子底部前緣在照片裡的高度，貼圖要從這裡站在雪地上 */
+  const old=renderer.getRenderTarget(),oc=renderer.getClearColor(new THREE.Color()),oa=renderer.getClearAlpha();
+  renderer.setRenderTarget(rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(sc,cam);renderer.setRenderTarget(old);renderer.setClearColor(oc,oa);
+  return VIMP[st]={mat:new THREE.SpriteMaterial({map:rt.texture,transparent:true,alphaTest:.25}),r,v:(base.y+1)/2}}
+function buildVillage(){if(!FOREST.spots.length||!scene)return;const list=villageList(),key=JSON.stringify(list);if(key===VIL.key)return;VIL.key=key;
+  const vis=VIL.g?VIL.g.visible:true;if(VIL.g)scene.remove(VIL.g);if(VIL.mine)scene.remove(VIL.mine);VIL.g=VIL.mine=null;
+  const g=new THREE.Group();let me=null;
+  list.forEach(h=>{const sp=FOREST.spots[h.s];if(!sp)return;if(h.me){me=h;return}
+    if(window.XH3D){const im=vImp(h.st),d=new THREE.Sprite(im.mat),k=im.r*2*.55;d.scale.set(k,k,1);d.center.set(.5,Math.max(0,im.v-.04));d.position.copy(sp);g.add(d)}
+    else{const d=vHouse(h.st,.3,h.s);d.position.copy(sp);g.add(d)}});
+  scene.add(g);g.visible=vis;VIL.g=g;
+  if(me){const sp=FOREST.spots[me.s],m=new THREE.Group();m.position.copy(sp);m.add(vHouse(me.st,.4,me.s,true));
+    const gl=new THREE.Mesh(new THREE.CircleGeometry(.6,32),new THREE.MeshBasicMaterial({color:'#ffd84a',transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));gl.rotation.x=-Math.PI/2;gl.position.y=.03;m.add(gl);m.userData.glow=gl;
+    const np=nameplate('你的家',true);np.position.set(0,.86,0);m.add(np);m.visible=vis;scene.add(m);VIL.mine=m}}
+async function vShow(s){const sp=FOREST.spots[s];if(!sp)return;overviewFocus(sp.clone());await camArrive();sparkle(sp.clone().add(new THREE.Vector3(0,.7,0)),12);await sleep(700)}
+async function landShow(r){
+  if(r.kind==='house'){buildVillage();await vShow(r.s);confetti(40,FOREST.spots[r.s]);
+    await popup('house','你在聖誕村有一間房子了！',`踩到空地，送你一間「${XHN[r.st]||'聖誕小屋'}」，會發光的那間就是你家！\n之後再踩到空地，就會去村裡別人家拜訪、拿小禮物。`);focusAt=null;hud();return}
+  if(r.kind==='visit'){await vShow(r.s);await popup('house',`去${r.owner||'鄰居'}家拜訪`,r.gift?`拿到 ${r.gift} 個拜訪小禮物！`:'今天的拜訪小禮物拿完了，明天再來。');focusAt=null;hud();return}
+  await popup('lot','空地',`送你 ${r.gift||1} 個禮物。`)}
 function seedForest(){const r=rng(11),used=new Set(),out=[];const n=FOREST.spots.length||300;
   for(let k=0;k<26;k++){let s;do{s=Math.floor(r()*n)}while(used.has(s));used.add(s);out.push({s,n:FAKE[k%FAKE.length],lv:1+Math.floor(r()*r()*4.2)})}return out}
-function freeSpotNear(pos){const used=new Set(G.forest.map(t=>t.s));let best=-1,bd=1e9;
-  FOREST.spots.forEach((sp,i)=>{if(used.has(i)||lotNear(sp))return;const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);if(d<bd){bd=d;best=i}});return best}
+function freeSpotNear(pos){const used=new Set(G.forest.map(t=>t.s)),vs=villageList().map(h=>FOREST.spots[h.s]).filter(Boolean);let best=-1,bd=1e9;
+  FOREST.spots.forEach((sp,i)=>{if(used.has(i)||vs.some(v=>Math.hypot(v.x-sp.x,v.z-sp.z)<.45))return;const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);if(d<bd){bd=d;best=i}});return best}
 async function growAnim(i,from,to){const t=G.forest[i];const a=LVS[from]||0;
   await tween(750,p=>{const e=p<.7?p/.7*1.12:1.12-(p-.7)/.3*.12;const k=(a+(LVS[to]-a)*Math.min(1,e))/LVS[to]*(e>1?e:1);t.lv=to;setForestTree(i,t,Math.max(.01,k));Object.values(FOREST.parts).forEach(m=>m.instanceMatrix.needsUpdate=true)});
   renderForest();const w=FOREST.spots[t.s].clone();w.y+=.6;sparkle(w,8,['#5ee08a','#ffffff','#ffd84a'])}
@@ -1412,6 +1453,7 @@ function applyWorld(w,quiet){XW=w;if(w.lucky)XLUCKY=w.lucky;
   G.forest=w.forest.filter(f=>f.s>=0&&f.s<FOREST.spots.length).map(f=>({s:f.s,n:f.n,lv:Math.max(1,Math.min(5,f.lv)),me:!!f.me,mine:!!f.mine}));
   const old=Object.keys(G.lots);G.lots={};Object.entries(w.lots).forEach(([i,l])=>{G.lots[i]={o:l.me?'me':'x',n:l.n,lv:l.lv,st:l.st}});
   new Set([...old,...Object.keys(G.lots)]).forEach(i=>{try{updateLot(+i)}catch(e){}});
+  buildVillage();
   if(!quiet){renderForest();setTreeVisual(G.tree)}}
 async function xmasWorld(quiet){if(!XS)return null;try{const w=await gcall('/xmas/world');applyWorld(w,quiet);return w}catch(e){return null}}
 async function xmasPull(){if(!window.PROD||!token())return;
@@ -1584,7 +1626,7 @@ function dimObj(o,k){o.traverse(m=>{
   const ms=m.material?(Array.isArray(m.material)?m.material:[m.material]):[];
   ms.forEach(mt=>{if(!mt.color)return;const u=mt.userData;if(!u.c0)u.c0=mt.color.clone();const l=u.c0.r*.3+u.c0.g*.59+u.c0.b*.11;_gc.setRGB(.6+l*.26,.64+l*.25,.72+l*.22);mt.color.copy(u.c0).lerp(_gc,k)});
   if(m.userData.gtex){const mt=m.material[0],want=k>.5?m.userData.gtex:m.userData.tex;if(mt.map!==want){mt.map=want;if(mt.emissiveMap)mt.emissiveMap=want;mt.needsUpdate=true}}})}
-const boardParts=()=>[...ISL,...Object.values(lotDeco),...Object.values(gachaDeco),lock2,...Object.values(FOREST.parts),FOREST.mine].filter(Boolean);
+const boardParts=()=>[...ISL,VIL.g,VIL.mine,...Object.values(lotDeco),...Object.values(gachaDeco),lock2,...Object.values(FOREST.parts),FOREST.mine].filter(Boolean);
 function setDim(k){DIM=k;boardParts().forEach(o=>dimObj(o,k));if(!k)setTreeVisual(G.tree)}
 function setTilesDim(k){tiles.forEach(l=>l.forEach(t=>dimObj(t,k)))}
 /* 天空：10 月白天、11–12 月夜景。開門走過橋時 SKYHOLD 先維持白天底色，再用 #nightVeil 淡入夜空 */
@@ -3144,7 +3186,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030k',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030l',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4650,6 +4692,12 @@ async function landLotX(i){
   }catch(e){if(e.code==='LOT_TAKEN'){toast('這塊地剛剛被別人認領了');await xmasWorld()}else toast(e.message||'連線不穩，稍後再試')}
 }
 async function landLot(i){
+  /* 2026-10-30 聖誕村：還沒有房子就送一間，有了就去別人家拜訪 */
+  if(XS){try{const j=await xcall('/xmas/lot',{idx:i,op:'land'});hud();await xmasWorld(true);return await landShow(j.lotRes)}catch(e){toast(e.message||'連線不穩，稍後再試')}return}
+  {const list=villageList(),mine=list.find(h=>h.me);
+    if(!mine){const s=vPick(list);if(s<0){addGifts(1);return landShow({kind:'full',gift:1})}const st=Math.floor(Math.random()*5);list.push({s,st,me:true});save();return landShow({kind:'house',s,st})}
+    const others=list.filter(h=>!h.me);if(!others.length){addGifts(1);return landShow({kind:'alone',gift:1})}
+    const h=others[Math.floor(Math.random()*others.length)];addGifts(2);return landShow({kind:'visit',gift:2,owner:FAKE[h.s%FAKE.length],s:h.s,st:h.st})}
   if(XS)return landLotX(i);
   const lot=G.lots[i];
   if(!lot){
@@ -4672,7 +4720,7 @@ async function landLot(i){
   await popup('house',`拜訪${name}的聖誕小屋`,`你和${name}各拿到 ${lot.lv} 個禮物。正式版會用 LINE 通知對方「有人來你家拜訪」。`);
 }
 /* 今日幸運格：格子上方一顆金色星星上下浮 */
-function luckyTick(now){if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)GA.luckyS.forEach(s=>s.visible=false);if(GA.animS)GA.animS.forEach(s=>s.visible=false);return}
+function luckyTick(now){if(VIL.mine&&VIL.mine.userData.glow)VIL.mine.userData.glow.material.opacity=.3+.2*Math.sin(now/420);if(!G||G.phase==='oct'||!tiles[0].length){if(GA.luckyS)GA.luckyS.forEach(s=>s.visible=false);if(GA.animS)GA.animS.forEach(s=>s.visible=false);return}
   if(!GA.luckyS){GA.luckyS=[0,1].map(()=>{const s=santaStar();s.material.color.set('#ffd84a');s.material.blending=THREE.NormalBlending;s.scale.setScalar(.75);return s})}
   if(!GA.animS)GA.animS=[0,1].map(()=>animSprite());
   {const A=animalIdx();GA.animS.forEach((s,lv)=>{const t=tiles[lv][A[lv]];if(!t){s.visible=false;return}t.getWorldPosition(s.position);s.position.y+=.75+Math.abs(Math.sin(now/260+lv))*.18;s.visible=MI.state==='off'})}
