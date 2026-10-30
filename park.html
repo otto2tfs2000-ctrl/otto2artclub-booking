@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030j';
+const PARK_VER='20261030k';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -948,7 +948,7 @@ const T={
   ginger:{c:'#f0c9a0',lbl:'薑餅人',ic:'ginger',o:2}, sock:{c:'#f4f7fb',lbl:'聖誕襪',ic:'sock',o:3},
   again:{c:'#6cd48a',lbl:'再擲',ic:'dice'}, fwd:{c:'#62a9ff',lbl:'雪橇',ic:'sled'}, back:{c:'#c9d6e8',lbl:'滑倒',ic:'slip'},
   rest:{c:'#e89a6a',lbl:'熱可可',ic:'cocoa'}, santa:{c:'#d63a2f',lbl:'聖誕老人',ic:'santa'},
-  gacha:{c:'#ff9a8a',lbl:'扭蛋機',ic:'gacha'}, angel:{c:'#ffe3a0',lbl:'金色天使',ic:'angel'},
+  gacha:{c:'#ff9a8a',lbl:'扭蛋機',ic:'gacha'}, angel:{c:'#ffe3a0',lbl:'金色天使',ic:'angel'}, snow:{c:'#f4f7fb',lbl:'雪地',ic:'tree'},
   mix:{c:'#ffb3c7',lbl:'調色',ic:'palette',mg:'mix'}, stack:{c:'#b7e4a8',lbl:'疊禮物',ic:'tower',mg:'stack'},
   memo:{c:'#cdb8f2',lbl:'翻牌',ic:'cards',mg:'memo'}, catch:{c:'#9fd8f5',lbl:'接禮物',ic:'catch',mg:'catch'},
   hue:{c:'#ffe08a',lbl:'辨色',ic:'hue',mg:'hue'}, stairs:{c:'#ffc59e',lbl:'下樓梯',ic:'stairs',mg:'stairs'}, plant:{c:'#bfe8b0',lbl:'種樹',ic:'sapling'}, elf:{c:'#a8e6b4',lbl:'抓精靈',ic:'elf',mg:'elf'}, simon:{c:'#c7d2ff',lbl:'記燈',ic:'bulbs',mg:'simon'},
@@ -957,7 +957,7 @@ const LEVELS=[
   {name:'第一層',w:11,h:8,pad:2.0,off:new THREE.Vector3(0,0,0),
    path:['start','lot','mix','bell','hue','lot','simon','stack','big','memo','gift', 'lot','plant','star','catch','gacha','plant', 'lot','ginger','stairs','lot','plant','sock','elf','gacha','again','plant', 'santa','plant','gacha','lot','plant','lot','fwd']},
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
-   path:['start','big','star','memo','santa','fwd', 'gacha','again','ginger', 'simon','santa','bell','angel','fwd', 'sock','catch']}, /* 2026-10-29 第二層專屬：扭蛋機（紅利機率比較高）、金色天使；走完一圈開預約大禮盒 */
+   path:['start','snow','angel','snow','snow','fwd', 'snow','angel','snow', 'snow','snow','fwd','snow','angel', 'snow','snow']}, /* 2026-10-30 大熊：第二層只留金色天使（集貼紙）＋雪橇，走完一圈開預約大禮盒；不放扭蛋機、禮物、小遊戲 */
 ];
 const GAP=1.25,TILE=1.08,TILE_H=.3,TILE_GLOW=.22; /* 雪地調亮後格子不用那麼亮，.45 會太刺眼 */
 function cell(L,i){const{w,h}=L;
@@ -1424,7 +1424,7 @@ async function xmasPull(){if(!window.PROD||!token())return;
     if(j.visits&&j.visits.n>0)xmasVisitShow(j.visits);
     silverRefresh().then(()=>{if(j.gain&&j.gain.reward)xmasKlassShow(j.gain.reward)});
     try{const k='otto2-anim-hint',t=twToday();if(localStorage.getItem(k)!==t){localStorage.setItem(k,t);setTimeout(()=>toast(`今天${animalWho()[1]}躲在有 🥕 的格子，踩到有驚喜！`),2600)}}catch(e){}
-    setTimeout(xmasClaimPrompt,1200)}catch(e){XS=null}}
+    setTimeout(xmasClaimPrompt,1200);setTimeout(l2Prompt,2200)}catch(e){XS=null}}
 /* 來上課的獎勵（伺服器發好了，這裡只講）：11 月銀色扭蛋、12 月聖誕吊飾 */
 async function xmasKlassShow(r,tries=0){if(busy||!$('pop').hidden){if(tries<60)setTimeout(()=>xmasKlassShow(r,tries+1),1000);return}
   if(r.box&&r.box.length){await popup('giftbig','上完課了！大禮盒入帳',r.box.map(b=>b.ticket?`「${b.nm}」已經放進你的票券`:b.pts?`「${b.nm}」已經加進紅利點數${b.gift?`（紅利拿滿了，另外改送 ${b.gift} 個禮物）`:''}`:`紅利拿滿了，「${b.nm}」改送 ${b.gift} 個禮物`).join('\n'));if(!r.silver&&!r.orn&&!r.gift){hud();return}}
@@ -1469,7 +1469,7 @@ async function rankShow(){let j;try{j=await gcall('/xmas/rank',{})}catch(e){toas
   const html=`<div class="rk">${Object.entries(MG).map(([k,m])=>{const g=(j.games||{})[k]||{top:[]};
     return `<div><b>${esc(m.t)}</b>${g.top.length?g.top.slice(0,3).map((x,i)=>`<span class="${x.me?'me':''}">${['🥇','🥈','🥉'][i]} ${esc(x.n)}　${esc(x.lbl)}</span>`).join('<br>'):'<span style="color:#9a8f80">這週還沒有人玩</span>'}${g.me>3?`<br><span class="me">你：第 ${g.me} 名</span>`:''}</div>`}).join('')}</div>`;
   await popup('',`本週小遊戲排行榜`,'每週一重新開始，只看這週最好的一次。',[{t:'好',v:1}],html)}
-async function silverOpen(){if(GGBUSY)return;await xmasFlush();if(!SILVER)await silverRefresh();if(!SILVER||!SILVER.coins){toast('目前沒有銀色扭蛋，11 月來上課就會拿到');return}goldGachaOpen(SILVER.coins,false,true)}
+async function silverOpen(){if(GGBUSY)return;await xmasFlush();if(!SILVER)await silverRefresh();if(!SILVER||!SILVER.coins){toast('目前沒有銀色扭蛋，預約上課、進入第二層就會拿到');return}goldGachaOpen(SILVER.coins,false,true)}
 /* 上次打開之後有人來拜訪我的小屋（伺服器只回一次，不發 LINE）：等畫面空下來再跳 */
 function xmasVisitShow(v,tries=0){if(busy||!$('pop').hidden||G.phase==='oct'){if(tries<60)setTimeout(()=>xmasVisitShow(v,tries+1),1000);return}
   const who=v.names.length?`（${v.names.join('、')}${v.n>v.names.length?' 等':''}）`:'';
@@ -3144,7 +3144,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030j',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030k',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -3959,7 +3959,7 @@ function hud(){
   $('matlbl').innerHTML=oct?'集滿四個聖誕吊飾':`吊飾<b>${(G.orn||[]).filter(Boolean).length}</b>/ 4`+(G.cur===1?` 👼<b>${XS?XS.p.angel||0:G.angel||0}</b>/${XS&&XS.p.angelNeed||3}`:''); /* 第二層顯示金色天使（字要短，不然禮物會被擠到第二行） */
   $('lv0').innerHTML='第一層'+(oct?'':`<i class="lvn">${G.test||G.lv[0].left>=90?'∞':G.lv[0].left}</i>`);$('lv0').classList.toggle('on',G.cur===0);$('lv1').classList.toggle('on',G.cur===1);
   $('lv1').classList.toggle('locked',!G.booked);$('lv1').innerHTML=G.booked?`第二層<i class="lvn">${G.test||G.lv[1].left>=90?'∞':G.lv[1].left}</i>`:LOCK_SVG+'第二層';
-  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`${window.GUEST?'體驗版・':''}今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課就能打開第二層':G.test?`${window.GUEST?'體驗版':'測試模式'}・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
+  $('left').innerHTML=oct?(window.PROD?(gOpen()?(ST&&ST.sim?(window.KIOSK?'店內體驗・可以一直轉':'🔧 示範模式・可以一直轉（不入帳）'):`${window.GUEST?'體驗版・':''}今天還可以轉 <b>${gl}</b> 次`):gClosedMsg()):G.test?'測試模式・扭蛋可以一直轉':`10/${G.day} ・今天還可以轉 <b>${gl}</b> 次`):G.cur===1&&!G.booked?'預約上課，上課當天起三天可以進第二層':G.cur===1&&XS&&XS.p.l2&&!G.test?`第二層・這次預約還可以擲 <b>${L.left}</b> 次（到 ${+XS.p.l2.until.slice(5,7)}/${+XS.p.l2.until.slice(8,10)}）`:G.test?`${window.GUEST?'體驗版':'測試模式'}・${LEVELS[G.cur].name}可以一直擲`:`第 ${G.day} 天・${LEVELS[G.cur].name}今天還可以擲 <b>${L.left}</b> 次`;
   if(oct){const t=$('left').textContent.replace(/^🔧\s*/,'');$('spin').dataset.sub=t===$('spin').textContent||(window.PROD&&!ST)?'':t}
   const has=G.test||L.left>0,can=!busy&&has&&(G.cur===0||G.booked);
   $('roll').disabled=!can;$('room').disabled=busy;$('roll').textContent=has?'擲骰子':'明天再來';
@@ -4565,16 +4565,28 @@ async function hop(to){
 }
 let passedStart=false,passedStart2=false;
 /* ── 第二層專屬（2026-10-29）── 金色天使：每天 1 個、集滿 3 個換材料升級券；走完第二層一圈：開這筆預約的大禮盒＋解鎖聖誕老公公工作坊 */
+/* 2026-10-30 大熊：有預約的人一打開就告訴他「你可以進第二層」（上課當天起三天），進第二層才送銀色扭蛋 */
+let _l2Shown='';
+async function l2Prompt(tries=0){const l2=XS&&XS.p&&XS.p.l2;if(!l2||G.phase==='oct'||window.GUEST||window.KIOSK)return;
+  if(busy||!$('pop').hidden||GGBUSY){if(tries<40)setTimeout(()=>l2Prompt(tries+1),1500);return}
+  const k='otto2-l2-'+twToday()+'-'+l2.dates.join(',');if(_l2Shown===k)return;_l2Shown=k;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){}
+  const md=d=>`${+d.slice(5,7)}/${+d.slice(8,10)}`,ds=l2.dates.map(md).join('、');
+  const go=await popup('giftbig','你獲得第二層的遊戲資格！',`因為你有預約 ${ds} 的課，第二層開放到 ${md(l2.until)}。\n\n這次可以在第二層擲 ${l2.rolls} 次骰子，集金色天使貼紙、走完一圈開預約大禮盒${l2.silver?'；一進去還送你 1 次銀色扭蛋':''}！`,[{t:'去第二層',v:1,cls:'red'},{t:'晚點再去',v:0,cls:'ghost'}]);
+  if(go&&G.cur!==1)pickLevel(1)}
+async function l2Enter(){if(!XS||!XS.p||!XS.p.l2||!XS.p.l2.silver||XS.sim)return;
+  try{const j=await xcall('/xmas/l2enter',{});hud();const n=j.l2Res&&j.l2Res.silver;if(!n)return;await silverRefresh();
+    const go=await popup('giftbig','送你銀色扭蛋！',`謝謝你預約上課，送你 ${n} 次銀色扭蛋，上課當天起三天內記得轉喔。`,[{t:'現在轉',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);
+    if(go)silverOpen()}catch(e){toast(e.message||'連線不穩，稍後再試')}}
 async function landAngel(){
   sparkle(bear.position.clone().add(new THREE.Vector3(0,.9,0)),14,['#ffd84a','#ffffff','#ffe9a8']);
   if(XS){try{const j=await xcall('/xmas/angel',{});const r=j.angelRes;hud();
-      if(r.kind==='today')return popup('angel','金色天使','今天的金色天使已經拿過了，明天再來！先送你 2 個禮物。');
+      if(r.kind==='today')return popup('angel','金色天使','今天的金色天使貼紙已經拿過了，明天再來！');
       if(r.ticket){confetti(60);return popup('giftbig','集滿三個金色天使！',`換到一張「${r.ticket}」，已經放進你的票券，可以在預約頁「我的」看到。${j.sim?'（示範模式，不入帳）':''}`)}
       if(r.gift){confetti(40);return popup('giftbig','集滿三個金色天使！',`換票券的次數用完了，改送你 ${r.gift} 個禮物。`)}
-      return popup('angel',`金色天使 ${r.n}／${r.need}`,`第二層才有的金色天使！每天可以拿一個，集滿 ${r.need} 個換一張材料升級券。`)}
+      return popup('angel',`金色天使 ${r.n}／${r.need}`,`第二層才有的金色天使！踩到就送一張金色天使貼紙，集滿 ${r.need} 張換一張畫布升級券（選圖繪畫換大一號畫布）。`)}
     catch(e){toast(e.message||'連線不穩，稍後再試');return}}
-  G.angel=(G.angel||0)+1;if(G.angel>=3){G.angel=0;confetti(60);await popup('giftbig','集滿三個金色天使！','正式版會換一張材料升級券。');return}
-  hud();await popup('angel',`金色天使 ${G.angel}／3`,'第二層才有的金色天使！每天可以拿一個，集滿 3 個換一張材料升級券。');
+  G.angel=(G.angel||0)+1;if(G.angel>=3){G.angel=0;confetti(60);await popup('giftbig','集滿三個金色天使！','正式版會換一張畫布升級券（選圖繪畫換大一號畫布）。');return}
+  hud();await popup('angel',`金色天使 ${G.angel}／3`,'第二層才有的金色天使！踩到就送一張金色天使貼紙，集滿 3 張換一張畫布升級券（選圖繪畫換大一號畫布）。');
 }
 async function openBox(){
   const BX='走完第二層一圈，打開預約大禮盒！';confetti(50);
@@ -4586,12 +4598,12 @@ async function openBox(){
       return popup('giftbig',BX,`拿到 ${r.n} 個禮物！每一筆預約都可以開一次大禮盒。`+unlock)}
     catch(e){toast(e.message||'連線不穩，稍後再試');return}}
   const first=!G.lap2;G.lap2=true;addGifts(5);
-  await popup('giftbig',BX,'示範版先送 5 個禮物。正式版每一筆預約開一次，有機會抽到紅利或材料升級券（上完課才入帳）。'+(first?'\n\n也解鎖了第 6 間小屋「聖誕老公公工作坊」！':''));
+  await popup('giftbig',BX,'示範版先送 5 個禮物。正式版每一筆預約開一次，有機會抽到紅利、選品店小禮物或折價券（上完課才入帳）。'+(first?'\n\n也解鎖了第 6 間小屋「聖誕老公公工作坊」！':''));
 }
 async function walk(n){
   const N=LEVELS[G.cur].path.length,dir=Math.sign(n);
   for(let k=0;k<Math.abs(n);k++){const to=(G.lv[G.cur].pos+dir+N)%N;await hop(to);G.lv[G.cur].pos=to;
-    if(dir>0&&to===0){G.gifts++;hud();toast('繞完一圈！拿到 1 個禮物');confetti(14);if(G.cur===0)passedStart=true;else passedStart2=true}}
+    if(dir>0&&to===0){if(G.cur===0){G.gifts++;hud();toast('繞完一圈！拿到 1 個禮物');passedStart=true}else passedStart2=true;confetti(14)}} /* 第二層繞完一圈直接開大禮盒，不另外送禮物 */
   bear.rotation.y=0;save();
 }
 async function flyTo(lv){
@@ -4605,7 +4617,7 @@ async function gotOrnament(i,title){
   const n=G.orn.filter(Boolean).length;
   await popup(ORN[i].k,title||`撿到${ORN[i].n}！`,`聖誕吊飾 ${n}/4。${n<4?'集滿四個有大獎（內容之後公布）。':''}`);
   if(n===4&&XS){
-    confetti(60);await xmasFlush();const pk=((XW&&XW.ornPick)||{gift:5,point:3,ticket:'材料升級券'});
+    confetti(60);await xmasFlush();const pk=((XW&&XW.ornPick)||{gift:5,point:3,ticket:'畫布升級券'});
     const pick=await popup('giftbig','四個吊飾集滿了！',`三選一：禮物可以繼續玩遊戲；紅利點數和材料升級券是真的，每人每週可以領一次。`,[{t:`${pk.gift} 個禮物`,v:'gift',cls:'ghost'},{t:`紅利 ${pk.point} 點`,v:'point',cls:'red'},{t:pk.ticket||'材料升級券',v:'ticket',cls:'red'}]);
     try{const j=await xcall('/xmas/claim',{kind:'orn',pick});hud();const g=j.claimRes.got;
       await popup('giftbig',g.pick==='point'?`領到紅利 ${g.pts} 點！`:g.pick==='ticket'?`領到${g.nm}！`:`拿到 ${g.gift} 個禮物！`,g.pick==='gift'?(g.noPts?'今天的紅利送完了，改送禮物，可以拿去幫聖誕樹點燈。吊飾已清空，可以再集一輪。':j.claimRes.firstOnly?'紅利和票券每週只能領一次，這次改送禮物，下週一再來換。吊飾已清空，可以再集一輪。':'吊飾已清空，可以再集一輪。'):'已經幫你存進會員資料。吊飾已清空，可以再集一輪，不過紅利和票券每人只能領一次，之後再集滿只能換禮物。')}
@@ -4681,6 +4693,7 @@ async function resolve(){
   if(key==='gacha'){const r=Math.random(),n=r<.6?1:r<.9?2:3;await xGachaShow(Promise.resolve({}));sparkle(bear.position.clone().add(new THREE.Vector3(0,.8,0)),10,['#ff5a4a','#ffd84a','#6ab8ff','#5ee08a']);addGifts(n);await popup('gacha','扭蛋機！',`轉出一顆扭蛋，裡面有 ${n} 個禮物。（獎項內容之後公布，現在先送禮物。）`);return}
   if(key==='plant')return plant('踩到種樹格');
   if(key==='angel')return landAngel();
+  if(key==='snow')return; /* 第二層的雪地：沒事，繼續往大禮盒走 */
   if(t.g){addGifts(t.g);await popup(t.ic,key==='big'?'大禮物！':'小禮物',`拿到 ${t.g} 個禮物。禮物可以用來認領、升級聖誕小屋。`);return}
   if(t.o!==undefined){if(G.orn[t.o]){addGifts(1);await popup(t.ic,`又是${ORN[t.o].n}`,'這個吊飾已經有了，換成 1 個禮物。');return}return gotOrnament(t.o)}
   if(key==='again'){G.lv[G.cur].left++;XEXTRA[G.cur]=1;hud();await popup('dice','再擲一次！','送你一次擲骰機會。');return}
@@ -4765,8 +4778,9 @@ async function doRoll(){
 }
 async function pickLevel(lv){
   if(busy||G.cur===lv||G.phase==='oct')return;
-  if(lv===1&&!G.booked){await popup('santa','第二層還鎖著','有預約上課就能打開第二層！第二層有：紅利機率比較高的扭蛋機、只有這裡才有的金色天使（集滿 3 個換材料升級券）、每走完一圈開一次預約大禮盒，還能解鎖第 6 間小屋「聖誕老公公工作坊」。');return}
+  if(lv===1&&!G.booked){await popup('santa','第二層還鎖著','預約上課，上課當天起三天就能進第二層！每筆預約可以擲 3 次，一進去送你 1 次銀色扭蛋；第二層有金色天使貼紙（集滿 3 張換畫布升級券（選圖繪畫換大一號畫布）），走完一圈開預約大禮盒。');return}
   busy=true;hud();await flyTo(lv);busy=false;hud();
+  if(lv===1)await l2Enter();
 }
 async function showRank(){
   const rows=[['me','你'],...Object.entries(OTHERS)].map(([id,n])=>{const mine=Object.values(G.lots).filter(l=>l.o===id);
@@ -4778,7 +4792,7 @@ async function showRank(){
 const NEWS_VER='20261029';
 async function newsOpen(){try{if(localStorage.getItem('otto2-news')===NEWS_VER)return;localStorage.setItem('otto2-news',NEWS_VER)}catch(e){return}
   const go=await popup('giftbig','走格子更新了！','',[{t:'去小衣櫥看看',v:1,cls:'red'},{t:'知道了',v:0,cls:'ghost'}],
-    `<ul class="news"><li>🧸 <b>小衣櫥</b>：幫小熊和天竺鼠換裝</li><li>🏠 <b>聖誕小屋</b>搬進森林裡</li><li>👼 <b>第二層</b>：有預約就能玩</li><li>🎁 拿到<b>紅利</b>會提醒你還差幾點</li></ul>`);
+    `<ul class="news"><li>🧸 <b>小衣櫥</b>：幫小熊和天竺鼠換裝</li><li>🏠 <b>聖誕小屋</b>搬進森林裡</li><li>👼 <b>第二層</b>：上課當天起三天可以玩</li><li>🎁 拿到<b>紅利</b>會提醒你還差幾點</li></ul>`);
   if(go){const b=busy;busy=false;await wardrobe();busy=b}}
 async function dailyOpen(){ // opening the game once a day lights one bulb, no play needed
   if(XS)return;
