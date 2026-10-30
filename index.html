@@ -2228,6 +2228,10 @@ function boot(){
   } else if(!boot._gc && /go(=|%3D)gacha2d/i.test(q)){
     boot._gc=true;
     liffReady.then(()=>openGacha2d());
+  } else if(!boot._gc && /go(=|%3D)hw/i.test(q)){
+    /* 萬聖節點南瓜預覽（2026-10-30 大熊要先試玩）：https://liff.line.me/2010906803-FMDYktUN?go=hw；員工帳號是示範模式，不入帳 */
+    boot._gc=true;
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030m&hw=1") });
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
     liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030m") });
