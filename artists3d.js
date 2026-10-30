@@ -521,7 +521,9 @@ const FOLK={
   [-1,1].forEach(s=>head.add(keep(fbox('#ffffff',.045,.055,.02,.026*s,-.155,.465))));
   const armL=new THREE.Group(),armR=new THREE.Group();armL.position.set(-.44,.72,0);armR.position.set(.44,.72,0);body.add(armL,armR);
   [armL,armR].forEach((a,i)=>{const s=i?1:-1;a.add(ball(M,.14,.03*s,-.16,0,.85,1.5,.85));[[.0,-.04],[.06,-.2],[-.02,-.32]].forEach(([x,y])=>a.add(ball(D,.07,x*s+.05*s,y,.04,1,.8,.8,true)));a.rotation.z=.15*s});
-  const f={g,body,armL,armR,head};keep(g);return figDoneX(f,A,1.05)},
+  const f={g,body,armL,armR,head};keep(g);const out=figDoneX(f,A,1.05);
+  /* 2026-10-30 大熊：雪怪穿不上衣櫥的東西 → 牠是一整顆大毛球，照一般公仔的位置放會被吃進身體裡；這裡給衣櫥用的尺寸（petlife.js dress 讀 fit）。沒有帽子，所以頭上也能戴 */
+  out.userData.fit={hatY:.17,hatS:1.35,faceY:-.12,faceZ:.47,neckY:.5,neckR:.47,neckSz:.92,bodyY:.58,bodyR:.545,bodySc:[1,1.06,.92],bodyCut:.55};return out},
 '彩繪精靈'(A){const S='#f6efe0';const f=figBase({coat:xt('dots','#8fc6e8','#ffffff',1,1,6),sleeve:'#8fc6e8',legs:'#e98aa0',cuff:'#e98aa0',shoe:'#f2c14e',skin:'#f6d6bc',mouth:'smile'}),h=f.head;
   const sm=flathe([[0,.3],[.23,.3],[.215,.55],[.18,.74],[0,.74]],toon(S,{side:THREE.DoubleSide}),20);sm.scale.set(1,1,.62);sm.position.z=.04;f.body.add(sm);
   [['#e85a6a',-.06,.62],['#f2c14e',.07,.52],['#5aa0e8',-.02,.45],['#6cc08a',.08,.66]].forEach(([c,x,y])=>f.body.add(keep(ball(c,.03,x,y,.215,1.3,1,.4,true)))); /* 圍裙上的顏料 */

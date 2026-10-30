@@ -217,6 +217,10 @@ body.tour .tourstop{display:block}
 button.stats{font:inherit; cursor:pointer; color:var(--ink2)}
 .stats .findl{margin-top:2px; font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.06em}
 #tags{position:fixed; inset:0; pointer-events:none; z-index:2}
+/* 2026-10-30 看某間小屋時，四周淡淡虛化（中間清楚的範圍跟著小屋走，程式每格更新） */
+#isoFx{position:fixed; inset:0; pointer-events:none; opacity:0; transition:opacity .45s}
+#isoFx.on{opacity:1}
+#isoFx.blur{-webkit-backdrop-filter:blur(3.5px); backdrop-filter:blur(3.5px)}
 #tags button{position:absolute; transform:translate(-50%,-100%); pointer-events:auto; font:inherit; font-size:12.5px; color:var(--ink); background:rgba(255,253,247,.94); border:1px solid var(--line); border-radius:99px; padding:3px 10px; white-space:nowrap; box-shadow:0 3px 10px rgba(40,70,90,.18); cursor:pointer; transition:opacity .2s}
 #tags button::after{content:''; position:absolute; left:50%; bottom:-5px; margin-left:-5px; border:5px solid transparent; border-bottom:0; border-top-color:rgba(255,253,247,.94)}
 #tags button.me{background:var(--accent); color:#fff; border-color:transparent}
@@ -234,7 +238,7 @@ body.tour .pcTag{display:none!important}
 .flist .none{color:var(--ink2); font-size:14px; padding:10px; text-align:center}
 </style>
 
-<div id="stage"></div>
+<div id="stage"></div><div id="isoFx" aria-hidden="true"></div>
 <div class="say" id="say" hidden></div>
 <div id="tags" aria-hidden="false"></div>
 <div class="loading" id="loading">島嶼正在浮上來…</div>
@@ -273,7 +277,7 @@ body.tour .pcTag{display:none!important}
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
 <script src="ferry.js?v=20261024f"></script>
-<script src="petlife.js?v=20261029c"></script>
+<script src="petlife.js?v=20261030f"></script>
 <script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
@@ -358,6 +362,7 @@ const LEAF_MAT=new THREE.MeshLambertMaterial({map:LEAF_TEX,alphaTest:.5,side:THR
 const LEAF_DEPTH=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:LEAF_TEX,alphaTest:.5});
 const CARD=new THREE.PlaneGeometry(1,1);
 let foliageMesh=null;
+const OCC=[];   /* 會擋住小屋的小樹（看小屋時暫時藏起來用） */
 function rebuildFoliage(){
   if(foliageMesh){scene.remove(foliageMesh);foliageMesh.dispose&&foliageMesh.dispose()}
   scene.updateMatrixWorld(true);const marks=[];scene.traverse(o=>{if(o.userData.foliage)marks.push(o)});
@@ -382,7 +387,7 @@ function lpTree(x,z,s,kind,seed){const g=new THREE.Group();g.position.set(x,heig
   if(kind==='pine'){const PC=['#5b7a58','#557452','#62815c'];[[1,1.25,1.25],[.8,1.1,1.95],[.55,.95,2.6]].forEach(([rad,h,y],k)=>g.add(lpMesh(jitterGeo(new THREE.ConeGeometry(rad*s,h*s,7),.08*s,seed*3+k),PC[k%3],0,y*s,0)))}
   else{const cc=kind==='blossom'?['#ead9d2','#f1e4dc','#dcc6bf']:kind==='autumn'?['#b8864f','#a9773f','#c2955e']:['#7c9a68','#86a46c','#6f8f5c'];
     [[0,1.9,0,.78],[.38,1.62,.2,.55],[-.34,1.7,-.14,.58]].forEach(([px,py,pz,rad],k)=>g.add(lpMesh(jitterGeo(new THREE.IcosahedronGeometry(rad*s,1),rad*s*.22,seed*5+k),cc[k],px*s,py*s,pz*s)))}
-  g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);OCC.push(g);
   if(XDECO){g.updateMatrixWorld(true);const v=new THREE.Vector3(),put=(x,y,z)=>XBULBS.push(g.localToWorld(v.set(x,y,z)).clone());   // 聖誕：小樹也掛小燈泡
     if(kind==='pine')[[1,1.25,1.25],[.8,1.1,1.95],[.55,.95,2.6]].forEach(([rad,h,y],k)=>{const n=[9,7,5][k];for(let i=0;i<n;i++){const a=i/n*6.28+k*.6+r()*.3,t=.15+r()*.35,rr=rad*(1-t)*1.02;put(Math.cos(a)*rr*s,(y-h/2+t*h)*s,Math.sin(a)*rr*s)}});
     else [[0,1.9,0,.78],[.38,1.62,.2,.55],[-.34,1.7,-.14,.58]].forEach(([px,py,pz,rad],k)=>{const n=[9,5,5][k];for(let i=0;i<n;i++){const u=r()*1.4-.5,a=r()*6.28,h=Math.sqrt(Math.max(0,1-u*u));put((px+Math.cos(a)*h*rad*1.02)*s,(py+u*rad*.95)*s,(pz+Math.sin(a)*h*rad*1.02)*s)}})}
@@ -390,7 +395,7 @@ function lpTree(x,z,s,kind,seed){const g=new THREE.Group();g.position.set(x,heig
 /* 聖誕小燈泡：所有小樹的燈收集起來，最後合成一個 InstancedMesh（一次畫完），每顆各自慢慢閃 */
 const XBULBS=[],xBulbSets=[],BULB_C=['#ffd36a','#ff8a7a','#9fe0c2','#fff2c4','#f7a8c4'];
 function xBulbMesh(list,size,parent){const m=new THREE.InstancedMesh(SPH,new THREE.MeshBasicMaterial(),list.length),mt=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3().setScalar(size),col=new THREE.Color();
-  list.forEach((p,i)=>{mt.compose(p,q,sc);m.setMatrixAt(i,mt);m.setColorAt(i,col.set(BULB_C[i%5]))});m.instanceColor.needsUpdate=true;(parent||scene).add(m);xBulbSets.push(m);return m}
+  list.forEach((p,i)=>{mt.compose(p,q,sc);m.setMatrixAt(i,mt);m.setColorAt(i,col.set(BULB_C[i%5]))});m.instanceColor.needsUpdate=true;m.userData.pts=list;m.userData.m0=m.instanceMatrix.array.slice();(parent||scene).add(m);xBulbSets.push(m);return m}
 function bulbTick(now){if(!xBulbSets.length)return;const t=Math.floor(now/450);if(t===bulbTick.t)return;bulbTick.t=t;const col=new THREE.Color();
   xBulbSets.forEach(m=>{for(let i=0;i<m.count;i++){const on=((i*7+t)%5)!==0;col.set(BULB_C[i%5]);if(!on)col.multiplyScalar(.45);m.setColorAt(i,col)}m.instanceColor.needsUpdate=true})}
 function puffTree(x,z,s,autumn){const g=new THREE.Group();g.position.set(x,heightAt(x,z)-.05,z);const r=rng(Math.round(x*97+z*31)+7),bark='#8e6b4b',barkD='#77583d';g.rotation.y=r()*6.28;
@@ -1715,7 +1720,7 @@ function build(){
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight)}
 /* 手機跑不動時自動降畫質：連續 2 秒每格超過 1/30 秒，先關影子（2026-10-10 大熊嫌糊：不再降解析度到 1.5／1.25） */
 const PERF={acc:0,n:0};
-function perfTick(raw){if(document.hidden||!(raw>0&&raw<1))return;PERF.acc+=raw;PERF.n++;if(PERF.acc<2)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;if(avg<=1/30)return;
+function perfTick(raw){if(document.hidden||!(raw>0&&raw<1))return;PERF.acc+=raw;PERF.n++;if(PERF.acc<2)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;if(avg<=1/30)return;PERF.slow=1;
   const cur=renderer.getPixelRatio(),nx=[].find(v=>v<cur-.01);
   if(nx){renderer.setPixelRatio(nx);resize()}else if(renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}}
 
@@ -1763,16 +1768,16 @@ function loop(now){
   {const show=!focus&&!$('hud').hidden,bm=BM&&BM.count();
     if(annFix){annFix.visible=show&&!bm;if(annFix.visible)Anniv26.pin(annFix,camera,.66,.42,.21,camPos.distanceTo(look)*.92,now)}
     if(bm)BM.tick(now,show,camPos.distanceTo(look)*.92)}
-  renderer.render(scene,camera);try{updateTags();updatePcTag()}catch(e){}requestAnimationFrame(loop);
+  try{isoTick(now)}catch(e){}renderer.render(scene,camera);try{updateTags();updatePcTag()}catch(e){}requestAnimationFrame(loop);
 }
 
 /* ================= interaction ================= */
 const pointers=new Map();let down=null,pinch0=null;const cvEl=()=>renderer.domElement;
-function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);const h=rc.intersectObjects(picks,false)[0];if(h)return h.object.userData;
+function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const rc=new THREE.Raycaster();rc.setFromCamera(v,camera);const h=rc.intersectObjects(picks,false).find(x=>shown(x.object));if(h)return h.object.userData;
   /* 2026-10-05 大熊說點不到別人家：整座島看的時候小屋只有指甲大，沒點中就找手指附近（約 34px 內）最近的小屋或藝術家 */
   const tx=e.clientX-r.left,ty=e.clientY-r.top,w=new THREE.Vector3();let best=null,bd=34*34;
   const near=(obj,ud,lift)=>{obj.getWorldPosition(w);w.y+=lift;w.project(camera);if(w.z>1)return;const x=(w.x+1)/2*r.width,y=(1-w.y)/2*r.height,d=(x-tx)**2+(y-ty)**2;if(d<bd){bd=d;best=ud}};
-  if(tripG&&tripG.visible)near(tripG,{trip:true},.3);houses.forEach((hh,i)=>near(hh,{house:G.members[i]},.5));artists.forEach(a=>near(a,{artist:a.userData.A},.6));return best}
+  if(tripG&&tripG.visible)near(tripG,{trip:true},.3);houses.forEach((hh,i)=>hh.visible&&near(hh,{house:G.members[i]},.5));artists.forEach(a=>a.visible&&near(a,{artist:a.userData.A},.6));return best}
 function onDown(e){if(touring)return;if(e.isPrimary)pointers.clear(); /* 2026-10-05 第一根手指按下就清掉沒收到放開的舊手指，不然之後每一下都被當成兩指縮放、點不到小屋 */pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cvEl().setPointerCapture(e.pointerId)}catch(err){}idleT=0;
   if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,fy:focus&&focus.yaw!==undefined?focus.yaw:yaw,fp:focus?(focus.pitch??.35):pitch,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom,fd:focus?focus.d:0};if(down)down.moved=true}}
 function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});idleT=0;
@@ -1834,7 +1839,7 @@ window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=doc
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
   const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261013c';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
-function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
+function openHouseSheet(m){const idx=G.members.indexOf(m),h=houses[idx],FF=floorsOf(m.works.length);focusOn(h,5.6+FF*1.15,.6+FF*.6,.62-FF*.03);focus.iso=h;const n=m.works.length,F=floorsOf(n),st=normStyle(m.style,idx);
   const next=F<MAXF?`再 ${worksForFloor(F+1)-n} 件作品就會加蓋一層。`:'已經蓋到最高了！之後的作品用來解鎖裝飾。';
   const canRen=!DEMO&&(m.id===G.me||ME.staff),canGP=!DEMO&&m.id===G.me&&n>=PetLife.GP_WORKS, /* 寵物只有屋主能動（老師也不行） */
     gpN=(m.pet?` 門口住著天竺鼠「${m.pet.n}」・♥ ${m.pet.love||0}。`:'')+(m.frog?` 青蛙「${m.frog.n}」・♥ ${m.frog.love||0}。`:'')+((m.pet||m.frog)&&m.id===G.me?'點牠摸摸、點碗餵牠。':'')+gpAwayTxt(m)+
@@ -2173,8 +2178,9 @@ function gpPanel(m,kind='pet'){if(m[kind])aimPet(m,kind);const K=PK[kind],P=m[ki
     catch(e){toast(e.message);$('gpO').disabled=false;$('gpO').textContent=had?'改好了':'認養牠'}}}
 /* 鏡頭對到某間小屋門口的天竺鼠／青蛙（2026-10-29 大熊：按哪個按鈕就要看到那個東西，不要跑不見） */
 function aimPet(m,kind){const o=gpPets.find(x=>x.m.id===m.id&&x.kind===kind);
-  if(o&&o.g.visible){focusOn(o.g,kind==='frog'?3:3.4,.3,.26);return}
-  const i=G.members.findIndex(x=>x.id===m.id);if(houses[i])focusOn(houses[i],5,.4,.3)}
+  const i=G.members.findIndex(x=>x.id===m.id);
+  if(o&&o.g.visible){focusOn(o.g,kind==='frog'?3:3.4,.3,.26);focus.iso=houses[i];return}
+  if(houses[i]){focusOn(houses[i],5,.4,.3);focus.iso=houses[i]}}
 /* 服裝衣櫥（2026-10-29 大熊：作品小屋也要能換衣服，點了直接看到自家門口的天竺鼠穿上）
    清單、價格、擁有的以伺服器 /xmas/closet 為準；買和穿跟走格子共用 /xmas/outfit，是同一個衣櫥（小熊在走格子換） */
 const CL_IC={santa:'🎅',antler:'🦌',elf:'🧝',scarfR:'🧣',bell:'🔔',sweater:'🧶',beret:'🎨',straw:'👒',bowler:'🎩',flower:'🌺',mustache:'🥸',bowtie:'🎀',marin:'👕',klimt:'✨'};
@@ -2183,18 +2189,19 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
   const drawer=$('drawer'),back=()=>{const nm=G.members.find(x=>x.id===m.id);if(nm){openHouseSheet(nm);aimPet(nm,'pet')}};
   $('sheet').hidden=true;closeModal();aimPet(m,'pet');drawer.innerHTML='<p class="hint">打開衣櫥中…</p>';drawer.hidden=false;
   let C;try{C=await api('/xmas/closet')}catch(e){drawer.hidden=true;toast(e.message);back();return}
-  const start=Object.assign({},C.wear);let wear=Object.assign({},C.wear),sel=null,working=false;
+  const start=Object.assign({},C.wear);let wear=Object.assign({},C.wear),tries={},working=false; /* 2026-10-30 大熊：不同部位要能一起試穿 → 還沒買的每個部位各記一件 */
   const show=w=>{const o=gpPets.find(x=>x.m.id===m.id&&x.kind==='pet');if(o)PetLife.dress(THREE,x=>toon(x),o.g,w,'gp')};
   const sync=r=>{if(r&&r.p){C.own=r.p.own||{};C.gifts=r.p.gifts;wear=Object.assign({},r.p.wear&&r.p.wear.gp)}m.pet.wear=Object.assign({},wear)};
   const put=async(slot,item)=>{const r=await api('/xmas/outfit',{op:'wear',who:'gp',slot,item});sync(r)};
   const soon=false; /* 2026-10-29 大熊：不用等 11/1，現在就能買、能穿 */
-  const paint=()=>{const L=C.outfits||[],so=sel&&L.find(o=>o.id===sel);
+  const triedL=()=>Object.values(tries).map(id=>(C.outfits||[]).find(o=>o.id===id)).filter(Boolean);
+  const paint=()=>{const L=C.outfits||[],tl=triedL(),tot=tl.reduce((a,o)=>a+(o.p||0),0);
     drawer.innerHTML=`<h3>${esc(m.pet.n)}的服裝衣櫥</h3><p class="hint">用聖誕走格子拿到的禮物換裝扮，買一次小熊和天竺鼠都能穿，大家逛到你家都看得到。你有 <b>${C.gifts}</b> 個禮物。${C.gifts<5?'<br>禮物不夠的話可以先點來試穿，去玩聖誕走格子就能收集禮物。':''}</p>
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
         return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
-          return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${sel===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
-      <div class="acts">${so&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下這件・🎁 ${so.p}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
-    show(so?Object.assign({},wear,{[so.slot]:so.id}):wear)}; /* 還沒買的先穿在門口的天竺鼠身上給你看 */
+          return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${tries[sl]===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
+      <div class="acts">${tl.length&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下${tl.length>1?` ${tl.length} 件`:'這件'}・🎁 ${tot}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
+    show(Object.assign({},wear,tries))}; /* 還沒買的先穿在門口的天竺鼠身上給你看（每個部位可以各試一件，一起看） */
   const cancel=async()=>{show(start);m.pet.wear=Object.assign({},start);
     try{for(const sl of ['head','face','neck','body'])if((start[sl]||'')!==(wear[sl]||''))await put(sl,!start[sl]?'def':start[sl]==='none'?'':start[sl])}catch(e){}
     m.pet.wear=Object.assign({},start);show(start)};
@@ -2203,10 +2210,11 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
     if(a==='ok'){clSt=null;drawer.hidden=true;show(wear);back();return}
     if(a==='cancel'){clSt=null;drawer.hidden=true;await cancel();back();return}
     working=true;
-    try{if(a==='it'){const o=L.find(x=>x.id===v);if(o){if((o.p&&!C.own[o.id])||soon)sel=o.id;else{await put(o.slot,o.id);sel=null}}}
-      else if(a==='off'){if(!soon)await put(v,'');sel=null}
-      else if(a==='buy'){const o=L.find(x=>x.id===sel);if(o){if(C.gifts<o.p)toast(`要 ${o.p} 個禮物，你現在有 ${C.gifts} 個，先去走格子收集吧`);
-        else{sync(await api('/xmas/outfit',{op:'buy',item:o.id}));await put(o.slot,o.id);sel=null;toast(`買到${o.nm}了！`)}}}}
+    try{if(a==='it'){const o=L.find(x=>x.id===v);if(o){if((o.p&&!C.own[o.id])||soon){if(tries[o.slot]===o.id)delete tries[o.slot];else tries[o.slot]=o.id} /* 再點一次＝不試了 */
+          else{await put(o.slot,o.id);delete tries[o.slot]}}}
+      else if(a==='off'){if(tries[v])delete tries[v];else if(!soon)await put(v,'')}
+      else if(a==='buy'){const tl=triedL(),tot=tl.reduce((s2,o)=>s2+(o.p||0),0);if(tl.length){if(C.gifts<tot)toast(`要 ${tot} 個禮物，你現在有 ${C.gifts} 個，先去走格子收集吧`);
+        else{for(const o of tl){sync(await api('/xmas/outfit',{op:'buy',item:o.id}));await put(o.slot,o.id);delete tries[o.slot]}toast(`買到${tl.map(o=>o.nm).join('、')}了！`)}}}}
     catch(err){toast(err.message)}
     working=false;if(clSt)paint()};
   paint()}
@@ -2264,8 +2272,33 @@ function updatePcTag(){const art=artists.find(a=>a.userData.chat);if(!art)return
   pcEl.style.display='';pcEl.style.left=(_pv.x+1)/2*innerWidth+'px';pcEl.style.top=(1-_pv.y)/2*innerHeight+'px'}
 /* ===== 拉近時，附近小屋頭上飄名字（點名字就打開那間）；拉遠看整座島時自動隱藏，免得滿版都是字 ===== */
 const TAG_D=64,_tv=new THREE.Vector3();let tagEls=[];
+/* ===== 2026-10-30 大熊：點小屋時前面的小屋、樹擋住一大塊又很亂 =====
+   看某間小屋（focus.iso）時：擋在鏡頭和這間小屋中間的別間小屋、小樹（連同樹上的燈）、島民先藏起來，別間的名牌收掉，畫面四周淡淡虛化；離開就全部放回來 */
+const ISO={t:0,hid:new Set(),fx:''},_ia=new THREE.Vector3(),_ib=new THREE.Vector3(),_ic=new THREE.Vector3(),_ibox=new THREE.Box3();
+const shown=o=>{for(;o;o=o.parent)if(!o.visible)return false;return true};
+function occSphere(o){if(artists.includes(o)){o.getWorldPosition(_ic);_ic.y+=.6;return{c:_ic.clone(),r:.75}}
+  let s=o.userData._bs;if(!s){o.updateMatrixWorld(true);_ibox.setFromObject(o);const c=new THREE.Vector3();_ibox.getCenter(c);s=o.userData._bs={c,r:_ibox.getSize(_ia).length()/2}}return s}
+function segHit(c,r,a,b){_ia.subVectors(b,a);const L=_ia.lengthSq()||1,t=Math.max(0,Math.min(1,_ib.subVectors(c,a).dot(_ia)/L));if(t<.03||t>.96)return false;
+  return _ic.copy(a).addScaledVector(_ia,t).distanceTo(c)<r*.8+.2}
+function isoTick(now){const h=focus&&focus.iso&&!touring&&houses.includes(focus.iso)?focus.iso:null,fx=$('isoFx');
+  if(h&&fx){const b=occSphere(h),top=b.c.clone(),bot=b.c.clone();top.y+=b.r*.75;bot.y-=b.r*.6;top.project(camera);bot.project(camera);
+    const x=(top.x+bot.x)/4*innerWidth+innerWidth/2,y=(1-(top.y+bot.y)/2)/2*innerHeight,hh=Math.abs(top.y-bot.y)/2*innerHeight,
+      rx=Math.round(Math.max(130,hh*.9)),ry=Math.round(Math.max(150,hh*.85)),key=`${Math.round(x/3)},${Math.round(y/3)},${rx},${ry},${!PERF.slow}`;
+    if(key!==ISO.fx){ISO.fx=key;const at=`${rx}px ${ry}px at ${Math.round(x)}px ${Math.round(y)}px`;
+      fx.style.background=`radial-gradient(${at},rgba(250,246,238,0) 62%,rgba(250,246,238,.38) 100%)`;
+      fx.style.webkitMaskImage=fx.style.maskImage=`radial-gradient(${at},transparent 58%,#000 100%)`;fx.classList.toggle('blur',!PERF.slow)}
+    fx.classList.add('on')}else if(fx)fx.classList.remove('on');
+  if(now-ISO.t<180&&!!h===ISO.hid.size>0)return;ISO.t=now;
+  const want=new Set();
+  if(h){const base=new THREE.Vector3();h.getWorldPosition(base);base.y+=.4;const goal=focus.pos.clone(),cam=camera.position;
+    [...houses,...OCC,...artists,...turbines.map(t=>{let o=t;while(o.parent&&o.parent!==scene)o=o.parent;return o})].forEach(o=>{if(o===h||!o.parent||(!o.visible&&!ISO.hid.has(o)))return;const s=occSphere(o);if(segHit(s.c,s.r,cam,base)||segHit(s.c,s.r,cam,goal))want.add(o)})}
+  let ch=false;ISO.hid.forEach(o=>{if(!want.has(o)){o.visible=true;ch=true}});want.forEach(o=>{if(!ISO.hid.has(o)){o.visible=false;ch=true}});ISO.hid=want;
+  if(ch)xBulbSets.forEach(m=>{const P=m.userData.pts,A=m.userData.m0;if(!P||m.parent!==scene)return;const arr=m.instanceMatrix.array;arr.set(A);
+    if(want.size){const trees=[...want].filter(o=>OCC.includes(o)).map(occSphere);
+      P.forEach((p,i)=>{if(trees.some(t=>p.distanceTo(t.c)<t.r*1.05))for(let k=0;k<16;k++)arr[i*16+k]=k===15?1:0})}
+    m.instanceMatrix.needsUpdate=true})}
 function updateTags(){const box=$('tags');if(!box)return;if(touring||!$('modal').hidden||!$('lb').hidden||!houses.length){box.style.display='none';return}box.style.display='';
-  const cand=[];houses.forEach((h,i)=>{h.getWorldPosition(_tv);const d=_tv.distanceTo(camera.position);if(d>TAG_D)return;const m=G.members[i],FF=floorsOf(m.works.length);_tv.y+=1.5+FF*.62;_tv.project(camera);
+  const cand=[],iso=focus&&focus.iso;houses.forEach((h,i)=>{if(iso)return;h.getWorldPosition(_tv);const d=_tv.distanceTo(camera.position);if(d>TAG_D)return;const m=G.members[i],FF=floorsOf(m.works.length);_tv.y+=1.5+FF*.62;_tv.project(camera);
     if(_tv.z>1||Math.abs(_tv.x)>1.05||Math.abs(_tv.y)>1.05)return;cand.push({i,d,x:(_tv.x+1)/2*innerWidth,y:(1-_tv.y)/2*innerHeight})});
   cand.sort((a,b)=>a.d-b.d);const placed=[];
   cand.forEach(c=>{if(placed.length>=10)return;if(placed.some(p=>Math.abs(p.x-c.x)<70&&Math.abs(p.y-c.y)<24))return;placed.push(c)});
