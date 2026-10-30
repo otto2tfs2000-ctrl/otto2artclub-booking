@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030m';
+const PARK_VER='20261030n';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3208,7 +3208,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030m',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030n',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
@@ -4003,7 +4003,7 @@ const _ce=new THREE.Vector3();function camEase(v,to,dt){_ce.copy(to).sub(v).mult
    改成先排下一格；出錯的那一格還是盡量把畫面畫出來 */
 /* 2026-10-10 選品館（門口／商品頁）是全螢幕不透明的，後面 3D 照樣一直畫很吃手機記憶體和電，iPhone 會因此圖片出不來甚至整頁重載 → 蓋住時暫停 */
 let _sgEl=null,_spEl=null;function shopCover(){_sgEl=_sgEl||$('shopGate');_spEl=_spEl||$('shopPage');return(_sgEl&&!_sgEl.hidden&&_sgEl.classList.contains('show'))||(_spEl&&!_spEl.hidden)}
-let LOOPERR=0;function loop(now){requestAnimationFrame(loop);if(shopCover()||(window.Ferry&&Ferry.covering&&Ferry.covering())){tPrev=now;return}try{loopBody(now)}catch(e){if(LOOPERR++<5)console.error('loop',e);try{renderer.render(scene,camera)}catch(_){}}}
+let LOOPERR=0;function loop(now){requestAnimationFrame(loop);if(shopCover()||window.HW_ON||(window.Ferry&&Ferry.covering&&Ferry.covering())){tPrev=now;return}try{loopBody(now)}catch(e){if(LOOPERR++<5)console.error('loop',e);try{renderer.render(scene,camera)}catch(_){}}}
 
 /* ---------- game state (demo, per browser) ---------- */
 let G;
@@ -4219,12 +4219,31 @@ const HW_KINDS=[{k:'p',w:44,g:1},{k:'hat',w:14,g:1},{k:'bow',w:16,g:2},{k:'gold'
 function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
   const ov=document.createElement('div');ov.id='hwFull';
   ov.innerHTML=`<div class="hwhud"><span>🎁 <b id="hwS">0</b></span><span>🪙 紅利 <b id="hwB">0</b></span><span>⏱ <b id="hwT">${HW_SEC}</b></span></div><canvas id="hwCv"></canvas><p class="hwtip">點南瓜和紅利金幣，小心炸彈 💣</p>`;
-  document.body.appendChild(ov);
+  document.body.appendChild(ov);window.HW_ON=true; /* 玩的時候後面的 3D 遊樂島暫停（loop 看這個），手機才不會卡 */
   const cv=$('hwCv'),x=cv.getContext('2d'),DP=Math.min(2,devicePixelRatio||1);
   let W=0,H=0;const fit=()=>{const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)};fit();
   const S=Math.max(40,Math.min(64,W/6.5)); /* 南瓜大小跟著螢幕 */
-  let gift=0,bon=0,boom=false,items=[],fx=[],spawn=.3,t0=performance.now(),start=t0,done=false,flash=0,shake=0;
-  const stars=[...Array(50)].map(()=>[Math.random(),Math.random()*.75,Math.random()*1.5+.4]);
+  /* 2026-10-30 大熊手機會卡：背景、每種掉落物（含發光和分數標籤）都先畫好存成圖，遊戲中只貼圖，不再每一格重畫發光 */
+  const mk=(w,h,f)=>{const c=document.createElement('canvas');c.width=Math.ceil(w*DP);c.height=Math.ceil(h*DP);const g=c.getContext('2d');g.setTransform(DP,0,0,DP,0,0);g.textAlign='center';g.textBaseline='middle';f(g);return c};
+  const bg=mk(W,H,g=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#160f2e');gr.addColorStop(.7,'#3d2558');gr.addColorStop(1,'#5a3260');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    for(let i=0;i<50;i++){g.fillStyle=`rgba(255,255,255,${.4+Math.random()*.45})`;g.beginPath();g.arc(Math.random()*W,Math.random()*H*.75,Math.random()*1.5+.4,0,7);g.fill()}
+    g.fillStyle='#fff3c4';g.shadowColor='#fff3c4';g.shadowBlur=30;g.beginPath();g.arc(W-60,70,30,0,7);g.fill();g.shadowBlur=0;g.fillStyle='#160f2e';g.beginPath();g.arc(W-47,62,27,0,7);g.fill();
+    g.fillStyle='#21142e';g.beginPath();g.moveTo(0,H);g.lineTo(0,H-40);for(let i=0;i<=10;i++)g.lineTo(i*W/10,H-40-(i%2?16:3));g.lineTo(W,H);g.fill()});
+  const SW=S*2,SH=S*2.5,CY=S*1.05; /* 每張圖：中心在 (S, CY)，分數標籤在下面 */
+  const badge=(g,t,bgc)=>{g.font=`bold ${Math.round(S*.24)}px sans-serif`;const w=g.measureText(t).width+12,h=S*.36,cx=S,cy=CY+S*.62;
+    g.fillStyle=bgc;g.strokeStyle='#2b2320';g.lineWidth=2;g.beginPath();g.roundRect?g.roundRect(cx-w/2,cy-h/2,w,h,h/2):g.rect(cx-w/2,cy-h/2,w,h);g.fill();g.stroke();g.fillStyle='#2b2320';g.fillText(t,cx,cy+1)};
+  const SPR={
+    p:mk(SW,SH,g=>{g.font=`${Math.round(S)}px sans-serif`;g.fillText('🎃',S,CY);badge(g,'+1 🎁','#fff')}),
+    hat:mk(SW,SH,g=>{g.font=`${Math.round(S)}px sans-serif`;g.fillText('🎃',S,CY);g.save();g.translate(S,CY);g.fillStyle='#3b2050';g.strokeStyle='#1a0f24';g.lineWidth=2;g.beginPath();g.ellipse(0,-S*.36,S*.42,S*.09,0,0,7);g.fill();g.stroke();
+      g.beginPath();g.moveTo(-S*.24,-S*.4);g.lineTo(S*.1,-S*.95);g.lineTo(S*.24,-S*.4);g.closePath();g.fill();g.stroke();g.fillStyle='#ff9b3d';g.fillRect(-S*.2,-S*.5,S*.42,S*.07);g.restore();badge(g,'+1 🎁','#fff')}),
+    bow:mk(SW,SH,g=>{g.font=`${Math.round(S)}px sans-serif`;g.fillText('🎃',S,CY);g.font=`${Math.round(S*.55)}px sans-serif`;g.fillText('🎀',S,CY-S*.42);badge(g,'+2 🎁','#ffd0dc')}),
+    gold:mk(SW,SH,g=>{const hr=S*.85,hg=g.createRadialGradient(S,CY,S*.2,S,CY,hr);hg.addColorStop(0,'rgba(255,224,90,.85)');hg.addColorStop(.55,'rgba(255,200,40,.35)');hg.addColorStop(1,'rgba(255,200,40,0)');g.fillStyle=hg;g.beginPath();g.arc(S,CY,hr,0,7);g.fill();
+      g.shadowColor='#ffd447';g.shadowBlur=20;g.font=`${Math.round(S)}px sans-serif`;g.fillText('🎃',S,CY);g.shadowBlur=0;g.font=`${Math.round(S*.4)}px sans-serif`;g.fillText('✨',S+S*.38,CY-S*.36);badge(g,'+5 🎁','#ffd447')}),
+    coin:mk(SW,SH,g=>{const r=S*.42,gr=g.createRadialGradient(S-r*.3,CY-r*.3,r*.1,S,CY,r);gr.addColorStop(0,'#fff3a8');gr.addColorStop(1,'#e8a200');g.shadowColor='#ffd447';g.shadowBlur=14;g.fillStyle=gr;g.beginPath();g.arc(S,CY,r,0,7);g.fill();g.shadowBlur=0;
+      g.strokeStyle='#9a6a00';g.lineWidth=3;g.stroke();g.beginPath();g.arc(S,CY,r*.74,0,7);g.lineWidth=1.5;g.stroke();g.fillStyle='#7a4f00';g.font=`900 ${Math.round(r*.62)}px sans-serif`;g.fillText('紅利',S,CY+1);badge(g,'+1 點','#ffd447')}),
+    bomb:mk(SW,SH,g=>{g.font=`${Math.round(S*1.05)}px sans-serif`;g.fillText('💣',S,CY)}),
+  };
+  let gift=0,bon=0,boom=false,items=[],fx=[],spawn=.3,t0=performance.now(),el=0,done=false,flash=0,shake=0;
   const hudUp=()=>{$('hwS').textContent=gift;$('hwB').textContent=bon};
   cv.addEventListener('pointerdown',e=>{if(done)return;const r=cv.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
     let hit=null,bd=S*.75;items.forEach(it=>{const d=Math.hypot(it.x-px,it.y-py);if(!it.hit&&d<bd){bd=d;hit=it}});if(!hit)return;hit.hit=true;
@@ -4233,38 +4252,24 @@ function hwPlay(){return new Promise(res=>{MGN++;const gone=MGS();
     else{gift+=hit.g;boom=false;fx.push({x:hit.x,y:hit.y,t:`🎁 +${hit.g}`,c:hit.k==='gold'?'#ffd447':'#fff',a:1});sfx(hit.k==='gold'?'sparkle':'pop')}
     hudUp()});
   const pick=el=>{if(Math.random()<.15+el*.009)return{k:'bomb'};let r=Math.random()*HW_KINDS.reduce((a,o)=>a+o.w,0);for(const o of HW_KINDS){if((r-=o.w)<0)return Object.assign({},o)}return Object.assign({},HW_KINDS[0])};
-  const badge=(t,cx,cy,bg)=>{x.font=`bold ${Math.round(S*.24)}px sans-serif`;const w=x.measureText(t).width+12,h=S*.36;
-    x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=2;x.beginPath();x.roundRect?x.roundRect(cx-w/2,cy-h/2,w,h,h/2):x.rect(cx-w/2,cy-h/2,w,h);x.fill();x.stroke();x.fillStyle='#2b2320';x.fillText(t,cx,cy+1)};
-  function draw(it){x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.rot)*.22);
-    if(it.k==='coin'){const r=S*.42,g=x.createRadialGradient(-r*.3,-r*.3,r*.1,0,0,r);g.addColorStop(0,'#fff3a8');g.addColorStop(1,'#e8a200');
-      x.shadowColor='#ffd447';x.shadowBlur=14;x.fillStyle=g;x.beginPath();x.arc(0,0,r,0,7);x.fill();x.shadowBlur=0;x.strokeStyle='#9a6a00';x.lineWidth=3;x.stroke();
-      x.beginPath();x.arc(0,0,r*.74,0,7);x.lineWidth=1.5;x.stroke();x.fillStyle='#7a4f00';x.font=`900 ${Math.round(r*.62)}px sans-serif`;x.fillText('紅利',0,1);x.restore();
-      badge('+1 點',it.x,it.y+S*.62,'#ffd447');return}
-    if(it.k==='bomb'){x.font=`${Math.round(S*1.05)}px sans-serif`;x.fillText('💣',0,0);x.restore();return}
-    if(it.k==='gold'){const hr=S*.85,hg=x.createRadialGradient(0,0,S*.2,0,0,hr);hg.addColorStop(0,'rgba(255,224,90,.85)');hg.addColorStop(.55,'rgba(255,200,40,.35)');hg.addColorStop(1,'rgba(255,200,40,0)');
-      x.fillStyle=hg;x.beginPath();x.arc(0,0,hr,0,7);x.fill();x.shadowColor='#ffd447';x.shadowBlur=24} /* 圓形金色光暈（之前整塊塗色會連夜空一起塗成方塊） */
-    x.font=`${Math.round(S)}px sans-serif`;x.fillText('🎃',0,0);x.shadowBlur=0;
-    if(it.k==='gold'){x.font=`${Math.round(S*.4)}px sans-serif`;x.fillText('✨',S*.38,-S*.36)}
-    if(it.k==='bow'){x.font=`${Math.round(S*.55)}px sans-serif`;x.fillText('🎀',0,-S*.42)}
-    if(it.k==='hat'){x.fillStyle='#3b2050';x.strokeStyle='#1a0f24';x.lineWidth=2;x.beginPath();x.ellipse(0,-S*.36,S*.42,S*.09,0,0,7);x.fill();x.stroke();
-      x.beginPath();x.moveTo(-S*.24,-S*.4);x.lineTo(S*.1,-S*.95);x.lineTo(S*.24,-S*.4);x.closePath();x.fill();x.stroke();x.fillStyle='#ff9b3d';x.fillRect(-S*.2,-S*.5,S*.42,S*.07)}
-    x.restore();badge(`+${it.g} 🎁`,it.x,it.y+S*.62,it.k==='gold'?'#ffd447':it.k==='bow'?'#ffd0dc':'#fff')}
-  function frame(now){if(gone()){ov.remove();return}const dt=Math.min(.05,(now-t0)/1000);t0=now;const el=(now-start)/1000;
-    spawn-=dt;if(spawn<=0){spawn=Math.max(.26,.52-el*.013);const o=pick(el);o.x=S*.6+Math.random()*(W-S*1.2);o.y=-S;o.v=H*(.2+Math.random()*.12)+el*H*.008;o.rot=Math.random()*6;items.push(o)}
-    items.forEach(it=>{it.y+=it.v*dt;it.rot+=dt*1.5});items=items.filter(it=>!it.hit&&it.y<H+S);
+  const end=()=>{window.HW_ON=false;ov.remove();res({sc:gift,b:bon,boom})};
+  let lastT=-1;
+  function frame(now){if(gone()){window.HW_ON=false;ov.remove();return}
+    const dt=Math.min(.05,(now-t0)/1000);t0=now;if(!done)el+=dt; /* 2026-10-30：照「真的有在玩」的時間算，手機卡一下不會被偷扣秒數 */
+    if(!done){spawn-=dt;if(spawn<=0){spawn=Math.max(.26,.52-el*.013);const o=pick(el);o.x=S*.6+Math.random()*(W-S*1.2);o.y=-S;o.v=H*(.2+Math.random()*.12)+el*H*.008;o.rot=Math.random()*6;items.push(o)}
+      items.forEach(it=>{it.y+=it.v*dt;it.rot+=dt*1.5});items=items.filter(it=>!it.hit&&it.y<H+S)}
     fx.forEach(f=>{f.y-=46*dt;f.a-=dt*1.3});fx=fx.filter(f=>f.a>0);
     x.save();if(shake>0){shake-=dt;x.translate((Math.random()-.5)*12,(Math.random()-.5)*12)}
-    const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#160f2e');g.addColorStop(.7,'#3d2558');g.addColorStop(1,'#5a3260');x.fillStyle=g;x.fillRect(-12,-12,W+24,H+24);
-    stars.forEach(([sx,sy,sr],i)=>{x.fillStyle=`rgba(255,255,255,${.45+.35*Math.sin(now/600+i)})`;x.beginPath();x.arc(sx*W,sy*H,sr,0,7);x.fill()});
-    x.fillStyle='#fff3c4';x.shadowColor='#fff3c4';x.shadowBlur=30;x.beginPath();x.arc(W-60,70,30,0,7);x.fill();x.shadowBlur=0;x.fillStyle='#160f2e';x.beginPath();x.arc(W-47,62,27,0,7);x.fill();
-    x.fillStyle='#21142e';x.beginPath();x.moveTo(0,H);x.lineTo(0,H-40);for(let i=0;i<=10;i++)x.lineTo(i*W/10,H-40-(i%2?16:3));x.lineTo(W,H);x.fill();
-    x.textAlign='center';x.textBaseline='middle';items.forEach(draw);
+    x.drawImage(bg,0,0,W,H);
+    items.forEach(it=>{const c=SPR[it.k]||SPR.p;x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.rot)*.22);x.drawImage(c,-S,-CY,SW,SH);x.restore()});
+    x.textAlign='center';x.textBaseline='middle';
     fx.forEach(f=>{x.globalAlpha=Math.max(0,f.a);x.font=`900 ${Math.round(S*.42)}px sans-serif`;x.fillStyle=f.c;x.strokeStyle='#2b2320';x.lineWidth=4;x.strokeText(f.t,f.x,f.y);x.fillText(f.t,f.x,f.y);x.globalAlpha=1});
     if(flash>0){flash-=dt*2.2;x.fillStyle=`rgba(255,60,40,${Math.max(0,flash)*.45})`;x.fillRect(-12,-12,W+24,H+24)}
+    if(done){x.fillStyle='rgba(22,15,46,.55)';x.fillRect(-12,-12,W+24,H+24);x.font=`900 ${Math.round(S*.9)}px sans-serif`;x.fillStyle='#ffd447';x.strokeStyle='#2b2320';x.lineWidth=6;x.strokeText('時間到！',W/2,H/2);x.fillText('時間到！',W/2,H/2)}
     x.restore();
-    const left=Math.max(0,HW_SEC-el);$('hwT').textContent=Math.ceil(left);
-    if(left<=0&&!done){done=true;setTimeout(()=>{ov.remove();res({sc:gift,b:bon,boom})},500);return}
-    requestAnimationFrame(frame)}
+    const left=Math.max(0,HW_SEC-el),lt=Math.ceil(left);if(lt!==lastT){lastT=lt;$('hwT').textContent=lt}
+    if(left<=0&&!done){done=true;sfx('chime');setTimeout(end,1200)} /* 先停在「時間到！」一下，再跳結算，才不會突然結束 */
+    if(ov.isConnected)requestAnimationFrame(frame)}
   requestAnimationFrame(frame)})}
 async function hwDone(r){const st0=hwLoad(),old=st0.best,oldB=st0.bbest,sc=Math.min(HW_CAP,r.sc),b=Math.min(HW_BCAP,r.b||0);
   let st,add,addB,swap=0;
