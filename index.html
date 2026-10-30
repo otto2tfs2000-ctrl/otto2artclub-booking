@@ -1302,9 +1302,9 @@ function artOpenNotice(){
   const close=()=>w.remove();
   w.addEventListener("click",e=>{if(e.target===w)close()});
   document.getElementById("artOpenNo").onclick=close;
-  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261030l" };
+  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261030m" };
 }
-function openGacha(isl){ parkToken(); location.href="park.html?v=20261030l"+(isl?"&isl="+isl:"") }
+function openGacha(isl){ parkToken(); location.href="park.html?v=20261030m"+(isl?"&isl="+isl:"") }
 /* 首頁卡片的「還差幾點換什麼」：選品館商品清單是公開的（不帶登入就不回個資），開首頁時抓一次 */
 let hmShop=null,hmShopLoading=false;
 function loadHmShop(){
@@ -2230,11 +2230,11 @@ function boot(){
     liffReady.then(()=>openGacha2d());
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030l") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030m") });
   } else if(!boot._gc && /go(=|%3D)art/i.test(q)){
     /* 直達作品小屋（2026-10-05 會員推播用）：https://liff.line.me/2010906803-FMDYktUN?go=art */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261030l") });
+    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261030m") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);

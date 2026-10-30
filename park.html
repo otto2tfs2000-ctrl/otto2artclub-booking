@@ -912,7 +912,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261030l';
+const PARK_VER='20261030m';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1258,32 +1258,54 @@ const VIL={g:null,mine:null,key:''};
 function villageList(){if(XS)return(XW&&XW.village)||[];if(!G.village)G.village=fakeVillage();return G.village}
 /* 不蓋在大聖誕樹、教室天竺鼠、雪人旁邊（伺服器 xVBlocked 同一份） */
 const vBlocked=(x,z)=>Math.hypot(x,z)<2.5||[[-.9,.7],[.9,.6],[.3,1.1],[-.4,-1]].some(([a,b])=>Math.hypot(x-a,z-b)<1)||[[-2.7,1.2],[2.7,-1.1]].some(([a,b])=>Math.hypot(x-a,z-b)<.8);
+const vHash=i=>{let h=(i+1)*2654435761%4294967296;h=(h^(h>>>15))*2246822519%4294967296;return((h^(h>>>13))>>>0)/4294967296};
+const vScore=(x,z,i)=>Math.hypot(x,z)-.35*z+vHash(i)*2.2;
 function vPick(list){const sp=FOREST.spots,D=(a,b)=>Math.hypot(sp[a].x-sp[b].x,sp[a].z-sp[b].z),hs=list.map(h=>h.s),ts=(G.forest||[]).map(t=>t.s);
-  const order=sp.map((_,i)=>i).filter(i=>!vBlocked(sp[i].x,sp[i].z)).sort((a,b)=>sp[b].z-sp[a].z||sp[a].x-sp[b].x); /* 從前排（靠鏡頭）開始蓋，一排一排往後，像一條聖誕街 */
+  const order=sp.map((_,i)=>i).filter(i=>!vBlocked(sp[i].x,sp[i].z)).sort((a,b)=>vScore(sp[a].x,sp[a].z,a)-vScore(sp[b].x,sp[b].z,b)); /* 2026-10-30 大熊嫌排排站很怪 → 圍著大聖誕樹散開來蓋，偏前面一點（伺服器 xVScore 同一份） */
   for(const gap of [.85,.6,0]){const s=order.find(i=>!hs.includes(i)&&!ts.includes(i)&&hs.every(h=>D(i,h)>=gap)&&(gap===0||ts.every(t=>D(i,t)>=.4)));if(s!==undefined)return s}return -1}
 function fakeVillage(){const out=[],r=rng(31);for(let k=0;k<22;k++){const s=vPick(out);if(s<0)break;out.push({s,st:Math.floor(r()*5),me:false})}return out} /* 體驗版：先放幾間假鄰居 */
 function vHouse(st,sc,s,glow){if(!window.XH3D){const h=xhCard(st,sc*1.3);h.rotation.set(-.42,[-.38,.3,-.22,.4,-.32][s%5],0);return h}
   const h=XH3D.make(st);h.scale.setScalar(sc);h.rotation.set(-.3,[-.3,.25,-.18,.3,-.25][s%5],0); /* 往鏡頭仰一點，從高處才看得到正面 */
   h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){if(glow)m.emissive.copy(m.color).multiplyScalar(.6);else m.emissive.set('#3a3a3a')}})});return h} /* 合併時 emissive 只能一個值，別人的房子用灰色提亮 */
 /* 別人的房子用「照片」：每種 3D 小屋先拍一張（從上方斜看、透明背景），村子裡每間都是一張貼圖，人再多也只多幾張圖、不會卡 */
+const VTPL=[];
+function vTpl(st){if(VTPL[st])return VTPL[st];const h=XH3D.make(st);
+  h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){if(m.map){m.emissive.set('#ffffff').multiplyScalar(.22);m.emissiveMap=m.map}else m.emissive.set('#333333')}})});
+  try{mergeStatic(h,new Set())}catch(e){} /* 先把同材質的小零件合成一塊，零件少、畫得快 */
+  h.updateMatrixWorld(true);const out=[];
+  h.traverse(o=>{if(o.isMesh)out.push({geo:o.geometry,mat:o.material,m:o.matrixWorld.clone()})});
+  return VTPL[st]=out} /* 每種小屋拆成零件（形狀、材質、相對位置），村子裡同造型的房子共用 */
 const VIMP=[];
-function vImp(st){if(VIMP[st])return VIMP[st];
-  const rt=new THREE.WebGLRenderTarget(256,256),sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8a96b8,1));const dl=new THREE.DirectionalLight(0xfff4e0,.55);dl.position.set(1,2,2);sc.add(dl);
-  const h=XH3D.make(st);h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){m.emissive.copy(m.color).multiplyScalar(.28);if(m.map)m.emissiveMap=m.map}})});h.rotation.y=-.2;sc.add(h);h.updateMatrixWorld(true);
-  const b=new THREE.Box3().setFromObject(h),c=b.getCenter(new THREE.Vector3()),r=Math.max(...b.getSize(new THREE.Vector3()).toArray())*.62;
+function vImp(st,a=0){const K=st*2+a;if(VIMP[K])return VIMP[K];
+  const rt=new THREE.WebGLRenderTarget(256,256),sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x6f7ea6,.75));const dl=new THREE.DirectionalLight(0xfff1d8,.95);dl.position.set(-1.6,2.2,1.4);sc.add(dl); /* 光從左上打，右邊和屋簷下比較暗，照片才有立體感 */
+  const h=XH3D.make(st);h.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(m=>{if(m.emissive){m.emissive.copy(m.color).multiplyScalar(.16);if(m.map)m.emissiveMap=m.map}})});h.rotation.y=a?.45:-.4;sc.add(h); /* 兩種角度，村子裡的房子才不會全部朝同一邊 */h.updateMatrixWorld(true);
+  const b=new THREE.Box3().setFromObject(h),c=b.getCenter(new THREE.Vector3()),r=Math.max(...b.getSize(new THREE.Vector3()).toArray())*.85; /* 框大一點，房子底部才不會被切掉 */
   const cam=new THREE.OrthographicCamera(-r,r,r,-r,.1,50);cam.position.set(c.x,c.y+r*1.1,c.z+r*2.8);cam.lookAt(c);cam.updateMatrixWorld(true);
   const base=new THREE.Vector3(c.x,b.min.y,b.max.z).project(cam); /* 房子底部前緣在照片裡的高度，貼圖要從這裡站在雪地上 */
   const old=renderer.getRenderTarget(),oc=renderer.getClearColor(new THREE.Color()),oa=renderer.getClearAlpha();
   renderer.setRenderTarget(rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(sc,cam);renderer.setRenderTarget(old);renderer.setClearColor(oc,oa);
-  return VIMP[st]={mat:new THREE.SpriteMaterial({map:rt.texture,transparent:true,alphaTest:.25}),r,v:(base.y+1)/2}}
+  return VIMP[K]={mat:new THREE.SpriteMaterial({map:rt.texture,transparent:true,alphaTest:.25}),r,v:(base.y+1)/2}}
 function buildVillage(){if(!FOREST.spots.length||!scene)return;const list=villageList(),key=JSON.stringify(list);if(key===VIL.key)return;VIL.key=key;
   const vis=VIL.g?VIL.g.visible:true;if(VIL.g)scene.remove(VIL.g);if(VIL.mine)scene.remove(VIL.mine);VIL.g=VIL.mine=null;
   const g=new THREE.Group();let me=null;
   list.forEach(h=>{const sp=FOREST.spots[h.s];if(!sp)return;if(h.me){me=h;return}
-    if(window.XH3D){const im=vImp(h.st),d=new THREE.Sprite(im.mat),k=im.r*2*.55;d.scale.set(k,k,1);d.center.set(.5,Math.max(0,im.v-.04));d.position.copy(sp);g.add(d)}
-    else{const d=vHouse(h.st,.3,h.s);d.position.copy(sp);g.add(d)}});
+    if(!window.XH3D){const d=vHouse(h.st,.3,h.s);d.position.copy(sp);g.add(d)}});
+  /* 2026-10-30 真的 3D：同一種造型的房子共用一份模型、用 InstancedMesh 一次畫完（60 間也只要畫五種 × 十幾個零件），有影子、方向大小各不同 */
+  if(window.XH3D){const by=[[],[],[],[],[]];list.forEach(h=>{if(!h.me&&FOREST.spots[h.s]&&by[h.st])by[h.st].push(h)});
+    const HM=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),sv=new THREE.Vector3();
+    by.forEach((hs,st)=>{if(!hs.length)return;const tpl=vTpl(st);
+      const mats=hs.map(h=>{const sp=FOREST.spots[h.s],k=.45*(.88+vHash(h.s+3)*.26);e.set(-.12,(vHash(h.s+5)-.5)*1.3,0);q.setFromEuler(e);
+        v.set(sp.x+(vHash(h.s+11)-.5)*.18,sp.y,sp.z+(vHash(h.s+13)-.5)*.18);sv.set(k,k,k);return new THREE.Matrix4().compose(v,q,sv)});
+      tpl.forEach(({geo,mat,m})=>{const im=new THREE.InstancedMesh(geo,mat,hs.length);im.castShadow=true;im.receiveShadow=true;
+        mats.forEach((H,k)=>{HM.multiplyMatrices(H,m);im.setMatrixAt(k,HM)});im.instanceMatrix.needsUpdate=true;g.add(im)})})}
+  /* 每間房子底下一塊柔和的影子（全部合成一個模型，不吃效能），房子才像站在雪地上 */
+  const hs=list.filter(h=>!h.me&&FOREST.spots[h.s]);
+  if(hs.length&&window.XH3D){if(!VIL.shTex){const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),gr=x.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(40,52,84,.55)');gr.addColorStop(.6,'rgba(40,52,84,.25)');gr.addColorStop(1,'rgba(40,52,84,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);VIL.shTex=new THREE.CanvasTexture(cv)}
+    const shm=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:VIL.shTex,transparent:true,depthWrite:false}),hs.length),M=new THREE.Matrix4();
+    hs.forEach((h,k)=>{const sp=FOREST.spots[h.s],z=.78*(.88+vHash(h.s+3)*.26);M.makeScale(z*1.25,1,z*.9);M.setPosition(sp.x+(vHash(h.s+11)-.5)*.18+.04,sp.y+.025,sp.z+(vHash(h.s+13)-.5)*.18+.05);shm.setMatrixAt(k,M)});
+    shm.renderOrder=-1;g.add(shm)}
   scene.add(g);g.visible=vis;VIL.g=g;
-  if(me){const sp=FOREST.spots[me.s],m=new THREE.Group();m.position.copy(sp);m.add(vHouse(me.st,.4,me.s,true));
+  if(me){const sp=FOREST.spots[me.s],m=new THREE.Group();m.position.copy(sp);m.add(vHouse(me.st,.5,me.s,true));
     const gl=new THREE.Mesh(new THREE.CircleGeometry(.6,32),new THREE.MeshBasicMaterial({color:'#ffd84a',transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));gl.rotation.x=-Math.PI/2;gl.position.y=.03;m.add(gl);m.userData.glow=gl;
     const np=nameplate('你的家',true);np.position.set(0,.86,0);m.add(np);m.visible=vis;scene.add(m);VIL.mine=m}}
 async function vShow(s){const sp=FOREST.spots[s];if(!sp)return;overviewFocus(sp.clone());await camArrive();sparkle(sp.clone().add(new THREE.Vector3(0,.7,0)),12);await sleep(700)}
@@ -3186,7 +3208,7 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030l',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261030m',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}
