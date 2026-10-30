@@ -135,6 +135,7 @@ body.tour .tourstop{display:block}
 .dch button{min-width:44px; min-height:38px; padding:0 10px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; font-size:13.5px; cursor:pointer}
 .dch button.on{border-color:var(--accent); background:#e6f1ee; color:var(--accent); font-weight:600}.dch button.lk{opacity:.4}
 .drawer .acts{display:flex; gap:8px; justify-content:center; margin-top:14px}
+.drawer .acts.stick{position:sticky; bottom:calc(-12px - env(safe-area-inset-bottom,0px)); background:var(--cream); margin:10px -16px 0; padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px); border-top:1px solid var(--line); flex-wrap:wrap} /* 2026-10-30 衣櫥：買下按鈕固定在底部，不用滑到最下面才看得到 */
 .modal{position:fixed; inset:0; background:rgba(214,232,242,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:grid; place-items:center; padding:16px; z-index:5}
 .panel{width:min(420px,100%); max-height:calc(100% - 16px); overflow:auto; background:var(--cream); border:1px solid var(--line); border-radius:24px; padding:22px 20px 18px; box-shadow:0 22px 60px rgba(40,70,90,.22)}
 .panel h2{margin:0 0 4px; font-family:var(--serif); font-weight:600; font-size:21px; letter-spacing:.08em; text-align:center}
@@ -2200,7 +2201,7 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
         return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
           return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${tries[sl]===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
-      <div class="acts">${tl.length&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下${tl.length>1?` ${tl.length} 件`:'這件'}・🎁 ${tot}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
+      <div class="acts stick">${tl.length&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下${tl.length>1?` ${tl.length} 件`:'這件'}・🎁 ${tot}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
     show(Object.assign({},wear,tries))}; /* 還沒買的先穿在門口的天竺鼠身上給你看（每個部位可以各試一件，一起看） */
   const cancel=async()=>{show(start);m.pet.wear=Object.assign({},start);
     try{for(const sl of ['head','face','neck','body'])if((start[sl]||'')!==(wear[sl]||''))await put(sl,!start[sl]?'def':start[sl]==='none'?'':start[sl])}catch(e){}
