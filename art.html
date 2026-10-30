@@ -2201,7 +2201,7 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
       ${[['head','頭上'],['face','臉上'],['neck','脖子'],['body','身上']].map(([sl,nm])=>{const it=L.filter(o=>o.slot===sl);if(!it.length)return'';
         return`<div class="clrow"><span>${nm}</span>${it.map(o=>{const has=!o.p||C.own[o.id],on=wear[sl]===o.id;
           return`<button type="button" data-a="it" data-v="${o.id}" class="cli${on?' on':''}${tries[sl]===o.id?' sel':''}"><i>${CL_IC[o.id]||'🎁'}</i>${esc(o.nm)}<small>${on?'穿著中':has?'已擁有':'🎁 '+o.p}</small></button>`}).join('')}<button type="button" data-a="off" data-v="${sl}" class="cli"><i>✖️</i>不戴<small>&nbsp;</small></button></div>`}).join('')}
-      <div class="acts stick">${tl.length&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下${tl.length>1?` ${tl.length} 件`:'這件'}・🎁 ${tot}</button>`:''}<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button></div>`;
+      <div class="acts stick">${tl.length&&!soon?`<button class="pill main" type="button" data-a="buy" style="white-space:nowrap">買下${tl.length>1?` ${tl.length} 件`:'這件'}・🎁 ${tot}</button><button class="pill" type="button" data-a="drop">先不買</button>`:`<button class="pill" type="button" data-a="cancel">取消</button><button class="pill main" type="button" data-a="ok">好了</button>`}</div>`; /* 2026-10-30 大熊：試穿中還有「好了」會被當成買下 → 試穿時只給「買下」「先不買」 */
     show(Object.assign({},wear,tries))}; /* 還沒買的先穿在門口的天竺鼠身上給你看（每個部位可以各試一件，一起看） */
   const cancel=async()=>{show(start);m.pet.wear=Object.assign({},start);
     try{for(const sl of ['head','face','neck','body'])if((start[sl]||'')!==(wear[sl]||''))await put(sl,!start[sl]?'def':start[sl]==='none'?'':start[sl])}catch(e){}
@@ -2209,6 +2209,7 @@ async function closetPanel(m){if(!m.pet){toast('先認養一隻天竺鼠，就�
   clSt={cancel};
   drawer.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b||working)return;const a=b.dataset.a,v=b.dataset.v,L=C.outfits||[];
     if(a==='ok'){clSt=null;drawer.hidden=true;show(wear);back();return}
+    if(a==='drop'){tries={};paint();return} /* 先不買＝把試穿的都拿掉 */
     if(a==='cancel'){clSt=null;drawer.hidden=true;await cancel();back();return}
     working=true;
     try{if(a==='it'){const o=L.find(x=>x.id===v);if(o){if((o.p&&!C.own[o.id])||soon){if(tries[o.slot]===o.id)delete tries[o.slot];else tries[o.slot]=o.id} /* 再點一次＝不試了 */
