@@ -1302,9 +1302,9 @@ function artOpenNotice(){
   const close=()=>w.remove();
   w.addEventListener("click",e=>{if(e.target===w)close()});
   document.getElementById("artOpenNo").onclick=close;
-  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261030p" };
+  document.getElementById("artOpenGo").onclick=()=>{ parkToken(); location.href="art.html?v=20261030q" };
 }
-function openGacha(isl){ parkToken(); location.href="park.html?v=20261030p"+(isl?"&isl="+isl:"") }
+function openGacha(isl){ parkToken(); location.href="park.html?v=20261030q"+(isl?"&isl="+isl:"") }
 /* 首頁卡片的「還差幾點換什麼」：選品館商品清單是公開的（不帶登入就不回個資），開首頁時抓一次 */
 let hmShop=null,hmShopLoading=false;
 function loadHmShop(){
@@ -2231,14 +2231,14 @@ function boot(){
   } else if(!boot._gc && /go(=|%3D)hw/i.test(q)){
     /* 萬聖節點南瓜預覽（2026-10-30 大熊要先試玩）：https://liff.line.me/2010906803-FMDYktUN?go=hw；員工帳號是示範模式，不入帳 */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030p&hw=1") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030q&hw=1") });
   } else if(!boot._gc && /go(=|%3D)gacha/i.test(q)){
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030p") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261030q") });
   } else if(!boot._gc && /go(=|%3D)art/i.test(q)){
     /* 直達作品小屋（2026-10-05 會員推播用）：https://liff.line.me/2010906803-FMDYktUN?go=art */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261030p") });
+    liffReady.then(()=>{ parkToken(); location.replace("art.html?v=20261030q") });
   } else if(!boot._gc && /go(=|%3D)book/i.test(q)){
     boot._gc=true;
     setTimeout(()=>setStep(1),0);
