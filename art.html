@@ -200,6 +200,15 @@ body.tour .tourstop{display:block}
 .tourpill{padding:8px 14px; font-size:14px}
 .btns,.btns{grid-template-columns:repeat(3,1fr)!important; width:100%; gap:8px}
 .btns .pill{padding:11px 4px; font-size:14.5px; letter-spacing:.04em}
+/* 2026-10-31 大熊：殿堂入口改放在島切換那排（第五格），下面按鈕維持一排三顆；
+   下方按鈕區底下原本露出一截天空（像破洞）→ 米白底一路鋪到螢幕最底 */
+.places{height:56px}
+.places button{flex-direction:column; gap:2px; font-size:12px; letter-spacing:0; padding:0 0 4px}   /* 五格放不下「圖示＋字」一行 → 改成圖示在上、字在下 */
+.places .pi{width:22px; height:22px}
+.places button.on::before{bottom:2px; height:3px}
+.places #plHall{color:#2f4a56}
+.hud{padding-bottom:0}
+.bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
 /* 藝術家島民看作品說話（2026-10-05） */
 /* 訪客按讚／愛心／小花（2026-10-05） */
 .lbrx{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px}
@@ -259,7 +268,7 @@ body.tour .pcTag{display:none!important}
   </div>
   <div class="bottom">
     <div class="hint" id="hint" hidden></div>
-    <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button></div>
+    <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button><button type="button" id="plHall"><svg class="pi" viewBox="0 0 32 32"><path d="M16 4l12 7H4z" fill="#3f6266" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 12h22" stroke="#1d2a44" stroke-width="1.5"/><path d="M8 13v10M13 13v10M19 13v10M24 13v10" stroke="#c9a24f" stroke-width="2.4"/><path d="M4 25h24v3H4z" fill="#c9a24f" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/></svg>畫框背後</button></div>
     <div class="btns">
       <button class="pill main" id="myBtn" type="button">我的小屋</button>
       <button class="pill" id="upBtn" type="button">上傳作品</button>
@@ -292,7 +301,7 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261031p"></script>
+<script src="hall3d.js?v=20261031x"></script>
 <script>
 const RM=false; /* 跟遊戲一致：不管手機有沒有開「減少動態效果」，動畫照常播 */
 const $=id=>document.getElementById(id);
@@ -1748,11 +1757,12 @@ function camGoal(){
 let VSH=0;
 /* 2026-10-04 島的前緣（草地和岩壁交界）對齊遊樂島扭蛋島木台底邊的高度（遊樂島存在 localStorage 'otto2-isl-bp'），換島不會跳 */
 const _bv=new THREE.Vector3();
+const ISL_DOWN=40;   /* 2026-10-31 大熊：下面多一排殿堂按鈕後覺得島太高 → 作品小屋的島比遊樂島對齊線再往下 40px */
 function islBP(){let v=0;try{v=+localStorage.getItem('otto2-isl-bp')}catch(e){}return v>80&&v<innerHeight*.6?v:220}
 /* 2026-10-24 大熊：關掉藝術家卡片時畫面先衝到天空再掉回草地 → 鏡頭還在拉遠／拉近的途中（離目標還遠）先不算位移，等鏡頭到位再慢慢對齊，
    不然近距離算出來的位移會一下子差好幾百像素 */
 function viewShift(dt,moving){let want=0;if(portrait()&&!focus&&!$('hud').hidden&&!moving){const th=Math.atan2(camPos.z,camPos.x),r=outline(th);_bv.set(Math.cos(th)*r,heightAt(Math.cos(th)*r,Math.sin(th)*r)-1.2,Math.sin(th)*r).project(camera);
-    want=innerHeight-islBP()-((1-_bv.y)/2*innerHeight-VSH)}
+    want=innerHeight-(islBP()-ISL_DOWN)-((1-_bv.y)/2*innerHeight-VSH)}
   const v=Math.abs(want-VSH)<.5?want:VSH+(want-VSH)*Math.min(1,dt*4);if(v===VSH&&(v!==0||!(camera.view&&camera.view.enabled)))return;VSH=v;
   if(Math.abs(v)<.5)camera.clearViewOffset();else camera.setViewOffset(innerWidth,innerHeight,0,-v,innerWidth,innerHeight)}
 function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition(w);w.y+=h;focus={pos:w,d,yaw:Math.atan2(w.x,w.z)+.25,pitch:pitch??.3,obj,h}}
@@ -1866,7 +1876,7 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
   o=document.createElement('div');o.id='chatov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#2a1a10';
   o.innerHTML='<iframe src="artist-chat/'+id+'.html?live=1&t='+Date.now()+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
-/* 2026-10-31 藝術殿堂：作品小屋後方偏左（HALL_A，避開碼頭、瀑布、風車，剛好在外圈兩間小屋中間）延伸一塊小浮島，木橋接過去，上面是萬神殿。
+/* 2026-10-31 藝術殿堂（10/31 大熊定名「畫框背後－大師開講」，畫面上的字都改了，程式裡還叫 hall）：作品小屋後方偏左（HALL_A，避開碼頭、瀑布、風車，剛好在外圈兩間小屋中間）延伸一塊小浮島，木橋接過去，上面是萬神殿。
    大熊選的外觀是預覽五款裡的「萬神殿」，顏色照他說的調暗（亮度×.74、彩度×.85）。點殿堂開說明卡 →「走進殿堂」蓋一層 hall/index.html */
 const HALL_A=3.555,HALL_STATUES=['達文西','林布蘭'];let hallG=null;
 /* 大理石雕像：石頭底座＋藝術家公仔（不放進 picks，點了算點殿堂；寵物也一起變石頭） */
@@ -1921,7 +1931,7 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   const hit=new THREE.Mesh(new THREE.BoxGeometry(R*1.6,4.6,R*1.6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2;hit.userData.keep=1;hit.userData.hall=true;g.add(hit);picks.push(hit);
   mergeGroup(g)}
 function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A))+.45;   // 從主島這側斜斜看正面
-  sheet('藝術殿堂','認識偉大的藝術家','走進殿堂，聽藝術家的故事、看他們的一生。第一位是梵谷，之後會一位一位開放。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
+  sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。第一位是梵谷，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
 /* 走進殿堂的過場：鏡頭慢慢飛到萬神殿大門口 → hall3d.js 淡出、在大廳裡從門口走進來；出來時反過來，從門口往後拉遠 */
 const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
 function walkIntoHall(){closeSheet();$('hud').hidden=true;   // 過場時下面的按鈕先收起來；鏡頭停在兩尊雕像中間，不會被雕像擋住
@@ -2472,7 +2482,7 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
   const b=document.getElementById('bgmBtn'),look=()=>{if(b){b.innerHTML=on?ON:OFF;b.setAttribute('aria-label',on?'關掉音樂':'打開音樂')}};
   if(b)b.onclick=()=>{on=!on;try{localStorage.setItem('otto2-park-mute',on?'0':'1')}catch(e){}look()};look();
   setInterval(()=>OttoBGM.update('art',on&&!!ctx&&!window.storyOn,false),250)})();
-$('findBtn').onclick=findHouse;$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
+$('findBtn').onclick=findHouse;$('plHall').onclick=()=>{if(hallG)walkIntoHall()};$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
 $('plMascot').onclick=()=>{const u='park.html?v=20261013c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
 /* 2026-10-05 大熊：看作品時按 LINE 左上角返回會直接回扭蛋機 → 開視窗時塞一筆歷史，按返回只關最上層的視窗 */
