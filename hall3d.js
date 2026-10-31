@@ -33,8 +33,8 @@ function closedNiche(g,NW,NH){const W=NW*2,cg=new THREE.PlaneGeometry(W,NH,64,1)
 
 /* 遊客（大熊要大廳有人氣）：用島上公仔同一個身體 figBase，換髮型衣服；站著看雕像、沿著大廳慢慢繞、坐在長椅上。點了沒反應，只是氣氛 */
 const FOLK=[
-  {coat:'#7d8fa6',legs:'#3f4a5e',hair:'#3a2a22',do:'look',x:-1.8,z:-4.05},
-  {coat:'#c99a7a',legs:'#5b4a3e',hair:'#1f1a17',long:1,do:'look',x:1.75,z:-3.95},
+  {coat:'#7d8fa6',legs:'#3f4a5e',hair:'#3a2a22',do:'look',x:-2.35,z:-4.1},
+  {coat:'#c99a7a',legs:'#5b4a3e',hair:'#1f1a17',long:1,do:'look',x:2.3,z:-4.0},
   {coat:'#8aa38a',legs:'#4a4f55',hair:'#6b4a2e',do:'walk',r:3.95,a0:.9,spd:.11},
   {coat:'#b07f8e',legs:'#3d3f48',hair:'#2a2420',long:1,do:'walk',r:3.95,a0:3.6,spd:-.09},
   {coat:'#a99a6c',legs:'#4c4337',hair:'#bdb8b0',do:'sit',x:-2.4,z:1.45},
@@ -138,9 +138,9 @@ function build(){
     @keyframes sp{from{opacity:0;transform:translate(-50%,-80%) scale(.8)}}`;
   document.head.appendChild(st);
   ui.addEventListener('pointerdown',e=>{if(e.target.id==='hallBack')return;down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false}});
-  ui.addEventListener('pointermove',e=>{if(!down||goal)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)down.moved=true;
+  ui.addEventListener('pointermove',e=>{if(!down||(goal&&!goal.slow))return;if(goal)goal=null;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)down.moved=true;
     yaw=down.yaw+dx*.005;pitch=Math.max(-.25,Math.min(.55,down.pitch+dy*.003))});
-  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved||goal)return;tap(e)});
+  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved)return;if(goal&&goal.slow)goal=null;else if(goal)return;tap(e)});   // 走進來的過場還沒停也可以直接點（不然點了沒反應）
   ui.querySelector('#hallBack').onclick=leave}
 
 function tap(e){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,cam);
@@ -189,7 +189,7 @@ function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTic
   if(alive)aliveTick(now,dt);
   if(goal){const k=Math.min(1,dt*(goal.slow?1.3:3));pos.lerp(goal.pos,k);
     let dy=((goal.yaw-yaw+Math.PI*3)%(Math.PI*2))-Math.PI;yaw+=dy*k;pitch+=(goal.pitch-pitch)*k;
-    if(pos.distanceTo(goal.pos)<.04&&Math.abs(dy)<.01){const t=goal.then;goal=null;if(t)t()}}
+    if(pos.distanceTo(goal.pos)<(goal.slow?.12:.04)&&Math.abs(dy)<.01){const t=goal.then;goal=null;if(t)t()}}
   const w=renderer.domElement;if(cam.aspect!==w.clientWidth/w.clientHeight){cam.aspect=w.clientWidth/Math.max(1,w.clientHeight);cam.fov=cam.aspect<.8?74:62;cam.updateProjectionMatrix()}
   cam.position.copy(pos);cam.rotation.set(pitch,yaw,0,'YXZ');renderer.render(sc,cam);
   /* 「點我」提示：走到定點後才出現，點過一次就不再出現 */
