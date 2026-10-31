@@ -155,6 +155,14 @@ body.tour .tourstop{display:block}
 .acard .afig.paint img{width:62%; margin:16px; border-radius:6px; box-shadow:0 8px 20px rgba(0,0,0,.12)}
 .acard dl{display:grid; grid-template-columns:auto 1fr; gap:6px 12px; margin:4px 0 0; font-size:14px; line-height:1.6}
 .acard dt{color:var(--accent); white-space:nowrap}.acard dd{margin:0; color:var(--ink)}
+/* 2026-10-31 聽藝術家的故事（Gemini Notebook 語音摘要） */
+.astory{display:flex; align-items:center; gap:12px; margin:12px 0 10px; padding:10px 12px; border-radius:16px; background:#f3efe6}
+.astory button{flex:none; width:46px; height:46px; border-radius:50%; border:0; background:var(--accent); color:#fff; font-size:18px; display:grid; place-items:center; cursor:pointer}
+.astory .st{flex:1; min-width:0; text-align:left}
+.astory .st b{display:block; font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.astory .bar{position:relative; height:6px; border-radius:3px; background:rgba(45,59,58,.15); margin:7px 0 4px; cursor:pointer; touch-action:none}
+.astory .bar i{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:3px; background:var(--accent)}
+.astory .tm{font-size:12px; color:var(--ink2); font-variant-numeric:tabular-nums}
 .preview{display:block; width:120px; height:120px; object-fit:cover; border-radius:12px; margin:12px auto 0; box-shadow:0 8px 20px rgba(0,0,0,.12)}
 /* the treehouse wall: simple, in the order they were made */
 .wall h3{font-family:var(--serif); font-weight:500; font-size:14px; letter-spacing:.1em; color:var(--ink2); margin:14px 0 8px; display:flex; align-items:center; gap:8px}
@@ -284,6 +292,7 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="hall3d.js?v=20261031p"></script>
 <script>
 const RM=false; /* 跟遊戲一致：不管手機有沒有開「減少動態效果」，動畫照常播 */
 const $=id=>document.getElementById(id);
@@ -1715,7 +1724,7 @@ function build(){
   scene.add(XDECO?new THREE.HemisphereLight('#e3eaff','#8a9bb8',.88):new THREE.HemisphereLight('#ffffff','#9db27f',.95));
   const sun=new THREE.DirectionalLight(XDECO?'#eef2ff':'#fff0d4',XDECO?.78:.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
   const sc=sun.shadow.camera;sc.left=-19*K;sc.right=19*K;sc.top=19*K;sc.bottom=-19*K;sc.near=1;sc.far=90;sun.shadow.bias=-.0006;sun.shadow.radius=4;scene.add(sun);
-  buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
+  buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();buildHall();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
   addEventListener('resize',resize);resize();
 }
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight)}
@@ -1751,6 +1760,7 @@ function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
 let tPrev=performance.now();
 function loop(now){
+  if(window.Hall3D&&Hall3D.active){Hall3D.frame(now);tPrev=now;requestAnimationFrame(loop);return}   /* 在藝術殿堂裡面：只畫大廳，作品小屋暫停 */
   if(window.Ferry&&Ferry.covering&&Ferry.covering()&&now-(loop._c||0)<1000){tPrev=now;requestAnimationFrame(loop);return}loop._c=now; /* 熱氣球蓋住畫面時一秒只畫一次（手機同時畫兩個 3D 場景會卡） */
   const raw=(now-tPrev)/1000,dt=Math.min(.05,raw);tPrev=now;perfTick(raw);
   for(let k=tweens.length-1;k>=0;k--){const w=tweens[k],p=Math.min(1,(now-w.t0)/w.d);w.f(p);if(p>=1){tweens.splice(k,1);w.r()}}
@@ -1778,7 +1788,7 @@ function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.c
   /* 2026-10-05 大熊說點不到別人家：整座島看的時候小屋只有指甲大，沒點中就找手指附近（約 34px 內）最近的小屋或藝術家 */
   const tx=e.clientX-r.left,ty=e.clientY-r.top,w=new THREE.Vector3();let best=null,bd=34*34;
   const near=(obj,ud,lift)=>{obj.getWorldPosition(w);w.y+=lift;w.project(camera);if(w.z>1)return;const x=(w.x+1)/2*r.width,y=(1-w.y)/2*r.height,d=(x-tx)**2+(y-ty)**2;if(d<bd){bd=d;best=ud}};
-  if(tripG&&tripG.visible)near(tripG,{trip:true},.3);houses.forEach((hh,i)=>hh.visible&&near(hh,{house:G.members[i]},.5));artists.forEach(a=>a.visible&&near(a,{artist:a.userData.A},.6));return best}
+  if(tripG&&tripG.visible)near(tripG,{trip:true},.3);if(hallG)near(hallG,{hall:true},2);houses.forEach((hh,i)=>hh.visible&&near(hh,{house:G.members[i]},.5));artists.forEach(a=>a.visible&&near(a,{artist:a.userData.A},.6));return best}
 function onDown(e){if(touring)return;if(e.isPrimary)pointers.clear(); /* 2026-10-05 第一根手指按下就清掉沒收到放開的舊手指，不然之後每一下都被當成兩指縮放、點不到小屋 */pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cvEl().setPointerCapture(e.pointerId)}catch(err){}idleT=0;
   if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,fy:focus&&focus.yaw!==undefined?focus.yaw:yaw,fp:focus?(focus.pitch??.35):pitch,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom,fd:focus?focus.d:0};if(down)down.moved=true}}
 function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});idleT=0;
@@ -1791,7 +1801,7 @@ function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(
   const u=pick(e);if(!u){if(focus)closeSheet();return}
   if(u.trip)return tripFound();
   if(u.gp)return gpTap(u.gp,u.kind);if(u.gpBowl)return gpFeed(u.gpBowl,u.kind);
-  if(u.airship)return openAirship();
+  if(u.airship)return openAirship();if(u.hall)return openHall();
   if(u.xsd)return xsdTap(u.xsd);
   if(u.santa)return toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅');
   if(u.artist)return openArtist(u.artist);if(u.house)return openHouseSheet(u.house);if(u.album)return openAlbum()}
@@ -1825,18 +1835,104 @@ function openArtist(A){const art=artists.find(a=>a.userData.A===A);artists.forEa
   const I=INFO[A.n]||{},img=xs||FIGS[A.n],paint=img?'':paintWork(A.kind,480).toDataURL(),k=ARTISTS.indexOf(A);
   modal(`<div class="acard"><div class="afig${img?'':' paint'}"><img alt="${esc(A.n)}" src="${img||paint}"></div>
     <h2>${esc(A.n)}</h2><div class="meta">${esc(I.full||'')}<br>${esc(I.life||'')}</div>
-    <dl><dt>風格</dt><dd>${esc(I.style||'')}</dd><dt>代表作</dt><dd>${esc(I.works||'')}</dd><dt>小故事</dt><dd>${esc(I.fact||A.say)}</dd><dt>在島上</dt><dd>${esc(A.care)}，正在畫《${esc(A.work)}》</dd></dl>${saidHtml(A)}
+    ${storyHtml(A)}<dl><dt>風格</dt><dd>${esc(I.style||'')}</dd><dt>代表作</dt><dd>${esc(I.works||'')}</dd><dt>小故事</dt><dd>${esc(I.fact||A.say)}</dd><dt>在島上</dt><dd>${esc(A.care)}，正在畫《${esc(A.work)}》</dd></dl>${saidHtml(A)}
     ${A.n==='畢卡索'?'<div class="acts" style="margin-bottom:8px"><button class="pill main" type="button" id="arC" style="flex:1">🚪 走進畢卡索的畫室聊天</button></div>':''}<div class="acts"><button class="pill" type="button" id="arP">看他正在畫的畫</button><button class="pill" type="button" id="arN">下一位</button><button class="pill main" type="button" id="arX">關閉</button></div></div>`);
   $('panel').querySelectorAll('.asaid button').forEach(b=>b.onclick=()=>{const m=G.members.find(x=>x.id===b.dataset.h);if(!m)return;const i=m.works.findIndex(w=>w.id===b.dataset.w);if(i<0)return;
     closeModal();focus=null;const can=!DEMO&&(m.id===G.me||ME.staff);openList(m.works,i,(w,i)=>`${m.name}・${w.title||'作品'}（第 ${i+1} 件）`,can?{house:m.id}:null,m)});
+  storyBind(A);
   if($('arC'))$('arC').onclick=()=>openArtistChat('picasso');
   $('arX').onclick=()=>{closeModal();focus=null};$('arN').onclick=()=>openArtist(ARTISTS[(k+1)%ARTISTS.length]);
   $('arP').onclick=()=>openImage(paintWork(A.kind,640).toDataURL(),`${A.n}《${A.work}》`,'島民藝術家正在畫的作品（向大師致敬的小畫）')}
+/* 2026-10-31 聽藝術家的故事：大熊在 Gemini Notebook 做的語音摘要，下載後壓成單聲道 48kbps 放 artist-audio/
+   一個共用的 Audio（不放進 DOM），換卡片／關卡片就停；播放時背景音樂先停（window.storyOn） */
+const STORY={'梵谷':{src:'artist-audio/vangogh.m4a',t:'重塑梵谷：天才非瘋狂'}};
+let storyAu=null;
+const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function storyStop(){if(storyAu){storyAu.pause();storyAu.ontimeupdate=storyAu.onplay=storyAu.onpause=storyAu.onended=storyAu.onloadedmetadata=storyAu.onerror=null}window.storyOn=false}
+function storyHtml(A){const S=STORY[A.n];if(!S)return'';
+  return `<div class="astory"><button type="button" id="stBtn" aria-label="播放">▶</button><div class="st"><b>🎧 聽${esc(A.n)}的故事</b><div class="bar" id="stBar"><i id="stFill"></i></div><div class="tm" id="stTm">${esc(S.t)}・約 8 分鐘</div></div></div>`}
+function storyBind(A){const S=STORY[A.n];if(!S||!$('stBtn'))return;
+  if(!storyAu||storyAu.dataset.n!==A.n){storyStop();storyAu=new Audio(S.src);storyAu.preload='none';storyAu.dataset.n=A.n}
+  const au=storyAu,btn=$('stBtn'),fill=$('stFill'),tm=$('stTm');
+  const look=()=>{const d=au.duration||0;btn.textContent=au.paused?'▶':'❚❚';btn.setAttribute('aria-label',au.paused?'播放':'暫停');
+    fill.style.width=d?(au.currentTime/d*100)+'%':'0';if(d&&(au.currentTime>0||!au.paused))tm.textContent=mmss(au.currentTime)+' / '+mmss(d)};
+  au.ontimeupdate=au.onloadedmetadata=look;au.onplay=()=>{window.storyOn=true;look()};au.onpause=()=>{window.storyOn=false;look()};
+  au.onended=()=>{window.storyOn=false;au.currentTime=0;look()};au.onerror=()=>{window.storyOn=false;toast('故事載入失敗，請稍後再試');look()};
+  btn.onclick=()=>{if(au.paused){const p=au.play();if(p&&p.catch)p.catch(()=>toast('沒辦法播放，請再按一次'))}else au.pause()};
+  const seek=e=>{const d=au.duration;if(!d)return;const r=$('stBar').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*d;look()};
+  $('stBar').onpointerdown=seek;look()}
 /* 藝術家聊天：全螢幕蓋一層 iframe（artist-chat/*.html），裡面按「回作品小屋」會 postMessage 關掉 */
 function openArtistChat(id){closeModal();focus=null;let o=document.getElementById('chatov');if(o)o.remove();
   o=document.createElement('div');o.id='chatov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#2a1a10';
   o.innerHTML='<iframe src="artist-chat/'+id+'.html?live=1&t='+Date.now()+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
+/* 2026-10-31 藝術殿堂：作品小屋後方偏左（HALL_A，避開碼頭、瀑布、風車，剛好在外圈兩間小屋中間）延伸一塊小浮島，木橋接過去，上面是萬神殿。
+   大熊選的外觀是預覽五款裡的「萬神殿」，顏色照他說的調暗（亮度×.74、彩度×.85）。點殿堂開說明卡 →「走進殿堂」蓋一層 hall/index.html */
+const HALL_A=3.555,HALL_STATUES=['達文西','林布蘭'];let hallG=null;
+/* 大理石雕像：石頭底座＋藝術家公仔（不放進 picks，點了算點殿堂；寵物也一起變石頭） */
+function hallStatue(n){const s=new THREE.Group(),mb=lam('#b9b6b0'),mbD=lam('#a19d96');
+  [[.6,.12,.6,.06,mbD],[.44,.55,.44,.395,mb],[.54,.08,.54,.71,mbD]].forEach(([w,h,d,y,m])=>{const p=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);p.position.y=y;p.castShadow=p.receiveShadow=true;s.add(p)});
+  const A=ARTISTS.find(a=>a.n===n);if(!A)return s;const n0=picks.length,f=A.n==='畢卡索'?makePicasso(A):FIG[A.n]?FIG[A.n](A):null;picks.length=n0;if(!f)return s;
+  f.traverse(o=>{if(o.isMesh){o.material=mb;o.castShadow=true}});f.scale.multiplyScalar(1.1);f.position.y=.75;s.add(f);return s}
+function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a),h0=heightAt(ux*(rim-.6),uz*(rim-.6)),D=rim+8.6,R=4.6,S=.66;
+  const dim=c=>{const k=new THREE.Color(c),o={};k.getHSL(o);return '#'+k.setHSL(o.h,o.s*.85,o.l*.74).getHexString()};
+  const g=new THREE.Group();g.position.set(ux*D,h0,uz*D);g.rotation.y=-a-Math.PI/2;scene.add(g);hallG=g;   // 殿堂正面朝向主島
+  /* 小浮島：草地圓台＋往下收的岩壁，顏色跟主島一樣 */
+  g.add(cyl(XDECO?'#7f9468':'#55703a',R,R*.97,.5,0,-.5,0,40));
+  const prof=[[R*.97,-.5],[R*1.0,-1.1],[R*.9,-2.2],[R*.72,-3.6],[R*.5,-5],[R*.26,-6.3],[.05,-7.2]].map(([x,y])=>new THREE.Vector2(x,y));
+  const und=new THREE.Mesh(new THREE.LatheGeometry(prof,28),lam('#c9b998'));und.receiveShadow=true;g.add(und);
+  /* 萬神殿（座標是預覽版的 S 倍） */
+  const B=new THREE.Group();B.scale.setScalar(S);B.position.z=-.5;g.add(B);
+  const col=(x,z,y0)=>{const c=dim('#f4efe4'),r=.17;B.add(cyl(c,r*1.25,r*1.25,.12,x,y0,z,12));B.add(cyl(c,r*.88,r,2.16,x,y0+.12,z,12));B.add(box(c,r*2.6,.12,r*2.6,x,y0+2.28,z))};
+  const prism=(c,w,hh,d,x,y,z)=>{const s=new THREE.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(0,hh);s.lineTo(-w/2,0);const ge=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false});ge.translate(0,0,-d/2);const m=new THREE.Mesh(ge,toon(dim(c)));m.position.set(x,y,z);m.castShadow=true;return m};
+  for(let i=0;i<3;i++)B.add(box(dim('#e9e1cf'),7.6-i*.5,.14,8.4-i*.5,0,i*.14,0));const y=.42;
+  B.add(cyl(dim('#efe6d2'),2.6,2.6,2.4,0,y,-.6,40));B.add(cyl(dim('#e2d6bc'),2.75,2.75,.2,0,y+2.4,-.6,40));
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(2.62,40,20,0,Math.PI*2,0,Math.PI/2),toon(dim('#d9d3c4')));dome.position.set(0,y+2.6,-.6);dome.castShadow=true;B.add(dome);
+  B.add(cyl(dim('#cfc6b2'),.5,.55,.22,0,y+5.1,-.6,20));B.add(box(dim('#ede3cc'),4.8,2.6,1.5,0,y,1.8));
+  for(let i=0;i<6;i++)col(-2.1+i*.84,3.1,y);B.add(box(dim('#e5dac3'),5.2,.34,2.2,0,y+2.36,2.2));
+  B.add(prism('#e8dcc2',5.4,1.05,2.2,0,y+2.7,2.2));B.add(prism('#c0714a',3.6,.6,.05,0,y+2.86,3.32));
+  /* 大門：聖誕夜晚是亮著的暖黃色 */
+  const door=new THREE.Mesh(new THREE.PlaneGeometry(1,1.6),XDECO?new THREE.MeshBasicMaterial({color:'#f6cf86'}):toon('#5d4632'));door.position.set(0,y+.8,2.57);door.userData.keep=1;B.add(door);
+  if(XDECO){const lt=new THREE.PointLight('#ffc978',.9,7,2);lt.position.set(0,y+1.2,3.4);B.add(lt)}
+  /* 門口小路＋兩尊大理石雕像（大熊嫌「藝術殿堂」招牌不好看 → 拿掉，改雕像）：一手托調色盤、外側的手高舉畫筆，左邊那尊是右邊的鏡射 */
+  g.add(box(dim('#d8c9a6'),1.1,.03,2.2,0,0,R-1.3));
+  /* 雕像＝島民藝術家公仔（大熊的設定圖做的那 12 位）整隻換成大理石。哪兩位：HALL_STATUES，網址 ?hst=梵谷,畢卡索 可以試別組 */
+  const hs=/[?&]hst=([^&]+)/.exec(location.search),pair=hs?decodeURIComponent(hs[1]).split(','):HALL_STATUES;
+  /* 門口雕像縮成 .72（大熊嫌太大） */
+  [-1,1].forEach((k,i)=>{const st=hallStatue(pair[i]||pair[0]);st.scale.setScalar(.72);st.position.set(k*.95,0,R-.75);st.rotation.y=-k*.35;g.add(st)});
+  /* 花園：只做右半邊，左半邊是鏡射，保證對稱。義大利柏樹（梵谷畫裡常出現）在殿堂兩側後方，圓樹在兩側，小路兩邊各一排矮樹叢＋草堆 */
+  const half=new THREE.Group();
+  const cypress=(x,z,h,k)=>{half.add(cyl('#7a6754',.06,.09,.4,x,0,z,5));const m=lpMesh(jitterGeo(new THREE.IcosahedronGeometry(1,1),.12,300+k),'#4f6b45',x,.3+h/2,z);m.scale.set(.36,h/2,.36);half.add(m)};
+  const roundT=(x,z,k)=>{const t=new THREE.CylinderGeometry(.07,.11,.9,5);t.translate(0,.45,0);half.add(lpMesh(t,'#8b7762',x,0,z));
+    [[0,1.15,0,.5,'#7c9a68'],[.24,.98,.12,.34,'#86a46c'],[-.22,1.02,-.1,.36,'#6f8f5c']].forEach(([px,py,pz,r,c],i)=>half.add(lpMesh(jitterGeo(new THREE.IcosahedronGeometry(r,1),r*.22,320+k*5+i),c,x+px,py,z+pz)))};
+  cypress(2.95,-2.6,2.3,1);cypress(1.35,-3.55,1.9,2);cypress(3.25,-1.35,1.7,3);
+  roundT(3.45,.75,1);
+  [[.98,2.55,.27],[.98,3.2,.24],[2.55,2.75,.34],[3.05,2.15,.26]].forEach(([x,z,r],i)=>half.add(lpMesh(jitterGeo(new THREE.IcosahedronGeometry(r,0),r*.2,340+i),i%2?'#6f8f5c':'#5f7f4c',x,r*.55,z)));
+  [[3.95,1.7],[4.05,-.55],[3.4,-2.6],[.6,-4.2],[2.3,3.6],[1.6,3.05]].forEach(([x,z],i)=>{[[0,0,.16],[.16,.05,.11],[-.12,.1,.1]].forEach(([dx,dz,r],j)=>half.add(lpMesh(new THREE.IcosahedronGeometry(r,0),['#557238','#617e3e','#4a6534'][(i+j)%3],x+dx,r*.4,z+dz)))});
+  [[1.5,2.45],[3.6,1.25],[2.9,-.2]].forEach(([x,z],i)=>half.add(ball(['#efece2','#dccb82','#d8afb5'][i],.07,x,.08,z,1,.7,1,true)));
+  half.traverse(o=>{if(o.isMesh)o.castShadow=true});g.add(half);const mir=half.clone();mir.scale.x=-1;g.add(mir);
+  /* 木橋：從主島邊緣接到小浮島，跟碼頭同一種木板 */
+  const from=rim-.7,to=D-R+.35,n=Math.ceil((to-from)/.46);
+  for(let k=0;k<=n;k++){const d=from+(to-from)*k/n,x=ux*d,z=uz*d,yy=h0+.02-Math.sin(k/n*Math.PI)*.18;
+    const pl=new THREE.Mesh(new THREE.BoxGeometry(.4,.08,1.5),toon(k%2?'#b89a78':'#c7a985'));pl.position.set(x,yy,z);pl.rotation.y=-a;pl.castShadow=pl.receiveShadow=true;scene.add(pl);
+    if(k%3===0)[-1,1].forEach(s=>scene.add(cyl('#8a6c52',.04,.04,.6,x-uz*.72*s,yy-.05,z+ux*.72*s,6)))}
+  [-1,1].forEach(s=>{const L=to-from,m=new THREE.Mesh(new THREE.BoxGeometry(L,.06,.06),toon('#8a6c52'));m.position.set(ux*(from+L/2)-uz*.72*s,h0+.5,uz*(from+L/2)+ux*.72*s);m.rotation.y=-a;scene.add(m)});
+  /* 點得到：一個看不見的大盒子包住殿堂 */
+  const hit=new THREE.Mesh(new THREE.BoxGeometry(R*1.6,4.6,R*1.6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2;hit.userData.keep=1;hit.userData.hall=true;g.add(hit);picks.push(hit);
+  mergeGroup(g)}
+function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A))+.45;   // 從主島這側斜斜看正面
+  sheet('藝術殿堂','認識偉大的藝術家','走進殿堂，聽藝術家的故事、看他們的一生。第一位是梵谷，之後會一位一位開放。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
+/* 走進殿堂的過場：鏡頭慢慢飛到萬神殿大門口 → hall3d.js 淡出、在大廳裡從門口走進來；出來時反過來，從門口往後拉遠 */
+const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
+function walkIntoHall(){closeSheet();$('hud').hidden=true;   // 過場時下面的按鈕先收起來；鏡頭停在兩尊雕像中間，不會被雕像擋住
+  /* 先轉到正前方遠一點（對準中線），再沿著中線往前推到大門口，才不會斜斜穿過雕像 */
+  focus={pos:new THREE.Vector3(),d:7.5,yaw:hallFront(),pitch:.16,obj:hallG,loc:HALL_DOOR.clone()};
+  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=1.6;focus.pitch=.08}},850);setTimeout(()=>Hall3D.walkIn(),2000)}
+window.onHallExit=()=>{$('hud').hidden=false;hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront();
+  look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*2.4,.25,Math.cos(y)*2.4));focus={pos:new THREE.Vector3(),d:15,yaw:y+.45,pitch:.34,obj:hallG,h:1.6}};
+/* 殿堂裡面是 3D 大廳（hall3d.js），點藝術家蓋一層 hall/index.html?room=…；展間裡播語音傳 hallAudio 過來，背景音樂先停 */
+window.addEventListener('message',e=>{if(e.data==='closeHall'){const o=document.getElementById('hallov');if(o)o.remove();window.storyOn=false;if(window.Hall3D&&Hall3D.active)Hall3D.back()}
+  else if(e.data&&e.data.hallAudio!==undefined)window.storyOn=!!e.data.hallAudio});
 function openAirship(){focusOn(airship,7,1.6);
   sheet('OTTO2 飛艇','停在島邊的木棧橋','之後會員可以搭這艘飛艇，飛到空島世界的其他島嶼：11 月的聖誕島，還有之後陸續開放的新島。',[]);
   const a=document.createElement('a');a.className='pill main';a.style.cssText='flex:1;text-align:center;text-decoration:none';a.href='park.html?v=20261013c';a.textContent='搭熱氣球回遊戲';a.addEventListener('click',e=>{if(window.Ferry){e.preventDefault();Ferry.go({to:a.href,place:'park',from:'art'})}});$('sRow').appendChild(a)}
@@ -1908,8 +2004,8 @@ function renamePanel(m){modal(`<h2>改小屋的名字</h2><p>新的名字會寫�
     try{await api('/island/rename',{name,house:m.id});await reload();rebuildHouses();closeModal();const nm=G.members.find(x=>x.id===m.id);if(nm)openHouseSheet(nm);toast('小屋改名字了')}
     catch(e){toast(e.message);$('rnO').disabled=false;$('rnO').textContent='改好了'}}}
 /* ================= walls, album, lightbox ================= */
-function modal(html){$('panel').innerHTML=html;$('modal').hidden=false}
-const closeModal=()=>{$('modal').hidden=true;$('modal').style.zIndex='';if(!touring)artists.forEach(a=>a.userData.hold=false)};
+function modal(html){storyStop();$('panel').innerHTML=html;$('modal').hidden=false}
+const closeModal=()=>{storyStop();$('modal').hidden=true;$('modal').style.zIndex='';if(!touring)artists.forEach(a=>a.userData.hold=false)};
 let lb=null;
 function openImage(src,t,p){lb=null;$('lbDel').hidden=$('lbRen').hidden=true;$('lbRx').hidden=true;$('lbImg').src=src;$('lbT').textContent=t;$('lbP').textContent=p;$('lbPrev').hidden=$('lbNext').hidden=true;$('lb').hidden=false}
 function openList(list,i,label,del,house){lb={list,i,label,del,house};const w=list[i];$('lbImg').src=w.full||w.img||demoPhoto(w.seed,560).toDataURL();$('lbDel').hidden=$('lbRen').hidden=!(del&&w.id);$('lbT').textContent=label(w,i);$('lbP').textContent=`${w.date||''}${w.by?'・'+(w.by==='老師'?'老師上傳':'本人上傳'):''}`;$('lbPrev').hidden=$('lbNext').hidden=list.length<2;lbComment(w,house);lbRx(w,house);$('lb').hidden=false}
@@ -2357,7 +2453,7 @@ async function start(data){
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
-  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;try{tripSpawn()}catch(e){console.warn('trip',e)}
+  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;if(/[?&]hall=1/.test(location.search))Hall3D.enter(true);   /* art.html?hall=1 直接進藝術殿堂（分享連結用） */try{tripSpawn()}catch(e){console.warn('trip',e)}
   const c=cvEl();c.addEventListener('pointerdown',onDown);c.addEventListener('pointermove',onMove);c.addEventListener('pointerup',onUp);c.addEventListener('pointercancel',onUp);
   c.addEventListener('wheel',e=>{zoom=Math.max(.5,Math.min(1.3,zoom+e.deltaY*.0008));idleT=0;e.preventDefault()},{passive:false});
   if(location.hash==='#album')setTimeout(openAlbum,800);
@@ -2375,7 +2471,7 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
         OFF='<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16" r="2.5" fill="currentColor"/><path d="M3 3l18 18"/></svg></i>靜音';
   const b=document.getElementById('bgmBtn'),look=()=>{if(b){b.innerHTML=on?ON:OFF;b.setAttribute('aria-label',on?'關掉音樂':'打開音樂')}};
   if(b)b.onclick=()=>{on=!on;try{localStorage.setItem('otto2-park-mute',on?'0':'1')}catch(e){}look()};look();
-  setInterval(()=>OttoBGM.update('art',on&&!!ctx,false),250)})();
+  setInterval(()=>OttoBGM.update('art',on&&!!ctx&&!window.storyOn,false),250)})();
 $('findBtn').onclick=findHouse;$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
 $('plMascot').onclick=()=>{const u='park.html?v=20261013c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;
