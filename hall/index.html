@@ -60,10 +60,14 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 /* 底部常駐播放條 */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(24,48,51,.97);border-top:1px solid rgba(201,162,79,.3);transform:translateY(110%);transition:transform .3s ease}
 .dock.show{transform:none}
-.dock .in{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.dock .in{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:8px}
 .dock button{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--gold);color:#2a2112;font-size:16px;cursor:pointer}
 .dock .st{flex:1;min-width:0}.dock .st b{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dock .pg{position:relative;height:5px;border-radius:3px;background:rgba(255,255,255,.15);margin:7px 0 4px;cursor:pointer;touch-action:none}
+.dock .pg{position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.15);margin:9px 0 6px;cursor:pointer;touch-action:none}
+/* 2026-10-31 大熊：不能拖、不能快轉 → 進度條上下各多 14px 好按、加圓點可以拖，加倒退／快轉 15 秒 */
+.dock .pg::before{content:"";position:absolute;left:-6px;right:-6px;top:-14px;bottom:-14px}
+.dock .pg u{position:absolute;top:50%;left:0;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;background:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,.4);pointer-events:none}
+.dock button.sk{width:38px;height:38px;background:transparent;color:var(--ink);border:1px solid rgba(201,162,79,.45);font-size:11.5px;font-weight:600;letter-spacing:-.3px}
 .dock .pg i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:var(--gold)}
 .dock .tm{font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
 /* 全螢幕看畫 */
@@ -82,7 +86,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   </section>
   <section id="room" hidden></section>
 </div>
-<div class="dock" id="dock"><div class="in"><button type="button" id="dB" aria-label="播放">▶</button><div class="st"><b id="dT"></b><div class="pg" id="dPg"><i id="dFill"></i></div><div class="tm" id="dTm"></div></div><button type="button" id="dN" aria-label="下一集" style="background:transparent;color:var(--ink);border:1px solid rgba(201,162,79,.45)">⏭</button></div></div>
+<div class="dock" id="dock"><div class="in"><button type="button" class="sk" id="dRw" aria-label="倒退 15 秒">↺15</button><button type="button" id="dB" aria-label="播放">▶</button><button type="button" class="sk" id="dFf" aria-label="快轉 15 秒">15↻</button><div class="st"><b id="dT"></b><div class="pg" id="dPg"><i id="dFill"></i><u id="dKnob"></u></div><div class="tm" id="dTm"></div></div><button type="button" id="dN" aria-label="下一集" style="background:transparent;color:var(--ink);border:1px solid rgba(201,162,79,.45)">⏭</button></div></div>
 <div class="zoom" id="zoom" hidden><img id="zImg" alt=""><p>點兩下放大看筆觸・點一下關閉</p></div>
 <script>
 const ARTISTS=[
@@ -140,13 +144,18 @@ function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.
   document.querySelectorAll('.ep').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:'梵谷',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
-function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';$('dFill').style.width=d?(au.currentTime/d*100)+'%':'0';$('dTm').textContent=d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
+function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
   $('dN').disabled=cur>=list.length-1;$('dN').style.opacity=cur>=list.length-1?.35:1;
   document.querySelectorAll('.ep').forEach(b=>{const on=b.dataset.i==String(cur)&&!au.paused;const pb=b.querySelector('.pb');if(pb&&!b.classList.contains('soon'))pb.textContent=on?'❚❚':'▶'})}
 au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{post({hallAudio:0});lookDock()};
 au.onended=()=>{if(cur+1<list.length)playIdx(cur+1);else{post({hallAudio:0});lookDock()}};au.onerror=()=>{$('dTm').textContent='語音載入失敗，請稍後再試'};
 $('dB').onclick=()=>{if(au.paused){const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
-$('dPg').onpointerdown=e=>{const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*d};
+let seeking=false;const seekX=x=>{const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
+$('dPg').onpointerdown=e=>{seeking=true;try{$('dPg').setPointerCapture(e.pointerId)}catch(_){}seekX(e.clientX)};
+$('dPg').onpointermove=e=>{if(seeking)seekX(e.clientX)};$('dPg').onpointerup=$('dPg').onpointercancel=()=>{seeking=false};
+const skip=t=>{const d=au.duration;if(!d)return;au.currentTime=Math.min(d-.5,Math.max(0,au.currentTime+t));lookDock()};
+$('dRw').onclick=()=>skip(-15);$('dFf').onclick=()=>skip(15);
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
 function stopAudio(){au.pause();post({hallAudio:0})}
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
