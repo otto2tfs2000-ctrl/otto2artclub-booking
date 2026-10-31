@@ -55,6 +55,16 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .txt{font-size:15px;line-height:1.9;margin-top:14px}
 .tip{margin-top:14px;padding:12px 14px;border-left:3px solid var(--gold);background:rgba(22,48,54,.45);border-radius:0 10px 10px 0;font-size:14px;line-height:1.75}
 .tip b{color:var(--gold2);font-weight:500}
+.pair{display:flex;gap:10px;align-items:flex-start;padding:24px 0 6px;margin:0 -6px}
+.pair figure{flex:1;min-width:0;margin:0}
+.pair .frame{width:100%;padding:6px}
+.pair figcaption{margin-top:9px;font-size:12px;line-height:1.55;color:var(--ink2);text-align:center}
+.pair figcaption b{display:block;color:var(--ink);font-family:var(--serif);font-size:14px;font-weight:600}
+.pair figcaption em{display:inline-block;font-style:normal;font-size:10.5px;letter-spacing:1px;color:#2a2112;background:var(--gold2);border-radius:8px;padding:0 7px;margin-bottom:4px}
+.pairh{font-family:var(--serif);font-size:17px;text-align:center;margin-top:26px;color:var(--gold2)}
+.spc{margin:14px 0 0;padding:16px;border:1px solid rgba(201,162,79,.3);border-radius:14px;background:rgba(22,48,54,.35)}
+.spc>b{display:block;font-family:var(--serif);font-size:17px}
+.spc .txt{font-size:14px;line-height:1.8;margin-top:8px}
 .ghost{margin:6px 0 0;padding:16px;border:1px dashed rgba(201,162,79,.3);border-radius:14px;color:var(--ink2);font-size:13.5px;line-height:1.75;text-align:center}
 .ghost b{display:block;color:var(--ink);font-family:var(--serif);font-size:16px;margin-bottom:4px}
 /* 底部常駐播放條 */
@@ -107,6 +117,19 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
      {ep:'EP02',t:'戴灰色毛氈帽的自畫像',et:'梵谷窮到只畫自己',audio:'../artist-audio/vangogh-ep02.m4a',dur:'14:39',o:'Zelfportret met grijze vilthoed',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/self-portrait.jpg',
       txt:'在巴黎的兩年，他畫了二十多幅自畫像。請不起模特兒，鏡子裡的自己最便宜，也最適合拿來做實驗。看到印象派和點描派之後，灰暗的顏色不見了，換成一條一條並排的藍、橘、綠。',
       tip:'看看他臉旁邊的背景，筆觸像放射線一樣圍著頭轉。跟《吃馬鈴薯的人》比，只隔了兩年。'}]},
+   {yr:'1886–1888',n:'巴黎・遇見日本',works:[
+     {ep:'EP10',t:'唐吉老爹',et:'廉價浮世繪拯救了梵谷',audio:'../artist-audio/vangogh-ep10.m4a',dur:'17:02',o:'Portrait du Père Tanguy',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 巴黎 羅丹美術館',img:'vangogh/tanguy.jpg',
+      txt:'在巴黎，梵谷和西奧在畫商賓的店裡買了好幾百張日本浮世繪，還自己辦過一場版畫展。顏料店老闆唐吉一直支持他，梵谷把他畫在正中間，背後貼滿日本版畫：富士山、花魁、櫻花。這些在日本平民都買得起的便宜版畫，教會了他清楚的輪廓線、平塗的顏色、大膽的構圖和明亮的色彩。',
+      tip:'數數看唐吉背後有幾張日本版畫？找得到富士山嗎？'},
+     {t:'梅樹：把畫面切成兩半',pair:[{img:'vangogh/jp-plum-hiroshige.jpg',t:'〈龜戶梅屋舖〉',by:'歌川廣重・1857'},{img:'vangogh/jp-plum-vangogh.jpg',t:'《盛開的梅樹》',by:'梵谷・1887'}],
+      txt:'前景一根粗大的梅樹枝幹，霸道地把畫面切成兩半，這在當時的西方畫裡幾乎看不到。梵谷把顏色調得更濃，天空從黃到紅，還在兩邊加上自己照著抄的日文字。',
+      tip:'比比看兩張的天空，梵谷把顏色換成了什麼？'},
+     {t:'雨：一條一條畫出來',pair:[{img:'vangogh/jp-rain-hiroshige.jpg',t:'〈大橋安宅驟雨〉',by:'歌川廣重・1857'},{img:'vangogh/jp-rain-vangogh.jpg',t:'《雨中的橋》',by:'梵谷・1887'}],
+      txt:'西方畫雨通常是灰濛濛的一片，木刻版畫卻是用刀刻出一根一根的雨絲。梵谷就用油畫筆，把雨一條一條清楚地畫出來，外面再框上一圈綠色的邊框。',
+      tip:'橋上的人都低著頭在趕路，數數看有幾個人？'},
+     {t:'花魁：從雜誌封面來的',pair:[{img:'vangogh/jp-courtesan-eisen.jpg',t:'《巴黎畫報》日本特刊封面',tag:'來源',by:'溪齋英泉的花魁・1886'},{img:'vangogh/jp-courtesan-vangogh.jpg',t:'《花魁》',by:'梵谷・1887'}],
+      txt:'這張花魁來自 1886 年《巴黎畫報》日本特刊的封面。梵谷把她放大，四周加上一個有竹子、青蛙和鶴的池塘。他不是在重現真正的日本，而是在拼出一個屬於自己的日本。',
+      tip:'找找看梵谷在四周的池塘裡，加了哪些動物和植物？'}]},
    {yr:'1888–1889',n:'阿爾・南法的陽光',works:[
      {ep:'EP03',t:'向日葵',et:'給高更的向日葵',audio:'../artist-audio/vangogh-ep03.m4a',dur:'15:49',o:'Sunflowers',meta:'1888 年 8 月・油彩、畫布<br>法國阿爾 ｜ 倫敦 國家美術館',img:'vangogh/sunflowers.jpg',
       txt:'為了迎接高更來同住，梵谷在南法的黃色房子裡一口氣畫了好幾幅向日葵，想用一整面牆的黃色歡迎朋友。花、桌面、背景幾乎全是黃色，他想試試只靠同一個顏色的深淺，能不能撐起一幅畫。',
@@ -125,8 +148,11 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
      {ep:'EP07',t:'麥田群鴉',et:'麥田群鴉不是遺書',audio:'../artist-audio/vangogh-ep07.m4a',dur:'16:39',o:'Korenveld met kraaien',meta:'1890 年 7 月・油彩、畫布<br>法國奧維 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/wheatfield-crows.jpg',
       txt:'在奧維的七十天裡，他畫了大約七十幅畫。很多人說這是他的「最後一幅畫」，其實沒有確切證據，之後他還畫了其他作品。他在信裡說，想用陰沉天空下的麥田表達悲傷和孤獨，但也想畫出鄉間讓人重新有力量的那一面。',
       tip:'看看三條小路，再看看烏鴉飛的方向：是飛過來，還是飛走？'}]},
-   {yr:'特別展牆',n:'畫背後的故事',works:[{ep:'EP08',t:'梵谷的五個迷思'},{ep:'EP09',t:'西奧與喬：沒有他們就沒有梵谷'}]}],
-  credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館，取自維基共享資源'}};
+   {yr:'特別展牆',n:'畫背後的故事',works:[
+     {ep:'EP08',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。'},
+     {ep:'EP09',t:'西奧與喬：沒有他們就沒有梵谷',et:'梵谷的行銷神話',audio:'../artist-audio/vangogh-ep09.m4a',dur:'14:39',txt:'弟弟西奧每個月寄來的錢，是給他自由，還是壓力？西奧過世後，年輕的喬帶著嬰兒、幾百幅賣不出去的畫和八百多封信，把梵谷推向全世界。'},
+     {ep:'EP11',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。'}]}],
+  credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館、羅丹美術館、荷蘭國家博物館，取自維基共享資源'}};
 /* 大熊：背景不要黑，要藍綠色、有筆觸 → 畫一張梵谷式短筆觸的貼圖鋪滿（顏色只差一點點，字才看得清楚） */
 (function(){const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle='#284a4d';x.fillRect(0,0,S,S);   // 大熊：亮色卡那版太亂 → 回到偏暗的藍綠，只比第一版亮一點；筆觸顏色貼近底色，不搶畫
   const C=['#2c5054','#244549','#2f5458','#264a50','#2a4d50','#305659'];x.lineCap='round';let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
@@ -167,7 +193,10 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
   if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null});
   const ep=w=>{if(!w.audio)return`<div class="ep soon"><div class="pb">🎧</div><div><b>${esc(w.ep)}　${esc(w.t)}</b><span>語音即將推出</span></div></div>`;
     const i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img})-1;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
-  const wall=w=>w.img?`<div class="wallp"><button type="button" class="frame" data-z="${esc(w.img)}" aria-label="放大看《${esc(w.t)}》"><img src="${esc(w.img)}" alt="《${esc(w.t)}》" loading="lazy"></button>
+  const fig=(f,tag)=>`<figure><button type="button" class="frame" data-z="${esc(f.img)}" aria-label="放大看${esc(f.t)}"><img src="${esc(f.img)}" alt="${esc(f.t)}" loading="lazy"></button><figcaption><em>${f.tag||tag}</em><b>${esc(f.t)}</b>${esc(f.by)}</figcaption></figure>`;
+  const wall=w=>w.pair?`<div class="pairh">${esc(w.t)}</div><div class="pair">${fig(w.pair[0],'日本原作')}${fig(w.pair[1],'梵谷臨摹')}</div>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
+    :!w.img&&w.audio?`<div class="spc"><b>${esc(w.t)}</b>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${ep(w)}</div>`
+    :w.img?`<div class="wallp"><button type="button" class="frame" data-z="${esc(w.img)}" aria-label="放大看《${esc(w.t)}》"><img src="${esc(w.img)}" alt="《${esc(w.t)}》" loading="lazy"></button>
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;

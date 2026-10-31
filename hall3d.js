@@ -5,7 +5,7 @@
    用到 art.html 的：renderer、makeArtist、hallStatue、ARTISTS、XFIGS、picks、lam、toon、cvs、toast、LOWMEM */
 (function(){
 const OPEN={'梵谷':'vangogh'};
-const EPN={'梵谷':7};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
+const EPN={'梵谷':11};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const HALL=['梵谷',null,null,null,null];   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
 const STATUE=!/[?&]hfig=color/.test(location.search);   // 大熊：裡面放大理石雕像（跟殿堂門口同一種，art.html hallStatue）；?hfig=color 看彩色公仔版
 /* 2026-10-31 第二版（大熊嫌平、空、沒焦點）：聚光燈打雕像＋大廳調暗、地板加深、底座加高＋銅牌＋「點我」提示、沒開放的壁龕拉紅絨布簾＋圍欄。?hv=1 看第一版 */
@@ -167,7 +167,7 @@ function tap(e){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/i
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261101c&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261101d&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}
