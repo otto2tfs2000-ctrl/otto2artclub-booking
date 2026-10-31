@@ -149,9 +149,9 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
       txt:'在奧維的七十天裡，他畫了大約七十幅畫。很多人說這是他的「最後一幅畫」，其實沒有確切證據，之後他還畫了其他作品。他在信裡說，想用陰沉天空下的麥田表達悲傷和孤獨，但也想畫出鄉間讓人重新有力量的那一面。',
       tip:'看看三條小路，再看看烏鴉飛的方向：是飛過來，還是飛走？'}]},
    {yr:'特別展牆',n:'畫背後的故事',works:[
-     {ep:'EP08',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。'},
+     {ep:'EP08',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'},
      {ep:'EP09',t:'西奧與喬：沒有他們就沒有梵谷',et:'梵谷的行銷神話',audio:'../artist-audio/vangogh-ep09.m4a',dur:'14:39',txt:'弟弟西奧每個月寄來的錢，是給他自由，還是壓力？西奧過世後，年輕的喬帶著嬰兒、幾百幅賣不出去的畫和八百多封信，把梵谷推向全世界。'},
-     {ep:'EP11',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。'}]}],
+     {ep:'EP11',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'}]}],
   credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館、羅丹美術館、荷蘭國家博物館，取自維基共享資源'}};
 /* 大熊：背景不要黑，要藍綠色、有筆觸 → 畫一張梵谷式短筆觸的貼圖鋪滿（顏色只差一點點，字才看得清楚） */
 (function(){const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle='#284a4d';x.fillRect(0,0,S,S);   // 大熊：亮色卡那版太亂 → 回到偏暗的藍綠，只比第一版亮一點；筆觸顏色貼近底色，不搶畫
@@ -195,7 +195,7 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
     const i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img})-1;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
   const fig=(f,tag)=>`<figure><button type="button" class="frame" data-z="${esc(f.img)}" aria-label="放大看${esc(f.t)}"><img src="${esc(f.img)}" alt="${esc(f.t)}" loading="lazy"></button><figcaption><em>${f.tag||tag}</em><b>${esc(f.t)}</b>${esc(f.by)}</figcaption></figure>`;
   const wall=w=>w.pair?`<div class="pairh">${esc(w.t)}</div><div class="pair">${fig(w.pair[0],'日本原作')}${fig(w.pair[1],'梵谷臨摹')}</div>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
-    :!w.img&&w.audio?`<div class="spc"><b>${esc(w.t)}</b>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${ep(w)}</div>`
+    :!w.img&&w.audio?`<div class="spc"><b>${esc(w.t)}</b>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>📝 小註</b>　${esc(w.tip)}</div>`:''}${ep(w)}</div>`
     :w.img?`<div class="wallp"><button type="button" class="frame" data-z="${esc(w.img)}" aria-label="放大看《${esc(w.t)}》"><img src="${esc(w.img)}" alt="《${esc(w.t)}》" loading="lazy"></button>
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
