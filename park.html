@@ -637,9 +637,17 @@ body:not(.oct) .evboard .eb-tx{display:flex; align-items:baseline; gap:6px; min-
 body:not(.oct) .evboard b{font-size:14.5px; letter-spacing:.5px; text-shadow:0 1px 0 rgba(140,20,60,.35)}
 body:not(.oct) .evboard small{display:none}
 body:not(.oct) .evboard em{background:#ffe08a; color:#8a2a3a; font-size:12.5px; padding:3px 9px; box-shadow:0 2px 0 rgba(140,20,60,.3)}
+/* 2026-11-01 大熊定案：走格子的活動布條改成靠右的小膠囊（浮在島切換列右上角，不再佔一整排）；島切換列維持原樣 */
+body:not(.oct) .bottom{position:relative}
+body:not(.oct) .evboard{position:absolute; right:16px; bottom:calc(100% - 14px); width:auto; margin:0; padding:0; z-index:3; filter:drop-shadow(0 3px 6px rgba(60,20,40,.3))}
+body:not(.oct) .evboard::before,body:not(.oct) .evboard::after{display:none}
+body:not(.oct) .evboard .eb-in{height:30px; padding:0 4px 0 9px; gap:5px; border-radius:99px}
+body:not(.oct) .evboard b{font-size:12.5px; letter-spacing:0}
+body:not(.oct) .evboard .eb-ic{font-size:14px; width:16px}
+body:not(.oct) .evboard em{font-size:11px; padding:2px 7px}
 body:not(.oct) .evboard .eb-dots{bottom:-7px}
 body:not(.oct) .evboard .eb-dots i{background:rgba(255,255,255,.5)}body:not(.oct) .evboard .eb-dots i.on{background:#fff}
-body:not(.oct) .levels{margin:8px 0 0; width:auto!important; align-self:stretch} /* 跟上面方塊一樣寬 */
+body:not(.oct) .levels{margin:8px 0 0; width:min(230px,62%)!important; align-self:flex-start} /* 2026-11-01 大熊：第一層／第二層縮短、靠左（右邊留給南瓜等漂浮按鈕） */
 body:not(.oct) .levels button{padding:3px 12px!important; font-size:14px}
 .evboard .eb-in{width:100%; display:flex; align-items:center; gap:10px; background:none; border:0; padding:0; font:inherit; color:#1e2b4f; text-align:left; cursor:pointer; transition:opacity .28s}
 .evboard .eb-in.fade{opacity:0}
@@ -923,7 +931,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261031fy';
+const PARK_VER='20261101a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3219,10 +3227,10 @@ $('plMascot').addEventListener('click',()=>{if(busy)return;mascotGo()});
 $('plPark').addEventListener('click',()=>{if(!busy&&G.phase!=='oct')backToPlaza()});
 $('plWalk').addEventListener('click',()=>enterWalk());
 /* 2026-10-31 切換列第五格「畫框背後」（大師開講）：搭熱氣球到作品小屋，直接走進萬神殿大廳（art.html?hall=1） */
-const HALL_URL='art.html?v=20261031hall6&hall=1';
+const HALL_URL='art.html?v=20261101a&hall=1';
 $('plHall').addEventListener('click',()=>{if(busy)return;location.href=HALL_URL});   // 大熊：去畫框背後不要熱氣球，直接到萬神殿
 document.querySelector('.octinfo').addEventListener('click',()=>{if(G.phase==='oct'&&walkOpen())enterWalk()});
-$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261031hall7',place:'art',from:'park'})});
+$('plArt').addEventListener('click',()=>{if(busy)return;if($('plArt').classList.contains('gray')){toast('作品小屋還在準備，之後會開放');return}Ferry.go({to:'art.html?v=20261101a',place:'art',from:'park'})});
 const petsToday=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
 const PETS_NOTICE_DAYS=5; /* 通知只在前 5 天每天跳一次，之後改成「吉祥物島」按鈕上的小紅點（當天還沒去過才亮） */
 function petsDot(){let v='';try{v=localStorage.getItem('otto2-pets-visit')||''}catch(e){}const b=$('plMascot');if(b)b.classList.toggle('dot',v!==petsToday())}

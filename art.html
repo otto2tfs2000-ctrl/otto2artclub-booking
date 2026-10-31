@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261031y"></script>
+<script src="hall3d.js?v=20261101c"></script>
 <script>
-const ART_VER='20261031hall7';
+const ART_VER='20261101a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1951,10 +1951,15 @@ function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HAL
   sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。第一位是梵谷，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
 /* 走進殿堂的過場：鏡頭慢慢飛到萬神殿大門口 → hall3d.js 淡出、在大廳裡從門口走進來；出來時反過來，從門口往後拉遠 */
 const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
-function walkIntoHall(){closeSheet();$('hud').hidden=true;   // 過場時下面的按鈕先收起來；鏡頭停在兩尊雕像中間，不會被雕像擋住
-  /* 先轉到正前方遠一點（對準中線），再沿著中線往前推到大門口，才不會斜斜穿過雕像 */
+/* 2026-10-31 大熊：要先「停在萬神殿門口」看一下，再走進去 → 對準正門（遠）→ 推到門口（雙雕像＋柱廊入鏡）停一下 → 再往門裡推、淡出進大廳
+   arrive＝從其他島直接過來（art.html?hall=1）：鏡頭一開始就擺在正門前面，不用從整島飛過去 */
+function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
   focus={pos:new THREE.Vector3(),d:7.5,yaw:hallFront(),pitch:.16,obj:hallG,loc:HALL_DOOR.clone()};
-  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=1.6;focus.pitch=.08}},850);setTimeout(()=>Hall3D.walkIn(),2000)}
+  if(arrive){hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront(),d=6.8*(portrait()?1.45:1);look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*Math.cos(.2)*d,Math.sin(.2)*d,Math.cos(y)*Math.cos(.2)*d));focus.d=6.8;focus.pitch=.2}
+  const T=arrive?0:850;
+  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=6.8;focus.pitch=.2}},T);               // 停在門口：整座萬神殿＋門口兩尊雕像入鏡
+  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=1.2;focus.pitch=.06}},T+1700);           // 往門裡走
+  setTimeout(()=>Hall3D.walkIn(),T+2500)}
 window.onHallExit=()=>{$('hud').hidden=false;hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront();
   look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*2.4,.25,Math.cos(y)*2.4));focus={pos:new THREE.Vector3(),d:15,yaw:y+.45,pitch:.34,obj:hallG,h:1.6}};
 /* 殿堂裡面是 3D 大廳（hall3d.js），點藝術家蓋一層 hall/index.html?room=…；展間裡播語音傳 hallAudio 過來，背景音樂先停 */
@@ -2480,7 +2485,7 @@ async function start(data){
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
-  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;if(/[?&]hall=1/.test(location.search))Hall3D.enter(true);   /* art.html?hall=1 直接進藝術殿堂（分享連結用） */try{tripSpawn()}catch(e){console.warn('trip',e)}
+  $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;if(/[?&]hall=1/.test(location.search))walkIntoHall(true);   /* art.html?hall=1：先停在萬神殿門口，再走進大廳（分享連結、其他島的第五格） */try{tripSpawn()}catch(e){console.warn('trip',e)}
   const c=cvEl();c.addEventListener('pointerdown',onDown);c.addEventListener('pointermove',onMove);c.addEventListener('pointerup',onUp);c.addEventListener('pointercancel',onUp);
   c.addEventListener('wheel',e=>{zoom=Math.max(.5,Math.min(1.3,zoom+e.deltaY*.0008));idleT=0;e.preventDefault()},{passive:false});
   if(location.hash==='#album')setTimeout(openAlbum,800);
