@@ -206,9 +206,14 @@ body.tour .tourstop{display:block}
 .places button{flex-direction:column; gap:2px; font-size:12px; letter-spacing:0; padding:0 0 4px}   /* 五格放不下「圖示＋字」一行 → 改成圖示在上、字在下 */
 .places .pi{width:22px; height:22px}
 .places button.on::before{bottom:2px; height:3px}
-.places #plHall{color:#2f4a56}
+/* 2026-10-31 大熊：五格要等寬；「畫框背後」換深藍綠底＋金字，凸顯大師開講（藝術家講座）；下面加小字「大師開講」 */
+.places button{flex:1 1 0; min-width:0}
+.places #plHall{background:linear-gradient(160deg,#2f4a56,#3f6266); color:#f4e4b8; border-radius:14px; border-left-color:transparent; gap:1px}
+.places #plHall .pi{width:18px; height:18px}
+.places .hn{display:flex; flex-direction:column; align-items:center; line-height:1.15}
+.places .hn small{font-size:9.5px; letter-spacing:.12em; color:#e6c97f; margin-top:1px}
 .hud{padding-bottom:0}
-.bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
+.bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px)*.4 + 6px)}   /* 大熊：最下面還有空，兩排往下貼 */
 /* 藝術家島民看作品說話（2026-10-05） */
 /* 訪客按讚／愛心／小花（2026-10-05） */
 .lbrx{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px}
@@ -268,7 +273,7 @@ body.tour .pcTag{display:none!important}
   </div>
   <div class="bottom">
     <div class="hint" id="hint" hidden></div>
-    <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button><button type="button" id="plHall"><svg class="pi" viewBox="0 0 32 32"><path d="M16 4l12 7H4z" fill="#3f6266" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 12h22" stroke="#1d2a44" stroke-width="1.5"/><path d="M8 13v10M13 13v10M19 13v10M24 13v10" stroke="#c9a24f" stroke-width="2.4"/><path d="M4 25h24v3H4z" fill="#c9a24f" stroke="#1d2a44" stroke-width="1.3" stroke-linejoin="round"/></svg>畫框背後</button></div>
+    <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><path d="M4.5 16a11.5 11.5 0 0 1 23 0z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.2" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.5"/></svg>扭蛋島</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button><button type="button" id="plHall"><svg class="pi" viewBox="0 0 32 32"><path d="M16 4l12 7H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.4" stroke-linejoin="round"/><path d="M5 12h22" stroke="#f4e4b8" stroke-width="1.4"/><path d="M8 13v10M13 13v10M19 13v10M24 13v10" stroke="#f4e4b8" stroke-width="2.4"/><path d="M4 25h24v3H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="hn">畫框背後<small>大師開講</small></span></button></div>
     <div class="btns">
       <button class="pill main" id="myBtn" type="button">我的小屋</button>
       <button class="pill" id="upBtn" type="button">上傳作品</button>
@@ -294,7 +299,7 @@ body.tour .pcTag{display:none!important}
 <div class="toast" id="toast"></div>
 <input type="file" accept="image/*" multiple id="quickUp" hidden>
 
-<script src="ferry.js?v=20261024f"></script>
+<script src="ferry.js?v=20261031a"></script>
 <script src="petlife.js?v=20261030g"></script>
 <script src="anniv26.js?v=20261024a"></script>
 <script src="bgm.js?v=20261024b"></script>
@@ -303,7 +308,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261031y"></script>
 <script>
-const ART_VER='20261031hall4';
+const ART_VER='20261031hall7';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1882,15 +1887,15 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 /* 2026-10-31 藝術殿堂（10/31 大熊定名「畫框背後－大師開講」，畫面上的字都改了，程式裡還叫 hall）：作品小屋後方偏左（HALL_A，避開碼頭、瀑布、風車，剛好在外圈兩間小屋中間）延伸一塊小浮島，木橋接過去，上面是萬神殿。
    大熊選的外觀是預覽五款裡的「萬神殿」，顏色照他說的調暗（亮度×.74、彩度×.85）。點殿堂開說明卡 →「走進殿堂」蓋一層 hall/index.html */
-const HALL_A=3.555,HALL_STATUES=['達文西','林布蘭'];let hallG=null;
+const HALL_A=3.77,HALL_UP=4.6,HALL_STATUES=['達文西','林布蘭'];   /* HALL_UP：大熊說萬神殿看不到 → 小浮島抬高、往外推，從各角度都能從主島後面冒出來 */let hallG=null;
 /* 大理石雕像：石頭底座＋藝術家公仔（不放進 picks，點了算點殿堂；寵物也一起變石頭） */
 function hallStatue(n){const s=new THREE.Group(),mb=lam('#b9b6b0'),mbD=lam('#a19d96');
   [[.6,.12,.6,.06,mbD],[.44,.55,.44,.395,mb],[.54,.08,.54,.71,mbD]].forEach(([w,h,d,y,m])=>{const p=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);p.position.y=y;p.castShadow=p.receiveShadow=true;s.add(p)});
   const A=ARTISTS.find(a=>a.n===n);if(!A)return s;const n0=picks.length,f=A.n==='畢卡索'?makePicasso(A):FIG[A.n]?FIG[A.n](A):null;picks.length=n0;if(!f)return s;
   f.traverse(o=>{if(o.isMesh){o.material=mb;o.castShadow=true}});f.scale.multiplyScalar(1.1);f.position.y=.75;s.add(f);return s}
-function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a),h0=heightAt(ux*(rim-.6),uz*(rim-.6)),D=rim+8.6,R=4.6,S=.66;
+function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a),h0=heightAt(ux*(rim-.6),uz*(rim-.6)),D=rim+10.5,R=4.6,S=.66;
   const dim=c=>{const k=new THREE.Color(c),o={};k.getHSL(o);return '#'+k.setHSL(o.h,o.s*.85,o.l*.74).getHexString()};
-  const g=new THREE.Group();g.position.set(ux*D,h0,uz*D);g.rotation.y=-a-Math.PI/2;scene.add(g);hallG=g;   // 殿堂正面朝向主島
+  const g=new THREE.Group();g.position.set(ux*D,h0+HALL_UP,uz*D);g.rotation.y=-a-Math.PI/2;scene.add(g);hallG=g;   // 殿堂正面朝向主島
   /* 小浮島：草地圓台＋往下收的岩壁，顏色跟主島一樣 */
   g.add(cyl(XDECO?'#7f9468':'#55703a',R,R*.97,.5,0,-.5,0,40));
   const prof=[[R*.97,-.5],[R*1.0,-1.1],[R*.9,-2.2],[R*.72,-3.6],[R*.5,-5],[R*.26,-6.3],[.05,-7.2]].map(([x,y])=>new THREE.Vector2(x,y));
@@ -1925,12 +1930,20 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   [[3.95,1.7],[4.05,-.55],[3.4,-2.6],[.6,-4.2],[2.3,3.6],[1.6,3.05]].forEach(([x,z],i)=>{[[0,0,.16],[.16,.05,.11],[-.12,.1,.1]].forEach(([dx,dz,r],j)=>half.add(lpMesh(new THREE.IcosahedronGeometry(r,0),['#557238','#617e3e','#4a6534'][(i+j)%3],x+dx,r*.4,z+dz)))});
   [[1.5,2.45],[3.6,1.25],[2.9,-.2]].forEach(([x,z],i)=>half.add(ball(['#efece2','#dccb82','#d8afb5'][i],.07,x,.08,z,1,.7,1,true)));
   half.traverse(o=>{if(o.isMesh)o.castShadow=true});g.add(half);const mir=half.clone();mir.scale.x=-1;g.add(mir);
-  /* 木橋：從主島邊緣接到小浮島，跟碼頭同一種木板 */
-  const from=rim-.7,to=D-R+.35,n=Math.ceil((to-from)/.46);
-  for(let k=0;k<=n;k++){const d=from+(to-from)*k/n,x=ux*d,z=uz*d,yy=h0+.02-Math.sin(k/n*Math.PI)*.18;
-    const pl=new THREE.Mesh(new THREE.BoxGeometry(.4,.08,1.5),toon(k%2?'#b89a78':'#c7a985'));pl.position.set(x,yy,z);pl.rotation.y=-a;pl.castShadow=pl.receiveShadow=true;scene.add(pl);
-    if(k%3===0)[-1,1].forEach(s=>scene.add(cyl('#8a6c52',.04,.04,.6,x-uz*.72*s,yy-.05,z+ux*.72*s,6)))}
-  [-1,1].forEach(s=>{const L=to-from,m=new THREE.Mesh(new THREE.BoxGeometry(L,.06,.06),toon('#8a6c52'));m.position.set(ux*(from+L/2)-uz*.72*s,h0+.5,uz*(from+L/2)+ux*.72*s);m.rotation.y=-a;scene.add(m)});
+  /* 白色石橋階梯（大熊給的參考：奇美博物館那種白色石欄杆＋石柱＋黑色路燈）：從主島邊緣一路往上爬到抬高的小浮島 */
+  const from=rim-.7,Lb=D-R+.35-from,n=Math.ceil(Lb/.36),br=new THREE.Group();br.position.set(ux*from,h0+.02,uz*from);br.rotation.y=-a;scene.add(br);   // br 的 +x＝往外
+  const SL=Math.atan2(HALL_UP,Lb),rl=Math.hypot(Lb,HALL_UP),W=.92;
+  for(let k=0;k<=n;k++){const x=Lb*k/n,y=HALL_UP*k/n,st=new THREE.Mesh(new THREE.BoxGeometry(.4,.14,W*2-.08),toon(k%2?'#ddd6c8':'#e6e0d4'));st.position.set(x,y,0);st.castShadow=st.receiveShadow=true;br.add(st)}
+  [-1,1].forEach(s=>{const wall=new THREE.Mesh(new THREE.BoxGeometry(rl,.5,.14),toon('#e8e2d6'));wall.position.set(Lb/2,HALL_UP/2+.28,W*s);wall.rotation.z=SL;wall.castShadow=true;br.add(wall);   // 石欄杆
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(rl,.07,.24),toon('#f0ebe1'));cap.position.set(Lb/2,HALL_UP/2+.56,W*s);cap.rotation.z=SL;br.add(cap);
+    [0,.34,.67,1].forEach((t,i)=>{const x=Lb*t,y=HALL_UP*t;   // 石柱，頭尾和中間兩根上面立黑色路燈
+      br.add(box('#e3ddd0',.34,.8,.34,x,y-.05,W*s));br.add(box('#f0ebe1',.42,.07,.42,x,y+.75,W*s));
+      br.add(cyl('#2b2b30',.035,.045,1.05,x,y+.82,W*s,8));
+      const lamp=new THREE.Mesh(new THREE.BoxGeometry(.15,.2,.15),XDECO?new THREE.MeshBasicMaterial({color:'#ffe0a0'}):toon('#f3ecd8'));lamp.position.set(x,y+1.97,W*s);lamp.userData.keep=1;br.add(lamp);
+      br.add(cyl('#2b2b30',.11,.02,.1,x,y+2.07,W*s,4))})});
+  /* 圓頂圓洞往上打一道光（晚上明顯、白天淡淡的），遠遠就知道「那裡有東西」 */
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.5,.32,18,24,1,true),new THREE.MeshBasicMaterial({color:XDECO?'#ffe2a6':'#fff4d8',transparent:true,opacity:XDECO?.2:.12,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
+  beam.position.set(0,3.75+9,-.5);g.add(beam);
   /* 點得到：一個看不見的大盒子包住殿堂 */
   const hit=new THREE.Mesh(new THREE.BoxGeometry(R*1.6,4.6,R*1.6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2;hit.userData.keep=1;hit.userData.hall=true;g.add(hit);picks.push(hit);
   mergeGroup(g)}

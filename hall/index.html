@@ -34,7 +34,6 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .entry .en{font-size:13px;letter-spacing:.12em;color:var(--ink2)}
 .entry p{font-size:14.5px;line-height:1.85;color:var(--ink);margin:16px auto 0;max-width:30em}
 .playall{margin:20px auto 0;display:inline-flex;align-items:center;gap:10px;font:500 15px var(--sans);padding:12px 22px;border-radius:999px;border:0;background:var(--gold);color:#2a2112;cursor:pointer}
-.ext{display:block;margin:12px auto 0;font-size:12.5px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px;background:none;border:0;cursor:pointer}
 /* 時期分隔 */
 .period{display:flex;align-items:center;gap:12px;margin:34px 0 18px}
 .period::before,.period::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,226,160,.7),transparent)}
@@ -152,9 +151,6 @@ function stopAudio(){au.pause();post({hallAudio:0})}
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
 function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=false}
-/* 在 LINE 裡：開到手機瀏覽器（Safari／Chrome），關螢幕才能繼續聽 */
-const inLine=/\bLine\//i.test(navigator.userAgent);
-function openExternal(){const u=new URL(location.href);u.searchParams.set('openExternalBrowser','1');try{(top||window).location.href=u.href}catch(e){location.href=u.href}}
 function home(){stopAudio();$('room').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
@@ -168,11 +164,11 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
   $('room').innerHTML=`<div class="entry"><small>畫框背後 ・ 大師開講</small><h1>${esc(R.n)}</h1><div class="en">${esc(R.en)}</div><p>${esc(R.intro)}</p>
       ${R.guide?`<button type="button" class="playall" id="pAll">▶ 先聽總導覽・${esc(R.guide.dur)}</button>`:''}
-      ${inLine?'<button type="button" class="ext" id="pExt">在手機瀏覽器開啟，關掉螢幕也能繼續聽</button>':''}</div>
+</div>
     ${R.periods.map(p=>`<div class="period"><div><span>${esc(p.yr)}</span><b>${esc(p.n)}</b></div></div>${p.works.map(wall).join('')}`).join('')}
     <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p>`;
   $('room').hidden=false;scrollTo(0,0);
-  if($('pAll'))$('pAll').onclick=()=>playIdx(0);if($('pExt'))$('pExt').onclick=openExternal;
+  if($('pAll'))$('pAll').onclick=()=>playIdx(0);
   $('room').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
   $('room').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt))}
 /* 從 3D 大廳點藝術家進來（網址帶 room）：返回就直接回大廳，不經過清單 */

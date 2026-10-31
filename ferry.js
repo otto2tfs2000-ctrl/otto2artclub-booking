@@ -196,7 +196,7 @@ function build(side,list,siteName){
   S.stand=function(i){var xs=side==='r'?-4.1+i*1.0:4.1-i*1.0;return new THREE.Vector3(xs,0,2.3+(i%2)*.55)};
   S.slotPos=function(c){return c.slot.clone().applyEuler(S.bg.rotation).add(new THREE.Vector3(S.bal.x,S.bal.y+.62,0))};
   S.capEl=el('div','fy-cap','');root.appendChild(S.capEl);
-  S.skip=el('button','fy-skip','略過');S.skip.type='button';root.appendChild(S.skip);
+  S.skip=el('button','fy-skip','點畫面略過');S.skip.type='button';root.appendChild(S.skip);
   S.veil=el('div','fy-veil');root.appendChild(S.veil);
   function size(){var W=window.innerWidth,H=window.innerHeight,asp=W/H,tf=Math.tan(20*Math.PI/180);
     R.setSize(W,H,false);cam.aspect=asp;
@@ -220,6 +220,8 @@ function build(side,list,siteName){
   S.raf=requestAnimationFrame(S.frame);
   S.destroy=function(){cover=false;S.stopped=true;S.dead=true;cancelAnimationFrame(S.raf);window.removeEventListener('resize',size);try{R.dispose();if(R.forceContextLoss)R.forceContextLoss()}catch(e){}root.remove()};
   return S}
+/* 2026-10-31 大熊：熱氣球縮短一半，而且點畫面任何地方都能略過（不用找右上角的「略過」） */
+function tapSkip(S,fn){S.skip.onclick=fn;S.root.addEventListener('click',function(){if(!S.dead)fn()})}
 function cap(S,t){S.capEl.style.opacity=0;setTimeout(function(){S.capEl.textContent=t;S.capEl.style.opacity=1},180)}
 /* 跳：往 target（函式，每一幀重算，因為熱氣球還在轉）拋物線過去 */
 function hop(S,c,target,ms,board){
@@ -236,20 +238,20 @@ function go(opt){
   if(reduced()||!window.THREE){leave();return Promise.resolve()}
   var S;try{S=build('r',list,PLACE[opt.from]||'歡樂島')}catch(e){console.error(e);leave();return Promise.resolve()}
   active=S;document.documentElement.appendChild(S.root);
-  S.skip.onclick=function(){S.dead=true;leave()};
+  tapSkip(S,function(){S.dead=true;leave()});
   S.root.style.opacity=0;S.root.style.transition='opacity .35s';requestAnimationFrame(function(){S.root.style.opacity=1});setTimeout(function(){if(active===S)cover=true},400);
   S.cast.forEach(function(c){c.p.copy(S.stand(c.i));c.g.position.copy(c.p)});
   var pic=S.cast[0].id==='picasso'?S.cast[0]:null;if(pic)pic.wave=true;
   return (async function(){
-    cap(S,'熱氣球快到了…');await sleep(500);if(S.dead)return;
-    await tween(S,1900,function(p){var e=easeOut(p);S.bal.y=18*(1-e);S.bal.x=S.landX+Math.sin(p*7)*.9*(1-p)});if(S.dead)return;
+    cap(S,'熱氣球快到了…');await sleep(250);if(S.dead)return;
+    await tween(S,1000,function(p){var e=easeOut(p);S.bal.y=18*(1-e);S.bal.x=S.landX+Math.sin(p*7)*.9*(1-p)});if(S.dead)return;
     if(pic)pic.wave=false;
-    cap(S,'上車囉！');await sleep(350);if(S.dead)return;
+    cap(S,'上車囉！');await sleep(150);if(S.dead)return;
     var jobs=[];
-    S.cast.forEach(function(c,i){jobs.push(sleep(i*330).then(function(){if(S.dead)return;return hop(S,c,function(){return S.slotPos(c)},750,true)}))});
+    S.cast.forEach(function(c,i){jobs.push(sleep(i*150).then(function(){if(S.dead)return;return hop(S,c,function(){return S.slotPos(c)},500,true)}))});
     await Promise.all(jobs);if(S.dead)return;
-    cap(S,'出發！去'+(PLACE[opt.place]||'作品小屋'));await sleep(550);if(S.dead)return;
-    await tween(S,2100,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=S.landX+Math.sin(p*5)*.5+p*1.2;S.veil.style.opacity=p>.55?(p-.55)/.45:0});
+    cap(S,'出發！去'+(PLACE[opt.place]||'作品小屋'));await sleep(250);if(S.dead)return;
+    await tween(S,1100,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=S.landX+Math.sin(p*5)*.5+p*1.2;S.veil.style.opacity=p>.55?(p-.55)/.45:0});
     if(S.dead)return;leave()})()}
 
 /* ---------- 降落 ---------- */
@@ -272,22 +274,22 @@ function arrive(){
     var S;try{S=build('l',d.list,PLACE[d.place]||'作品小屋')}catch(e){console.error(e);pre.remove();return}
     active=S;cover=true;document.documentElement.appendChild(S.root);pre.remove();S.veil.style.opacity=1;
     var home=PLACE[d.place]||'作品小屋';
-    S.skip.onclick=function(){S.dead=true;waitReady({dead:false},12000).then(function(){S.destroy();active=null})};
+    tapSkip(S,function(){S.dead=true;waitReady({dead:false},12000).then(function(){S.destroy();active=null})});
     S.cast.forEach(function(c){c.on=true});
     S.bal.y=18;
     (async function(){
       await sleep(120);
-      tween(S,800,function(p){S.veil.style.opacity=1-p});
+      tween(S,500,function(p){S.veil.style.opacity=1-p});
       cap(S,'到囉！'+home);
-      await tween(S,1900,function(p){var e=easeOut(p);S.bal.y=18*(1-e);S.bal.x=S.landX+Math.sin(p*7)*.9*(1-p)});if(S.dead)return;
-      await sleep(250);
+      await tween(S,1000,function(p){var e=easeOut(p);S.bal.y=18*(1-e);S.bal.x=S.landX+Math.sin(p*7)*.9*(1-p)});if(S.dead)return;
+      await sleep(120);
       var jobs=[];
-      S.cast.slice().reverse().forEach(function(c,i){jobs.push(sleep(i*300).then(function(){if(S.dead)return;var to=S.stand(c.i);return hop(S,c,function(){return to},750,false)}))});
+      S.cast.slice().reverse().forEach(function(c,i){jobs.push(sleep(i*150).then(function(){if(S.dead)return;var to=S.stand(c.i);return hop(S,c,function(){return to},500,false)}))});
       await Promise.all(jobs);if(S.dead)return;
       var pic=S.cast[0].id==='picasso'?S.cast[0]:null;if(pic)pic.wave=true;
-      cap(S,'謝謝你搭熱氣球');await sleep(900);if(S.dead)return;
+      cap(S,'謝謝你搭熱氣球');await sleep(450);if(S.dead)return;
       var x0=S.bal.x;
-      await tween(S,1700,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=x0+Math.sin(p*5)*.4-p*1.2});if(S.dead)return;
+      await tween(S,900,function(p){var e=easeIn(p);S.bal.y=21*e;S.bal.x=x0+Math.sin(p*5)*.4-p*1.2});if(S.dead)return;
       await waitReady(S,15000);if(S.dead)return;
       cover=false;S.root.style.transition='opacity .7s';S.root.style.opacity=0;await sleep(750);S.destroy();active=null})()})}
 
