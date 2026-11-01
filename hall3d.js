@@ -6,7 +6,7 @@
 (function(){
 const OPEN={'梵谷':'vangogh'};
 const EPN={'梵谷':11};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
-const HALL=['梵谷',null,null,null,null];   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
+const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
 const STATUE=!/[?&]hfig=color/.test(location.search);   // 大熊：裡面放大理石雕像（跟殿堂門口同一種，art.html hallStatue）；?hfig=color 看彩色公仔版
 /* 2026-10-31 第二版（大熊嫌平、空、沒焦點）：聚光燈打雕像＋大廳調暗、地板加深、底座加高＋銅牌＋「點我」提示、沒開放的壁龕拉紅絨布簾＋圍欄。?hv=1 看第一版 */
 const V2=!/[?&]hv=1/.test(location.search);
@@ -24,9 +24,9 @@ function guideBadge(n,eps){const c=cvs(320,200),x=c.getContext('2d');
   x.fillStyle='#ffe9b5';x.font='600 26px "Noto Sans TC",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(`${n}・語音導覽 ${eps} 集`,160,164);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,depthTest:false}));sp.renderOrder=10;sp.scale.set(1.6,1.0,1);return sp}
 /* 底座正面的小銅牌：名字＋生卒年（美術館展品標籤那種，不是大招牌） */
-function plaque(A,lift){const c=cvs(256,96),x=c.getContext('2d'),gr=x.createLinearGradient(0,0,256,96);gr.addColorStop(0,'#d9b46a');gr.addColorStop(.5,'#f0d898');gr.addColorStop(1,'#b8924c');
+function plaque(A,lift,soon){const c=cvs(256,96),x=c.getContext('2d'),gr=x.createLinearGradient(0,0,256,96);gr.addColorStop(0,'#d9b46a');gr.addColorStop(.5,'#f0d898');gr.addColorStop(1,'#b8924c');
   x.fillStyle=gr;x.fillRect(0,0,256,96);x.strokeStyle='rgba(90,60,20,.55)';x.lineWidth=5;x.strokeRect(6,6,244,84);x.fillStyle='#3e2c14';x.textAlign='center';
-  x.font='600 38px "Noto Serif TC",serif';x.fillText(A.n,128,46);const life=((typeof INFO!=='undefined'&&INFO[A.n]&&INFO[A.n].life)||'').split('・')[0];x.font='22px "Noto Serif TC",serif';x.fillText(life,128,78);
+  x.font='600 38px "Noto Serif TC",serif';x.fillText(A.n,128,46);const life=((typeof INFO!=='undefined'&&INFO[A.n]&&INFO[A.n].life)||'').split('・')[0];x.font='22px "Noto Serif TC",serif';x.fillText(soon?(life?life+'・':'')+'籌備中':life,128,78);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(.34,.128),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c)}));m.position.set(0,lift+.44,1.1+.224);return m}
 /* 還沒開放的壁龕：拉起來的深紅絨布簾（直的皺褶）＋上面金色橫桿＋拱頂半圓布＋前面紅絨布圍欄 */
 function closedNiche(g,NW,NH){const W=NW*2,cg=new THREE.PlaneGeometry(W,NH,64,1),p=cg.attributes.position;
@@ -109,10 +109,10 @@ function build(){
     [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.24,3.7,.24),lam('#e9e0cf'));p.position.set(s*(NW+.38),1.85,.12);g.add(p);
       const e=new THREE.Mesh(new THREE.BoxGeometry(.16,NH,.06),lam('#d2c3a6'));e.position.set(s*(NW+.08),.18+NH/2,.04);g.add(e)});   // 壁龕兩邊的框
     const top=new THREE.Mesh(new THREE.RingGeometry(NW,NW+.16,28,1,0,Math.PI),lam('#d2c3a6'));top.position.set(0,.18+NH,.04);g.add(top);
-    if(V2&&!open){closedNiche(g,NW,NH)}
+    if(V2&&!open&&!(A&&STATUE)){closedNiche(g,NW,NH)}   // 已經排好的藝術家（還沒開放）也站雕像，只有沒決定的格子拉布簾
     else{const lift=V2?.4:0;   // 第二版底座加高：下面多墊一層
       if(lift){const b0=new THREE.Mesh(new THREE.BoxGeometry(.8,lift,.8),lam('#a39e96'));b0.position.set(0,lift/2,1.1);g.add(b0)}
-      const ped=hallStatue(STATUE&&open?A.n:'');ped.position.set(0,lift,1.1);g.add(ped);   // 方形石頭底座（開放的上面站雕像）
+      const ped=hallStatue(STATUE&&A?A.n:'');ped.position.set(0,lift,1.1);g.add(ped);   // 方形石頭底座（開放的上面站雕像）
       if(open&&STATUE&&ped.children[3]){const M=ped.children[3];let mc=null;M.traverse(m=>{if(m.isMesh){mc=mc||m.material.clone();m.material=mc}});   // 雕像自己一份材質，發光時不會連門口的雕像一起亮
         ALIVE[nm]={g,lift,A,M,mc,C:null}}
       if(open){if(!STATUE){const n0=picks.length,f=makeArtist(A);picks.length=n0;f.position.set(0,lift+.75,1.1);f.scale.multiplyScalar(1.05);g.add(f)}
@@ -122,6 +122,7 @@ function build(){
           g.add(plaque(A,lift));g.updateMatrixWorld(true);hintAt=g.localToWorld(new THREE.Vector3(0,lift+2.95,1.1));
           if(GUIDE){const b=guideBadge(A.n,EPN[A.n]||0);b.position.set(0,lift+3.4,1.1);b.userData.y0=lift+3.4;g.add(b);badges.push(b)}}
         else{const lt=new THREE.PointLight('#ffe2b0',.9,4.5,2);lt.position.set(0,2.4,2);g.add(lt)}}
+      else if(A&&STATUE){g.add(plaque(A,lift,1));const M=ped.children[3];if(M){let k=null;M.traverse(m=>{if(m.isMesh){k=k||m.material.clone();k.emissive&&k.emissive.set('#5a5650');m.material=k}})}}   // 沒聚光燈太暗 → 雕像自己微微發亮，看起來還是白色大理石   // 籌備中：雕像＋銅牌，不打聚光燈、不放語音徽章
       else{/* 還沒開放（第一版）：布蓋著 */
         const prof=[[0,1.5],[.18,1.46],[.32,1.3],[.38,.9],[.44,.4],[.52,.02],[.5,0]].map(([x,y])=>new THREE.Vector2(x,y));
         const cl=new THREE.Mesh(new THREE.LatheGeometry(prof,18),new THREE.MeshLambertMaterial({color:'#bfb29a',flatShading:true}));cl.position.set(0,.75,1.1);g.add(cl)}}
