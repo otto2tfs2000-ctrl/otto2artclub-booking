@@ -33,19 +33,37 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .entry h1{font-family:var(--serif);font-weight:600;font-size:38px;letter-spacing:.24em;margin:8px 0 4px}
 .entry .en{font-size:13px;letter-spacing:.12em;color:var(--ink2)}
 .entry p{font-size:14.5px;line-height:1.85;color:var(--ink);margin:16px auto 0;max-width:30em}
-.toc{margin:22px auto 0;max-width:30em;text-align:left;border:1px solid rgba(201,162,79,.35);border-radius:14px;background:rgba(22,48,54,.45);text-shadow:none}
-.toc summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500}
-.toc summary::-webkit-details-marker{display:none}
-.toc summary span{flex:1}.toc summary small{font-size:12px;letter-spacing:0;color:var(--ink2)}
-.toc summary::after{content:"點開 ▾";flex:none;font-size:12px;color:#2a2112;background:var(--gold2);border-radius:999px;padding:3px 9px}.toc[open] summary::after{content:"收起 ▴"}
-.toc .tp{padding:4px 16px 14px}
-.toc h4{font-family:var(--serif);font-weight:600;font-size:13.5px;color:var(--gold2);letter-spacing:.08em;margin:12px 0 4px}.toc h4 small{font-family:var(--sans);font-weight:400;font-size:11.5px;color:var(--ink2);margin-left:6px;letter-spacing:0}
-.toc button{display:flex;gap:10px;width:100%;padding:8px 0;border:0;border-top:1px solid rgba(255,255,255,.07);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
-.toc button em{flex:none;font-style:normal;font-size:11px;font-weight:600;color:#2a2112;background:var(--gold);border-radius:6px;padding:2px 6px;height:fit-content;margin-top:2px}
-.toc button b{display:block;font-size:14px;font-weight:500}.toc button b i{font-style:normal;font-size:11.5px;font-weight:400;color:var(--ink2);margin-left:6px}
-.toc button span{display:block;font-size:12.5px;line-height:1.6;color:var(--ink2);margin-top:2px}
-.toc button.on b{color:var(--gold2)}
-.playall{margin:20px auto 0;display:inline-flex;align-items:center;gap:10px;font:500 15px var(--sans);padding:12px 22px;border-radius:999px;border:0;background:var(--gold);color:#2a2112;cursor:pointer}
+/* 2026-11-01 大熊：展間先看卡片總覽（一面牆一幅畫），點卡片翻到那一站，左右滑換站；舊的收合「講堂大綱」拿掉 */
+.ovh{padding:30px 2px 18px;text-shadow:0 1px 3px rgba(20,45,50,.55)}
+.ovh small{font-size:12.5px;letter-spacing:.32em;color:var(--gold2)}
+.ovh h1{font-family:var(--serif);font-weight:600;font-size:31px;line-height:1.35;letter-spacing:.04em;margin:10px 0 8px}.ovh h1 span{color:#e3c27a}
+.ovh p{font-size:13px;color:var(--ink2)}
+.card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;border:0;padding:12px 13px;border-radius:12px;overflow:hidden;background:#1d3a3d center/cover no-repeat;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,26,28,0) 25%,rgba(14,26,28,.82))}
+.card>*{position:relative}
+.card em{font-style:normal;font-size:11px;letter-spacing:.08em;color:var(--gold2)}
+.card b{font-family:var(--serif);font-weight:600;font-size:15.5px;line-height:1.35;margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.card i{position:absolute;top:9px;right:9px;font-style:normal;font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(14,26,28,.6);color:var(--ink2)}
+.card.on{box-shadow:0 0 0 2px var(--gold2),0 6px 16px rgba(0,0,0,.28)}
+.gcard{aspect-ratio:2.1/1;margin-bottom:12px;padding:16px;background-position:50% 30%}
+.gcard em{font-size:12px}.gcard b{font-size:21px}.gcard span{font-size:12.5px;color:var(--ink2);margin-top:4px}
+.gcard u{position:absolute;right:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#2a2112;display:grid;place-items:center;font-size:19px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cards .card{aspect-ratio:3/2}
+.sph{margin:22px 0 10px;font-size:13px;letter-spacing:.14em;color:var(--gold2)}
+.cards.sp{grid-template-columns:repeat(3,1fr);gap:8px}.cards.sp .card{aspect-ratio:auto;min-height:92px;padding:10px;background:rgba(22,48,54,.6);border:1px solid rgba(201,162,79,.35);box-shadow:none}
+.cards.sp .card::before{display:none}.cards.sp .card b{font-size:13.5px}
+/* 一站一頁 */
+.pgr{display:flex;align-items:center;gap:8px;padding:14px 0 0}
+.pgr button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,162,79,.45);background:rgba(22,48,54,.5);color:var(--ink);font-size:17px;cursor:pointer}.pgr button:disabled{opacity:.3}
+.pgr div{flex:1;text-align:center}.pgr b{display:block;font-size:12.5px;font-weight:500;color:var(--gold2);letter-spacing:.06em}
+.dots{display:flex;justify-content:center;gap:5px;margin-top:6px}.dots s{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22)}.dots s.on{background:var(--gold2);width:16px;border-radius:3px}
+.stp.in-l{animation:inL .32s ease}.stp.in-r{animation:inR .32s ease}
+@keyframes inL{from{opacity:0;transform:translateX(36px)}}@keyframes inR{from{opacity:0;transform:translateX(-36px)}}
+.nxt{display:flex;align-items:center;gap:12px;width:100%;margin:26px 0 6px;padding:12px;border-radius:14px;border:1px solid rgba(201,162,79,.45);background:rgba(22,48,54,.55);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nxt img{flex:none;width:64px;height:48px;object-fit:cover;border-radius:8px}.nxt div{flex:1}.nxt small{font-size:11.5px;color:var(--gold2)}.nxt b{display:block;font-family:var(--serif);font-size:16px}.nxt i{font-style:normal;font-size:20px;color:var(--gold2)}
+.bar .ovb{width:92px;padding:8px 0}
+.goon{position:fixed;left:16px;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9;max-width:588px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;border:0;background:var(--gold);color:#2a2112;font:500 14.5px var(--sans);text-align:left;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.45);animation:inR .3s ease}
+.goon span{flex:1}
 /* 時期分隔 */
 .period{display:flex;align-items:center;gap:12px;margin:34px 0 18px}
 .period::before,.period::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,226,160,.7),transparent)}
@@ -100,7 +118,8 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .credit{margin:30px 0 10px;font-size:11.5px;color:#d6e3e1;text-align:center;line-height:1.7}
 [hidden]{display:none!important}
 </style></head><body>
-<div class="bar"><button type="button" id="back">← 回作品小屋</button><b id="barT">畫框背後</b><i></i></div>
+<div class="bar"><button type="button" id="back">← 回作品小屋</button><b id="barT">畫框背後</b><i id="barR"></i><button type="button" class="ovb" id="ovB" hidden>☰ 總覽</button></div>
+<button type="button" class="goon" id="goon" hidden></button>
 <div class="wrap">
   <section id="home">
     <div class="hero"><small>OTTO2 ・ 大師開講</small><h1>畫框背後</h1><p>聽藝術家說自己的故事、走過他們的一生。<br>從梵谷開始，之後一位一位開講。</p></div>
@@ -119,7 +138,10 @@ const ARTISTS=[
    audio 還沒做好的集數顯示「即將推出」；img 還沒放的畫顯示「展牆準備中」。guide＝最早那段 8 分鐘總導覽 */
 const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
   intro:'27 歲才拿起畫筆，只畫了十年，卻留下兩千多件作品。沿著這面牆，從荷蘭灰暗的農舍，一路走到南法的陽光、療養院窗外的星空。',
-  guide:{src:'../artist-audio/vangogh-guide2.m4a',t:'總導覽：梵谷其實沒有瘋',dur:'4:02'},   // 2026-11-01 大熊開場稿第二版（修掉站數、割耳「證實」、星夜講法；6:40 舊版 vangogh-guide.m4a 留著備用）
+  guide:{src:'../artist-audio/vangogh-guide2.m4a',t:'總導覽：梵谷其實沒有瘋',dur:'4:02',ct:'梵谷其實沒有瘋',bg:'vangogh/card/starry-night.jpg'},
+  /* 總覽卡片：上一行小字、下面的短標題（cards[ep]）；卡片圖用 vangogh/card/ 的小張 */
+  head:{k:'從荷蘭走到奧維',h:'一面牆一幅畫<br><span>一幅畫一個故事</span>'},
+  cards:{EP01:'吃馬鈴薯的人',EP02:'窮到只畫自己',EP10:'浮世繪救了他',EP03:'給高更的向日葵',EP04:'臥室與割耳那晚',EP05:'在白天畫星夜',EP06:'鳶尾花',EP07:'麥田群鴉不是遺書',EP08:'梵谷真的瘋了嗎？',EP09:'西奧與喬',EP11:'一集聽完一生'},   // 2026-11-01 大熊開場稿第二版（修掉站數、割耳「證實」、星夜講法；6:40 舊版 vangogh-guide.m4a 留著備用）
   periods:[
    {yr:'1880–1885',n:'荷蘭・從灰暗開始',works:[
      {ep:'EP01',kp:'想畫用挖土的手吃飯的人｜被朋友批評比例不對，友誼就此結束',t:'吃馬鈴薯的人',et:'毀掉梵谷友誼的吃馬鈴薯的人',audio:'../artist-audio/vangogh-ep01.m4a',dur:'17:46',o:'De Aardappeleters',meta:'1885 年 4 月・油彩、畫布<br>荷蘭紐南 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/potato-eaters.jpg',
@@ -176,17 +198,21 @@ const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c
 const post=m=>{try{parent.postMessage(m,'*')}catch(e){}};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 /* 播放：全頁共用一個 Audio；底部播放條常駐；播完自動接下一集（只接有音檔的）。鎖定畫面顯示集數＋畫（Media Session） */
-const au=new Audio();au.preload='none';let list=[],cur=-1;
+const au=new Audio();au.preload='none';let list=[],cur=-1,stops=[],curStop=-1;
 function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){au.src=it.src;au.dataset.src=it.src}
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
-  document.querySelectorAll('.ep,.toc button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
+  $('goon').hidden=true;document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:'梵谷',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
 function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
   $('dN').disabled=cur>=list.length-1;$('dN').style.opacity=cur>=list.length-1?.35:1;
-  document.querySelectorAll('.ep').forEach(b=>{const on=b.dataset.i==String(cur)&&!au.paused;const pb=b.querySelector('.pb');if(pb&&!b.classList.contains('soon'))pb.textContent=on?'❚❚':'▶'})}
+  document.querySelectorAll('.ep').forEach(b=>{const on=b.dataset.i==String(cur)&&!au.paused;const pb=b.querySelector('.pb');if(pb&&!b.classList.contains('soon'))pb.textContent=on?'❚❚':'▶'});
+  const gp=document.querySelector('.gcard u');if(gp)gp.textContent=cur===0&&!au.paused?'❚❚':'▶'}
 au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{post({hallAudio:0});lookDock()};
-au.onended=()=>{if(cur+1<list.length)playIdx(cur+1);else{post({hallAudio:0});lookDock()}};au.onerror=()=>{$('dTm').textContent='語音載入失敗，請稍後再試'};
+/* 總導覽播完不自動接：跳出「下一站」按鈕，點了翻到第一站並播 EP01（接大熊開場最後那句「第一站，荷蘭」）。一般集數播完自動接下一集，人在展牆就跟著翻頁 */
+au.onended=()=>{const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();const s=stops[0];$('goon').innerHTML=`<span>🎨 下一站：${esc(s.pl)}《${esc(s.w.t)}》</span><b>出發 →</b>`;$('goon').hidden=false;
+    $('goon').onclick=()=>{showStop(0,1);playIdx(s.w._i)};return}
+  if(cur+1<list.length){playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}};au.onerror=()=>{$('dTm').textContent='語音載入失敗，請稍後再試'};
 $('dB').onclick=()=>{if(au.paused){const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
 let seeking=false;const seekX=x=>{const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
 $('dPg').onpointerdown=e=>{seeking=true;try{$('dPg').setPointerCapture(e.pointerId)}catch(_){}seekX(e.clientX)};
@@ -198,13 +224,16 @@ function stopAudio(){au.pause();post({hallAudio:0})}
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
 function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=false}
-function home(){stopAudio();$('room').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
+function home(){stopAudio();$('room').hidden=true;$('ovB').hidden=true;$('barR').hidden=false;$('goon').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
-function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('barT').textContent=R.n;list=[];
-  if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null});
+function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
+  if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1});
+  /* 一站＝一集（有 ep 的那面牆）＋後面跟著的對照牆（例如浮世繪三組）；list 照站的順序排，播完自動接 */
+  R.periods.forEach(p=>p.works.forEach(w=>{if(w.ep||!stops.length)stops.push({p,pl:p.n.split('・')[0],w,ws:[w]});else stops[stops.length-1].ws.push(w)}));
+  stops.forEach((s,k)=>{const w=s.w;if(w.audio)w._i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img,k})-1});
   const ep=w=>{if(!w.audio)return`<div class="ep soon"><div class="pb">🎧</div><div><b>${esc(w.ep)}　${esc(w.t)}</b><span>語音即將推出</span></div></div>`;
-    const i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img})-1;w._i=i;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
+    const i=w._i;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
   const fig=(f,tag)=>`<figure><button type="button" class="frame" data-z="${esc(f.img)}" aria-label="放大看${esc(f.t)}"><img src="${esc(f.img)}" alt="${esc(f.t)}" loading="lazy"></button><figcaption><em>${f.tag||tag}</em><b>${esc(f.t)}</b>${esc(f.by)}</figcaption></figure>`;
   const wall=w=>w.pair?`<div class="pairh">${esc(w.t)}</div><div class="pair">${fig(w.pair[0],'日本原作')}${fig(w.pair[1],'梵谷臨摹')}</div>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :!w.img&&w.audio?`<div class="spc"><b>${esc(w.t)}</b>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>📝 小註</b>　${esc(w.tip)}</div>`:''}${ep(w)}</div>`
@@ -212,22 +241,37 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
-  const walls=R.periods.map(p=>`<div class="period"><div><span>${esc(p.yr)}</span><b>${esc(p.n)}</b></div></div>${p.works.map(wall).join('')}`).join('');
-  /* 2026-11-01 大熊：總導覽下面放講堂大綱（照展牆順序自動列，點一集直接播；kp＝每集兩句重點，用｜分開） */
-  const eps=R.periods.flatMap(p=>p.works.filter(w=>w.audio)),secs=eps.reduce((a,w)=>{const [m,s]=(w.dur||'0:0').split(':');return a+(+m)*60+(+s)},0);
-  const toc=eps.length?`<details class="toc"><summary>📜 <span>講堂大綱</span><small>${eps.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</small></summary><div class="tp">
-      ${R.periods.filter(p=>p.works.some(w=>w.audio)).map(p=>`<h4>${esc(p.n)}<small>${esc(p.yr)}</small></h4>${p.works.filter(w=>w.audio).map(w=>`<button type="button" data-i="${w._i}"><em>${esc(w.ep)}</em><div><b>${esc(w.et||w.t)}<i>${esc(w.dur||'')}</i></b>${w.kp?`<span>${w.kp.split('｜').map(esc).join('<br>')}</span>`:''}</div></button>`).join('')}`).join('')}</div></details>`:'';
-  $('room').innerHTML=`<div class="entry"><small>畫框背後 ・ 大師開講</small><h1>${esc(R.n)}</h1><div class="en">${esc(R.en)}</div><p>${esc(R.intro)}</p>
-      ${R.guide?`<button type="button" class="playall" id="pAll">▶ 先聽總導覽・${esc(R.guide.dur)}</button>`:''}
-      ${toc}
-</div>
-    ${walls}
-    <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p>`;
-  $('room').hidden=false;scrollTo(0,0);
-  if($('pAll'))$('pAll').onclick=()=>playIdx(0);
-  $('room').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
-  $('room').querySelectorAll('.toc button[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else playIdx(i)});
-  $('room').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt))}
+  const eps=stops.filter(s=>s.w.audio),secs=eps.reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
+  const thumb=w=>w.img?w.img.replace('vangogh/','vangogh/card/'):'';
+  const card=(s,k)=>`<button type="button" class="card" data-k="${k}"${s.w.audio?` data-i="${s.w._i}"`:''}${s.w.img?` style="background-image:url('${esc(thumb(s.w))}')"`:''}><i>${esc(s.w.dur||'')}</i><em>${esc(s.w.ep||'')}${s.w.img?'・'+esc(s.pl):''}</em><b>${esc((R.cards||{})[s.w.ep]||s.w.t)}</b></button>`;
+  const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
+  $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${eps.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
+      ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・帶你走一遍十站</span><u>▶</u></button>`:''}
+      <div class="cards">${main.map(([s,k])=>card(s,k)).join('')}</div>
+      ${sp.length?`<div class="sph">＋ 特別篇</div><div class="cards sp">${sp.map(([s,k])=>card(s,k)).join('')}</div>`:''}
+      <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>
+    <section id="st" hidden></section>`;
+  ROOM=R;$('room').hidden=false;scrollTo(0,0);showOv();
+  if($('gCard'))$('gCard').onclick=()=>{if(cur===0&&!au.paused)au.pause();else if(cur===0)au.play();else playIdx(0)};
+  $('ov').querySelectorAll('.card[data-k]').forEach(b=>b.onclick=()=>showStop(+b.dataset.k,1));
+  /* 左右滑換站（橫向位移夠大、而且比上下多才算） */
+  let sx=0,sy=0;$('st').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+  $('st').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){if(dx<0&&curStop<stops.length-1)showStop(curStop+1,1);else if(dx>0&&curStop>0)showStop(curStop-1,-1)}},{passive:true});
+  ROOM.wall=wall}
+let ROOM=null;
+function showOv(){if(!$('ov'))return;$('st').hidden=true;$('ov').hidden=false;$('ovB').hidden=true;$('barR').hidden=false;
+  const c=curStop>=0&&$('ov').querySelector(`.card[data-k="${curStop}"]`);if(c)c.scrollIntoView({block:'center'});else scrollTo(0,0);lookDock()}
+function showStop(k,dir){const s=stops[k];if(!s)return;curStop=k;$('ov').hidden=true;$('ovB').hidden=false;$('barR').hidden=true;
+  const n=stops[k+1],dots=stops.map((_,j)=>`<s class="${j===k?'on':''}"></s>`).join('');
+  $('st').hidden=false;$('st').innerHTML=`<div class="stp ${dir<0?'in-r':'in-l'}"><div class="pgr"><button type="button" id="pv" aria-label="上一站"${k?'':' disabled'}>‹</button><div><b>第 ${k+1} 站 / ${stops.length}</b><div class="dots">${dots}</div></div><button type="button" id="nx" aria-label="下一站"${n?'':' disabled'}>›</button></div>
+    <div class="period"><div><span>${esc(s.p.yr)}</span><b>${esc(s.p.n)}</b></div></div>${s.ws.map(ROOM.wall).join('')}
+    ${n?`<button type="button" class="nxt" id="nx2">${n.w.img?`<img src="${esc(n.w.img.replace('vangogh/','vangogh/card/'))}" alt="">`:''}<div><small>下一站・${esc(n.w.ep||'')}</small><b>${esc((ROOM.cards||{})[n.w.ep]||n.w.t)}</b></div><i>→</i></button>`
+       :`<button type="button" class="nxt" id="nx2"><div><small>走完了</small><b>回到總覽</b></div><i>☰</i></button>`}</div>`;
+  $('pv').onclick=()=>showStop(k-1,-1);$('nx').onclick=()=>showStop(k+1,1);$('nx2').onclick=()=>n?showStop(k+1,1):showOv();
+  $('st').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
+  $('st').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt));
+  document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(cur)));scrollTo(0,0);lookDock()}
+$('ovB').onclick=showOv;
 /* 從 3D 大廳點藝術家進來（網址帶 room）：返回就直接回大廳，不經過清單 */
 const q=new URLSearchParams(location.search).get('room');
 $('back').onclick=()=>{if(!$('room').hidden&&!q)return home();stopAudio();if(window===top){location.href='../art.html?hall=1';return}post('closeHall')};   // 在手機瀏覽器單獨打開時，回到大廳
