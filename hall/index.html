@@ -33,6 +33,18 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .entry h1{font-family:var(--serif);font-weight:600;font-size:38px;letter-spacing:.24em;margin:8px 0 4px}
 .entry .en{font-size:13px;letter-spacing:.12em;color:var(--ink2)}
 .entry p{font-size:14.5px;line-height:1.85;color:var(--ink);margin:16px auto 0;max-width:30em}
+.toc{margin:22px auto 0;max-width:30em;text-align:left;border:1px solid rgba(201,162,79,.35);border-radius:14px;background:rgba(22,48,54,.45);text-shadow:none}
+.toc summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500}
+.toc summary::-webkit-details-marker{display:none}
+.toc summary span{flex:1}.toc summary small{font-size:12px;letter-spacing:0;color:var(--ink2)}
+.toc summary::after{content:"▾";color:var(--gold2);transition:transform .2s}.toc[open] summary::after{transform:rotate(180deg)}
+.toc .tp{padding:4px 16px 14px}
+.toc h4{font-family:var(--serif);font-weight:600;font-size:13.5px;color:var(--gold2);letter-spacing:.08em;margin:12px 0 4px}.toc h4 small{font-family:var(--sans);font-weight:400;font-size:11.5px;color:var(--ink2);margin-left:6px;letter-spacing:0}
+.toc button{display:flex;gap:10px;width:100%;padding:8px 0;border:0;border-top:1px solid rgba(255,255,255,.07);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.toc button em{flex:none;font-style:normal;font-size:11px;font-weight:600;color:#2a2112;background:var(--gold);border-radius:6px;padding:2px 6px;height:fit-content;margin-top:2px}
+.toc button b{display:block;font-size:14px;font-weight:500}.toc button b i{font-style:normal;font-size:11.5px;font-weight:400;color:var(--ink2);margin-left:6px}
+.toc button span{display:block;font-size:12.5px;line-height:1.6;color:var(--ink2);margin-top:2px}
+.toc button.on b{color:var(--gold2)}
 .playall{margin:20px auto 0;display:inline-flex;align-items:center;gap:10px;font:500 15px var(--sans);padding:12px 22px;border-radius:999px;border:0;background:var(--gold);color:#2a2112;cursor:pointer}
 /* 時期分隔 */
 .period{display:flex;align-items:center;gap:12px;margin:34px 0 18px}
@@ -110,15 +122,15 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
   guide:{src:'../artist-audio/vangogh.m4a',t:'總導覽：重塑梵谷，天才非瘋狂',dur:'8:05'},
   periods:[
    {yr:'1880–1885',n:'荷蘭・從灰暗開始',works:[
-     {ep:'EP01',t:'吃馬鈴薯的人',et:'毀掉梵谷友誼的吃馬鈴薯的人',audio:'../artist-audio/vangogh-ep01.m4a',dur:'17:46',o:'De Aardappeleters',meta:'1885 年 4 月・油彩、畫布<br>荷蘭紐南 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/potato-eaters.jpg',
+     {ep:'EP01',kp:'想畫用挖土的手吃飯的人｜被朋友批評比例不對，友誼就此結束',t:'吃馬鈴薯的人',et:'毀掉梵谷友誼的吃馬鈴薯的人',audio:'../artist-audio/vangogh-ep01.m4a',dur:'17:46',o:'De Aardappeleters',meta:'1885 年 4 月・油彩、畫布<br>荷蘭紐南 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/potato-eaters.jpg',
       txt:'油燈下，五個農民圍著桌子吃馬鈴薯。梵谷刻意用沾著泥土般的顏色、不美化任何一張臉，他想畫的是用挖土的那雙手，誠實賺來的一餐。這是他 27 歲當畫家後，第一幅真正有野心的作品。',
       tip:'看看油燈的光落在誰的臉上。整幅畫唯一明亮的地方，就在燈下。'}]},
    {yr:'1886–1888',n:'巴黎・顏色亮起來',works:[
-     {ep:'EP02',t:'戴灰色毛氈帽的自畫像',et:'梵谷窮到只畫自己',audio:'../artist-audio/vangogh-ep02.m4a',dur:'14:39',o:'Zelfportret met grijze vilthoed',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/self-portrait.jpg',
+     {ep:'EP02',kp:'請不起模特兒，兩年畫二十多幅自己｜遇見印象派，顏色一下子亮起來',t:'戴灰色毛氈帽的自畫像',et:'梵谷窮到只畫自己',audio:'../artist-audio/vangogh-ep02.m4a',dur:'14:39',o:'Zelfportret met grijze vilthoed',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/self-portrait.jpg',
       txt:'在巴黎的兩年，他畫了二十多幅自畫像。請不起模特兒，鏡子裡的自己最便宜，也最適合拿來做實驗。看到印象派和點描派之後，灰暗的顏色不見了，換成一條一條並排的藍、橘、綠。',
       tip:'看看他臉旁邊的背景，筆觸像放射線一樣圍著頭轉。跟《吃馬鈴薯的人》比，只隔了兩年。'}]},
    {yr:'1886–1888',n:'巴黎・遇見日本',works:[
-     {ep:'EP10',t:'唐吉老爹',et:'廉價浮世繪拯救了梵谷',audio:'../artist-audio/vangogh-ep10.m4a',dur:'17:02',o:'Portrait du Père Tanguy',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 巴黎 羅丹美術館',img:'vangogh/tanguy.jpg',
+     {ep:'EP10',kp:'和西奧收了幾百張便宜版畫｜學到粗輪廓、平塗、大膽裁切、亮顏色',t:'唐吉老爹',et:'廉價浮世繪拯救了梵谷',audio:'../artist-audio/vangogh-ep10.m4a',dur:'17:02',o:'Portrait du Père Tanguy',meta:'1887 年・油彩、畫布<br>法國巴黎 ｜ 巴黎 羅丹美術館',img:'vangogh/tanguy.jpg',
       txt:'在巴黎，梵谷和西奧在畫商賓的店裡買了好幾百張日本浮世繪，還自己辦過一場版畫展。顏料店老闆唐吉一直支持他，梵谷把他畫在正中間，背後貼滿日本版畫：富士山、花魁、櫻花。這些在日本平民都買得起的便宜版畫，教會了他清楚的輪廓線、平塗的顏色、大膽的構圖和明亮的色彩。',
       tip:'數數看唐吉背後有幾張日本版畫？找得到富士山嗎？'},
      {t:'梅樹：把畫面切成兩半',pair:[{img:'vangogh/jp-plum-hiroshige.jpg',t:'〈龜戶梅屋舖〉',by:'歌川廣重・1857'},{img:'vangogh/jp-plum-vangogh.jpg',t:'《盛開的梅樹》',by:'梵谷・1887'}],
@@ -131,27 +143,27 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
       txt:'這張花魁來自 1886 年《巴黎畫報》日本特刊的封面。梵谷把她放大，四周加上一個有竹子、青蛙和鶴的池塘。他不是在重現真正的日本，而是在拼出一個屬於自己的日本。',
       tip:'找找看梵谷在四周的池塘裡，加了哪些動物和植物？'}]},
    {yr:'1888–1889',n:'阿爾・南法的陽光',works:[
-     {ep:'EP03',t:'向日葵',et:'給高更的向日葵',audio:'../artist-audio/vangogh-ep03.m4a',dur:'15:49',o:'Sunflowers',meta:'1888 年 8 月・油彩、畫布<br>法國阿爾 ｜ 倫敦 國家美術館',img:'vangogh/sunflowers.jpg',
+     {ep:'EP03',kp:'為了迎接高更布置黃色房子｜只用黃色撐起一幅畫，一瓶花裡有花的一生',t:'向日葵',et:'給高更的向日葵',audio:'../artist-audio/vangogh-ep03.m4a',dur:'15:49',o:'Sunflowers',meta:'1888 年 8 月・油彩、畫布<br>法國阿爾 ｜ 倫敦 國家美術館',img:'vangogh/sunflowers.jpg',
       txt:'為了迎接高更來同住，梵谷在南法的黃色房子裡一口氣畫了好幾幅向日葵，想用一整面牆的黃色歡迎朋友。花、桌面、背景幾乎全是黃色，他想試試只靠同一個顏色的深淺，能不能撐起一幅畫。',
       tip:'找找看哪一朵已經枯萎垂下了。同一個花瓶裡，有含苞、有盛開，也有凋謝。'},
-     {ep:'EP04',t:'臥室',et:'梵谷臥室割耳案',audio:'../artist-audio/vangogh-ep04.m4a',dur:'13:28',o:'De slaapkamer',meta:'1888 年 10 月・油彩、畫布<br>法國阿爾 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/bedroom.jpg',
+     {ep:'EP04',kp:'第一個屬於自己的家｜跟高更吵了九週，割耳那晚南方畫室夢碎',t:'臥室',et:'梵谷臥室割耳案',audio:'../artist-audio/vangogh-ep04.m4a',dur:'13:28',o:'De slaapkamer',meta:'1888 年 10 月・油彩、畫布<br>法國阿爾 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/bedroom.jpg',
       txt:'黃色房子裡他自己的房間。他說這幅畫要讓人看了覺得「休息」，用一塊一塊平平的顏色讓腦袋安靜下來。對一直搬家的梵谷來說，這是第一個屬於自己的家。高更來了九週之後，兩人起了衝突，夢想中的「南方畫室」就此結束。',
       tip:'房間裡很多東西都是兩個一組：兩張椅子、兩個枕頭、兩扇門。'}]},
    {yr:'1889–1890',n:'聖雷米・療養院的窗',works:[
-     {ep:'EP05',t:'星夜',et:'梵谷在白天畫星夜',audio:'../artist-audio/vangogh-ep05.m4a',dur:'14:12',o:'De sterrennacht',meta:'1889 年 6 月・油彩、畫布<br>法國聖雷米 ｜ 紐約 現代藝術博物館',img:'vangogh/starry-night.jpg',
+     {ep:'EP05',kp:'臥室不能畫，白天憑記憶畫夜空｜村莊和教堂是他加上去的',t:'星夜',et:'梵谷在白天畫星夜',audio:'../artist-audio/vangogh-ep05.m4a',dur:'14:12',o:'De sterrennacht',meta:'1889 年 6 月・油彩、畫布<br>法國聖雷米 ｜ 紐約 現代藝術博物館',img:'vangogh/starry-night.jpg',
       txt:'自願住進療養院後，他常在天亮前看著窗外的星空。療養院不讓他在臥室作畫，這幅畫是白天憑記憶和想像畫的。畫裡的小村莊和教堂尖塔，從他的窗戶其實看不到，是他加進去的。',
       tip:'看筆觸的方向：天空一圈一圈旋轉、絲柏往上竄、村莊是平靜的短線。同一幅畫裡有三種情緒。'},
-     {ep:'EP06',t:'鳶尾花',et:'梵谷鳶尾花的求救信',audio:'../artist-audio/vangogh-ep06.m4a',dur:'14:27',o:'Irises',meta:'1889 年 5 月・油彩、畫布<br>法國聖雷米 ｜ 洛杉磯 蓋蒂美術館',img:'vangogh/irises.jpg',
+     {ep:'EP06',kp:'住進療養院最早的畫｜畫畫是讓自己穩定下來的方法',t:'鳶尾花',et:'梵谷鳶尾花的求救信',audio:'../artist-audio/vangogh-ep06.m4a',dur:'14:27',o:'Irises',meta:'1889 年 5 月・油彩、畫布<br>法國聖雷米 ｜ 洛杉磯 蓋蒂美術館',img:'vangogh/irises.jpg',
       txt:'剛住進療養院時，他還不能離開院區，就在花園裡畫眼前盛開的鳶尾花。專心畫畫的時候，比較不會被病困擾。清楚的輪廓線、平塗的顏色、被畫面邊緣切掉的構圖，都看得出日本浮世繪的影響。',
       tip:'一大片紫色裡，左邊只有一朵白色的鳶尾花。'}]},
    {yr:'1890',n:'奧維・最後的七十天',works:[
-     {ep:'EP07',t:'麥田群鴉',et:'麥田群鴉不是遺書',audio:'../artist-audio/vangogh-ep07.m4a',dur:'16:39',o:'Korenveld met kraaien',meta:'1890 年 7 月・油彩、畫布<br>法國奧維 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/wheatfield-crows.jpg',
+     {ep:'EP07',kp:'七十天畫了約七十幅｜「最後一幅畫」「遺書」都是迷思',t:'麥田群鴉',et:'麥田群鴉不是遺書',audio:'../artist-audio/vangogh-ep07.m4a',dur:'16:39',o:'Korenveld met kraaien',meta:'1890 年 7 月・油彩、畫布<br>法國奧維 ｜ 阿姆斯特丹 梵谷美術館',img:'vangogh/wheatfield-crows.jpg',
       txt:'在奧維的七十天裡，他畫了大約七十幅畫。很多人說這是他的「最後一幅畫」，其實沒有確切證據，之後他還畫了其他作品。他在信裡說，想用陰沉天空下的麥田表達悲傷和孤獨，但也想畫出鄉間讓人重新有力量的那一面。',
       tip:'看看三條小路，再看看烏鴉飛的方向：是飛過來，還是飛走？'}]},
    {yr:'特別展牆',n:'畫背後的故事',works:[
-     {ep:'EP08',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'},
-     {ep:'EP09',t:'西奧與喬：沒有他們就沒有梵谷',et:'梵谷的行銷神話',audio:'../artist-audio/vangogh-ep09.m4a',dur:'14:39',txt:'弟弟西奧每個月寄來的錢，是給他自由，還是壓力？西奧過世後，年輕的喬帶著嬰兒、幾百幅賣不出去的畫和八百多封信，把梵谷推向全世界。'},
-     {ep:'EP11',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'}]}],
+     {ep:'EP08',kp:'發作時其實不能畫｜割耳、只賣一幅畫、死因之謎一次聽懂',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'},
+     {ep:'EP09',kp:'西奧每月寄錢、八百多封信｜喬帶著嬰兒把梵谷推向全世界',t:'西奧與喬：沒有他們就沒有梵谷',et:'梵谷的行銷神話',audio:'../artist-audio/vangogh-ep09.m4a',dur:'14:39',txt:'弟弟西奧每個月寄來的錢，是給他自由，還是壓力？西奧過世後，年輕的喬帶著嬰兒、幾百幅賣不出去的畫和八百多封信，把梵谷推向全世界。'},
+     {ep:'EP11',kp:'一集聽完一生｜出身中產、會三種語言，是自己選了這條路',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'}]}],
   credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館、羅丹美術館、荷蘭國家博物館，取自維基共享資源'}};
 /* 大熊：背景不要黑，要藍綠色、有筆觸 → 畫一張梵谷式短筆觸的貼圖鋪滿（顏色只差一點點，字才看得清楚） */
 (function(){const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle='#284a4d';x.fillRect(0,0,S,S);   // 大熊：亮色卡那版太亂 → 回到偏暗的藍綠，只比第一版亮一點；筆觸顏色貼近底色，不搶畫
@@ -167,7 +179,7 @@ const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String
 const au=new Audio();au.preload='none';let list=[],cur=-1;
 function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){au.src=it.src;au.dataset.src=it.src}
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
-  document.querySelectorAll('.ep').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
+  document.querySelectorAll('.ep,.toc button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:'梵谷',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
 function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
@@ -192,7 +204,7 @@ $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.data
 function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('barT').textContent=R.n;list=[];
   if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null});
   const ep=w=>{if(!w.audio)return`<div class="ep soon"><div class="pb">🎧</div><div><b>${esc(w.ep)}　${esc(w.t)}</b><span>語音即將推出</span></div></div>`;
-    const i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img})-1;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
+    const i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img})-1;w._i=i;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
   const fig=(f,tag)=>`<figure><button type="button" class="frame" data-z="${esc(f.img)}" aria-label="放大看${esc(f.t)}"><img src="${esc(f.img)}" alt="${esc(f.t)}" loading="lazy"></button><figcaption><em>${f.tag||tag}</em><b>${esc(f.t)}</b>${esc(f.by)}</figcaption></figure>`;
   const wall=w=>w.pair?`<div class="pairh">${esc(w.t)}</div><div class="pair">${fig(w.pair[0],'日本原作')}${fig(w.pair[1],'梵谷臨摹')}</div>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :!w.img&&w.audio?`<div class="spc"><b>${esc(w.t)}</b>${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>📝 小註</b>　${esc(w.tip)}</div>`:''}${ep(w)}</div>`
@@ -200,14 +212,21 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
+  const walls=R.periods.map(p=>`<div class="period"><div><span>${esc(p.yr)}</span><b>${esc(p.n)}</b></div></div>${p.works.map(wall).join('')}`).join('');
+  /* 2026-11-01 大熊：總導覽下面放講堂大綱（照展牆順序自動列，點一集直接播；kp＝每集兩句重點，用｜分開） */
+  const eps=R.periods.flatMap(p=>p.works.filter(w=>w.audio)),secs=eps.reduce((a,w)=>{const [m,s]=(w.dur||'0:0').split(':');return a+(+m)*60+(+s)},0);
+  const toc=eps.length?`<details class="toc"><summary>📜 <span>講堂大綱</span><small>${eps.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</small></summary><div class="tp">
+      ${R.periods.filter(p=>p.works.some(w=>w.audio)).map(p=>`<h4>${esc(p.n)}<small>${esc(p.yr)}</small></h4>${p.works.filter(w=>w.audio).map(w=>`<button type="button" data-i="${w._i}"><em>${esc(w.ep)}</em><div><b>${esc(w.et||w.t)}<i>${esc(w.dur||'')}</i></b>${w.kp?`<span>${w.kp.split('｜').map(esc).join('<br>')}</span>`:''}</div></button>`).join('')}`).join('')}</div></details>`:'';
   $('room').innerHTML=`<div class="entry"><small>畫框背後 ・ 大師開講</small><h1>${esc(R.n)}</h1><div class="en">${esc(R.en)}</div><p>${esc(R.intro)}</p>
       ${R.guide?`<button type="button" class="playall" id="pAll">▶ 先聽總導覽・${esc(R.guide.dur)}</button>`:''}
+      ${toc}
 </div>
-    ${R.periods.map(p=>`<div class="period"><div><span>${esc(p.yr)}</span><b>${esc(p.n)}</b></div></div>${p.works.map(wall).join('')}`).join('')}
+    ${walls}
     <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p>`;
   $('room').hidden=false;scrollTo(0,0);
   if($('pAll'))$('pAll').onclick=()=>playIdx(0);
   $('room').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
+  $('room').querySelectorAll('.toc button[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else playIdx(i)});
   $('room').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt))}
 /* 從 3D 大廳點藝術家進來（網址帶 room）：返回就直接回大廳，不經過清單 */
 const q=new URLSearchParams(location.search).get('room');
