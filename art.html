@@ -308,7 +308,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261101l"></script>
 <script>
-const ART_VER='20261101m';
+const ART_VER='20261101n';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1889,7 +1889,7 @@ function openArtistChat(id){closeModal();focus=null;let o=document.getElementByI
 window.addEventListener('message',e=>{if(e.data==='closeArtistChat'){const o=document.getElementById('chatov');if(o)o.remove()}});
 /* 2026-10-31 藝術殿堂（10/31 大熊定名「畫框背後－大師開講」，畫面上的字都改了，程式裡還叫 hall）：作品小屋後方偏左（HALL_A，避開碼頭、瀑布、風車，剛好在外圈兩間小屋中間）延伸一塊小浮島，木橋接過去，上面是萬神殿。
    大熊選的外觀是預覽五款裡的「萬神殿」，顏色照他說的調暗（亮度×.74、彩度×.85）。點殿堂開說明卡 →「走進殿堂」蓋一層 hall/index.html */
-const HALL_A=3.77,HALL_UP=4.6,HALL_STATUES=['達文西','林布蘭'];   /* HALL_UP：大熊說萬神殿看不到 → 小浮島抬高、往外推，從各角度都能從主島後面冒出來 */let hallG=null;
+const HALL_A=3.77,HALL_UP=4.6,HALL_STATUES=['達文西','林布蘭'],HALL_SHOW={title:'梵谷',en:'VAN GOGH',dir:'vangogh',pics:['self-portrait','sunflowers','starry-night','irises']};   /* HALL_UP：大熊說萬神殿看不到 → 小浮島抬高、往外推，從各角度都能從主島後面冒出來 */let hallG=null;
 /* 大理石雕像：石頭底座＋藝術家公仔（不放進 picks，點了算點殿堂；寵物也一起變石頭） */
 function hallStatue(n){const s=new THREE.Group(),mb=lam('#b9b6b0'),mbD=lam('#a19d96');
   [[.6,.12,.6,.06,mbD],[.44,.55,.44,.395,mb],[.54,.08,.54,.71,mbD]].forEach(([w,h,d,y,m])=>{const p=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);p.position.y=y;p.castShadow=p.receiveShadow=true;s.add(p)});
@@ -1919,6 +1919,15 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   const cap=new THREE.Mesh(new THREE.SphereGeometry(.62,20,10,0,Math.PI*2,0,Math.PI/2),toon(dim('#6c757d')));cap.scale.y=.85;cap.position.set(0,ly+1.14,-.6);cap.castShadow=true;B.add(cap);
   B.add(cyl(dim('#5a6168'),.02,.13,.6,0,ly+1.6,-.6,8));B.add(ball(dim('#c8a45c'),.1,0,ly+2.25,-.6));B.add(box(dim('#ede3cc'),4.8,2.6,1.5,0,y,1.8));
   for(let i=0;i<6;i++)col(-2.1+i*.84,3.1,y);B.add(box(dim('#e5dac3'),5.2,.34,2.2,0,y+2.36,2.2));
+  /* 2026-11-01 大熊：柱子中間掛展覽直布條（參考奇美博物館）。正中間留給大門，左右兩格各掛一幅；換展覽改 HALL_SHOW 就好 */
+  HALL_SHOW.pics.forEach((p,i)=>{const bx=[-1.68,-.84,.84,1.68][i];if(bx==null)return;
+    const c=cvs(240,600),x=c.getContext('2d'),tx=new THREE.CanvasTexture(c);tx.anisotropy=4;
+    const draw=img=>{x.fillStyle='#1c2233';x.fillRect(0,0,240,600);x.strokeStyle='#c9a45a';x.lineWidth=3;x.strokeRect(7,7,226,586);
+      if(img)x.drawImage(img,18,22,204,357);x.textAlign='center';x.fillStyle='#d9b768';x.font='bold 72px "Noto Serif TC","Songti TC",serif';x.fillText(HALL_SHOW.title,120,470);
+      x.font='bold 22px Georgia,serif';x.fillText(HALL_SHOW.en,120,512);x.fillStyle='#e8e1cf';x.font='17px "Noto Serif TC","Songti TC",serif';x.fillText('畫框背後・大師開講',120,560);tx.needsUpdate=true};
+    draw();const im=new Image();im.onload=()=>draw(im);im.src='hall/'+HALL_SHOW.dir+'/banner/'+p+'.jpg';
+    const ban=new THREE.Mesh(new THREE.PlaneGeometry(.42,1.05),new THREE.MeshBasicMaterial({map:tx,color:XDECO?'#c9c4bb':'#ebe6dc'}));ban.position.set(bx,y+2.3-.525,2.74);ban.userData.keep=1;B.add(ban);
+    const rod=box('#3a3226',.48,.03,.03,bx,y+2.3,2.75);rod.userData.keep=1;B.add(rod)});
   B.add(prism('#e8dcc2',5.4,1.05,2.2,0,y+2.7,2.2));B.add(prism('#c0714a',3.6,.6,.05,0,y+2.86,3.32));
   /* 大門：聖誕夜晚是亮著的暖黃色 */
   const door=new THREE.Mesh(new THREE.PlaneGeometry(1,1.6),XDECO?new THREE.MeshBasicMaterial({color:'#f6cf86'}):toon('#5d4632'));door.position.set(0,y+.8,2.57);door.userData.keep=1;B.add(door);
