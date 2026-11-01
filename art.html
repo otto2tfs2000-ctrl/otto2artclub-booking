@@ -308,7 +308,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261101l"></script>
 <script>
-const ART_VER='20261101k';
+const ART_VER='20261101l';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1757,6 +1757,7 @@ let yaw=.6,pitch=.58,zoom=1,focus=null,idleT=0,touring=false,dragging=false;cons
 const portrait=()=>innerHeight>innerWidth;
 function camGoal(){
   let at=new THREE.Vector3(0,2.4,0),d=(portrait()?66:36)*K*zoom,y=yaw,p=pitch;
+  if(focus&&focus.fix)return{at:focus.fix.at.clone(),pos:focus.fix.pos.clone()};   // 2026-11-01 爬階梯過場：鏡頭位置直接指定
   if(focus){if(focus.loc){focus.obj.updateMatrixWorld(true);focus.pos.copy(focus.obj.localToWorld(focus.loc.clone()))}else if(focus.obj){focus.obj.getWorldPosition(focus.pos);focus.pos.y+=focus.h}at=focus.pos.clone();d=focus.d*(portrait()?1.45:1);if(focus.yaw!==undefined)y=focus.yaw;p=focus.pitch??.35;
     /* 直式手機下面有說明卡：看的點往下移，東西就會出現在畫面上半部，不會被卡片蓋住（2026-10-03） */
     if(portrait()&&(!$('sheet').hidden||!$('drawer').hidden))at.y-=d*.16}
@@ -1794,7 +1795,7 @@ function loop(now){
     artists.forEach(a=>artistTick(a,dt,now));tripTick(now);gpTick(dt,now);movers.forEach(w=>animalTick(w,dt,now));
     idleT+=dt;if(!dragging&&!focus&&!touring&&idleT>5)yaw+=dt*.03;
   }
-  const g=camGoal(),k=1-Math.pow(.05,dt);viewShift(dt,look.distanceTo(g.at)>1||Math.abs(camPos.distanceTo(look)/g.pos.distanceTo(g.at)-1)>.15);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
+  const g=camGoal(),k=focus&&focus.fix&&!focus.fix.soft?1:1-Math.pow(.05,dt);viewShift(dt,look.distanceTo(g.at)>1||Math.abs(camPos.distanceTo(look)/g.pos.distanceTo(g.at)-1)>.15);camPos.lerp(g.pos,k);look.lerp(g.at,k);camera.position.copy(camPos);camera.lookAt(look);
   {const show=!focus&&!$('hud').hidden,bm=BM&&BM.count();
     if(annFix){annFix.visible=show&&!bm;if(annFix.visible)Anniv26.pin(annFix,camera,.66,.42,.21,camPos.distanceTo(look)*.92,now)}
     if(bm)BM.tick(now,show,camPos.distanceTo(look)*.92)}
@@ -1962,13 +1963,23 @@ function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HAL
 const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
 /* 2026-10-31 大熊：要先「停在萬神殿門口」看一下，再走進去 → 對準正門（遠）→ 推到門口（雙雕像＋柱廊入鏡）停一下 → 再往門裡推、淡出進大廳
    arrive＝從其他島直接過來（art.html?hall=1）：鏡頭一開始就擺在正門前面，不用從整島飛過去 */
+/* 2026-11-01 大熊：一點開就是大門太突然 → 先站在石橋階梯下面往上看，一步一步爬三階上去（每步往前往上＋一點點起伏），到門口再接原本的停一下→進門
+   鏡頭用 focus.fix 直接指定位置；最後一步剛好停在原本「門口 d6.8 pitch .2」的位置，接下去不會跳 */
+const CLIMB={steps:3,stepMs:560,gapMs:170,back:4.5,low:.85};
+function climbHall(arrive,done){hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront(),pm=portrait()?1.45:1,d1=6.8*pm;
+  const dir=new THREE.Vector3(Math.sin(y),0,Math.cos(y)),P=s=>at.clone().addScaledVector(dir,d1*Math.cos(.2)+(1-s)*CLIMB.back*pm).add(new THREE.Vector3(0,d1*Math.sin(.2)-(1-s)*HALL_UP*CLIMB.low,0));
+  const L=s=>at.clone().add(new THREE.Vector3(0,-(1-s)*.9,0));   // 在下面時視線稍微往上看門
+  const fx={at:L(0),pos:P(0),soft:!arrive};focus.fix=fx;if(arrive){look.copy(fx.at);camPos.copy(fx.pos)}
+  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,N=CLIMB.steps;let k=0;
+  const step=()=>{if(!focus||focus.fix!==fx)return;if(k>=N){delete focus.fix;done();return}
+    const s0=k/N,s1=(k+1)/N;k++;
+    tweens.push({t0:performance.now(),d:CLIMB.stepMs,f:p=>{const e=ease(p),s=s0+(s1-s0)*e;fx.pos.copy(P(s));fx.pos.y+=Math.sin(p*Math.PI)*.22*pm;fx.at.copy(L(s))},r:()=>setTimeout(step,CLIMB.gapMs)})};
+  setTimeout(()=>{fx.soft=false;step()},arrive?500:1300)}   // 從作品小屋按的：先飛到階梯下面（約 1.3 秒）再開始爬
 function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
-  focus={pos:new THREE.Vector3(),d:7.5,yaw:hallFront(),pitch:.16,obj:hallG,loc:HALL_DOOR.clone()};
-  if(arrive){hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront(),d=6.8*(portrait()?1.45:1);look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*Math.cos(.2)*d,Math.sin(.2)*d,Math.cos(y)*Math.cos(.2)*d));focus.d=6.8;focus.pitch=.2}
-  const T=arrive?0:850;
-  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=6.8;focus.pitch=.2}},T);               // 停在門口：整座萬神殿＋門口兩尊雕像入鏡
-  setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=1.2;focus.pitch=.06}},T+1700);           // 往門裡走
-  setTimeout(()=>Hall3D.walkIn(),T+2500)}
+  focus={pos:new THREE.Vector3(),d:6.8,yaw:hallFront(),pitch:.2,obj:hallG,loc:HALL_DOOR.clone()};
+  climbHall(arrive,()=>{                                                                         // 爬上來＝停在門口：整座萬神殿＋門口兩尊雕像入鏡
+    setTimeout(()=>{if(focus&&focus.obj===hallG){focus.d=1.2;focus.pitch=.06}},1200);           // 往門裡走
+    setTimeout(()=>Hall3D.walkIn(),2000)})}
 window.onHallExit=()=>{$('hud').hidden=false;hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront();
   look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*2.4,.25,Math.cos(y)*2.4));focus={pos:new THREE.Vector3(),d:15,yaw:y+.45,pitch:.34,obj:hallG,h:1.6}};
 /* 殿堂裡面是 3D 大廳（hall3d.js），點藝術家蓋一層 hall/index.html?room=…；展間裡播語音傳 hallAudio 過來，背景音樂先停 */
