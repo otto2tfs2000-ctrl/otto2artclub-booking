@@ -132,8 +132,9 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 <script>
 const ARTISTS=[
   {id:'vangogh',n:'梵谷',sub:'後印象派・荷蘭',open:true},
-  {id:'picasso',n:'畢卡索',sub:'立體派・西班牙'},{id:'monet',n:'莫內',sub:'印象派・法國'},
-  {id:'klimt',n:'克林姆',sub:'維也納分離派・奧地利'},{id:'dali',n:'達利',sub:'超現實主義・西班牙'},{id:'kahlo',n:'卡蘿',sub:'墨西哥'}];
+  /* 2026-11-01 大熊：只排畫作已是公有領域、可以放真跡圖片的（過世滿 70 年）；畢卡索、達利、卡蘿等國際上還有版權，先不排 */
+  {id:'monet',n:'莫內',sub:'印象派・法國'},{id:'klimt',n:'克林姆',sub:'維也納分離派・奧地利'},
+  {id:'rembrandt',n:'林布蘭',sub:'巴洛克・荷蘭'},{id:'davinci',n:'達文西',sub:'文藝復興・義大利'},{id:'hokusai',n:'葛飾北齋',sub:'浮世繪・日本'}];
 /* 展間內容：每一面展牆＝一幅畫＋一集語音（大熊用 Gemini Notebook 依「梵谷_NotebookLM素材包」一集一集做，壓成單聲道放 ../artist-audio/）
    audio 還沒做好的集數顯示「即將推出」；img 還沒放的畫顯示「展牆準備中」。guide＝最早那段 8 分鐘總導覽 */
 const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
