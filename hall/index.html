@@ -37,7 +37,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .toc summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500}
 .toc summary::-webkit-details-marker{display:none}
 .toc summary span{flex:1}.toc summary small{font-size:12px;letter-spacing:0;color:var(--ink2)}
-.toc summary::after{content:"▾";color:var(--gold2);transition:transform .2s}.toc[open] summary::after{transform:rotate(180deg)}
+.toc summary::after{content:"點開 ▾";flex:none;font-size:12px;color:#2a2112;background:var(--gold2);border-radius:999px;padding:3px 9px}.toc[open] summary::after{content:"收起 ▴"}
 .toc .tp{padding:4px 16px 14px}
 .toc h4{font-family:var(--serif);font-weight:600;font-size:13.5px;color:var(--gold2);letter-spacing:.08em;margin:12px 0 4px}.toc h4 small{font-family:var(--sans);font-weight:400;font-size:11.5px;color:var(--ink2);margin-left:6px;letter-spacing:0}
 .toc button{display:flex;gap:10px;width:100%;padding:8px 0;border:0;border-top:1px solid rgba(255,255,255,.07);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
