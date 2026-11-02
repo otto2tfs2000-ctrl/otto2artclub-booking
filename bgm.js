@@ -1,7 +1,8 @@
 /* 2026-10-24 遊樂島背景音樂：四首原創小曲，WebAudio 即時合成（沒有音檔、不拖慢開頁、版權是自己的）
    扭蛋島〈轉一下〉／走格子島〈雪夜走格子〉／吉祥物島〈天竺鼠午睡〉／作品小屋〈畫室午後〉
    用法：OttoBGM.init(()=>AudioContext 或 null)，之後每格呼叫 OttoBGM.update(島id, 要不要開, 要不要壓低音量)
-   島 id：park walk mascot art；換島會淡出淡入；切到背景會停、回來接著播 */
+   島 id：park walk mascot art；換島會淡出淡入；切到背景會停、回來接著播
+   2026-11-02 走格子島改放音檔（tr.src）：進島才下載，下載失敗就退回原本的合成曲 */
 (function(){
 const CH={
   C:{r:36,n:[60,64,67]}, Am:{r:33,n:[57,60,64]}, F:{r:41,n:[57,60,65]}, G:{r:43,n:[55,59,62]},
@@ -17,7 +18,7 @@ const TRACKS={
        [84,0,83,0,81,0,79,0,76,0,79,0,84,-1,0,0],[81,0,79,0,76,0,72,0,76,0,81,0,79,-1,0,0],
        [77,0,76,0,77,0,81,0,79,0,0,79,83,0,86,0],[84,-1,-1,-1,79,0,76,0,72,-1,-1,-1,0,0,0,0]],
   drums:{kick:[0,8,10],clap:[4,12],hat:[2,6,10,14]}},
- walk:{bpm:96,swing:.16,steps:16,lead:'glock',
+ walk:{src:'bgm-walk-xmas.m4a',vol:.27,bpm:96,swing:.16,steps:16,lead:'glock',
   chords:[['F'],['Dm'],['Bb'],['C'],['F'],['Am'],['Bb','C'],['F']],
   mel:[[81,-1,-1,0,84,-1,81,0,77,-1,-1,-1,0,0,79,0],[81,-1,-1,0,77,-1,74,0,77,-1,-1,-1,0,0,0,0],
        [82,-1,-1,0,86,-1,82,0,77,-1,79,-1,81,-1,82,-1],[84,-1,-1,-1,-1,-1,-1,0,79,0,81,0,82,0,84,0],
@@ -84,17 +85,25 @@ function play(id,tr,bus,step,t0){
   if((bar===3||bar===7)&&id==='park'&&s===13)tone(bus,'sine',500,t,.04,.12,{to:1400,toT:.08,a:.002,d:.1,r:.05});
   if((bar===3||bar===7)&&id==='mascot'&&s===12){tone(bus,'sine',1300,t,.07,.06,{to:1900,toT:.07,a:.005,d:.1,r:.04});tone(bus,'sine',1500,t+.12,.06,.05,{to:2100,toT:.06,a:.005,d:.08,r:.04})}
 }
-function level(){return VOL*(want.duck?DUCK:1)}
-function fadeOut(c){if(!c)return;const g=c.bus.gain,t=ac.currentTime;try{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(0,t+.6)}catch(e){}setTimeout(()=>{try{c.bus.disconnect()}catch(e){}},1500)}
+function level(tr){return (tr.vol||VOL)*(want.duck?DUCK:1)}
+function loadFile(tr){return tr.buf||(tr.buf=fetch(tr.src).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()})
+  .then(ab=>new Promise((ok,no)=>{const p=ac.decodeAudioData(ab,ok,no);if(p&&p.catch)p.catch(no)})))}
+function playFile(c,buf){const s=ac.createBufferSource(),t=ac.currentTime;s.buffer=buf;s.loop=true;s.connect(c.bus);
+  const at=(c.tr.pos||0)%buf.duration;s.start(t,at);c.src=s;c.t0=t-at;
+  c.bus.gain.setValueAtTime(0,t);c.bus.gain.linearRampToValueAtTime(level(c.tr),t+1.2)}
+function fadeOut(c){if(!c)return;const g=c.bus.gain,t=ac.currentTime;
+  if(c.src){const s=c.src;c.tr.pos=t-c.t0;setTimeout(()=>{try{s.stop()}catch(e){}},1500)} /* 下次從這裡接著播 */try{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(0,t+.6)}catch(e){}setTimeout(()=>{try{c.bus.disconnect()}catch(e){}},1500)}
 function stop(){if(timer){clearInterval(timer);timer=null}if(cur)fadeOut(cur);cur=null}
 function start(id){
   const tr=TRACKS[id];if(!tr)return;if(cur)fadeOut(cur);
-  const bus=ac.createGain(),t=ac.currentTime;bus.gain.setValueAtTime(0,t);bus.gain.linearRampToValueAtTime(level(),t+1.2);bus.connect(out);
-  cur={id,tr,bus,step:0,next:t+.15,duck:want.duck};
+  const bus=ac.createGain(),t=ac.currentTime;bus.gain.setValueAtTime(0,t);bus.connect(out);
+  const c=cur={id,tr,bus,step:0,next:t+.15,duck:want.duck,file:!!tr.src&&!tr.noFile};
+  if(c.file)loadFile(tr).then(buf=>{if(cur===c)playFile(c,buf)}).catch(()=>{tr.buf=null;tr.noFile=true;if(cur===c){c.file=false;bus.gain.linearRampToValueAtTime(level(tr),ac.currentTime+1.2)}});
+  else bus.gain.linearRampToValueAtTime(level(tr),t+1.2);
   if(!timer)timer=setInterval(tick,40);
 }
 function tick(){
-  if(!cur||!ac)return;
+  if(!cur||!ac||cur.file)return;
   if(ac.state!=='running'){cur.next=ac.currentTime+.15;return} /* 被系統暫停（來電、切背景）就先不排，回來從現在開始接 */
   if(cur.next<ac.currentTime)cur.next=ac.currentTime+.05;
   while(cur.next<ac.currentTime+.25){const total=cur.tr.steps*cur.tr.mel.length;
@@ -107,8 +116,8 @@ function update(place,on,duck){
   if(!go){if(cur)stop();return}
   if(!setup())return;
   if(!cur||cur.id!==want.place)start(want.place);
-  else if(cur.duck!==want.duck){cur.duck=want.duck;const g=cur.bus.gain;g.setTargetAtTime(level(),ac.currentTime,.15)}
+  else if(cur.duck!==want.duck){cur.duck=want.duck;const g=cur.bus.gain;g.setTargetAtTime(level(cur.tr),ac.currentTime,.15)}
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else update(want.place,want.on,want.duck)});
-window.OttoBGM={init(fn){getCtx=fn},update,stop,tracks:Object.keys(TRACKS),now:()=>cur&&{id:cur.id,step:cur.step,gain:+cur.bus.gain.value.toFixed(3)}};
+window.OttoBGM={init(fn){getCtx=fn},update,stop,tracks:Object.keys(TRACKS),now:()=>cur&&{id:cur.id,step:cur.step,file:cur.file,playing:!!cur.src,pos:cur.src?+((ac.currentTime-cur.t0)%cur.src.buffer.duration).toFixed(1):null,gain:+cur.bus.gain.value.toFixed(3)}};
 })();
