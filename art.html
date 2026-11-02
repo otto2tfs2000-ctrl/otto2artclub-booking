@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261102f"></script>
+<script src="hall3d.js?v=20261102g"></script>
 <script>
-const ART_VER='20261102f';
+const ART_VER='20261102g';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2516,7 +2516,7 @@ async function reload(){const r=await fetch(NOTIFY_URL+'/island/data?t='+Date.no
 async function whoAmI(){
   try{if(!ssTok()&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),sleep(4000)])}}catch(e){}
   if(!token()){ME={ok:false,err:'請從 LINE 的 OTTO2 預約頁打開作品小屋，才能搬家、上傳'};return}
-  try{const j=await api('/island/me');ME=Object.assign({ok:true},j);if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
+  try{const j=await api('/island/me');ME=Object.assign({ok:true},j);window.HALL_STAFF=!!j.staff;if(G)G.me=j.house}catch(e){ME={ok:false,err:e.message}}}
 /* 訪客版資料：guest-island.json 是 2026-10-24 拍的快照（圖片直接從 Cloudinary 讀），讀不到就用全假的示範島 */
 async function guestData(){try{const j=await fetch('guest-island.json?v=20261024g').then(r=>r.json());
   return{members:j.houses.map((h,i)=>{const last=(h.works[h.works.length-1]||{}).date||'2026/10';

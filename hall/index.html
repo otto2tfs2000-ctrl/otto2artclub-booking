@@ -232,11 +232,12 @@ function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=
 function home(){stopAudio();$('room').hidden=true;$('ovB').hidden=true;$('barR').hidden=false;$('goon').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
-function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
+function openRoom(id){const R=ROOMS[id];if(!R)return;let staff=false;try{staff=!!parent.HALL_STAFF}catch(e){}const free=staff?null:R.free;   // 工作人員（作品小屋 /island/me 認出來的）不受上鎖限制
+  $('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
   if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1});
   /* 一站＝一集（有 ep 的那面牆）＋後面跟著的對照牆（例如浮世繪三組）；list 照站的順序排，播完自動接 */
   R.periods.forEach(p=>p.works.forEach(w=>{if(w.ep||!stops.length)stops.push({p,pl:p.n.split('・')[0],w,ws:[w]});else stops[stops.length-1].ws.push(w)}));
-  openN=R.free==null?stops.length:Math.min(R.free,stops.length);   // 前 openN 站開放，後面的只在總覽露出上鎖卡片，音檔不進播放清單
+  openN=free==null?stops.length:Math.min(free,stops.length);   // 前 openN 站開放，後面的只在總覽露出上鎖卡片，音檔不進播放清單
   stops.forEach((s,k)=>{const w=s.w;delete w._i;s.lock=k>=openN;if(w.audio&&!s.lock)w._i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img,k})-1});
   const ep=w=>{if(!w.audio)return`<div class="ep soon"><div class="pb">🎧</div><div><b>${esc(w.ep)}　${esc(w.t)}</b><span>語音即將推出</span></div></div>`;
     const i=w._i;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
@@ -247,12 +248,12 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;$('home').hidden=true;$('ba
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
-  const eps=stops.filter(s=>s.w.audio&&!s.lock),gs=R.guide&&R.free!=null?[{w:R.guide}]:[],secs=eps.concat(gs).reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
+  const eps=stops.filter(s=>s.w.audio&&!s.lock),gs=R.guide&&free!=null?[{w:R.guide}]:[],secs=eps.concat(gs).reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
   const thumb=w=>w.img?w.img.replace('vangogh/','vangogh/card/'):'';
   const card=(s,k)=>`<button type="button" class="card${s.lock?' lock':''}" data-k="${k}"${s.w._i!=null?` data-i="${s.w._i}"`:''}${s.w.img?` style="background-image:url('${esc(thumb(s.w))}')"`:''}><i>${s.lock?'🔒':esc(s.w.dur||'')}</i><em>${esc(s.w.ep||'')}${s.w.img?'・'+esc(s.pl):''}</em><b>${esc((R.cards||{})[s.w.ep]||s.w.t)}</b></button>`;
   const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
-  $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${R.free!=null?'開放 ':''}${eps.length+gs.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
-      ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${R.free!=null?'帶你先認識他':'帶你走一遍十站'}</span><u>▶</u></button>`:''}
+  $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${free!=null?'開放 ':''}${eps.length+gs.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
+      ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${free!=null?'帶你先認識他':'帶你走一遍十站'}</span><u>▶</u></button>`:''}
       <div class="cards">${main.map(([s,k])=>card(s,k)).join('')}</div>
       ${sp.length?`<div class="sph">＋ 特別篇</div><div class="cards sp">${sp.map(([s,k])=>card(s,k)).join('')}</div>`:''}
       <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>
