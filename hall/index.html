@@ -204,27 +204,30 @@ const post=m=>{try{parent.postMessage(m,'*')}catch(e){}};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 /* 播放：全頁共用一個 Audio；底部播放條常駐；播完自動接下一集（只接有音檔的）。鎖定畫面顯示集數＋畫（Media Session） */
 const au=new Audio();au.preload='none';let list=[],cur=-1,stops=[],curStop=-1,openN=0;
-function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){au.src=it.src;au.dataset.src=it.src}
+/* 片頭：每集從頭播時先放這段再接故事（2026-11-02 大熊選 Paris Jazz Cafe 前 8 秒，所有集數共用；接著上次聽不會重放）。音量已跟語音對齊、尾巴淡出做在檔案裡。載入失敗就直接進故事 */
+const INTRO='../artist-audio/intro-paris.m4a';let introOn=false;
+function endIntro(){if(!introOn)return;introOn=false;const it=list[cur];if(!it)return;au.src=it.src;const p=au.play();if(p&&p.catch)p.catch(()=>{});lookDock()}
+function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){introOn=true;au.src=INTRO;au.dataset.src=it.src}
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
   $('goon').hidden=true;document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:'梵谷',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
-function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
+function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=introOn?'♪ 片頭音樂・點進度條略過':d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
   $('dN').disabled=cur>=list.length-1;$('dN').style.opacity=cur>=list.length-1?.35:1;
   document.querySelectorAll('.ep').forEach(b=>{const on=b.dataset.i==String(cur)&&!au.paused;const pb=b.querySelector('.pb');if(pb&&!b.classList.contains('soon'))pb.textContent=on?'❚❚':'▶'});
   const gp=document.querySelector('.gcard u');if(gp)gp.textContent=cur===0&&!au.paused?'❚❚':'▶'}
-au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{post({hallAudio:0});lookDock()};
+au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{if(!(introOn&&au.ended))post({hallAudio:0});lookDock()};
 /* 總導覽播完不自動接：跳出「下一站」按鈕，點了翻到第一站並播 EP01（接大熊開場最後那句「第一站，荷蘭」）。一般集數播完自動接下一集，人在展牆就跟著翻頁 */
-au.onended=()=>{const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();const s=stops[0];$('goon').innerHTML=`<span>🎨 下一站：${esc(s.pl)}《${esc(s.w.t)}》</span><b>出發 →</b>`;$('goon').hidden=false;
+au.onended=()=>{if(introOn)return endIntro();const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();const s=stops[0];$('goon').innerHTML=`<span>🎨 下一站：${esc(s.pl)}《${esc(s.w.t)}》</span><b>出發 →</b>`;$('goon').hidden=false;
     $('goon').onclick=()=>{showStop(0,1);playIdx(s.w._i)};return}
-  if(cur+1<list.length){playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}};au.onerror=()=>{$('dTm').textContent='語音載入失敗，請稍後再試'};
+  if(cur+1<list.length){playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}};au.onerror=()=>{if(introOn)return endIntro();$('dTm').textContent='語音載入失敗，請稍後再試'};
 $('dB').onclick=()=>{if(au.paused){const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
-let seeking=false;const seekX=x=>{const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
+let seeking=false;const seekX=x=>{if(introOn)return endIntro();const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
 $('dPg').onpointerdown=e=>{seeking=true;try{$('dPg').setPointerCapture(e.pointerId)}catch(_){}seekX(e.clientX)};
 $('dPg').onpointermove=e=>{if(seeking)seekX(e.clientX)};$('dPg').onpointerup=$('dPg').onpointercancel=()=>{seeking=false};
-const skip=t=>{const d=au.duration;if(!d)return;au.currentTime=Math.min(d-.5,Math.max(0,au.currentTime+t));lookDock()};
+const skip=t=>{if(introOn){if(t>0)endIntro();return}const d=au.duration;if(!d)return;au.currentTime=Math.min(d-.5,Math.max(0,au.currentTime+t));lookDock()};
 $('dRw').onclick=()=>skip(-15);$('dFf').onclick=()=>skip(15);
-if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(introOn)return endIntro();if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
 function stopAudio(){au.pause();post({hallAudio:0})}
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
