@@ -177,11 +177,11 @@ function build(){
   ui.addEventListener('pointerdown',e=>{if(e.target.id==='hallBack')return;down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false}});
   ui.addEventListener('pointermove',e=>{if(!down||(goal&&!goal.slow))return;if(goal)goal=null;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)down.moved=true;
     yaw=down.yaw+dx*.005;pitch=Math.max(-.25,Math.min(.55,down.pitch+dy*.003))});
-  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved)return;if(goal&&goal.slow)goal=null;else if(goal)return;tap(e)});   // 走進來的過場還沒停也可以直接點（不然點了沒反應）
+  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved)return;if(introWait||(goal&&goal.slow)){introWait=false;goal=null;tap(e,true);if(act&&!goal&&!alive){pos.copy(START);yaw=0;pitch=.06}return}if(goal)return;tap(e)});   // 走進來的過場還沒停也可以直接點（不然點了沒反應）
   ui.querySelector('#hallBack').onclick=leave}
 
-function tap(e){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,cam);
-  const h=rc.intersectObjects(hits,false)[0];if(!h)return;const {A,open,door}=h.object.userData;
+function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,cam);
+  const h=rc.intersectObjects(hits,false)[0];if(!h)return;const {A,open,door}=h.object.userData;if(skipping&&!open)return;   // 點畫面跳過走路時，只有點到開放的藝術家才算數，不跳籌備中提示
   if(door)return leave();
   if(open){try{localStorage.setItem('otto2-hall-hint','1')}catch(e){}}
   if(open&&ALIVE[A.n]){if(!alive)comeAlive(ALIVE[A.n]);return}
@@ -192,7 +192,7 @@ function tap(e){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/i
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261102h&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261102i&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}
@@ -238,18 +238,19 @@ function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTic
     hintEl.hidden=!show}}
 
 /* intro：從大門內側慢慢走到定點（走進來的感覺） */
+let introWait=false;   // 剛進大廳、還站在門內側等著往前走（這時點畫面也算跳過）
 function enter(intro){if(!sc)build();act=true;yaw=0;pitch=.06;goal=null;tPrev=performance.now();
   if(intro){pos.set(0,EYE+.15,R-.6);pitch=.1;   // 先站在大門內側看整個大廳一下，再慢慢走到雕像前
-    setTimeout(()=>{if(act&&!goal&&!alive)goal={pos:START.clone(),yaw:0,pitch:.06,slow:1}},1100)}else pos.copy(START);
+    introWait=true;setTimeout(()=>{if(introWait&&act&&!goal&&!alive)goal={pos:START.clone(),yaw:0,pitch:.06,slow:1};introWait=false},1100)}else pos.copy(START);
   document.body.classList.add('inhall');document.body.appendChild(ui);try{closeSheet()}catch(e){}}
-function exit(){resetAlive();act=false;goal=null;document.body.classList.remove('inhall');if(ui&&ui.parentNode)ui.remove();const o=document.getElementById('hallov');if(o)o.remove()}
+function exit(){resetAlive();act=false;goal=null;introWait=false;document.body.classList.remove('inhall');if(ui&&ui.parentNode)ui.remove();const o=document.getElementById('hallov');if(o)o.remove()}
 
 /* 過場：整個畫面淡成米白再淡回來（進出殿堂都用） */
 let fadeEl=null;
 function fade(on){if(!fadeEl){fadeEl=document.createElement('div');fadeEl.style.cssText='position:fixed;inset:0;z-index:60;background:#f4eedf;opacity:0;pointer-events:none;transition:opacity .45s ease';document.body.appendChild(fadeEl)}
   fadeEl.style.pointerEvents=on?'auto':'none';fadeEl.style.opacity=on?1:0}
 /* 作品小屋那邊鏡頭飛到大門口之後呼叫：淡出 → 換成大廳、從門口走進來 → 淡回來 */
-function walkIn(){fade(true);setTimeout(()=>{enter(true);requestAnimationFrame(()=>fade(false))},480)}
+function walkIn(skip){fade(true);setTimeout(()=>{enter(!skip);requestAnimationFrame(()=>fade(false))},480)}
 /* 回作品小屋：淡出 → 換回島（art.html onHallExit 把鏡頭放在殿堂門口再慢慢拉遠）→ 淡回來 */
 function leave(){fade(true);setTimeout(()=>{exit();try{window.onHallExit&&window.onHallExit()}catch(e){}requestAnimationFrame(()=>fade(false))},480)}
 window.Hall3D={enter,exit,leave,walkIn,back,frame,get active(){return act}};

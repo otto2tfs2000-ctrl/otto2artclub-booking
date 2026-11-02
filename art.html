@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261102h"></script>
+<script src="hall3d.js?v=20261102i"></script>
 <script>
-const ART_VER='20261102h';
+const ART_VER='20261102i';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1999,17 +1999,22 @@ function climbHall(arrive,done){hallG.updateMatrixWorld(true);const at=hallG.loc
   const L=s=>at.clone().add(new THREE.Vector3(0,-(1-s)*.9,0));   // 在下面時視線稍微往上看門
   const fx={at:L(0),pos:P(0),soft:!arrive};focus.fix=fx;if(arrive){look.copy(fx.at);camPos.copy(fx.pos)}
   const l1=P(0).distanceTo(P(1)),l2=Q(0).distanceTo(Q(1)),T=CLIMB.ms+CLIMB.inMs,c=l1/(l1+l2),N=CLIMB.steps+CLIMB.inSteps,side=new THREE.Vector3(dir.z,0,-dir.x);let gone=false;
-  const walk=()=>{if(!focus||focus.fix!==fx)return;
+  /* 2026-11-02 大熊：跟其他動畫一樣，點畫面任何地方就跳過 → 直接淡出、站到雕像前（音樂鈕照常能按） */
+  const hint=document.createElement('div');hint.textContent='點畫面略過';hint.style.cssText='position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:55;border-radius:99px;padding:6px 14px;background:rgba(255,255,255,.55);color:#35505a;font-size:13px;pointer-events:none';document.body.appendChild(hint);
+  const finish=skip=>{if(gone)return;gone=true;document.removeEventListener('pointerdown',onTap,true);hint.remove();done(skip)};
+  const onTap=e=>{if(e.target.closest&&e.target.closest('#bgmBtn'))return;e.stopPropagation();e.preventDefault();finish(true)};
+  document.addEventListener('pointerdown',onTap,true);
+  const walk=()=>{if(gone||!focus||focus.fix!==fx)return;
     tweens.push({t0:performance.now(),d:T,f:p=>{const e=p<.12?p*p/(.24):p-.06,u=e/.94;   // 起步慢慢加速，之後等速走到底（不在門口停）
       const ph=u*Math.PI*N,amp=Math.min(1,p/.12);
       if(u<c){const s=u/c;fx.pos.copy(P(s));fx.at.copy(L(s))}else{const s=(u-c)/(1-c);fx.pos.copy(Q(s));fx.at.copy(at)}
       fx.pos.y-=(1-Math.cos(ph*2))/2*CLIMB.bob*pm*amp;fx.pos.addScaledVector(side,Math.sin(ph)*CLIMB.sway*pm*amp);
-      if(!gone&&p>.8){gone=true;done()}},                                                     // 還在走就開始淡出
+      if(!gone&&p>.8)finish(false)},                                                     // 還在走就開始淡出
       r:()=>{if(focus&&focus.fix===fx)delete focus.fix}})};
   setTimeout(()=>{fx.soft=false;walk()},arrive?500:1300)}   // 從作品小屋按的：先飛到階梯下面（約 1.3 秒）再開始爬
 function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
   focus={pos:new THREE.Vector3(),d:1.2,yaw:hallFront(),pitch:.06,obj:hallG,loc:HALL_DOOR.clone()};   // 走完停在門裡（跟 fix 最後一格一樣，放掉 fix 時鏡頭不會跳）
-  climbHall(arrive,()=>Hall3D.walkIn())}
+  climbHall(arrive,skip=>Hall3D.walkIn(skip))}
 window.onHallExit=()=>{$('hud').hidden=false;hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront();
   look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*2.4,.25,Math.cos(y)*2.4));focus={pos:new THREE.Vector3(),d:15,yaw:y+.45,pitch:.34,obj:hallG,h:1.6}};
 /* 殿堂裡面是 3D 大廳（hall3d.js），點藝術家蓋一層 hall/index.html?room=…；展間裡播語音傳 hallAudio 過來，背景音樂先停 */
