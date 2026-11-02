@@ -8,6 +8,7 @@ const OPEN={'梵谷':'vangogh'};
 const EPN={'梵谷':11};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const WALL={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'};   // 壁龕背景的代表作（hall/wall/，維基共享資源公有領域）：星夜、睡蓮、吻、夜巡、蒙娜麗莎、神奈川沖浪裏
 const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
+const SIMG={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'},SIMG_H=2.2,CIMG=SIMG;   // 2026-11-02 大熊：雕像改用 GPT 生的石雕去背圖（hall/statue/），比 3D 公仔換色更像雕像；還沒給圖的照舊用 3D
 const STATUE=!/[?&]hfig=color/.test(location.search);   // 大熊：裡面放大理石雕像（跟殿堂門口同一種，art.html hallStatue）；?hfig=color 看彩色公仔版
 /* 2026-10-31 第二版（大熊嫌平、空、沒焦點）：聚光燈打雕像＋大廳調暗、地板加深、底座加高＋銅牌＋「點我」提示、沒開放的壁龕拉紅絨布簾＋圍欄。?hv=1 看第一版 */
 const V2=!/[?&]hv=1/.test(location.search);
@@ -30,6 +31,16 @@ function plaque(A,lift,soon){const c=cvs(256,96),x=c.getContext('2d'),gr=x.creat
   x.font='600 38px "Noto Serif TC",serif';x.fillText(A.n,128,46);const life=((typeof INFO!=='undefined'&&INFO[A.n]&&INFO[A.n].life)||'').split('・')[0];x.font='22px "Noto Serif TC",serif';x.fillText(soon?(life?life+'・':'')+'籌備中':life,128,78);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(.34,.128),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c)}));m.position.set(0,lift+.44,1.1+.224);return m}
 /* 還沒開放的壁龕：拉起來的深紅絨布簾（直的皺褶）＋上面金色橫桿＋拱頂半圓布＋前面紅絨布圍欄 */
+/* 去背圖都以腳中心為畫布中線（hall/statue/），各人寬度不同 → 載好再照圖的長寬比撐開，腳底當原點（抖動才會以腳為軸） */
+function imgPlane(url,Mat){const ge=new THREE.PlaneGeometry(1,SIMG_H);ge.translate(0,SIMG_H/2,0);
+  const m=new THREE.Mesh(ge,new Mat({transparent:true,alphaTest:.02,map:new THREE.TextureLoader().load(url,t=>{m.scale.x=SIMG_H*t.image.width/t.image.height})}));m.scale.x=1e-4;return m}
+/* 石雕圖：站在 hallStatue 底座上面 y=.75 */
+function statueImg(f){const m=imgPlane('hall/statue/'+f+'.webp',THREE.MeshLambertMaterial);m.material.color.setRGB(1.25,1.25,1.25);m.position.y=.75;return m}
+/* 彩色去背圖（站姿＋揮手兩張，腳底對齊）：雕像活過來跳下來的是它，不是 3D 公仔 */
+function colorImg(f,g){const C=new THREE.Group(),load=n=>imgPlane('hall/statue/'+f+n+'.webp',THREE.MeshBasicMaterial);
+  const st=load('-color'),wv=load('-wave');wv.visible=false;C.add(st,wv);C.visible=false;
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(.5,32),new THREE.MeshBasicMaterial({color:'#2a1c10',transparent:true,opacity:0,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.y=.5;sh.position.set(0,.02,1.95);sh.visible=false;g.add(sh);
+  C.userData={img:true,st,wv,sh};g.add(C);return C}
 function closedNiche(g,NW,NH){const W=NW*2,cg=new THREE.PlaneGeometry(W,NH,64,1),p=cg.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i);p.setZ(i,Math.sin(x*13)*.05+Math.sin(x*5.3)*.025)}cg.computeVertexNormals();
   const vel=new THREE.MeshLambertMaterial({color:'#7c2a33'});const cu=new THREE.Mesh(cg,vel);cu.position.set(0,.18+NH/2,.15);g.add(cu);
@@ -75,7 +86,7 @@ function buildFolk(){FOLK.forEach((o,i)=>{const v=visitor(o,i);sc.add(v.g);folk.
     [-1,1].forEach(k=>b.add(put(new THREE.Mesh(new THREE.BoxGeometry(.08,.4,.5),lam('#6e5238')),k*.8,.2,0)))})}
 /* 遊客動作：繞圈的人一邊走一邊上下晃、擺手；站著的偶爾轉頭、換重心；坐著的慢慢點頭 */
 function folkTick(t,dt){folk.forEach(v=>{const o=v.o,p=t+v.ph;
-  if(o.do==='walk'){if(!alive)o.a0+=o.spd*dt;   /* 2026-11-01 大熊：雕像跳下來時有人走過去重疊 → 繞圈半徑縮到 2.6（離落地點 4.15 很遠），雕像活過來時大家先停下來看 */const x=Math.sin(o.a0)*o.r,z=Math.cos(o.a0)*o.r;v.g.position.set(x,Math.abs(Math.sin(p*5))*.03,z);
+  if(o.do==='walk'){const inWay=alive&&Math.sin(o.a0)*alive.dir.x+Math.cos(o.a0)*alive.dir.z>.5;if(!alive||inWay)o.a0+=o.spd*dt*(inWay?6:1);   /* 2026-11-02 擋在鏡頭和雕像中間的人快走開，走開才停 */   /* 2026-11-01 大熊：雕像跳下來時有人走過去重疊 → 繞圈半徑縮到 2.6（離落地點 4.15 很遠），雕像活過來時大家先停下來看 */const x=Math.sin(o.a0)*o.r,z=Math.cos(o.a0)*o.r;v.g.position.set(x,Math.abs(Math.sin(p*5))*.03,z);
     v.g.rotation.y=o.a0+(o.spd>0?Math.PI/2:-Math.PI/2);v.armL.rotation.x=Math.sin(p*5)*.4;v.armR.rotation.x=-Math.sin(p*5)*.4}
   else if(o.do==='look'){v.head.rotation.y=Math.sin(p*.45)*.25;v.body.rotation.z=Math.sin(p*.3)*.03}
   else v.head.rotation.x=Math.sin(p*.6)*.06})}
@@ -125,9 +136,9 @@ function build(){
     if(V2&&!open&&!(A&&STATUE)){closedNiche(g,NW,NH)}   // 已經排好的藝術家（還沒開放）也站雕像，只有沒決定的格子拉布簾
     else{const lift=V2?.4:0;   // 第二版底座加高：下面多墊一層
       if(lift){const b0=new THREE.Mesh(new THREE.BoxGeometry(.8,lift,.8),lam('#a39e96'));b0.position.set(0,lift/2,1.1);g.add(b0)}
-      const ped=hallStatue(STATUE&&A?A.n:'');ped.position.set(0,lift,1.1);g.add(ped);   // 方形石頭底座（開放的上面站雕像）
+      const ped=hallStatue(STATUE&&A&&!SIMG[nm]?A.n:'');ped.position.set(0,lift,1.1);g.add(ped);if(STATUE&&SIMG[nm])ped.add(statueImg(SIMG[nm]));   // 方形石頭底座（開放的上面站雕像）
       if(open&&STATUE&&ped.children[3]){const M=ped.children[3];let mc=null;M.traverse(m=>{if(m.isMesh){mc=mc||m.material.clone();m.material=mc}});   // 雕像自己一份材質，發光時不會連門口的雕像一起亮
-        ALIVE[nm]={g,lift,A,M,mc,C:null}}
+        ALIVE[nm]={g,lift,A,M,mc,C:CIMG[nm]?colorImg(CIMG[nm],g):null}}
       if(open){if(!STATUE){const n0=picks.length,f=makeArtist(A);picks.length=n0;f.position.set(0,lift+.75,1.1);f.scale.multiplyScalar(1.05);g.add(f)}
         if(V2){/* 聚光燈從前上方打下來＋地上一圈暖光 */
           const sp=new THREE.SpotLight('#ffe4b5',1.7,9,.58,.55,1);sp.position.set(0,3.9,3.4);sp.target.position.set(0,lift+1.2,1.1);g.add(sp,sp.target);
@@ -135,7 +146,7 @@ function build(){
           g.add(plaque(A,lift));g.updateMatrixWorld(true);hintAt=g.localToWorld(new THREE.Vector3(0,lift+2.95,1.1));
           if(GUIDE){const b=guideBadge(A.n,EPN[A.n]||0);b.position.set(0,lift+3.4,1.1);b.userData.y0=lift+3.4;g.add(b);badges.push(b)}}
         else{const lt=new THREE.PointLight('#ffe2b0',.9,4.5,2);lt.position.set(0,2.4,2);g.add(lt)}}
-      else if(A&&STATUE){g.add(plaque(A,lift));rail(g,1);const M=ped.children[3];if(M){let k=null;M.traverse(m=>{if(m.isMesh){k=k||m.material.clone();k.emissive&&k.emissive.set('#5a5650');m.material=k}})}}   // 沒聚光燈太暗 → 雕像自己微微發亮，看起來還是白色大理石   // 籌備中：雕像＋銅牌，不打聚光燈、不放語音徽章
+      else if(A&&STATUE){g.add(plaque(A,lift));rail(g,1);const M=ped.children[3];if(M){let k=null;M.traverse(m=>{if(m.isMesh){k=k||m.material.clone();if(k.map){k.color.setRGB(1,1,1);k.emissive.set('#8f8c86');k.emissiveMap=k.map}else k.emissive&&k.emissive.set('#5a5650');m.material=k}})}}   // 沒聚光燈太暗 → 雕像自己微微發亮，看起來還是白色大理石   // 籌備中：雕像＋銅牌，不打聚光燈、不放語音徽章
       else{/* 還沒開放（第一版）：布蓋著 */
         const prof=[[0,1.5],[.18,1.46],[.32,1.3],[.38,.9],[.44,.4],[.52,.02],[.5,0]].map(([x,y])=>new THREE.Vector2(x,y));
         const cl=new THREE.Mesh(new THREE.LatheGeometry(prof,18),new THREE.MeshLambertMaterial({color:'#bfb29a',flatShading:true}));cl.position.set(0,.75,1.1);g.add(cl)}}
@@ -191,7 +202,7 @@ function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}
 function comeAlive(o){const w=new THREE.Vector3();o.g.getWorldPosition(w);const d=w.setY(0).normalize();
   goal={pos:pos.clone(),yaw:Math.atan2(-d.x,-d.z),pitch:.03};   // 原地轉過去看著他
   if(!o.C){const n0=picks.length;o.C=makeArtist(o.A);picks.length=n0;o.C.scale.multiplyScalar(1.1);o.C.visible=false;o.g.add(o.C)}
-  o.C.position.set(0,o.lift+.75,1.1);alive={o,t0:performance.now(),burst:null,opened:false}}
+  o.C.position.set(0,o.lift+.75,1.1);alive={o,t0:performance.now(),burst:null,opened:false,dir:d}}
 function burst(g,y){const N=46,P=new Float32Array(N*3),V=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,e=Math.random()*1.2-.2,sp=1.2+Math.random()*1.6;V.push([Math.cos(a)*Math.cos(e)*sp,Math.sin(e)*sp+.8,Math.sin(a)*Math.cos(e)*sp]);P[i*3]=0;P[i*3+1]=y;P[i*3+2]=1.1}
   const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(P,3));
   const m=new THREE.Points(ge,new THREE.PointsMaterial({color:'#ffe6a3',size:.09,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));g.add(m);return {m,V,y}}
@@ -200,14 +211,16 @@ function aliveTick(now,dt){const a=alive,o=a.o,t=(now-a.t0)/1000,M=o.M,C=o.C,y0=
   else if(!a.burst){M.visible=false;M.rotation.z=0;o.mc.emissive.setRGB(0,0,0);C.visible=true;a.burst=burst(o.g,y0+.9)}  // 變彩色＋金色光點
   if(a.burst){const b=a.burst,p=b.m.geometry.attributes.position,bt=t-.7;for(let i=0;i<b.V.length;i++){p.setXYZ(i,b.V[i][0]*bt,b.y+b.V[i][1]*bt-1.6*bt*bt,1.1+b.V[i][2]*bt)}
     p.needsUpdate=true;b.m.material.opacity=Math.max(0,1-bt/1.1);if(bt>1.2&&b.m.parent){b.m.parent.remove(b.m);b.m.geometry.dispose()}}
-  if(t>=.7&&t<1.45){const p=(t-.7)/.75;C.position.set(0,y0*(1-p)+Math.sin(p*Math.PI)*.9,1.1+.85*p);C.rotation.x=Math.sin(p*Math.PI)*-.25}   // 跳下來
+  if(t>=.7&&t<1.45){const p=(t-.7)/.75;C.position.set(0,y0*(1-p)+Math.sin(p*Math.PI)*.9,1.1+.85*p);if(!C.userData.img)C.rotation.x=Math.sin(p*Math.PI)*-.25}   // 跳下來
   else if(t>=1.45&&t<1.7){C.position.set(0,0,1.95);C.rotation.x=0;const q=Math.sin((t-1.45)/.25*Math.PI);C.scale.y=C.scale.x*(1-.16*q)}      // 落地壓一下
-  else if(t>=1.7){C.scale.y=C.scale.x;const arm=C.userData.armR;if(arm)arm.rotation.z=-2.4+Math.sin(t*11)*.35}                              // 揮手
+  else if(t>=1.7){C.scale.y=C.scale.x;const arm=C.userData.armR;if(arm)arm.rotation.z=-2.4+Math.sin(t*11)*.35;
+    if(C.userData.img){C.userData.st.visible=false;C.userData.wv.visible=true;C.rotation.z=Math.sin(t*7)*.035}}                              // 揮手
+  if(C.userData.img&&t>=.7){const sh=C.userData.sh;sh.visible=true;sh.material.opacity=.32*Math.min(1,Math.max(0,(t-.9)/.55))}   // 腳下影子：快落地才出現
   if(sayEl){if(t>=1.75&&!a.opened){const h=new THREE.Vector3(0,2.55,1.95);o.g.localToWorld(h);h.project(cam);
       sayEl.textContent=`嗨！我是${o.A.n}，帶你看看我的畫 🎨`;sayEl.style.left=(h.x+1)/2*innerWidth+'px';sayEl.style.top=(1-h.y)/2*innerHeight+'px';sayEl.hidden=false}else sayEl.hidden=true}
   if(t>=3.5&&!a.opened){a.opened=true;openRoom(OPEN[o.A.n])}}
 function resetAlive(){if(!alive)return;const o=alive.o;if(alive.burst&&alive.burst.m.parent)alive.burst.m.parent.remove(alive.burst.m);
-  o.M.visible=true;o.M.rotation.z=0;o.mc.emissive.setRGB(0,0,0);if(o.C){o.C.visible=false;o.C.rotation.x=0;o.C.scale.y=o.C.scale.x;const arm=o.C.userData.armR;if(arm)arm.rotation.z=0}
+  o.M.visible=true;o.M.rotation.z=0;o.mc.emissive.setRGB(0,0,0);if(o.C){o.C.visible=false;o.C.rotation.x=0;o.C.rotation.z=0;o.C.scale.y=o.C.scale.x;const arm=o.C.userData.armR;if(arm)arm.rotation.z=0;const u=o.C.userData;if(u.img){u.st.visible=true;u.wv.visible=false;u.sh.visible=false}}
   if(sayEl)sayEl.hidden=true;alive=null}
 
 function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTick(now/1000,dt);

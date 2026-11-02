@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261102c"></script>
+<script src="hall3d.js?v=20261102d"></script>
 <script>
-const ART_VER='20261102c';
+const ART_VER='20261102d';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1918,9 +1918,9 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   B.add(cyl(dim('#ebe4d4'),.76,.7,.14,0,ly+1,-.6,20));
   const cap=new THREE.Mesh(new THREE.SphereGeometry(.62,20,10,0,Math.PI*2,0,Math.PI/2),toon(dim('#6c757d')));cap.scale.y=.85;cap.position.set(0,ly+1.14,-.6);cap.castShadow=true;B.add(cap);
   B.add(cyl(dim('#5a6168'),.02,.13,.6,0,ly+1.6,-.6,8));B.add(ball(dim('#c8a45c'),.1,0,ly+2.25,-.6));B.add(box(dim('#ede3cc'),4.8,2.6,1.5,0,y,1.8));
-  for(let i=0;i<6;i++)col(-2.1+i*.84,3.1,y);B.add(box(dim('#e5dac3'),5.2,.34,2.2,0,y+2.36,2.2));
+  [-2.1,-.8,.8,2.1].forEach(x=>col(x,3.1,y));B.add(box(dim('#e5dac3'),5.2,.34,2.2,0,y+2.36,2.2));
   /* 2026-11-01 大熊：柱子中間掛展覽直布條（參考奇美博物館）。正中間留給大門，左右兩格各掛一幅；換展覽改 HALL_SHOW 就好 */
-  HALL_SHOW.pics.forEach((p,i)=>{const bx=[-1.68,-.84,.84,1.68][i];if(bx==null)return;
+  HALL_SHOW.pics.forEach((p,i)=>{const bx=[-1.7,-1.2,1.2,1.7][i];if(bx==null)return;
     const c=cvs(240,600),x=c.getContext('2d'),tx=new THREE.CanvasTexture(c);tx.anisotropy=4;
     const draw=img=>{x.fillStyle='#1c2233';x.fillRect(0,0,240,600);x.strokeStyle='#c9a45a';x.lineWidth=3;x.strokeRect(7,7,226,586);
       if(img)x.drawImage(img,18,22,204,357);x.textAlign='center';x.fillStyle='#d9b768';x.font='bold 72px "Noto Serif TC","Songti TC",serif';x.fillText(HALL_SHOW.title,120,470);
@@ -1930,7 +1930,24 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
     const rod=box('#3a3226',.48,.03,.03,bx,y+2.3,2.75);rod.userData.keep=1;B.add(rod)});
   B.add(prism('#e8dcc2',5.4,1.05,2.2,0,y+2.7,2.2));B.add(prism('#c0714a',3.6,.6,.05,0,y+2.86,3.32));
   /* 大門：聖誕夜晚是亮著的暖黃色 */
-  const door=new THREE.Mesh(new THREE.PlaneGeometry(1,1.6),XDECO?new THREE.MeshBasicMaterial({color:'#f6cf86'}):toon('#5d4632'));door.position.set(0,y+.8,2.57);door.userData.keep=1;B.add(door);
+  /* 2026-11-02 大熊：走近看像牆上一個洞、不像門 → 中間兩根柱子拉開，改拱形石框＋兩片打開的木門，門裡畫得到大廳深處 */
+  const DW=.48,DS=1.2,archS=(r,sh)=>{const s=new THREE.Shape();s.moveTo(-r,0);s.lineTo(r,0);s.lineTo(r,sh);s.absarc(0,sh,r,0,Math.PI,false);s.lineTo(-r,0);return s};
+  const ic=cvs(256,448),ix=ic.getContext('2d'),itx=new THREE.CanvasTexture(ic);
+  const paintIn=img=>{let gr=ix.createLinearGradient(0,0,0,448);gr.addColorStop(0,'#b98f58');gr.addColorStop(.55,'#f3d59a');gr.addColorStop(.72,'#c39a63');gr.addColorStop(1,'#7f5f3b');ix.fillStyle=gr;ix.fillRect(0,0,256,448);
+    ix.fillStyle='#5e4a35';ix.beginPath();ix.moveTo(82,322);ix.lineTo(82,190);ix.arc(128,190,46,Math.PI,0);ix.lineTo(174,322);ix.fill();   // 大廳深處的壁龕
+    gr=ix.createRadialGradient(128,230,8,128,230,80);gr.addColorStop(0,'rgba(255,228,170,.75)');gr.addColorStop(1,'rgba(255,228,170,0)');ix.fillStyle=gr;ix.fillRect(40,130,176,200);
+    if(img){const h=138,w=h*img.width/img.height;ix.drawImage(img,128-w/2,184,w,h)}
+    ix.strokeStyle='rgba(70,48,26,.4)';ix.lineWidth=2;for(let i=-4;i<=4;i++){ix.beginPath();ix.moveTo(128+i*17,322);ix.lineTo(128+i*72,448);ix.stroke()}for(let i=0;i<4;i++){const yy=322+i*i*10+i*8;ix.beginPath();ix.moveTo(0,yy);ix.lineTo(256,yy);ix.stroke()}
+    gr=ix.createLinearGradient(0,0,256,0);gr.addColorStop(0,'rgba(45,30,15,.6)');gr.addColorStop(.2,'rgba(45,30,15,0)');gr.addColorStop(.8,'rgba(45,30,15,0)');gr.addColorStop(1,'rgba(45,30,15,.6)');ix.fillStyle=gr;ix.fillRect(0,0,256,448);itx.needsUpdate=true};
+  paintIn();const iim=new Image();iim.onload=()=>paintIn(iim);iim.src='hall/statue/'+HALL_SHOW.dir+'.webp';
+  const ing=new THREE.ShapeGeometry(archS(DW,DS),16),iuv=ing.attributes.uv,ipos=ing.attributes.position;for(let i=0;i<ipos.count;i++)iuv.setXY(i,(ipos.getX(i)+DW)/(2*DW),ipos.getY(i)/(DS+DW));
+  const inside=new THREE.Mesh(ing,new THREE.MeshBasicMaterial({map:itx}));inside.position.set(0,y,2.565);inside.userData.keep=1;B.add(inside);
+  const frS=archS(DW+.13,DS);frS.holes.push(archS(DW,DS));const frame=new THREE.Mesh(new THREE.ExtrudeGeometry(frS,{depth:.12,bevelEnabled:false,curveSegments:16}),toon(dim('#f6efdf')));frame.position.set(0,y,2.55);frame.castShadow=true;B.add(frame);
+  B.add(box(dim('#e2d6bc'),.2,.24,.17,0,y+DS+DW-.06,2.62));B.add(box(dim('#e2d6bc'),DW*2+.5,.05,.42,0,y-.02,2.74));   // 拱心石、門檻
+  [1,-1].forEach(sd=>{const lf=new THREE.Shape();lf.moveTo(0,0);lf.lineTo(DW,0);lf.lineTo(DW,DS+DW);lf.absarc(DW,DS,DW,Math.PI/2,Math.PI,false);lf.lineTo(0,0);
+    const h=new THREE.Group(),ld=new THREE.Mesh(new THREE.ExtrudeGeometry(lf,{depth:.035,bevelEnabled:false,curveSegments:10}),toon(dim('#6e4427')));ld.material=ld.material.clone();ld.material.side=THREE.DoubleSide;ld.castShadow=true;h.add(ld);
+    [[.3,.5],[.92,.5]].forEach(([yy,hh])=>{h.add(box(dim('#59361e'),.32,hh,.05,DW/2,yy-.02,.02))});const ring=new THREE.Mesh(new THREE.TorusGeometry(.035,.009,6,14),toon('#d3ab55'));ring.position.set(DW-.07,.84,.05);ring.userData.keep=1;h.add(ring);
+    h.rotation.y=-1.2;const w=new THREE.Group();w.position.set(-DW*sd,y,2.62);w.scale.x=sd;w.add(h);B.add(w)});
   if(XDECO){const lt=new THREE.PointLight('#ffc978',.9,7,2);lt.position.set(0,y+1.2,3.4);B.add(lt)}
   /* 門口小路＋兩尊大理石雕像（大熊嫌「藝術殿堂」招牌不好看 → 拿掉，改雕像）：一手托調色盤、外側的手高舉畫筆，左邊那尊是右邊的鏡射 */
   g.add(box(dim('#d8c9a6'),1.1,.03,2.2,0,0,R-1.3));
