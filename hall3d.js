@@ -5,7 +5,7 @@
    用到 art.html 的：renderer、makeArtist、hallStatue、ARTISTS、XFIGS、picks、lam、toon、cvs、toast、LOWMEM */
 (function(){
 const OPEN={'梵谷':'vangogh'};
-const EPN={'梵谷':11};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
+const EPN={'梵谷':4};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const WALL={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'};   // 壁龕背景的代表作（hall/wall/，維基共享資源公有領域）：星夜、睡蓮、吻、夜巡、蒙娜麗莎、神奈川沖浪裏
 const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
 const SIMG={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'},SIMG_H=2.2,CIMG=SIMG;   // 2026-11-02 大熊：雕像改用 GPT 生的石雕去背圖（hall/statue/），比 3D 公仔換色更像雕像；還沒給圖的照舊用 3D
@@ -192,7 +192,7 @@ function tap(e){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/i
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261102e&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261102f&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}
