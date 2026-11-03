@@ -284,11 +284,11 @@ const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String
 const au=new Audio();au.preload='none';let list=[],cur=-1,stops=[],curStop=-1,openN=0;
 /* 片頭：每集從頭播時先放這段再接故事（2026-11-02 大熊選 Paris Jazz Cafe 前 8 秒，所有集數共用；接著上次聽不會重放）。音量已跟語音對齊、尾巴淡出做在檔案裡。載入失敗就直接進故事 */
 const INTRO='../artist-audio/intro-paris.m4a';let introOn=false;
-/* 片尾：2026-11-03 大熊覺得語音講完突然沒聲音，像沒講完 → 故事播完接同一段音樂慢慢淡出。自動接下一集時下一集就不再放片頭（兩段同樣的音樂連著很怪）。載入失敗就直接往下走 */
-const OUTRO='../artist-audio/outro-paris.m4a';let outroOn=false,noIntro=false;
+/* 片尾：2026-11-03 大熊覺得語音講完突然沒聲音，像沒講完 → 故事播完接同一段音樂短短淡出（約 6 秒），每集前後都有音樂，自動接下一集也照放片頭。載入失敗就直接往下走 */
+const OUTRO='../artist-audio/outro-paris.m4a';let outroOn=false;
 function endOutro(){if(!outroOn)return;outroOn=false;au.pause();afterStory()}
 function endIntro(){if(!introOn)return;introOn=false;const it=list[cur];if(!it)return;au.src=it.src;const p=au.play();if(p&&p.catch)p.catch(()=>{});lookDock()}
-function playIdx(i){const it=list[i];if(!it)return;cur=i;outroOn=false;if(au.dataset.src!==it.src){au.dataset.src=it.src;if(noIntro){introOn=false;au.src=it.src}else{introOn=true;au.src=INTRO}}noIntro=false;
+function playIdx(i){const it=list[i];if(!it)return;cur=i;outroOn=false;if(au.dataset.src!==it.src){introOn=true;au.src=INTRO;au.dataset.src=it.src}
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
   $('goon').hidden=true;document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:(ROOM&&ROOM.n)||'',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
@@ -303,7 +303,7 @@ au.onended=()=>{if(introOn)return endIntro();if(outroOn)return endOutro();const 
     $('goon').onclick=()=>{showStop(0,1);playIdx(s.w._i)}}
   outroOn=true;au.dataset.src='';au.src=OUTRO;const p=au.play();if(p&&p.catch)p.catch(()=>{});lookDock()};
 function afterStory(){const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();return}
-  if(cur+1<list.length){noIntro=true;playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}}
+  if(cur+1<list.length){playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}}
 au.onerror=()=>{if(introOn)return endIntro();if(outroOn)return endOutro();$('dTm').textContent='語音載入失敗，請稍後再試'};
 $('dB').onclick=()=>{if(au.paused){if(!au.dataset.src&&!outroOn)return playIdx(cur);const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
 let seeking=false;const seekX=x=>{if(introOn)return endIntro();if(outroOn)return endOutro();const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
