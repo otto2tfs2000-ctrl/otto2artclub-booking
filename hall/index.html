@@ -6,12 +6,12 @@
 <style>
 /* 2026-10-31 藝術殿堂的展間：從 3D 大廳點雕像進來（art.html hall3d.js 用 iframe 蓋一層），按「回大廳」postMessage('closeHall')
    第二版（大熊選「展牆式」）：深色展牆＋真跡大圖（打燈）＋美術館小標籤＋每幅畫一集語音＋觀察小提示；底部常駐播放條，往下滑聲音不斷 */
-:root{--wall:#284a4d;--wall2:rgba(22,48,54,.5);--ink:#fdfaf3;--ink2:#e2ebe9;--gold:#c9a24f;--gold2:#ffe2a0;--label:#f4eedf;--labelInk:#2f2a22;--accent:#c07a45;
+:root{--wall:#284a4d;--pn:22,48,54;--sh:14,26,28;--bar:30,58,61;--wall2:rgba(var(--pn),.5);--ink:#fdfaf3;--ink2:#e2ebe9;--gold:#c9a24f;--gold2:#ffe2a0;--label:#f4eedf;--labelInk:#2f2a22;--accent:#c07a45;
   --serif:"Noto Serif TC","Songti TC",serif;--sans:"Noto Sans TC","PingFang TC",system-ui,sans-serif}
 *{box-sizing:border-box;margin:0}
 html,body{min-height:100%;background:var(--wall) repeat;background-size:512px 512px;color:var(--ink);font-family:var(--sans);-webkit-tap-highlight-color:transparent}
 body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
-.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:rgba(30,58,61,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,162,79,.18)}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:rgba(var(--bar),.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,162,79,.18)}
 .bar button{font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid rgba(201,162,79,.45);background:transparent;color:var(--ink);cursor:pointer}
 .bar b{flex:1;text-align:center;font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.14em}
 .bar i{width:92px}
@@ -29,39 +29,39 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 /* 展間入口 */
 .entry{padding:34px 0 26px;text-align:center}
 .entry small{font-size:12px;letter-spacing:.3em;color:var(--gold2)}
-.entry,.period,.txt{text-shadow:0 1px 3px rgba(20,45,50,.55)}
+.entry,.period,.txt{text-shadow:0 1px 3px rgba(var(--sh),.55)}
 .entry h1{font-family:var(--serif);font-weight:600;font-size:38px;letter-spacing:.24em;margin:8px 0 4px}
 .entry .en{font-size:13px;letter-spacing:.12em;color:var(--ink2)}
 .entry p{font-size:14.5px;line-height:1.85;color:var(--ink);margin:16px auto 0;max-width:30em}
 /* 2026-11-01 大熊：展間先看卡片總覽（一面牆一幅畫），點卡片翻到那一站，左右滑換站；舊的收合「講堂大綱」拿掉 */
-.ovh{padding:30px 2px 18px;text-shadow:0 1px 3px rgba(20,45,50,.55)}
+.ovh{padding:30px 2px 18px;text-shadow:0 1px 3px rgba(var(--sh),.55)}
 .ovh small{font-size:12.5px;letter-spacing:.32em;color:var(--gold2)}
 .ovh h1{font-family:var(--serif);font-weight:600;font-size:31px;line-height:1.35;letter-spacing:.04em;margin:10px 0 8px}.ovh h1 span{color:#e3c27a}
 .ovh p{font-size:13px;color:var(--ink2)}
-.card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;border:0;padding:12px 13px;border-radius:12px;overflow:hidden;background:#1d3a3d center/cover no-repeat;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.28)}
-.card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,26,28,0) 25%,rgba(14,26,28,.82))}
+.card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;border:0;padding:12px 13px;border-radius:12px;overflow:hidden;background:rgb(var(--bar)) center/cover no-repeat;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(var(--sh),0) 25%,rgba(var(--sh),.82))}
 .card>*{position:relative}
 .card em{font-style:normal;font-size:11px;letter-spacing:.08em;color:var(--gold2)}
 .card b{font-family:var(--serif);font-weight:600;font-size:15.5px;line-height:1.35;margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
-.card i{position:absolute;top:9px;right:9px;font-style:normal;font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(14,26,28,.6);color:var(--ink2)}
+.card i{position:absolute;top:9px;right:9px;font-style:normal;font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(var(--sh),.6);color:var(--ink2)}
 .card.on{box-shadow:0 0 0 2px var(--gold2),0 6px 16px rgba(0,0,0,.28)}
 .gcard{aspect-ratio:2.1/1;margin-bottom:12px;padding:16px;background-position:50% 30%}
 .gcard em{font-size:12px}.gcard b{font-size:21px}.gcard span{font-size:12.5px;color:var(--ink2);margin-top:4px}
 .gcard u{position:absolute;right:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#2a2112;display:grid;place-items:center;font-size:19px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cards .card{aspect-ratio:3/2}
 .sph{margin:22px 0 10px;font-size:13px;letter-spacing:.14em;color:var(--gold2)}
-.cards.sp{grid-template-columns:repeat(3,1fr);gap:8px}.cards.sp .card{aspect-ratio:auto;min-height:92px;padding:10px;background:rgba(22,48,54,.6);border:1px solid rgba(201,162,79,.35);box-shadow:none}
+.cards.sp{grid-template-columns:repeat(3,1fr);gap:8px}.cards.sp .card{aspect-ratio:auto;min-height:92px;padding:10px;background:rgba(var(--pn),.6);border:1px solid rgba(201,162,79,.35);box-shadow:none}
 .cards.sp .card::before{display:none}.cards.sp .card b{font-size:13.5px}
 .card.lock{filter:grayscale(.75) brightness(.62)}.card.lock i{background:none;font-size:14px;padding:0}
-.lockt{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:12;padding:10px 18px;border-radius:999px;background:rgba(14,26,28,.92);border:1px solid rgba(201,162,79,.5);color:var(--ink);font-size:14px;white-space:nowrap}
+.lockt{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:12;padding:10px 18px;border-radius:999px;background:rgba(var(--sh),.92);border:1px solid rgba(201,162,79,.5);color:var(--ink);font-size:14px;white-space:nowrap}
 /* 一站一頁 */
 .pgr{display:flex;align-items:center;gap:8px;padding:14px 0 0}
-.pgr button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,162,79,.45);background:rgba(22,48,54,.5);color:var(--ink);font-size:17px;cursor:pointer}.pgr button:disabled{opacity:.3}
+.pgr button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,162,79,.45);background:rgba(var(--pn),.5);color:var(--ink);font-size:17px;cursor:pointer}.pgr button:disabled{opacity:.3}
 .pgr div{flex:1;text-align:center}.pgr b{display:block;font-size:12.5px;font-weight:500;color:var(--gold2);letter-spacing:.06em}
 .dots{display:flex;justify-content:center;gap:5px;margin-top:6px}.dots s{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22)}.dots s.on{background:var(--gold2);width:16px;border-radius:3px}
 .stp.in-l{animation:inL .32s ease}.stp.in-r{animation:inR .32s ease}
 @keyframes inL{from{opacity:0;transform:translateX(36px)}}@keyframes inR{from{opacity:0;transform:translateX(-36px)}}
-.nxt{display:flex;align-items:center;gap:12px;width:100%;margin:26px 0 6px;padding:12px;border-radius:14px;border:1px solid rgba(201,162,79,.45);background:rgba(22,48,54,.55);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nxt{display:flex;align-items:center;gap:12px;width:100%;margin:26px 0 6px;padding:12px;border-radius:14px;border:1px solid rgba(201,162,79,.45);background:rgba(var(--pn),.55);color:inherit;font:inherit;text-align:left;cursor:pointer}
 .nxt img{flex:none;width:64px;height:48px;object-fit:cover;border-radius:8px}.nxt div{flex:1}.nxt small{font-size:11.5px;color:var(--gold2)}.nxt b{display:block;font-family:var(--serif);font-size:16px}.nxt i{font-style:normal;font-size:20px;color:var(--gold2)}
 .bar .ovb{width:92px;padding:8px 0}
 .goon{position:fixed;left:16px;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9;max-width:588px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;border:0;background:var(--gold);color:#2a2112;font:500 14.5px var(--sans);text-align:left;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.45);animation:inR .3s ease}
@@ -85,7 +85,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .ep.soon{cursor:default;opacity:.6}.ep.soon .pb{background:rgba(255,255,255,.12);color:var(--ink2)}
 .ep.on{border-color:var(--gold);background:rgba(40,36,24,.7)}
 .txt{font-size:15px;line-height:1.9;margin-top:14px}
-.tip{margin-top:14px;padding:12px 14px;border-left:3px solid var(--gold);background:rgba(22,48,54,.45);border-radius:0 10px 10px 0;font-size:14px;line-height:1.75}
+.tip{margin-top:14px;padding:12px 14px;border-left:3px solid var(--gold);background:rgba(var(--pn),.45);border-radius:0 10px 10px 0;font-size:14px;line-height:1.75}
 .tip b{color:var(--gold2);font-weight:500}
 .pair{display:flex;gap:10px;align-items:flex-start;padding:24px 0 6px;margin:0 -6px}
 .pair figure{flex:1;min-width:0;margin:0}
@@ -94,13 +94,13 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .pair figcaption b{display:block;color:var(--ink);font-family:var(--serif);font-size:14px;font-weight:600}
 .pair figcaption em{display:inline-block;font-style:normal;font-size:10.5px;letter-spacing:1px;color:#2a2112;background:var(--gold2);border-radius:8px;padding:0 7px;margin-bottom:4px}
 .pairh{font-family:var(--serif);font-size:17px;text-align:center;margin-top:26px;color:var(--gold2)}
-.spc{margin:14px 0 0;padding:16px;border:1px solid rgba(201,162,79,.3);border-radius:14px;background:rgba(22,48,54,.35)}
+.spc{margin:14px 0 0;padding:16px;border:1px solid rgba(201,162,79,.3);border-radius:14px;background:rgba(var(--pn),.35)}
 .spc>b{display:block;font-family:var(--serif);font-size:17px}
 .spc .txt{font-size:14px;line-height:1.8;margin-top:8px}
 .ghost{margin:6px 0 0;padding:16px;border:1px dashed rgba(201,162,79,.3);border-radius:14px;color:var(--ink2);font-size:13.5px;line-height:1.75;text-align:center}
 .ghost b{display:block;color:var(--ink);font-family:var(--serif);font-size:16px;margin-bottom:4px}
 /* 底部常駐播放條 */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(24,48,51,.97);border-top:1px solid rgba(201,162,79,.3);transform:translateY(110%);transition:transform .3s ease}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(var(--bar),.97);border-top:1px solid rgba(201,162,79,.3);transform:translateY(110%);transition:transform .3s ease}
 .dock.show{transform:none}
 .dock .in{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:8px}
 .dock button{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--gold);color:#2a2112;font-size:16px;cursor:pointer}
@@ -117,7 +117,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .zoom img{max-width:100%;max-height:100%}
 .zoom.big{display:block}.zoom.big img{max-width:none;max-height:none;width:260%}
 .zoom p{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;font-size:12.5px;color:#9b917f;pointer-events:none}
-.credit{margin:30px 0 10px;font-size:11.5px;color:#d6e3e1;text-align:center;line-height:1.7}
+.credit{margin:30px 0 10px;font-size:11.5px;color:var(--ink2);text-align:center;line-height:1.7}
 [hidden]{display:none!important}
 </style></head><body>
 <div class="bar"><button type="button" id="back">← 回作品小屋</button><b id="barT">畫框背後</b><i id="barR"></i><button type="button" class="ovb" id="ovB" hidden>☰ 總覽</button></div>
@@ -245,13 +245,36 @@ monet:{n:'莫內',en:'Claude Monet・1840–1926',
    {yr:'快問快答',n:'冷知識・關於莫內的五題',works:[
      {ep:'EP12',t:'莫內切畫抵房租',et:'莫內切畫抵房租',audio:'../artist-audio/monet-ep12.m4a',dur:'4:10',txt:'四分鐘五題：印象派是稱讚還是嘲笑？他拜託站長做什麼？那張大畫為什麼被切開？橘園的天空在哪裡？葬禮上的黑布後來怎麼了？'}]}],
   credit:'畫作皆為公有領域：瑪摩丹莫內美術館、華盛頓國家藝廊、奧塞美術館、芝加哥藝術博物館、紐約大都會藝術博物館，取自維基共享資源；橘園展廳照片：Sailko（CC BY-SA 3.0）'}};
-/* 大熊：背景不要黑，要藍綠色、有筆觸 → 畫一張梵谷式短筆觸的貼圖鋪滿（顏色只差一點點，字才看得清楚） */
-(function(){const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle='#284a4d';x.fillRect(0,0,S,S);   // 大熊：亮色卡那版太亂 → 回到偏暗的藍綠，只比第一版亮一點；筆觸顏色貼近底色，不搶畫
-  const C=['#2c5054','#244549','#2f5458','#264a50','#2a4d50','#305659'];x.lineCap='round';let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
-  for(let i=0;i<1700;i++){const px=r()*S,py=r()*S,a=Math.sin(px*.012+py*.004)*1.6+Math.cos(py*.011)*1.1,L=14+r()*18;   // 筆觸方向跟著一個緩緩旋轉的流場，像星夜的天空
-    for(const [dx,dy] of [[0,0],[S,0],[-S,0],[0,S],[0,-S]]){x.strokeStyle=C[i%C.length];x.globalAlpha=.45+r()*.3;x.lineWidth=4+r()*4;x.beginPath();
-      x.moveTo(px+dx,py+dy);x.quadraticCurveTo(px+dx+Math.cos(a)*L*.5+Math.cos(a+1.57)*3,py+dy+Math.sin(a)*L*.5+Math.sin(a+1.57)*3,px+dx+Math.cos(a)*L,py+dy+Math.sin(a)*L);x.stroke()}}
-  x.globalAlpha=1;try{document.documentElement.style.backgroundImage=document.body.style.backgroundImage='url('+c.toDataURL('image/jpeg',.82)+')'}catch(e){}})();
+/* 2026-11-03 大熊：每位藝術家的展間要有自己的底色，一看就知道是誰，但都要偏暗、不搶畫 → 底色＋一種筆法畫成貼圖鋪滿（顏色只差一點點，字才看得清楚）；面板、上下列的深色都從底色算出來。?theme=monet 可以用別人的展間試色 */
+const THEMES={vangogh:{wall:'#284a4d',st:'swirl'},   // 星夜藍綠，旋轉的短筆觸
+  monet:{wall:'#3b4558',st:'brush',ang:()=>(Math.random()-.5)*.35},   // 《印象・日出》的霧，藍帶點紫；一筆一筆看得到刷毛的橫向油畫筆觸
+  klimt:{wall:'#4a3a17',st:'mosaic',acc:['#5f4c1d','#3d3013']},   // 《吻》的暗金，方塊和圓點的鑲嵌
+  rembrandt:{wall:'#33251c',st:'smoke'},   // 夜巡的暖黑褐，一團團暗光
+  davinci:{wall:'#4a2229',st:'hatch'},   // 文藝復興酒紅，手稿的斜線排線
+  hokusai:{wall:'#1f3358',st:'wave'}};   // 北齋的普魯士藍，青海波
+let wallNow='';
+function paintWall(id){const pv=new URLSearchParams(location.search).get('theme');id=THEMES[pv]?pv:THEMES[id]?id:'vangogh';if(id===wallNow)return;wallNow=id;const T=THEMES[id];
+  const rgb=[1,3,5].map(i=>parseInt(T.wall.slice(i,i+2),16)),mix=(k,t=0)=>rgb.map(v=>Math.round(v*k+t)).join(','),rs=document.documentElement.style;
+  rs.setProperty('--wall',T.wall);rs.setProperty('--pn',mix(.56));rs.setProperty('--sh',mix(.34));rs.setProperty('--bar',mix(.74));rs.setProperty('--ink2',mix(.12,224));
+  const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle=T.wall;x.fillRect(0,0,S,S);
+  const C=[1.08,.93,1.14,.97,1.04,1.17].map(k=>`rgb(${mix(k)})`);x.lineCap='round';let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647,pick=i=>T.acc&&r()<.07?T.acc[i%T.acc.length]:C[i%C.length];
+  const tile=f=>{for(const [dx,dy] of [[0,0],[S,0],[-S,0],[0,S],[0,-S]])f(dx,dy)};   // 貼邊的也畫到對面，鋪滿才看不出接縫
+  if(T.st==='swirl')for(let i=0;i<1700;i++){const px=r()*S,py=r()*S,a=Math.sin(px*.012+py*.004)*1.6+Math.cos(py*.011)*1.1,L=14+r()*18;   // 筆觸方向跟著一個緩緩旋轉的流場，像星夜的天空
+    tile((dx,dy)=>{x.strokeStyle=C[i%C.length];x.globalAlpha=.45+r()*.3;x.lineWidth=4+r()*4;x.beginPath();x.moveTo(px+dx,py+dy);x.quadraticCurveTo(px+dx+Math.cos(a)*L*.5+Math.cos(a+1.57)*3,py+dy+Math.sin(a)*L*.5+Math.sin(a+1.57)*3,px+dx+Math.cos(a)*L,py+dy+Math.sin(a)*L);x.stroke()})}
+  if(T.st==='brush')for(let i=0;i<520;i++){const px=r()*S,py=r()*S,a=T.ang(px,py),L=26+r()*38,w=9+r()*9,col=C[i%C.length],ca=Math.cos(a),sa=Math.sin(a),n=Math.round(w/2.2),off=[...Array(n)].map(()=>[r()*6-3,r()*.3+.12,C[Math.floor(r()*C.length)]]);   // 一筆＝底色一道＋幾條刷毛線，有油畫的紋路
+    tile((dx,dy)=>{x.strokeStyle=col;x.globalAlpha=.5;x.lineWidth=w;x.beginPath();x.moveTo(px+dx,py+dy);x.lineTo(px+dx+ca*L,py+dy+sa*L);x.stroke();x.lineWidth=1.4;
+      off.forEach((o,k)=>{const t=(k+.5)/n*w-w/2;x.strokeStyle=o[2];x.globalAlpha=o[1]+.25;x.beginPath();x.moveTo(px+dx-sa*t+ca*o[0],py+dy+ca*t+sa*o[0]);x.lineTo(px+dx-sa*t+ca*(L+o[0]),py+dy+ca*t+sa*(L+o[0]));x.stroke()})})}
+  if(T.st==='mosaic')for(let i=0;i<620;i++){const px=r()*S,py=r()*S,w=7+r()*17,h=7+r()*17,round=r()<.25,col=pick(i);
+    tile((dx,dy)=>{x.fillStyle=col;x.globalAlpha=.55;x.beginPath();if(round)x.arc(px+dx,py+dy,w/2,0,7);else x.rect(px+dx,py+dy,w,h);x.fill()})}
+  if(T.st==='smoke')for(let i=0;i<70;i++){const px=r()*S,py=r()*S,R=50+r()*90,col=C[i%C.length];
+    tile((dx,dy)=>{const g=x.createRadialGradient(px+dx,py+dy,0,px+dx,py+dy,R);g.addColorStop(0,col);g.addColorStop(1,T.wall+'00');x.fillStyle=g;x.globalAlpha=.4;x.fillRect(px+dx-R,py+dy-R,R*2,R*2)})}
+  if(T.st==='hatch')for(let i=0;i<1300;i++){const px=r()*S,py=r()*S,L=12+r()*20,col=C[i%C.length];
+    tile((dx,dy)=>{x.strokeStyle=col;x.globalAlpha=.6;x.lineWidth=1.5;x.beginPath();x.moveTo(px+dx,py+dy);x.lineTo(px+dx+L*.7,py+dy+L*.7);x.stroke()})}
+  if(T.st==='wave'){const W=64,H=32;x.lineWidth=2;x.lineCap='butt';for(let row=-1;row<=S/H+2;row++)for(let k=-1;k<=S/W+1;k++){const cx=k*W+(row%2?W/2:0),cy=row*H;   // 青海波一層層疊：先蓋掉下面那排再畫同心圓
+      x.globalAlpha=1;x.fillStyle=T.wall;x.beginPath();x.arc(cx,cy,W/2,Math.PI,0);x.fill();
+      [W/2,W/2-7,W/2-14,W/2-21].forEach((rad,n)=>{x.strokeStyle=C[n*2%C.length];x.globalAlpha=.8;x.beginPath();x.arc(cx,cy,rad,Math.PI,0);x.stroke()})}}
+  x.globalAlpha=1;try{const u='url('+c.toDataURL('image/jpeg',.82)+')';rs.backgroundImage=document.body.style.backgroundImage=u}catch(e){}}
+paintWall(new URLSearchParams(location.search).get('room'));
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const post=m=>{try{parent.postMessage(m,'*')}catch(e){}};
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -295,7 +318,7 @@ function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=
 function home(){stopAudio();$('room').hidden=true;$('ovB').hidden=true;$('barR').hidden=false;$('goon').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
-function openRoom(id){const R=ROOMS[id];if(!R)return;let staff=false;try{staff=!!parent.HALL_STAFF}catch(e){}const free=staff?null:FREE_EPS;   // 工作人員（作品小屋 /island/me 認出來的）不受上鎖限制
+function openRoom(id){const R=ROOMS[id];if(!R)return;paintWall(id);let staff=false;try{staff=!!parent.HALL_STAFF}catch(e){}const free=staff?null:FREE_EPS;   // 工作人員（作品小屋 /island/me 認出來的）不受上鎖限制
   $('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
   hlRoom=id;hlLog('enter',0);if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1,ep:'guide'});
   /* 一站＝一集（有 ep 的那面牆）＋後面跟著的對照牆（例如浮世繪三組）；list 照站的順序排，播完自動接 */
