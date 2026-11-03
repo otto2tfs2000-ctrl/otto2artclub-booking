@@ -113,10 +113,12 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .dock .pg i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:var(--gold)}
 .dock .tm{font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
 /* 全螢幕看畫 */
-.zoom{position:fixed;inset:0;z-index:20;background:#0d0c0b;overflow:auto;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.zoom{position:fixed;inset:0;z-index:20;background:#0d0c0b;overflow:auto;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 .zoom img{max-width:100%;max-height:100%}
 .zoom.big{display:block}.zoom.big img{max-width:none;max-height:none;width:260%}
-.zoom p{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;font-size:12.5px;color:#9b917f;pointer-events:none}
+.zoom .zbar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));text-align:center;background:linear-gradient(transparent,#0d0c0b 30%);pointer-events:none}
+.zoom .zbar p{font-size:16px;line-height:1.4;color:#e8dfcd;margin-bottom:10px}
+.zoom .zbar button{pointer-events:auto;min-height:44px;padding:0 26px;border-radius:999px;border:1px solid #c9a24f;background:#c9a24f;color:#1a1612;font:600 16px/1 inherit;font-family:inherit;cursor:pointer}
 .credit{margin:30px 0 10px;font-size:11.5px;color:var(--ink2);text-align:center;line-height:1.7}
 [hidden]{display:none!important}
 </style></head><body>
@@ -131,7 +133,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   <section id="room" hidden></section>
 </div>
 <div class="dock" id="dock"><div class="in"><button type="button" class="sk" id="dRw" aria-label="倒退 15 秒">↺15</button><button type="button" id="dB" aria-label="播放">▶</button><button type="button" class="sk" id="dFf" aria-label="快轉 15 秒">15↻</button><div class="st"><b id="dT"></b><div class="pg" id="dPg"><i id="dFill"></i><u id="dKnob"></u></div><div class="tm" id="dTm"></div></div><button type="button" id="dN" aria-label="下一集" style="background:transparent;color:var(--ink);border:1px solid rgba(201,162,79,.45)">⏭</button></div></div>
-<div class="zoom" id="zoom" hidden><img id="zImg" alt=""><p>點兩下放大看筆觸・點一下關閉</p></div>
+<div class="zoom" id="zoom" hidden><img id="zImg" alt=""><div class="zbar"><p>點兩下放大看筆觸・點一下關閉</p><button type="button" id="zBack">‹ 回講堂</button></div></div>
 <script>
 const ARTISTS=[
   {id:'vangogh',n:'梵谷',sub:'後印象派・荷蘭',open:true},
@@ -282,38 +284,45 @@ const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String
 const au=new Audio();au.preload='none';let list=[],cur=-1,stops=[],curStop=-1,openN=0;
 /* 片頭：每集從頭播時先放這段再接故事（2026-11-02 大熊選 Paris Jazz Cafe 前 8 秒，所有集數共用；接著上次聽不會重放）。音量已跟語音對齊、尾巴淡出做在檔案裡。載入失敗就直接進故事 */
 const INTRO='../artist-audio/intro-paris.m4a';let introOn=false;
+/* 片尾：2026-11-03 大熊覺得語音講完突然沒聲音，像沒講完 → 故事播完接同一段音樂慢慢淡出。自動接下一集時下一集就不再放片頭（兩段同樣的音樂連著很怪）。載入失敗就直接往下走 */
+const OUTRO='../artist-audio/outro-paris.m4a';let outroOn=false,noIntro=false;
+function endOutro(){if(!outroOn)return;outroOn=false;au.pause();afterStory()}
 function endIntro(){if(!introOn)return;introOn=false;const it=list[cur];if(!it)return;au.src=it.src;const p=au.play();if(p&&p.catch)p.catch(()=>{});lookDock()}
-function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){introOn=true;au.src=INTRO;au.dataset.src=it.src}
+function playIdx(i){const it=list[i];if(!it)return;cur=i;outroOn=false;if(au.dataset.src!==it.src){au.dataset.src=it.src;if(noIntro){introOn=false;au.src=it.src}else{introOn=true;au.src=INTRO}}noIntro=false;
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
   $('goon').hidden=true;document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:(ROOM&&ROOM.n)||'',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
-function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=introOn?'♪ 片頭音樂・點進度條略過':d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
+function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=introOn?'♪ 片頭音樂・點進度條略過':outroOn?'♪ 片尾音樂・點進度條略過':!au.dataset.src?'播完了':d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
   $('dN').disabled=cur>=list.length-1;$('dN').style.opacity=cur>=list.length-1?.35:1;
   document.querySelectorAll('.ep').forEach(b=>{const on=b.dataset.i==String(cur)&&!au.paused;const pb=b.querySelector('.pb');if(pb&&!b.classList.contains('soon'))pb.textContent=on?'❚❚':'▶'});
   const gp=document.querySelector('.gcard u');if(gp)gp.textContent=cur===0&&!au.paused?'❚❚':'▶'}
-au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{if(!(introOn&&au.ended))post({hallAudio:0});lookDock()};
+au.ontimeupdate=au.onloadedmetadata=lookDock;au.onplay=()=>{post({hallAudio:1});lookDock()};au.onpause=()=>{if(!au.ended)post({hallAudio:0});lookDock()};
 /* 總導覽播完不自動接：跳出「下一站」按鈕，點了翻到第一站並播 EP01（接大熊開場最後那句「第一站，荷蘭」）。一般集數播完自動接下一集，人在展牆就跟著翻頁 */
-au.onended=()=>{if(introOn)return endIntro();const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();const s=stops[0];$('goon').innerHTML=`<span>🎨 下一站：${esc(s.pl)}《${esc(s.w.t)}》</span><b>出發 →</b>`;$('goon').hidden=false;
-    $('goon').onclick=()=>{showStop(0,1);playIdx(s.w._i)};return}
-  if(cur+1<list.length){playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}};au.onerror=()=>{if(introOn)return endIntro();$('dTm').textContent='語音載入失敗，請稍後再試'};
-$('dB').onclick=()=>{if(au.paused){const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
-let seeking=false;const seekX=x=>{if(introOn)return endIntro();const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
+au.onended=()=>{if(introOn)return endIntro();if(outroOn)return endOutro();const it=list[cur];if(it&&it.guide&&stops.length){const s=stops[0];$('goon').innerHTML=`<span>🎨 下一站：${esc(s.pl)}《${esc(s.w.t)}》</span><b>出發 →</b>`;$('goon').hidden=false;
+    $('goon').onclick=()=>{showStop(0,1);playIdx(s.w._i)}}
+  outroOn=true;au.dataset.src='';au.src=OUTRO;const p=au.play();if(p&&p.catch)p.catch(()=>{});lookDock()};
+function afterStory(){const it=list[cur];if(it&&it.guide&&stops.length){post({hallAudio:0});lookDock();return}
+  if(cur+1<list.length){noIntro=true;playIdx(cur+1);const k=list[cur].k;if(!$('st').hidden&&k!=null&&k!==curStop)showStop(k,1)}else{post({hallAudio:0});lookDock()}}
+au.onerror=()=>{if(introOn)return endIntro();if(outroOn)return endOutro();$('dTm').textContent='語音載入失敗，請稍後再試'};
+$('dB').onclick=()=>{if(au.paused){if(!au.dataset.src&&!outroOn)return playIdx(cur);const p=au.play();if(p&&p.catch)p.catch(()=>{})}else au.pause()};$('dN').onclick=()=>playIdx(cur+1);
+let seeking=false;const seekX=x=>{if(introOn)return endIntro();if(outroOn)return endOutro();const d=au.duration;if(!d)return;const r=$('dPg').getBoundingClientRect();au.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*d;lookDock()};
 $('dPg').onpointerdown=e=>{seeking=true;try{$('dPg').setPointerCapture(e.pointerId)}catch(_){}seekX(e.clientX)};
 $('dPg').onpointermove=e=>{if(seeking)seekX(e.clientX)};$('dPg').onpointerup=$('dPg').onpointercancel=()=>{seeking=false};
-const skip=t=>{if(introOn){if(t>0)endIntro();return}const d=au.duration;if(!d)return;au.currentTime=Math.min(d-.5,Math.max(0,au.currentTime+t));lookDock()};
+const skip=t=>{if(introOn){if(t>0)endIntro();return}if(outroOn){if(t>0)endOutro();return}const d=au.duration;if(!d)return;au.currentTime=Math.min(d-.5,Math.max(0,au.currentTime+t));lookDock()};
 $('dRw').onclick=()=>skip(-15);$('dFf').onclick=()=>skip(15);
-if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(introOn)return endIntro();if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(introOn)return endIntro();if(outroOn)return endOutro();if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
 function stopAudio(){au.pause();post({hallAudio:0})}
-/* 2026-11-03 收聽紀錄：真的聽滿 3 秒才算開始；整集切成 20 段，實際播過幾段就是聽了幾 %（拖進度條跳過的不算），到 25／50／75／90% 各回報一次，90% 算聽完。片頭音樂不算。進度留在這支手機，分兩次聽完也算 */
+/* 2026-11-03 收聽紀錄：真的聽滿 3 秒才算開始；整集切成 20 段，實際播過幾段就是聽了幾 %（拖進度條跳過的不算），到 25／50／75／90% 各回報一次，90% 算聽完。片頭片尾音樂不算。進度留在這支手機，分兩次聽完也算 */
 let hlRoom='',hlT=0,hlSaved=0,hlHeard={},hlSec={};try{hlHeard=JSON.parse(localStorage.getItem('otto2-hall-heard')||'{}')||{}}catch(e){}
 const hlLog=(ep,pct)=>{try{if(parent!==window&&parent.hallLog)parent.hallLog(hlRoom,ep,pct)}catch(e){}};
-au.addEventListener('timeupdate',()=>{const t=au.currentTime,dt=t-hlT;hlT=t;const it=list[cur],d=au.duration;if(introOn||au.paused||!it||!it.ep||!d||!isFinite(d)||dt<=0||dt>2)return;
+au.addEventListener('timeupdate',()=>{const t=au.currentTime,dt=t-hlT;hlT=t;const it=list[cur],d=au.duration;if(introOn||outroOn||au.paused||!it||!it.ep||!d||!isFinite(d)||dt<=0||dt>2)return;
   const k=hlRoom+'/'+it.ep,m=hlHeard[k]||(hlHeard[k]={b:0,p:0});hlSec[k]=(hlSec[k]||0)+dt;if(hlSec[k]>=3&&hlSec[k]-dt<3)hlLog(it.ep,0);
   m.b|=1<<Math.min(19,Math.floor(t/d*20));let n=0;for(let i=0;i<20;i++)if(m.b>>i&1)n++;[25,50,75,90].forEach(q=>{if(n*5>=q&&m.p<q){m.p=q;hlLog(it.ep,q)}});
   const now=Date.now();if(now-hlSaved>5000){hlSaved=now;try{localStorage.setItem('otto2-hall-heard',JSON.stringify(hlHeard))}catch(e){}}});
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
+$('zBack').onclick=e=>{e.stopPropagation();zt=0;$('zoom').hidden=true;$('zoom').classList.remove('big')};
 function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=false}
 function home(){stopAudio();$('room').hidden=true;$('ovB').hidden=true;$('barR').hidden=false;$('goon').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
@@ -345,7 +354,7 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;paintWall(id);let staff=fal
       <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>
     <section id="st" hidden></section>`;
   ROOM=R;$('room').hidden=false;scrollTo(0,0);showOv();
-  if($('gCard'))$('gCard').onclick=()=>{if(cur===0&&!au.paused)au.pause();else if(cur===0)au.play();else playIdx(0)};
+  if($('gCard'))$('gCard').onclick=()=>{if(cur===0&&!au.paused)au.pause();else if(cur===0&&au.dataset.src)au.play();else playIdx(0)};
   $('ov').querySelectorAll('.card[data-k]').forEach(b=>b.onclick=()=>stops[+b.dataset.k].lock?lockToast():showStop(+b.dataset.k,1));
   /* 左右滑換站（橫向位移夠大、而且比上下多才算） */
   let sx=0,sy=0;$('st').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
@@ -363,7 +372,7 @@ function showStop(k,dir){const s=stops[k];if(!s||s.lock)return;curStop=k;$('ov')
     ${n?`<button type="button" class="nxt" id="nx2">${n.w.img?`<img src="${esc(cardImg(n.w.img))}" alt="">`:''}<div><small>下一站・${esc(n.w.ep||'')}</small><b>${esc((ROOM.cards||{})[n.w.ep]||n.w.t)}</b></div><i>→</i></button>`
        :`<button type="button" class="nxt" id="nx2"><div><small>${openN<stops.length?'後面的展牆還沒開放':'走完了'}</small><b>回到總覽</b></div><i>☰</i></button>`}</div>`;
   $('pv').onclick=()=>showStop(k-1,-1);$('nx').onclick=()=>showStop(k+1,1);$('nx2').onclick=()=>n?showStop(k+1,1):showOv();
-  $('st').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
+  $('st').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i&&au.dataset.src)au.play();else playIdx(i)});
   $('st').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt));
   document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(cur)));scrollTo(0,0);lookDock()}
 $('ovB').onclick=showOv;
