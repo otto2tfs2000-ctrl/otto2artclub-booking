@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261102i"></script>
+<script src="hall3d.js?v=20261103a"></script>
 <script>
-const ART_VER='20261102i';
+const ART_VER='20261103a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1984,7 +1984,7 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   const hit=new THREE.Mesh(new THREE.BoxGeometry(R*1.6,5.6,R*1.6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2.5;hit.userData.keep=1;hit.userData.hall=true;g.add(hit);picks.push(hit);
   mergeGroup(g)}
 function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A))+.45;   // 從主島這側斜斜看正面
-  sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。第一位是梵谷，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
+  sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。現在開放梵谷和莫內，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
 /* 走進殿堂的過場：鏡頭慢慢飛到萬神殿大門口 → hall3d.js 淡出、在大廳裡從門口走進來；出來時反過來，從門口往後拉遠 */
 const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
 /* 2026-10-31 大熊：要先「停在萬神殿門口」看一下，再走進去 → 對準正門（遠）→ 推到門口（雙雕像＋柱廊入鏡）停一下 → 再往門裡推、淡出進大廳

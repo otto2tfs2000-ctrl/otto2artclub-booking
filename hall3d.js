@@ -4,8 +4,8 @@
    開放的藝術家（OPEN）亮燈、點了走過去 → 蓋一層 hall/index.html?room=… 看語音和生平；還沒開放的用布蓋著。
    用到 art.html 的：renderer、makeArtist、hallStatue、ARTISTS、XFIGS、picks、lam、toon、cvs、toast、LOWMEM */
 (function(){
-const OPEN={'梵谷':'vangogh'};
-const EPN={'梵谷':4};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
+const OPEN={'梵谷':'vangogh','莫內':'monet'};
+const EPN={'梵谷':4,'莫內':4};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const WALL={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'};   // 壁龕背景的代表作（hall/wall/，維基共享資源公有領域）：星夜、睡蓮、吻、夜巡、蒙娜麗莎、神奈川沖浪裏
 const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
 const SIMG={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'},SIMG_H=2.2,CIMG=SIMG;   // 2026-11-02 大熊：雕像改用 GPT 生的石雕去背圖（hall/statue/），比 3D 公仔換色更像雕像；還沒給圖的照舊用 3D
@@ -143,7 +143,7 @@ function build(){
         if(V2){/* 聚光燈從前上方打下來＋地上一圈暖光 */
           const sp=new THREE.SpotLight('#ffe4b5',1.7,9,.58,.55,1);sp.position.set(0,3.9,3.4);sp.target.position.set(0,lift+1.2,1.1);g.add(sp,sp.target);
           const pool=new THREE.Mesh(new THREE.CircleGeometry(1.05,40),new THREE.MeshBasicMaterial({color:'#ffd89a',transparent:true,opacity:.22,depthWrite:false,blending:THREE.AdditiveBlending}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.015,1.5);g.add(pool);
-          g.add(plaque(A,lift));g.updateMatrixWorld(true);hintAt=g.localToWorld(new THREE.Vector3(0,lift+2.95,1.1));
+          g.add(plaque(A,lift));g.updateMatrixWorld(true);hintAt=hintAt||g.localToWorld(new THREE.Vector3(0,lift+2.95,1.1));
           if(GUIDE){const b=guideBadge(A.n,EPN[A.n]||0);b.position.set(0,lift+3.4,1.1);b.userData.y0=lift+3.4;g.add(b);badges.push(b)}}
         else{const lt=new THREE.PointLight('#ffe2b0',.9,4.5,2);lt.position.set(0,2.4,2);g.add(lt)}}
       else if(A&&STATUE){g.add(plaque(A,lift));rail(g,1);const M=ped.children[3];if(M){let k=null;M.traverse(m=>{if(m.isMesh){k=k||m.material.clone();if(k.map){k.color.setRGB(1,1,1);k.emissive.set('#8f8c86');k.emissiveMap=k.map}else k.emissive&&k.emissive.set('#5a5650');m.material=k}})}}   // 沒聚光燈太暗 → 雕像自己微微發亮，看起來還是白色大理石   // 籌備中：雕像＋銅牌，不打聚光燈、不放語音徽章
@@ -192,7 +192,7 @@ function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261102i&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261103a&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}

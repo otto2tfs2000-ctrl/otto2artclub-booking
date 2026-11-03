@@ -125,7 +125,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 <div class="lockt" id="lockT" hidden>🔒 這一站還沒開放，敬請期待</div>
 <div class="wrap">
   <section id="home">
-    <div class="hero"><small>OTTO2 ・ 大師開講</small><h1>畫框背後</h1><p>聽藝術家說自己的故事、走過他們的一生。<br>從梵谷開始，之後一位一位開講。</p></div>
+    <div class="hero"><small>OTTO2 ・ 大師開講</small><h1>畫框背後</h1><p>聽藝術家說自己的故事、走過他們的一生。<br>從梵谷、莫內開始，之後一位一位開講。</p></div>
     <div class="grid" id="grid"></div>
   </section>
   <section id="room" hidden></section>
@@ -136,7 +136,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 const ARTISTS=[
   {id:'vangogh',n:'梵谷',sub:'後印象派・荷蘭',open:true},
   /* 2026-11-01 大熊：只排畫作已是公有領域、可以放真跡圖片的（過世滿 70 年）；畢卡索、達利、卡蘿等國際上還有版權，先不排 */
-  {id:'monet',n:'莫內',sub:'印象派・法國'},{id:'klimt',n:'克林姆',sub:'維也納分離派・奧地利'},
+  {id:'monet',n:'莫內',sub:'印象派・法國',open:true},{id:'klimt',n:'克林姆',sub:'維也納分離派・奧地利'},
   {id:'rembrandt',n:'林布蘭',sub:'巴洛克・荷蘭'},{id:'davinci',n:'達文西',sub:'文藝復興・義大利'},{id:'hokusai',n:'葛飾北齋',sub:'浮世繪・日本'}];
 /* 展間內容：每一面展牆＝一幅畫＋一集語音（大熊用 Gemini Notebook 依「梵谷_NotebookLM素材包」一集一集做，壓成單聲道放 ../artist-audio/）
    audio 還沒做好的集數顯示「即將推出」；img 還沒放的畫顯示「展牆準備中」。guide＝最早那段 8 分鐘總導覽 */
@@ -191,7 +191,60 @@ const ROOMS={vangogh:{n:'梵谷',en:'Vincent van Gogh・1853–1890',
      {ep:'EP09',kp:'發作時其實不能畫｜割耳、只賣一幅畫、死因之謎一次聽懂',t:'梵谷真的瘋狂嗎？',et:'梵谷真的瘋狂嗎',audio:'../artist-audio/vangogh-ep08.m4a',dur:'15:47',txt:'兩位主持人辯論：他是因為瘋才偉大，還是生了病、但非常努力的畫家？割耳的新證據、只賣出一幅畫、死因之謎，一次聽懂。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'},
      {ep:'EP10',kp:'西奧每月寄錢、八百多封信｜喬帶著嬰兒把梵谷推向全世界',t:'西奧與喬：沒有他們就沒有梵谷',et:'梵谷的行銷神話',audio:'../artist-audio/vangogh-ep09.m4a',dur:'14:39',txt:'弟弟西奧每個月寄來的錢，是給他自由，還是壓力？西奧過世後，年輕的喬帶著嬰兒、幾百幅賣不出去的畫和八百多封信，把梵谷推向全世界。'},
      {ep:'EP11',kp:'一集聽完一生｜出身中產、會三種語言，是自己選了這條路',t:'梵谷不窮也沒瘋',et:'梵谷不窮也沒瘋',audio:'../artist-audio/vangogh-ep11.m4a',dur:'16:46',txt:'一集聽完梵谷的一生：他其實出身中產家庭、會三種語言，是自己選了這條路。從灰暗的荷蘭、浮世繪、南法的陽光，一路講到喬怎麼保存他的畫。',tip:'割耳一直有兩種說法：以前大多說只割了耳垂；2016 年發現當年醫生畫的草圖，顯示可能是幾乎整隻耳朵。'}]}],
-  credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館、羅丹美術館、荷蘭國家博物館，取自維基共享資源'}};
+  credit:'畫作圖片皆為公有領域：梵谷美術館（阿姆斯特丹）、倫敦國家美術館、紐約現代藝術博物館、洛杉磯蓋蒂美術館、羅丹美術館、荷蘭國家博物館，取自維基共享資源'},
+monet:{n:'莫內',en:'Claude Monet・1840–1926',
+  free:3,   // 比照梵谷：總導覽＋前三站開放，後面鎖起來；工作人員全開
+  guide:{src:'../artist-audio/monet-guide.m4a',t:'總導覽：莫內不畫像只追光',dur:'3:54',ct:'莫內不畫像只追光',bg:'monet/card/impression.jpg'},
+  head:{k:'從勒阿弗爾走到吉維尼',h:'一面牆一幅畫<br><span>一幅畫一個故事</span>'},
+  cards:{EP01:'消失的太陽',EP02:'撐陽傘的卡蜜兒',EP03:'聖拉札爾車站',EP04:'乾草堆的光影革命',EP05:'融化的石頭',EP06:'打造睡蓮池',EP07:'橘園睡蓮',EP08:'寫生神話',EP09:'挨餓畫青蛙塘',EP10:'倫敦毒霧',EP11:'割畫狂人',EP12:'切畫抵房租・快問快答'},
+  periods:[
+   {yr:'1872',n:'勒阿弗爾・被嘲笑的名字',works:[
+     {ep:'EP01',t:'印象・日出',et:'消失的莫內太陽',audio:'../artist-audio/monet-ep01.m4a',dur:'18:11',o:'Impression, soleil levant',meta:'1872 年・油彩、畫布<br>法國勒阿弗爾 ｜ 巴黎 瑪摩丹莫內美術館',img:'monet/impression.jpg',
+      txt:'勒阿弗爾港口清晨的霧，一顆橘紅色的太陽，筆觸快得像沒畫完。1874 年展出時，評論家借畫名嘲笑這群人只是「印象派」，沒想到這個嘲笑，變成整個畫派的名字。',
+      tip:'太陽看起來很亮，可是轉成黑白，它的明暗幾乎跟天空一樣。莫內靠的是顏色，不是明暗。'}]},
+   {yr:'1875',n:'阿讓特伊・卡蜜兒',works:[
+     {ep:'EP02',t:'撐陽傘的女人',et:'撐陽傘的卡蜜兒',audio:'../artist-audio/monet-ep02.m4a',dur:'9:29',o:'Woman with a Parasol – Madame Monet and Her Son',meta:'1875 年・油彩、畫布<br>法國阿讓特伊 ｜ 華盛頓 國家藝廊',img:'monet/parasol.jpg',
+      txt:'妻子卡蜜兒和兒子尚站在阿讓特伊的草地上，風吹動裙擺和面紗，一般認為是在戶外幾個小時內畫成。卡蜜兒 1879 年過世，才 32 歲，莫內後來說，當時連悲傷的時候，都不由自主在看她臉上的顏色。',
+      tip:'找找看陰影是什麼顏色。莫內筆下的陰影不是黑的，是藍的、紫的、綠的。'}]},
+   {yr:'1877',n:'巴黎・火車的蒸汽',works:[
+     {ep:'EP03',t:'聖拉札爾車站',et:'莫內聖拉札爾車站',audio:'../artist-audio/monet-ep03.m4a',dur:'10:30',o:'La Gare Saint-Lazare',meta:'1877 年・油彩、畫布<br>法國巴黎 ｜ 巴黎 奧塞美術館',img:'monet/saint-lazare.jpg',
+      txt:'別人畫神話、畫歷史，他畫當時最新的東西：火車、鐵架玻璃屋頂、白色蒸汽。三個月畫了十幾幅，這是他第一次對同一個地方畫好幾幅，後來的系列畫就從這裡開始。',
+      tip:'蒸汽是透明的，莫內怎麼用不透明的油彩，畫出看得穿的煙？'}]},
+   {yr:'1890–1891',n:'吉維尼田野・主角是光',works:[
+     {ep:'EP04',t:'乾草堆（夏末）',et:'莫內乾草堆的光影革命',audio:'../artist-audio/monet-ep04.m4a',dur:'21:28',o:'Stacks of Wheat (End of Summer)',meta:'1890–91 年・油彩、畫布<br>法國吉維尼 ｜ 芝加哥藝術博物館',img:'monet/haystacks.jpg',
+      txt:'同一堆穀物，早上、中午、傍晚、下雪、起霧各畫一幅，光一變就換一張畫布。1891 年展出十五幅，大部分一個月內賣掉，五十歲的莫內從此不再缺錢。',
+      tip:'主角其實不是乾草堆，是光。看看影子落在哪個方向，猜猜這是一天裡的什麼時候。'}]},
+   {yr:'1892–1894',n:'盧昂・融化的石頭',works:[
+     {ep:'EP05',t:'盧昂大教堂（藍色和諧）',et:'莫內畫出融化的石頭',audio:'../artist-audio/monet-ep05.m4a',dur:'13:23',o:'La Cathédrale de Rouen. Le portail, soleil matinal',meta:'1893 年・油彩、畫布<br>法國盧昂 ｜ 巴黎 奧塞美術館',img:'monet/rouen.jpg',
+      txt:'他在教堂對面租了地方，排著一整排畫布，太陽走到哪個位置就拿出哪一張。為什麼挑教堂？因為石頭不會動，畫面上每一點變化，都只可能來自光。',
+      tip:'瞇起眼睛看，教堂的線條幾乎不見了，只剩一片一片的顏色。'}]},
+   {yr:'1899',n:'自己的花園・先種再畫',works:[
+     {ep:'EP06',t:'睡蓮池與日本橋',et:'莫內打造睡蓮池',audio:'../artist-audio/monet-ep06.m4a',dur:'17:29',o:'Bridge over a Pond of Water Lilies',meta:'1899 年・油彩、畫布<br>法國吉維尼 ｜ 紐約 大都會藝術博物館',img:'monet/bridge.jpg',
+      txt:'別的畫家到處找風景，他是先花好幾年種出想畫的風景，再站到池邊去畫。挖池塘還被村民反對，怕外來植物污染河水。他收藏兩百多張浮世繪，這座綠色拱橋也看得到日本的影子。',
+      tip:'橋是拱起來的，可是看不到橋的兩端，被畫框切掉了，這是從浮世繪學來的構圖。'}]},
+   {yr:'1914–1926',n:'橘園・眼睛快看不見了',works:[
+     {ep:'EP07',t:'睡蓮',et:'莫內近乎失明畫出的橘園睡蓮',audio:'../artist-audio/monet-ep07.m4a',dur:'20:31',o:'Les Nymphéas',meta:'晚年大裝飾畫・油彩、畫布<br>法國吉維尼 ｜ 巴黎 橘園美術館（展廳實景）',img:'monet/orangerie.jpg',
+      txt:'白內障讓他分不清顏色，只好靠顏料管上的標籤和記憶來畫。停戰隔天，他寫信給克里蒙梭說要捐畫給國家，最後變成兩間橢圓展廳、八個構圖。他到死都捨不得交，過世半年後才展出。',
+      tip:'找找看哪裡是天空？畫裡的天空，是倒映在水裡的。'}]},
+   {yr:'特別篇',n:'特別篇・看到什麼就畫什麼？',works:[
+     {ep:'EP08',t:'花園中的女人',et:'莫內的寫生神話',audio:'../artist-audio/monet-ep08.m4a',dur:'16:53',o:'Femmes au jardin',meta:'1866–67 年・油彩、畫布<br>法國 ｜ 巴黎 奧塞美術館',img:'monet/women.jpg',
+      txt:'為了在戶外畫到畫布上端，他在地上挖溝、用滑輪把大畫布降下去。可是他也說過「我從來沒有畫室」，其實吉維尼有三間。「看」是他的起點，但不是終點，他的瞬間是用好幾個月做出來的。',
+      tip:'看看畫裡的女人。據說不少都是卡蜜兒一個人當模特兒，換了不同衣服。'}]},
+   {yr:'加映',n:'青蛙塘・沒有麵包的夏天',works:[
+     {ep:'EP09',t:'青蛙塘',et:'莫內挨餓畫青蛙塘',audio:'../artist-audio/monet-ep09.m4a',dur:'18:08',o:'La Grenouillère',meta:'1869 年・油彩、畫布<br>法國布吉瓦爾 ｜ 紐約 大都會藝術博物館',img:'monet/grenouillere.jpg',
+      txt:'1869 年夏天，家裡一星期沒有麵包、沒有酒、沒有火，雷諾瓦常從家裡帶麵包來，兩人把畫架架在同一個地方。還有巴齊耶，用分期買畫的方式按月接濟他，後來 28 歲死在戰場上。',
+      tip:'靠近看水面，那只是一筆一筆短短的顏色；退後幾步，水就開始動了。'}]},
+   {yr:'加映',n:'倫敦・霧裡的光',works:[
+     {ep:'EP10',t:'倫敦國會大廈：霧中陽光',et:'莫內的倫敦毒霧',audio:'../artist-audio/monet-ep10.m4a',dur:'11:56',o:'Houses of Parliament, Sunlight in the Fog',meta:'1904 年・油彩、畫布<br>英國倫敦 ｜ 巴黎 奧塞美術館',img:'monet/parliament.jpg',
+      txt:'1870 年他來倫敦逃難，遇到一輩子的畫商；三十年後住進最好的飯店，連續三個冬天畫霧。那片霧大部分是燒煤的煙，2023 年的研究發現，這些畫裡的朦朧程度和當時的空氣污染趨勢相符。',
+      tip:'國會大廈幾乎只剩一個紫色的影子。找找看，太陽的光是從哪裡穿過霧的？'}]},
+   {yr:'好評加映',n:'抵房租・被切開的大畫',works:[
+     {ep:'EP11',t:'草地上的午餐（殘片）',et:'割畫狂人莫內',audio:'../artist-audio/monet-ep11.m4a',dur:'19:57',o:'Le Déjeuner sur l\'herbe',meta:'1865–66 年・油彩、畫布<br>法國 ｜ 巴黎 奧塞美術館',img:'monet/dejeuner.jpg',
+      txt:'二十五歲的他想用同樣的題目挑戰馬奈，畫了一幅四公尺多高的野餐。來不及完成，又付不出房租，就把畫交給房東抵債。十幾年後拿回來已經受潮，他自己動手切開，留下還能救的部分。',
+      tip:'看看殘片上的人有多大。想像一下原本的畫有多巨大，又是怎麼被捲起來放在潮濕的地方。'}]},
+   {yr:'快問快答',n:'冷知識・關於莫內的五題',works:[
+     {ep:'EP12',t:'莫內切畫抵房租',et:'莫內切畫抵房租',audio:'../artist-audio/monet-ep12.m4a',dur:'4:10',txt:'四分鐘五題：印象派是稱讚還是嘲笑？他拜託站長做什麼？那張大畫為什麼被切開？橘園的天空在哪裡？葬禮上的黑布後來怎麼了？'}]}],
+  credit:'畫作皆為公有領域：瑪摩丹莫內美術館、華盛頓國家藝廊、奧塞美術館、芝加哥藝術博物館、紐約大都會藝術博物館，取自維基共享資源；橘園展廳照片：Sailko（CC BY-SA 3.0）'}};
 /* 大熊：背景不要黑，要藍綠色、有筆觸 → 畫一張梵谷式短筆觸的貼圖鋪滿（顏色只差一點點，字才看得清楚） */
 (function(){const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');x.fillStyle='#284a4d';x.fillRect(0,0,S,S);   // 大熊：亮色卡那版太亂 → 回到偏暗的藍綠，只比第一版亮一點；筆觸顏色貼近底色，不搶畫
   const C=['#2c5054','#244549','#2f5458','#264a50','#2a4d50','#305659'];x.lineCap='round';let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
@@ -210,7 +263,7 @@ function endIntro(){if(!introOn)return;introOn=false;const it=list[cur];if(!it)r
 function playIdx(i){const it=list[i];if(!it)return;cur=i;if(au.dataset.src!==it.src){introOn=true;au.src=INTRO;au.dataset.src=it.src}
   const p=au.play();if(p&&p.catch)p.catch(()=>{});$('dock').classList.add('show');$('dT').textContent=it.label;
   $('goon').hidden=true;document.querySelectorAll('.ep,.card[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));
-  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:'梵谷',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
+  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:it.label,artist:'畫框背後・大師開講',album:(ROOM&&ROOM.n)||'',artwork:it.img?[{src:new URL(it.img,location.href).href,sizes:'512x512',type:'image/jpeg'}]:[]});
     navigator.mediaSession.setActionHandler('nexttrack',()=>playIdx(cur+1<list.length?cur+1:cur));navigator.mediaSession.setActionHandler('previoustrack',()=>playIdx(Math.max(0,cur-1)))}catch(e){}}}
 function lookDock(){const d=au.duration||0;$('dB').textContent=au.paused?'▶':'❚❚';const pc=d?(au.currentTime/d*100)+'%':'0';$('dFill').style.width=pc;$('dKnob').style.left=pc;$('dTm').textContent=introOn?'♪ 片頭音樂・點進度條略過':d?mmss(au.currentTime)+' / '+mmss(d):'載入中…';
   $('dN').disabled=cur>=list.length-1;$('dN').style.opacity=cur>=list.length-1?.35:1;
@@ -252,11 +305,11 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;let staff=false;try{staff=!
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
   const eps=stops.filter(s=>s.w.audio&&!s.lock),gs=R.guide&&free!=null?[{w:R.guide}]:[],secs=eps.concat(gs).reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
-  const thumb=w=>w.img?w.img.replace('vangogh/','vangogh/card/'):'';
+  const thumb=w=>w.img?cardImg(w.img):'';
   const card=(s,k)=>`<button type="button" class="card${s.lock?' lock':''}" data-k="${k}"${s.w._i!=null?` data-i="${s.w._i}"`:''}${s.w.img?` style="background-image:url('${esc(thumb(s.w))}')"`:''}><i>${s.lock?'🔒':esc(s.w.dur||'')}</i><em>${esc(s.w.ep||'')}${s.w.img?'・'+esc(s.pl):''}</em><b>${esc((R.cards||{})[s.w.ep]||s.w.t)}</b></button>`;
   const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
   $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${free!=null?'開放 ':''}${eps.length+gs.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
-      ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${free!=null?'帶你先認識他':'帶你走一遍十站'}</span><u>▶</u></button>`:''}
+      ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${free!=null?'帶你先認識他':'帶你走一遍'}</span><u>▶</u></button>`:''}
       <div class="cards">${main.map(([s,k])=>card(s,k)).join('')}</div>
       ${sp.length?`<div class="sph">＋ 特別篇</div><div class="cards sp">${sp.map(([s,k])=>card(s,k)).join('')}</div>`:''}
       <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>
@@ -269,6 +322,7 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;let staff=false;try{staff=!
   $('st').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){if(dx<0&&curStop<openN-1)showStop(curStop+1,1);else if(dx>0&&curStop>0)showStop(curStop-1,-1)}},{passive:true});
   ROOM.wall=wall}
 let ROOM=null;
+const cardImg=src=>src.replace(/^(\w+)\//,'$1/card/');   // 總覽卡片和下一站用小張：vangogh/x.jpg → vangogh/card/x.jpg
 function showOv(){if(!$('ov'))return;$('st').hidden=true;$('ov').hidden=false;$('ovB').hidden=true;$('barR').hidden=false;
   const c=curStop>=0&&$('ov').querySelector(`.card[data-k="${curStop}"]`);if(c)c.scrollIntoView({block:'center'});else scrollTo(0,0);lookDock()}
 function lockToast(){const t=$('lockT');t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,2200)}
@@ -276,7 +330,7 @@ function showStop(k,dir){const s=stops[k];if(!s||s.lock)return;curStop=k;$('ov')
   const n=k+1<openN?stops[k+1]:null,dots=stops.slice(0,openN).map((_,j)=>`<s class="${j===k?'on':''}"></s>`).join('');
   $('st').hidden=false;$('st').innerHTML=`<div class="stp ${dir<0?'in-r':'in-l'}"><div class="pgr"><button type="button" id="pv" aria-label="上一站"${k?'':' disabled'}>‹</button><div><b>第 ${k+1} 站 / ${openN}</b><div class="dots">${dots}</div></div><button type="button" id="nx" aria-label="下一站"${n?'':' disabled'}>›</button></div>
     <div class="period"><div><span>${esc(s.p.yr)}</span><b>${esc(s.p.n)}</b></div></div>${s.ws.map(ROOM.wall).join('')}
-    ${n?`<button type="button" class="nxt" id="nx2">${n.w.img?`<img src="${esc(n.w.img.replace('vangogh/','vangogh/card/'))}" alt="">`:''}<div><small>下一站・${esc(n.w.ep||'')}</small><b>${esc((ROOM.cards||{})[n.w.ep]||n.w.t)}</b></div><i>→</i></button>`
+    ${n?`<button type="button" class="nxt" id="nx2">${n.w.img?`<img src="${esc(cardImg(n.w.img))}" alt="">`:''}<div><small>下一站・${esc(n.w.ep||'')}</small><b>${esc((ROOM.cards||{})[n.w.ep]||n.w.t)}</b></div><i>→</i></button>`
        :`<button type="button" class="nxt" id="nx2"><div><small>${openN<stops.length?'後面的展牆還沒開放':'走完了'}</small><b>回到總覽</b></div><i>☰</i></button>`}</div>`;
   $('pv').onclick=()=>showStop(k-1,-1);$('nx').onclick=()=>showStop(k+1,1);$('nx2').onclick=()=>n?showStop(k+1,1):showOv();
   $('st').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i)au.play();else playIdx(i)});
