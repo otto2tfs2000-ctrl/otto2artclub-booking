@@ -227,7 +227,7 @@ function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261103c&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261103g&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:standAt(yaw),yaw,pitch:.06}}
@@ -278,7 +278,8 @@ function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTic
 
 /* intro：從大門內側走到定點，一邊走一邊左右看一下。略過走路（intro=false）的人：第一次還是看一下，看過就直接站定點 */
 const PAN_TURN=9,PAN_AMP=.65;
-function enter(intro){if(!sc)build();act=true;yaw=0;pitch=.06;goal=null;pan=null;tPrev=performance.now();pos.copy(START);
+let hallLogged=false;
+function enter(intro){if(!sc)build();act=true;if(!hallLogged&&window.hallLog){hallLogged=true;hallLog('hall','enter')}yaw=0;pitch=.06;goal=null;pan=null;tPrev=performance.now();pos.copy(START);
   let seen=false;try{seen=localStorage.getItem(SEEN_PAN)==='1';localStorage.setItem(SEEN_PAN,'1')}catch(e){}
   if(intro){pos.set(0,EYE+.15,R-.6);pitch=.1;pan={t0:tPrev,from:pos.clone(),p0:pitch,walk:2.6,delay:1.4,turn:true}}
   else if(!seen)pan={t0:tPrev,from:pos.clone(),p0:pitch,walk:.01,delay:.5,turn:true};

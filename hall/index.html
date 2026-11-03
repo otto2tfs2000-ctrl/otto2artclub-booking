@@ -282,6 +282,13 @@ const skip=t=>{if(introOn){if(t>0)endIntro();return}const d=au.duration;if(!d)re
 $('dRw').onclick=()=>skip(-15);$('dFf').onclick=()=>skip(15);
 if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('seekbackward',()=>skip(-15));navigator.mediaSession.setActionHandler('seekforward',()=>skip(15));navigator.mediaSession.setActionHandler('seekto',e=>{if(introOn)return endIntro();if(au.duration)au.currentTime=e.seekTime})}catch(e){}}
 function stopAudio(){au.pause();post({hallAudio:0})}
+/* 2026-11-03 收聽紀錄：真的聽滿 3 秒才算開始；整集切成 20 段，實際播過幾段就是聽了幾 %（拖進度條跳過的不算），到 25／50／75／90% 各回報一次，90% 算聽完。片頭音樂不算。進度留在這支手機，分兩次聽完也算 */
+let hlRoom='',hlT=0,hlSaved=0,hlHeard={},hlSec={};try{hlHeard=JSON.parse(localStorage.getItem('otto2-hall-heard')||'{}')||{}}catch(e){}
+const hlLog=(ep,pct)=>{try{if(parent!==window&&parent.hallLog)parent.hallLog(hlRoom,ep,pct)}catch(e){}};
+au.addEventListener('timeupdate',()=>{const t=au.currentTime,dt=t-hlT;hlT=t;const it=list[cur],d=au.duration;if(introOn||au.paused||!it||!it.ep||!d||!isFinite(d)||dt<=0||dt>2)return;
+  const k=hlRoom+'/'+it.ep,m=hlHeard[k]||(hlHeard[k]={b:0,p:0});hlSec[k]=(hlSec[k]||0)+dt;if(hlSec[k]>=3&&hlSec[k]-dt<3)hlLog(it.ep,0);
+  m.b|=1<<Math.min(19,Math.floor(t/d*20));let n=0;for(let i=0;i<20;i++)if(m.b>>i&1)n++;[25,50,75,90].forEach(q=>{if(n*5>=q&&m.p<q){m.p=q;hlLog(it.ep,q)}});
+  const now=Date.now();if(now-hlSaved>5000){hlSaved=now;try{localStorage.setItem('otto2-hall-heard',JSON.stringify(hlHeard))}catch(e){}}});
 /* 全螢幕看畫：點一下開、點兩下放大、再點一下關 */
 let zt=0;$('zoom').onclick=()=>{const now=Date.now();if(now-zt<300){$('zoom').classList.toggle('big');zt=0;return}zt=now;setTimeout(()=>{if(zt&&Date.now()-zt>=290){$('zoom').hidden=true;$('zoom').classList.remove('big')}},300)};
 function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=false}
@@ -290,11 +297,11 @@ $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' o
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
 function openRoom(id){const R=ROOMS[id];if(!R)return;let staff=false;try{staff=!!parent.HALL_STAFF}catch(e){}const free=staff?null:FREE_EPS;   // 工作人員（作品小屋 /island/me 認出來的）不受上鎖限制
   $('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
-  if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1});
+  hlRoom=id;hlLog('enter',0);if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1,ep:'guide'});
   /* 一站＝一集（有 ep 的那面牆）＋後面跟著的對照牆（例如浮世繪三組）；list 照站的順序排，播完自動接 */
   R.periods.forEach(p=>p.works.forEach(w=>{if(w.ep||!stops.length)stops.push({p,pl:p.n.split('・')[0],w,ws:[w]});else stops[stops.length-1].ws.push(w)}));
   openN=free==null?stops.length:Math.min(free,stops.length);   // 前 openN 站開放，後面的只在總覽露出上鎖卡片，音檔不進播放清單
-  stops.forEach((s,k)=>{const w=s.w;delete w._i;s.lock=k>=openN;if(w.audio&&!s.lock)w._i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img,k})-1});
+  stops.forEach((s,k)=>{const w=s.w;delete w._i;s.lock=k>=openN;if(w.audio&&!s.lock)w._i=list.push({src:w.audio,label:`${w.ep} ${w.et||w.t}`,img:w.img,k,ep:w.ep.toLowerCase()})-1});
   const ep=w=>{if(!w.audio)return`<div class="ep soon"><div class="pb">🎧</div><div><b>${esc(w.ep)}　${esc(w.t)}</b><span>語音即將推出</span></div></div>`;
     const i=w._i;return`<button type="button" class="ep" data-i="${i}"><div class="pb">▶</div><div><b>${esc(w.ep)}　${esc(w.et||w.t)}</b><span>🎧 聽這一集${w.dur?'・'+esc(w.dur):''}</span></div></button>`};   // et＝筆記本那一集的標題
   const fig=(f,tag)=>`<figure><button type="button" class="frame" data-z="${esc(f.img)}" aria-label="放大看${esc(f.t)}"><img src="${esc(f.img)}" alt="${esc(f.t)}" loading="lazy"></button><figcaption><em>${f.tag||tag}</em><b>${esc(f.t)}</b>${esc(f.by)}</figcaption></figure>`;

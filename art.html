@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261103c"></script>
+<script src="hall3d.js?v=20261103g"></script>
 <script>
-const ART_VER='20261103c';
+const ART_VER='20261103g';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2514,6 +2514,9 @@ function ssTok(){try{return sessionStorage.getItem('otto2-liff-tk')||''}catch(e)
 function token(){try{if(window.liff&&liff.isLoggedIn&&liff.isLoggedIn()){const t=liff.getAccessToken();if(t)return t}}catch(e){}return ssTok()}
 async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token()},body||{}))});
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
+/* 2026-11-03 畫框背後收聽紀錄：大廳、展間（iframe）都呼叫這裡。demo／kiosk 不記；沒登入用這台手機的亂數代號。失敗不影響聽講座 */
+window.hallLog=(room,ep,pct)=>{try{if(/[?&](demo|kiosk)=1/.test(location.search))return;let anon='';try{anon=localStorage.getItem('otto2-hall-anon')||'';if(!anon){anon=Math.random().toString(36).slice(2,12)+Date.now().toString(36);localStorage.setItem('otto2-hall-anon',anon)}}catch(e){}
+  fetch(NOTIFY_URL+'/hall/log',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:token(),anon,room,ep,pct:pct||0})}).catch(()=>{})}catch(e){}};
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
 function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null,look:h.look||null,away:h.away||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
