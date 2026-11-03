@@ -14,6 +14,10 @@ const STATUE=!/[?&]hfig=color/.test(location.search);   // 大熊：裡面放大
 const V2=!/[?&]hv=1/.test(location.search);
 const R=6.4,H=4,EYE=1.55,START=new THREE.Vector3(0,EYE,-.4);   // 定點：大熊要正前方的雕像大一點 → 走過中間的星星再停（一進門是 R-.9，慢慢走過來）
 let sc=null,cam=null,ui=null,hits=[],folk=[],badges=[],ALIVE={},alive=null,sayEl=null,hintAt=null,hintEl=null,act=false,yaw=0,pitch=.06,pos=null,goal=null,down=null,tPrev=0,lastRoom=0;
+/* 2026-11-03 大熊：手機直拿一次只看得到一尊，沒人知道還有其他藝術家 → 走進來先環視一圈（pan），下方再加左右箭頭跳下一位（手指滑動照舊）。stops＝每位藝術家的角度，已照「往右轉」的順序排好 */
+let pan=null,stops=[],navEl=null,nowEl=null,hhEl=null,hhMsg='',nowMsg='';
+const TAU=Math.PI*2,wrap=a=>a-TAU*Math.round(a/TAU),wrapPos=a=>((a%TAU)+TAU)%TAU,SEEN_PAN='otto2-hall-pan',HH_PAN='帶你環視一圈・點畫面可略過',HH_NAV='左右滑動或按箭頭換藝術家・點亮燈的走進展間';
+const standAt=y=>new THREE.Vector3(-Math.sin(y)*.4,EYE,-Math.cos(y)*.4);   // 站在中間往那位多走一點，每一位看起來都跟正前方的梵谷一樣大（y=0 就是 START）
 
 /* 2026-10-31 大熊：大家不知道雕像裡有藝術家介紹 → 雕像頭上一直浮著一個發光的「🎧 語音導覽」徽章（像美術館語音導覽的標誌），上下輕輕飄。?guide=0 看沒有的樣子 */
 const GUIDE=!/[?&]guide=0/.test(location.search);
@@ -66,8 +70,8 @@ const FOLK=[
   {coat:'#c99a7a',legs:'#5b4a3e',hair:'#1f1a17',long:1,do:'look',x:2.3,z:-4.0},
   {coat:'#8aa38a',legs:'#4a4f55',hair:'#6b4a2e',do:'walk',r:2.6,a0:.9,spd:.11},
   {coat:'#b07f8e',legs:'#3d3f48',hair:'#2a2420',long:1,do:'walk',r:2.6,a0:3.6,spd:-.09},
-  {coat:'#a99a6c',legs:'#4c4337',hair:'#bdb8b0',do:'sit',x:-2.4,z:1.45},
-  {coat:'#6f8b9a',legs:'#3a3f47',hair:'#4a3426',long:1,do:'sit',x:2.4,z:1.45}];
+  {coat:'#a99a6c',legs:'#4c4337',hair:'#bdb8b0',do:'sit',x:-3.6,z:1.49},
+  {coat:'#6f8b9a',legs:'#3a3f47',hair:'#4a3426',long:1,do:'sit',x:3.6,z:1.49}];
 function visitor(o,i){const f=figBase({coat:o.coat,sleeve:o.coat,legs:o.legs,shoe:'#3a2a22',skin:['#f3d4bb','#e9c3a0','#f6d6bc'][i%3],mouth:i%2?'smile':'flat',cheeks:false});
   f.armR.children.slice(-2).forEach(c=>f.armR.remove(c));   // figBase 手上有畫筆，遊客不拿
   f.head.add(ball(o.hair,.3,0,.14,-.06,1.05,.78,.95));f.head.add(ball(o.hair,.28,0,-.02,-.11,1,1,.8));if(o.long)f.head.add(ball(o.hair,.26,0,-.22,-.12,1.05,1.25,.7));
@@ -76,17 +80,17 @@ function visitor(o,i){const f=figBase({coat:o.coat,sleeve:o.coat,legs:o.legs,sho
   return Object.assign(f,{o,ph:i*1.7})}
 function buildFolk(){FOLK.forEach((o,i)=>{const v=visitor(o,i);sc.add(v.g);folk.push(v);
   if(o.do==='look'){v.g.position.set(o.x,0,o.z);v.g.rotation.y=Math.atan2(-o.x,-(R-.3-1.1)-o.z)}   // 面向正前方的雕像
-  else if(o.do==='sit'){v.g.position.set(o.x,.18,o.z);v.g.rotation.y=Math.PI;v.armL.rotation.x=v.armR.rotation.x=-.5}});
-  /* 長椅：左右對稱各一張，木頭椅腳＋紅絨布坐墊（跟布簾同色），坐著的遊客腿藏在椅子裡 */
+  else if(o.do==='sit'){v.g.position.set(o.x,.18,o.z);v.g.rotation.y=Math.atan2(-o.x,-o.z);v.armL.rotation.x=v.armR.rotation.x=-.5}});
+  /* 長椅：左右對稱各一張，木頭椅腳＋紅絨布坐墊（跟布簾同色），坐著的遊客腿藏在椅子裡。2026-11-03 按箭頭轉到葛飾北齋時客人的頭擋住雕像 → 搬到兩尊雕像中間靠牆、面向大廳中央 */
   const put=(m,x,y,z)=>{m.position.set(x,y,z);return m};
-  [-1,1].forEach(s=>{const b=new THREE.Group();b.position.set(s*2.4,0,1.6);sc.add(b);
+  [-1,1].forEach(s=>{const b=new THREE.Group();b.position.set(s*3.6,0,1.49);b.rotation.y=Math.atan2(-s*3.6,-1.49);sc.add(b);
     b.add(put(new THREE.Mesh(new THREE.BoxGeometry(1.7,.1,.55),lam('#8a6a4a')),0,.4,0));
     b.add(put(new THREE.Mesh(new THREE.BoxGeometry(1.62,.08,.5),new THREE.MeshLambertMaterial({color:'#7c2a33'})),0,.49,0));
     b.add(put(new THREE.Mesh(new THREE.BoxGeometry(1.7,.36,.06),lam('#7a5c3f')),0,.2,-.25));
     [-1,1].forEach(k=>b.add(put(new THREE.Mesh(new THREE.BoxGeometry(.08,.4,.5),lam('#6e5238')),k*.8,.2,0)))})}
 /* 遊客動作：繞圈的人一邊走一邊上下晃、擺手；站著的偶爾轉頭、換重心；坐著的慢慢點頭 */
 function folkTick(t,dt){folk.forEach(v=>{const o=v.o,p=t+v.ph;
-  if(o.do==='walk'){const inWay=alive&&Math.sin(o.a0)*alive.dir.x+Math.cos(o.a0)*alive.dir.z>.5;if(!alive||inWay)o.a0+=o.spd*dt*(inWay?6:1);   /* 2026-11-02 擋在鏡頭和雕像中間的人快走開，走開才停 */   /* 2026-11-01 大熊：雕像跳下來時有人走過去重疊 → 繞圈半徑縮到 2.6（離落地點 4.15 很遠），雕像活過來時大家先停下來看 */const x=Math.sin(o.a0)*o.r,z=Math.cos(o.a0)*o.r;v.g.position.set(x,Math.abs(Math.sin(p*5))*.03,z);
+  if(o.do==='walk'){const vx=alive?alive.dir.x:-Math.sin(yaw),vz=alive?alive.dir.z:-Math.cos(yaw),inWay=Math.sin(o.a0)*vx+Math.cos(o.a0)*vz>(alive?.5:.85);if(!alive||inWay)o.a0+=o.spd*dt*(inWay?(alive?6:3):1);   /* 2026-11-03 平常走到正在看的雕像前面也快點走開，按箭頭過去才不會被擋 */   /* 2026-11-02 擋在鏡頭和雕像中間的人快走開，走開才停 */   /* 2026-11-01 大熊：雕像跳下來時有人走過去重疊 → 繞圈半徑縮到 2.6（離落地點 4.15 很遠），雕像活過來時大家先停下來看 */const x=Math.sin(o.a0)*o.r,z=Math.cos(o.a0)*o.r;v.g.position.set(x,Math.abs(Math.sin(p*5))*.03,z);
     v.g.rotation.y=o.a0+(o.spd>0?Math.PI/2:-Math.PI/2);v.armL.rotation.x=Math.sin(p*5)*.4;v.armR.rotation.x=-Math.sin(p*5)*.4}
   else if(o.do==='look'){v.head.rotation.y=Math.sin(p*.45)*.25;v.body.rotation.z=Math.sin(p*.3)*.03}
   else v.head.rotation.x=Math.sin(p*.6)*.06})}
@@ -121,7 +125,7 @@ function build(){
   const arch=(w,h)=>{const s=new THREE.Shape();s.moveTo(-w,0);s.lineTo(w,0);s.lineTo(w,h);s.absarc(0,h,w,0,Math.PI,false);s.lineTo(-w,0);return new THREE.ShapeGeometry(s,20)};
   const NW=1.55,NH=2.1,nicheG=arch(NW,NH),nicheU=nicheG.clone();{const p=nicheU.attributes.position,uv=nicheU.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(p.getX(i)+NW)/(2*NW),p.getY(i)/(NH+NW))}   // nicheU：UV 攤成 0～1，貼畫用   // 大熊嫌灰綠那塊太小 → 壁龕加寬加高（頂端剛好在牆的線腳下面）
   const place=a=>{const g=new THREE.Group();g.position.set(Math.sin(a)*(R-.3),0,Math.cos(a)*(R-.3));g.rotation.y=a+Math.PI;sc.add(g);return g};   // 每格的 +z 朝大廳中心；往內 .3，平的壁龕兩邊才不會被彎的牆吃掉
-  HALL.forEach((nm,i)=>{const A=nm&&ARTISTS.find(x=>x.n===nm),open=!!(A&&OPEN[nm]),g=place(Math.PI+offs[i]*step);
+  HALL.forEach((nm,i)=>{const A=nm&&ARTISTS.find(x=>x.n===nm),open=!!(A&&OPEN[nm]),a0=Math.PI+offs[i]*step,g=place(a0);if(A)stops.push({A,open,yaw:Math.atan2(-Math.sin(a0),-Math.cos(a0))});
     /* 雕像版：壁龕裡面深青綠，白色雕像才跳得出來 */
     /* 2026-11-02 大熊：雕像後面那片綠色鋪滿藝術家的代表作（不是掛一張畫）→ 壁龕拱形貼整張畫、裁切填滿；畫壓暗一點，白色雕像才跳得出來 */
     const wf=A&&WALL[nm];let back;
@@ -156,14 +160,22 @@ function build(){
   const dfr=new THREE.Mesh(new THREE.RingGeometry(1.15,1.38,24,1,0,Math.PI),lam('#d2c3a6'));dfr.position.set(0,2.3,.04);dg.add(dfr);
   [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.23,2.3,.1),lam('#d2c3a6'));p.position.set(s*1.265,1.15,.04);dg.add(p)});
   const dh=new THREE.Mesh(new THREE.BoxGeometry(2.6,3.6,.6),new THREE.MeshBasicMaterial({visible:false}));dh.position.set(0,1.8,.3);dh.userData={door:true};dg.add(dh);hits.push(dh);
+  stops.sort((p,q)=>wrapPos(-p.yaw)-wrapPos(-q.yaw));
   buildFolk();
-  /* 介面：左上回作品小屋、中間標題、下方提示 */
+  /* 介面：左上回作品小屋、中間標題、下方箭頭＋提示 */
   ui=document.createElement('div');ui.id='hallUI';
-  ui.innerHTML='<button type="button" id="hallBack">← 回作品小屋</button><div class="ht">畫框背後<small>大師開講</small></div><div class="hh">左右滑動看看四周・點亮燈的藝術家走進展間</div><div class="hint" hidden>點我，進入展間</div><div class="hsay" hidden></div>';hintEl=ui.querySelector('.hint');sayEl=ui.querySelector('.hsay');
+  const chev=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+  ui.innerHTML='<button type="button" id="hallBack">← 回作品小屋</button><div class="ht">畫框背後<small>大師開講</small></div><div class="hnav"><button type="button" id="hallPrev" aria-label="往左，上一位藝術家">'+chev('M15 5l-7 7 7 7')+'</button><div class="hnow"></div><button type="button" id="hallNext" aria-label="往右，下一位藝術家">'+chev('M9 5l7 7-7 7')+'</button></div><div class="hh"></div><div class="hint" hidden>點我，進入展間</div><div class="hsay" hidden></div>';hintEl=ui.querySelector('.hint');sayEl=ui.querySelector('.hsay');navEl=ui.querySelector('.hnav');nowEl=ui.querySelector('.hnow');hhEl=ui.querySelector('.hh');
   const st=document.createElement('style');st.textContent=`
     body.inhall #hud,body.inhall #tags,body.inhall #say,body.inhall #sheet,body.inhall .say,body.inhall .pcTag{display:none!important}
     #hallUI{position:fixed;inset:0;z-index:50;touch-action:none;user-select:none;-webkit-user-select:none}
-    #hallUI button{position:absolute;left:16px;top:calc(12px + env(safe-area-inset-top));font:500 14px var(--sans,system-ui);padding:9px 15px;border-radius:999px;border:1.5px solid #d6c7a9;background:rgba(251,247,239,.92);color:#2f3a34;cursor:pointer}
+    #hallUI #hallBack{position:absolute;left:16px;top:calc(12px + env(safe-area-inset-top));font:500 14px var(--sans,system-ui);padding:9px 15px;border-radius:999px;border:1.5px solid #d6c7a9;background:rgba(251,247,239,.92);color:#2f3a34;cursor:pointer}
+    #hallUI .hnav{position:absolute;left:16px;right:16px;bottom:calc(46px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:12px;pointer-events:none}
+    #hallUI .hnav[hidden]{display:none}
+    #hallUI .hnav button{flex:none;width:52px;height:52px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:50%;border:1.5px solid #d6c7a9;background:rgba(251,247,239,.94);color:#4a3a2c;box-shadow:0 4px 14px rgba(60,40,20,.2);cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+    #hallUI .hnav button:active{background:#efe3cb;transform:scale(.94)}
+    #hallUI .hnow{min-width:128px;padding:7px 14px;border-radius:999px;background:rgba(251,247,239,.86);color:#4a3a2c;text-align:center;font:600 15px var(--serif,serif);line-height:1.3}
+    #hallUI .hnow small{display:block;font:500 11px var(--sans,system-ui);color:#6e5232}
     #hallUI .ht{position:absolute;left:0;right:0;top:calc(14px + env(safe-area-inset-top));text-align:center;font:600 17px var(--serif,serif);letter-spacing:.2em;color:#4a3a2c;pointer-events:none}
     #hallUI .ht small{display:block;font:500 11px var(--sans,system-ui);letter-spacing:.3em;color:#6e5232;margin-top:2px}
     #hallUI .hh{position:absolute;left:16px;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));text-align:center;font:14px var(--sans,system-ui);color:#4a3a2c;pointer-events:none;text-shadow:0 1px 6px rgba(255,250,240,.9)}
@@ -174,11 +186,26 @@ function build(){
     #hallUI .hsay::after{content:'';position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-top-color:#fffaf0;border-bottom:0}
     @keyframes sp{from{opacity:0;transform:translate(-50%,-80%) scale(.8)}}`;
   document.head.appendChild(st);
-  ui.addEventListener('pointerdown',e=>{if(e.target.id==='hallBack')return;down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false}});
-  ui.addEventListener('pointermove',e=>{if(!down||(goal&&!goal.slow))return;if(goal)goal=null;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)down.moved=true;
+  ui.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const panning=!!(pan&&pan.turn);if(panning)pan.turn=false;down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false,panning}});   // 一碰畫面環視就停，手指接手
+  ui.addEventListener('pointermove',e=>{if(!down||(goal&&!goal.nav))return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>8)down.moved=true;if(!down.moved)return;goal=null;
     yaw=down.yaw+dx*.005;pitch=Math.max(-.25,Math.min(.55,down.pitch+dy*.003))});
-  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved)return;if(introWait||(goal&&goal.slow)){introWait=false;goal=null;tap(e,true);if(act&&!goal&&!alive){pos.copy(START);yaw=0;pitch=.06}return}if(goal)return;tap(e)});   // 走進來的過場還沒停也可以直接點（不然點了沒反應）
-  ui.querySelector('#hallBack').onclick=leave}
+  ui.addEventListener('pointerup',e=>{const d=down;down=null;if(!d||d.moved)return;if(d.panning||pan){pan=null;tap(e,true);if(act&&!goal&&!alive){pos.copy(START);yaw=0;pitch=.06}return}if(goal&&!goal.nav)return;tap(e)});   // 環視還沒結束也可以直接點（不然點了沒反應）
+  ui.addEventListener('pointercancel',()=>{down=null});
+  ui.querySelector('#hallBack').onclick=leave;
+  ui.querySelector('#hallPrev').onclick=()=>navTo(-1);
+  ui.querySelector('#hallNext').onclick=()=>navTo(1)}
+
+/* 箭頭：s=1 往右轉到下一位、s=-1 往左。一律從現在看的方向找最近的下一位，手指滑到一半再按也對；連按會接著上一次的目標往下跳 */
+function navTo(s){if(!act||alive||(goal&&goal.then))return;pan=null;
+  const base=goal&&goal.nav?goal.yaw:yaw;let best=null,bd=9;
+  stops.forEach(p=>{const d=s>0?wrapPos(base-p.yaw):wrapPos(p.yaw-base);if(d>.05&&d<bd){bd=d;best=p}});
+  if(best)goal={pos:standAt(best.yaw),yaw:best.yaw,pitch:.06,nav:true}}
+/* 箭頭中間顯示現在看的是誰；看著大門或布簾時留白 */
+function showNow(){let best=null,bd=9;stops.forEach(p=>{const d=Math.abs(wrap(yaw-p.yaw));if(d<bd){bd=d;best=p}});
+  const on=best&&bd<.45,msg=on?`${best.A.n}<small>${stops.indexOf(best)+1} / ${stops.length}${best.open?'':'・籌備中'}</small>`:`&nbsp;<small>${stops.length} 位藝術家</small>`;
+  if(msg!==nowMsg){nowMsg=msg;nowEl.innerHTML=msg}
+  const hh=pan&&pan.turn?HH_PAN:HH_NAV;if(hh!==hhMsg){hhMsg=hh;hhEl.textContent=hh}
+  if(navEl.hidden!==!!alive)navEl.hidden=!!alive}
 
 function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,cam);
   const h=rc.intersectObjects(hits,false)[0];if(!h)return;const {A,open,door}=h.object.userData;if(skipping&&!open)return;   // 點畫面跳過走路時，只有點到開放的藝術家才算數，不跳籌備中提示
@@ -195,12 +222,12 @@ function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o.innerHTML='<iframe src="hall/index.html?v=20261103a&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
-function back(){resetAlive();goal={pos:START.clone(),yaw,pitch:.06}}
+function back(){resetAlive();goal={pos:standAt(yaw),yaw,pitch:.06}}
 
 /* 2026-10-31 大熊的點子：點雕像 → 雕像抖一抖、發光 → 變回彩色的藝術家 → 從底座跳下來 → 揮手打招呼 → 打開展間
    彩色那隻用 art.html 的 makeArtist（聖誕期間就是聖誕造型），第一次點才做 */
 function comeAlive(o){const w=new THREE.Vector3();o.g.getWorldPosition(w);const d=w.setY(0).normalize();
-  goal={pos:pos.clone(),yaw:Math.atan2(-d.x,-d.z),pitch:.03};   // 原地轉過去看著他
+  const fy=Math.atan2(-d.x,-d.z);goal={pos:standAt(fy),yaw:fy,pitch:.03};   // 轉過去看著他（站的位置跟按箭頭過去一樣）
   if(!o.C){const n0=picks.length;o.C=makeArtist(o.A);picks.length=n0;o.C.scale.multiplyScalar(1.1);o.C.visible=false;o.g.add(o.C)}
   o.C.position.set(0,o.lift+.75,1.1);alive={o,t0:performance.now(),burst:null,opened:false,dir:d}}
 function burst(g,y){const N=46,P=new Float32Array(N*3),V=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,e=Math.random()*1.2-.2,sp=1.2+Math.random()*1.6;V.push([Math.cos(a)*Math.cos(e)*sp,Math.sin(e)*sp+.8,Math.sin(a)*Math.cos(e)*sp]);P[i*3]=0;P[i*3+1]=y;P[i*3+2]=1.1}
@@ -226,24 +253,29 @@ function resetAlive(){if(!alive)return;const o=alive.o;if(alive.burst&&alive.bur
 function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTick(now/1000,dt);
   if(document.getElementById('hallov')){if(now-lastRoom<1000)return;lastRoom=now}   // 展間蓋著時一秒只畫一次
   if(alive)aliveTick(now,dt);
-  if(goal){const k=Math.min(1,dt*(goal.slow?1.3:3));pos.lerp(goal.pos,k);
-    let dy=((goal.yaw-yaw+Math.PI*3)%(Math.PI*2))-Math.PI;yaw+=dy*k;pitch+=(goal.pitch-pitch)*k;
-    if(pos.distanceTo(goal.pos)<(goal.slow?.12:.04)&&Math.abs(dy)<.01){const t=goal.then;goal=null;if(t)t()}}
+  if(pan){const t=Math.max(0,now-pan.t0)/1000,w=Math.min(1,t/pan.walk),e=1-(1-w)*(1-w);pos.lerpVectors(pan.from,START,e);pitch=pan.p0+(.06-pan.p0)*e;
+    const k=Math.max(0,Math.min(1,(t-pan.delay)/PAN_TURN));if(pan.turn)yaw=-TAU*(k*k*(3-2*k));   // 往右轉一整圈，頭尾慢中間快，轉回來剛好對著正前方的梵谷
+    if(w>=1&&(!pan.turn||k>=1)){if(pan.turn)yaw=0;pan=null}}
+  if(goal){const k=Math.min(1,dt*3);pos.lerp(goal.pos,k);
+    const dy=wrap(goal.yaw-yaw);yaw+=dy*k;pitch+=(goal.pitch-pitch)*k;
+    if(pos.distanceTo(goal.pos)<.04&&Math.abs(dy)<.01){const t=goal.then;goal=null;if(t)t()}}
+  showNow();
   const w=renderer.domElement;if(cam.aspect!==w.clientWidth/w.clientHeight){cam.aspect=w.clientWidth/Math.max(1,w.clientHeight);cam.fov=cam.aspect<.8?74:62;cam.updateProjectionMatrix()}
   cam.position.copy(pos);cam.rotation.set(pitch,yaw,0,'YXZ');renderer.render(sc,cam);
   /* 「點我」提示：走到定點後才出現，點過一次就不再出現 */
   badges.forEach(b=>{b.position.y=b.userData.y0+Math.sin(now/600)*.06;b.visible=!alive});
-  if(hintEl){let show=false;if(hintAt&&!goal&&!alive&&!GUIDE){let seen=false;try{seen=localStorage.getItem('otto2-hall-hint')==='1'}catch(e){}
+  if(hintEl){let show=false;if(hintAt&&!goal&&!pan&&!alive&&!GUIDE){let seen=false;try{seen=localStorage.getItem('otto2-hall-hint')==='1'}catch(e){}
       if(!seen){const v=hintAt.clone().project(cam);if(v.z<1&&Math.abs(v.x)<.9&&Math.abs(v.y)<.9){show=true;hintEl.style.left=(v.x+1)/2*innerWidth+'px';hintEl.style.top=(1-v.y)/2*innerHeight+'px'}}}
     hintEl.hidden=!show}}
 
-/* intro：從大門內側慢慢走到定點（走進來的感覺） */
-let introWait=false;   // 剛進大廳、還站在門內側等著往前走（這時點畫面也算跳過）
-function enter(intro){if(!sc)build();act=true;yaw=0;pitch=.06;goal=null;tPrev=performance.now();
-  if(intro){pos.set(0,EYE+.15,R-.6);pitch=.1;   // 先站在大門內側看整個大廳一下，再慢慢走到雕像前
-    introWait=true;setTimeout(()=>{if(introWait&&act&&!goal&&!alive)goal={pos:START.clone(),yaw:0,pitch:.06,slow:1};introWait=false},1100)}else pos.copy(START);
+/* intro：從大門內側走到定點，一邊走一邊環視一圈（走到中間前就開始轉）。略過走路（intro=false）的人：第一次還是看一圈，看過就直接站定點 */
+const PAN_TURN=7.2;
+function enter(intro){if(!sc)build();act=true;yaw=0;pitch=.06;goal=null;pan=null;tPrev=performance.now();pos.copy(START);
+  let seen=false;try{seen=localStorage.getItem(SEEN_PAN)==='1';localStorage.setItem(SEEN_PAN,'1')}catch(e){}
+  if(intro){pos.set(0,EYE+.15,R-.6);pitch=.1;pan={t0:tPrev,from:pos.clone(),p0:pitch,walk:2.6,delay:1.4,turn:true}}
+  else if(!seen)pan={t0:tPrev,from:pos.clone(),p0:pitch,walk:.01,delay:.5,turn:true};
   document.body.classList.add('inhall');document.body.appendChild(ui);try{closeSheet()}catch(e){}}
-function exit(){resetAlive();act=false;goal=null;introWait=false;document.body.classList.remove('inhall');if(ui&&ui.parentNode)ui.remove();const o=document.getElementById('hallov');if(o)o.remove()}
+function exit(){resetAlive();act=false;goal=null;pan=null;document.body.classList.remove('inhall');if(ui&&ui.parentNode)ui.remove();const o=document.getElementById('hallov');if(o)o.remove()}
 
 /* 過場：整個畫面淡成米白再淡回來（進出殿堂都用） */
 let fadeEl=null;
