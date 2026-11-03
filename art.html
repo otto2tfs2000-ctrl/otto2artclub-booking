@@ -302,13 +302,13 @@ body.tour .pcTag{display:none!important}
 <script src="ferry.js?v=20261031a"></script>
 <script src="petlife.js?v=20261030g"></script>
 <script src="anniv26.js?v=20261024a"></script>
-<script src="bgm.js?v=20261024b"></script>
+<script src="bgm.js?v=20261103a"></script>
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261103h"></script>
 <script>
-const ART_VER='20261103h';
+const ART_VER='20261103i';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2561,7 +2561,7 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
         OFF='<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16" r="2.5" fill="currentColor"/><path d="M3 3l18 18"/></svg></i>靜音';
   const b=document.getElementById('bgmBtn'),look=()=>{if(b){b.innerHTML=on?ON:OFF;b.setAttribute('aria-label',on?'關掉音樂':'打開音樂')}};
   if(b)b.onclick=()=>{on=!on;try{localStorage.setItem('otto2-park-mute',on?'0':'1')}catch(e){}look()};look();
-  setInterval(()=>OttoBGM.update('art',on&&!!ctx&&!window.storyOn,false),250)})();
+  setInterval(()=>OttoBGM.update(window.Hall3D&&Hall3D.active?'hall':'art',on&&!!ctx&&!window.storyOn,false),250) /* 2026-11-03 走進殿堂換古典鋼琴，出來換回畫室午後 */})();
 $('findBtn').onclick=findHouse;$('plHall').onclick=()=>{if(hallG)walkIntoHall()};$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
 $('plMascot').onclick=()=>{const u='park.html?v=20261013c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;

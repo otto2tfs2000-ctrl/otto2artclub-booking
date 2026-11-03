@@ -1,7 +1,7 @@
 /* 2026-10-24 遊樂島背景音樂：四首原創小曲，WebAudio 即時合成（沒有音檔、不拖慢開頁、版權是自己的）
    扭蛋島〈轉一下〉／走格子島〈雪夜走格子〉聖誕版／吉祥物島〈天竺鼠午睡〉／作品小屋〈畫室午後〉
    用法：OttoBGM.init(()=>AudioContext 或 null)，之後每格呼叫 OttoBGM.update(島id, 要不要開, 要不要壓低音量)
-   島 id：park walk mascot art；換島會淡出淡入；切到背景會停、回來接著播 */
+   島 id：park walk mascot art hall（畫框背後大廳與展間）；換島會淡出淡入；切到背景會停、回來接著播 */
 (function(){
 const CH={
   C:{r:36,n:[60,64,67]}, Am:{r:33,n:[57,60,64]}, F:{r:41,n:[57,60,65]}, G:{r:43,n:[55,59,62]},
@@ -44,7 +44,16 @@ const TRACKS={
        [79,-1,-1,-1,83,-1,-1,-1,86,-1,83,-1],[85,-1,-1,-1,-1,-1,-1,-1,81,-1,-1,-1],
        [86,-1,-1,-1,85,-1,83,-1,81,-1,78,-1],[81,-1,-1,-1,78,-1,-1,-1,73,-1,-1,-1],
        [74,-1,76,-1,79,-1,-1,-1,76,-1,73,-1],[74,-1,-1,-1,-1,-1,-1,-1,0,0,0,0]],
-  drums:{}}
+  drums:{}},
+ /* 2026-11-03 大熊：殿堂的音樂要古典。巴赫《C 大調前奏曲》BWV 846（1722 年公版曲），鋼琴音色＋大廳殘響；每小節 5 個音照原曲的分解和弦排成 16 拍 */
+ hall:{bpm:66,swing:0,steps:16,lead:'piano',solo:true,reverb:true,
+  mel:[[60,64,67,72,76],[60,62,69,74,77],[59,62,67,74,77],[60,64,67,72,76],[60,64,69,76,81],[60,62,66,69,74],[59,62,67,74,79],[59,60,64,67,72],
+       [57,60,64,67,72],[50,57,62,66,72],[55,59,62,67,71],[55,58,64,67,73],[53,57,62,69,74],[53,56,62,65,71],[52,55,60,67,72],[52,53,57,60,65],
+       [50,53,57,60,65],[43,50,55,59,65],[48,52,55,60,64],[48,55,58,60,64],[41,53,57,60,64],[42,48,57,60,63],[44,53,59,60,62],[43,53,55,59,62],
+       [43,52,55,60,64],[43,50,55,60,65],[43,50,55,59,65],[43,51,57,60,66],[43,52,55,60,67],[43,50,55,60,65],[43,50,55,59,65],[36,48,55,58,64]]
+   .map(([a,b,c,d,e])=>[a,b,c,d,e,c,d,e,a,b,c,d,e,c,d,e])
+   .concat([[36,48,53,57,60,65,60,57,60,57,53,57,53,50,53,50],[36,47,67,71,74,77,74,71,74,71,67,71,62,65,64,62],
+            [36,48,64,67,72,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])}
 };
 const VOL=.3,DUCK=.25; /* 背景音樂比音效小聲；店員說話時壓到 1/4 */
 let getCtx=()=>null,ac=null,out=null,noiseBuf=null,cur=null,timer=null,want={place:null,on:false,duck:false};
@@ -68,12 +77,14 @@ const LEAD={
   glock:(b,m,t,d)=>{tone(b,'sine',hz(m+12),t,d,.16,{a:.002,d:1.4,s:0,r:.6});tone(b,'sine',hz(m+12)*2.76,t,.08,.05,{a:.001,d:.25,s:0,r:.1})},
   celesta:(b,m,t,d)=>{const f=hz(m+12);tone(b,'sine',f,t,d,.15,{a:.002,d:1.6,s:0,r:.7});tone(b,'sine',f*2,t,d,.05,{a:.002,d:.7,s:0,r:.3});tone(b,'sine',f*4,t,.05,.018,{a:.001,d:.15,s:0,r:.08})},
   marimba:(b,m,t)=>{tone(b,'sine',hz(m),t,.05,.22,{a:.002,d:.42,s:0,r:.25});tone(b,'sine',hz(m)*4,t,.02,.06,{a:.001,d:.07,s:0,r:.04})},
-  musicbox:(b,m,t,d)=>{tone(b,'sine',hz(m+12),t,d,.15,{a:.002,d:1.8,s:0,r:.9});tone(b,'triangle',hz(m+24),t,.05,.035,{a:.001,d:.3,s:0,r:.15})}
+  musicbox:(b,m,t,d)=>{tone(b,'sine',hz(m+12),t,d,.15,{a:.002,d:1.8,s:0,r:.9});tone(b,'triangle',hz(m+24),t,.05,.035,{a:.001,d:.3,s:0,r:.15})},
+  piano:(b,m,t)=>{const f=hz(m),L=m<55?3.2:m<67?2.6:2;tone(b,'sine',f,t,L,.1,{a:.004,d:L,s:.03,r:.5});tone(b,'triangle',f*2,t,L*.5,.024,{a:.003,d:L*.4,s:.02,r:.3,lp:2600});tone(b,'sine',f*3.01,t,.5,.01,{a:.002,d:.3,s:.02,r:.15})}
 };
 function play(id,tr,bus,step,t0){
   const n=tr.steps,bar=Math.floor(step/n),s=step%n,d=60/tr.bpm/4,t=t0+(s%2?tr.swing*d:0);
   const row=tr.mel[bar],m=row[s];
   if(m>0){let len=1;while(s+len<n&&row[s+len]===-1)len++;LEAD[tr.lead](bus,m,t,len*d*.92)}
+  if(tr.solo)return;
   const chs=tr.chords[bar],half=n/chs.length,ch=CH[chs[Math.min(chs.length-1,Math.floor(s/half))]];
   if(s%half===0)ch.n.forEach((mm,i)=>tone(bus,'triangle',hz(mm),t,half*d,id==='park'?.022:.03,{a:.25,d:.6,s:.7,r:.5,det:i%2?6:-6,lp:1600}));
   const bass=(mm,dur,pk)=>tone(bus,'triangle',hz(mm),t,dur,pk,{d:.25,s:.3,lp:900});
@@ -95,12 +106,17 @@ function play(id,tr,bus,step,t0){
   if((bar===3||bar===7)&&id==='park'&&s===13)tone(bus,'sine',500,t,.04,.12,{to:1400,toT:.08,a:.002,d:.1,r:.05});
   if((bar===3||bar===7)&&id==='mascot'&&s===12){tone(bus,'sine',1300,t,.07,.06,{to:1900,toT:.07,a:.005,d:.1,r:.04});tone(bus,'sine',1500,t+.12,.06,.05,{to:2100,toT:.06,a:.005,d:.08,r:.04})}
 }
+/* 大廳殘響：雜訊做成 2.8 秒漸弱的空間回音，只有 reverb 曲目接 */
+let hallIR=null;
+function roomIR(){if(hallIR)return hallIR;const len=Math.floor(ac.sampleRate*2.8);hallIR=ac.createBuffer(2,len,ac.sampleRate);
+  for(let c=0;c<2;c++){const d=hallIR.getChannelData(c);for(let i=0;i<len;i++){const k=i/len;d[i]=(Math.random()*2-1)*Math.pow(1-k,3)*(k<.004?k/.004:1)}}return hallIR}
 function level(){return VOL*(want.duck?DUCK:1)}
 function fadeOut(c){if(!c)return;const g=c.bus.gain,t=ac.currentTime;try{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(0,t+.6)}catch(e){}setTimeout(()=>{try{c.bus.disconnect()}catch(e){}},1500)}
 function stop(){if(timer){clearInterval(timer);timer=null}if(cur)fadeOut(cur);cur=null}
 function start(id){
   const tr=TRACKS[id];if(!tr)return;if(cur)fadeOut(cur);
   const bus=ac.createGain(),t=ac.currentTime;bus.gain.setValueAtTime(0,t);bus.gain.linearRampToValueAtTime(level(),t+1.2);bus.connect(out);
+  if(tr.reverb){const cv=ac.createConvolver(),wet=ac.createGain();cv.buffer=roomIR();wet.gain.value=.3;bus.connect(cv);cv.connect(wet);wet.connect(out)}
   cur={id,tr,bus,step:0,next:t+.15,duck:want.duck};
   if(!timer)timer=setInterval(tick,40);
 }
