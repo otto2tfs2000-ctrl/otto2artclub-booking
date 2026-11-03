@@ -5,7 +5,7 @@
    用到 art.html 的：renderer、makeArtist、hallStatue、ARTISTS、XFIGS、picks、lam、toon、cvs、toast、LOWMEM */
 (function(){
 const OPEN={'梵谷':'vangogh','莫內':'monet'};
-const EPN={'梵谷':4,'莫內':4};   // 雕像上方「🎧 語音導覽」徽章顯示的集數，大熊每傳一集就 +1   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
+const EPN={'梵谷':3,'莫內':3};   // 雕像上方「🎧 語音導覽」徽章顯示開放的集數（導讀＋EP01、EP02，hall/index.html FREE_EPS）   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const WALL={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'};   // 壁龕背景的代表作（hall/wall/，維基共享資源公有領域）：星夜、睡蓮、吻、夜巡、蒙娜麗莎、神奈川沖浪裏
 const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
 const SIMG={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'},SIMG_H=2.2,CIMG=SIMG;   // 2026-11-02 大熊：雕像改用 GPT 生的石雕去背圖（hall/statue/），比 3D 公仔換色更像雕像；還沒給圖的照舊用 3D
@@ -16,7 +16,7 @@ const R=6.4,H=4,EYE=1.55,START=new THREE.Vector3(0,EYE,-.4);   // 定點：大�
 let sc=null,cam=null,ui=null,hits=[],folk=[],badges=[],ALIVE={},alive=null,sayEl=null,hintAt=null,hintEl=null,act=false,yaw=0,pitch=.06,pos=null,goal=null,down=null,tPrev=0,lastRoom=0;
 /* 2026-11-03 大熊：手機直拿一次只看得到一尊，沒人知道還有其他藝術家 → 走進來先環視一圈（pan），下方再加左右箭頭跳下一位（手指滑動照舊）。stops＝每位藝術家的角度，已照「往右轉」的順序排好 */
 let pan=null,stops=[],navEl=null,nowEl=null,hhEl=null,hhMsg='',nowMsg='';
-const TAU=Math.PI*2,wrap=a=>a-TAU*Math.round(a/TAU),wrapPos=a=>((a%TAU)+TAU)%TAU,SEEN_PAN='otto2-hall-pan',HH_PAN='帶你環視一圈・點畫面可略過',HH_NAV='左右滑動或按箭頭換藝術家・點亮燈的走進展間';
+const TAU=Math.PI*2,wrap=a=>a-TAU*Math.round(a/TAU),wrapPos=a=>((a%TAU)+TAU)%TAU,SEEN_PAN='otto2-hall-pan',HH_PAN='點畫面可略過',HH_NAV='左右滑動或按箭頭換藝術家・點亮燈的走進展間';
 const standAt=y=>new THREE.Vector3(-Math.sin(y)*.4,EYE,-Math.cos(y)*.4);   // 站在中間往那位多走一點，每一位看起來都跟正前方的梵谷一樣大（y=0 就是 START）
 
 /* 2026-10-31 大熊：大家不知道雕像裡有藝術家介紹 → 雕像頭上一直浮著一個發光的「🎧 語音導覽」徽章（像美術館語音導覽的標誌），上下輕輕飄。?guide=0 看沒有的樣子 */
@@ -35,11 +35,17 @@ function plaque(A,lift,soon){const c=cvs(256,96),x=c.getContext('2d'),gr=x.creat
   x.font='600 38px "Noto Serif TC",serif';x.fillText(A.n,128,46);const life=((typeof INFO!=='undefined'&&INFO[A.n]&&INFO[A.n].life)||'').split('・')[0];x.font='22px "Noto Serif TC",serif';x.fillText(soon?(life?life+'・':'')+'籌備中':life,128,78);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(.34,.128),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c)}));m.position.set(0,lift+.44,1.1+.224);return m}
 /* 還沒開放的壁龕：拉起來的深紅絨布簾（直的皺褶）＋上面金色橫桿＋拱頂半圓布＋前面紅絨布圍欄 */
+/* 2026-11-03 大熊手機上雕像和壁龕的畫都沒出來（圖還沒載到就開演）→ 載失敗自動重試；must 的圖（雕像、壁龕）數進 texLeft，走進大廳前先等它們（whenTex，最多 6 秒） */
+let texLeft=0;
+function loadTex(url,must,cb){const tx=new THREE.Texture();tx.format=/\.jpe?g$/.test(url)?THREE.RGBFormat:THREE.RGBAFormat;if(must)texLeft++;
+  const done=()=>{if(must)texLeft--},go=n=>new THREE.ImageLoader().load(n?url+'?r='+n:url,im=>{tx.image=im;tx.needsUpdate=true;done();cb&&cb(tx)},undefined,()=>{if(n<5)setTimeout(()=>go(n+1),1500*(n+1));else done()});
+  go(0);return tx}
+function whenTex(fn){const t0=performance.now(),id=setInterval(()=>{if(texLeft>0&&performance.now()-t0<6000)return;clearInterval(id);fn()},100)}
 /* 去背圖都以腳中心為畫布中線（hall/statue/），各人寬度不同 → 載好再照圖的長寬比撐開，腳底當原點（抖動才會以腳為軸） */
-function imgPlane(url,Mat){const ge=new THREE.PlaneGeometry(1,SIMG_H);ge.translate(0,SIMG_H/2,0);
-  const m=new THREE.Mesh(ge,new Mat({transparent:true,alphaTest:.02,map:new THREE.TextureLoader().load(url,t=>{m.scale.x=SIMG_H*t.image.width/t.image.height})}));m.scale.x=1e-4;return m}
+function imgPlane(url,Mat,must){const ge=new THREE.PlaneGeometry(1,SIMG_H);ge.translate(0,SIMG_H/2,0);
+  const m=new THREE.Mesh(ge,new Mat({transparent:true,alphaTest:.02,map:loadTex(url,must,t=>{m.scale.x=SIMG_H*t.image.width/t.image.height})}));m.scale.x=1e-4;return m}
 /* 石雕圖：站在 hallStatue 底座上面 y=.75 */
-function statueImg(f){const m=imgPlane('hall/statue/'+f+'.webp',THREE.MeshLambertMaterial);m.material.color.setRGB(1.25,1.25,1.25);m.position.y=.75;return m}
+function statueImg(f){const m=imgPlane('hall/statue/'+f+'.webp',THREE.MeshLambertMaterial,true);m.material.color.setRGB(1.25,1.25,1.25);m.position.y=.75;return m}
 /* 彩色去背圖（站姿＋揮手兩張，腳底對齊）：雕像活過來跳下來的是它，不是 3D 公仔 */
 function colorImg(f,g){const C=new THREE.Group(),load=n=>imgPlane('hall/statue/'+f+n+'.webp',THREE.MeshBasicMaterial);
   const st=load('-color'),wv=load('-wave');wv.visible=false;C.add(st,wv);C.visible=false;
@@ -129,9 +135,11 @@ function build(){
     /* 雕像版：壁龕裡面深青綠，白色雕像才跳得出來 */
     /* 2026-11-02 大熊：雕像後面那片綠色鋪滿藝術家的代表作（不是掛一張畫）→ 壁龕拱形貼整張畫、裁切填滿；畫壓暗一點，白色雕像才跳得出來 */
     const wf=A&&WALL[nm];let back;
-    if(wf){const tx=new THREE.TextureLoader().load('hall/wall/'+wf+'.jpg',t=>{const r=t.image.width/t.image.height,a=2*NW/(NH+NW);
-        if(r>a){t.repeat.set(a/r,1);t.offset.set((1-a/r)/2,0)}else{t.repeat.set(1,r/a);t.offset.set(0,(1-r/a)/2)}t.needsUpdate=true});
-      back=new THREE.Mesh(nicheU,new THREE.MeshLambertMaterial({map:tx,color:open?'#c4c4c4':wf==='rembrandt'?'#ffffff':'#b0b0b0'}))}
+    if(wf){const mat=new THREE.MeshLambertMaterial({color:'#55706b'});   // 畫還沒到先是素色壁龕（空貼圖是透明的，會看穿到後面的天空）
+      loadTex('hall/wall/'+wf+'.jpg',true,t=>{const r=t.image.width/t.image.height,a=2*NW/(NH+NW);
+        if(r>a){t.repeat.set(a/r,1);t.offset.set((1-a/r)/2,0)}else{t.repeat.set(1,r/a);t.offset.set(0,(1-r/a)/2)}
+        mat.map=t;mat.color.set(open?'#c4c4c4':wf==='rembrandt'?'#ffffff':'#b0b0b0');mat.needsUpdate=true});
+      back=new THREE.Mesh(nicheU,mat)}
     else back=new THREE.Mesh(nicheG,new THREE.MeshLambertMaterial({color:STATUE?(open?'#55706b':'#6b7b77'):(open?'#cfbf9f':'#d8ccb5')}));
     back.position.set(0,.18,.01);g.add(back);
     [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.24,3.7,.24),lam('#e9e0cf'));p.position.set(s*(NW+.38),1.85,.12);g.add(p);
@@ -219,7 +227,7 @@ function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261103a&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261103c&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:standAt(yaw),yaw,pitch:.06}}
@@ -254,7 +262,7 @@ function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTic
   if(document.getElementById('hallov')){if(now-lastRoom<1000)return;lastRoom=now}   // 展間蓋著時一秒只畫一次
   if(alive)aliveTick(now,dt);
   if(pan){const t=Math.max(0,now-pan.t0)/1000,w=Math.min(1,t/pan.walk),e=1-(1-w)*(1-w);pos.lerpVectors(pan.from,START,e);pitch=pan.p0+(.06-pan.p0)*e;
-    const k=Math.max(0,Math.min(1,(t-pan.delay)/PAN_TURN));if(pan.turn)yaw=-TAU*(k*k*(3-2*k));   // 往右轉一整圈，頭尾慢中間快，轉回來剛好對著正前方的梵谷
+    const k=Math.max(0,Math.min(1,(t-pan.delay)/PAN_TURN));if(pan.turn)yaw=-PAN_AMP*Math.sin(TAU*k)*Math.sin(Math.PI*k);   // 2026-11-03 大熊：轉一整圈太快不舒服 → 像人的眼睛，慢慢往右看、往左看，再回到正前方
     if(w>=1&&(!pan.turn||k>=1)){if(pan.turn)yaw=0;pan=null}}
   if(goal){const k=Math.min(1,dt*3);pos.lerp(goal.pos,k);
     const dy=wrap(goal.yaw-yaw);yaw+=dy*k;pitch+=(goal.pitch-pitch)*k;
@@ -268,8 +276,8 @@ function frame(now){const dt=Math.min(.05,(now-tPrev)/1000||0);tPrev=now;folkTic
       if(!seen){const v=hintAt.clone().project(cam);if(v.z<1&&Math.abs(v.x)<.9&&Math.abs(v.y)<.9){show=true;hintEl.style.left=(v.x+1)/2*innerWidth+'px';hintEl.style.top=(1-v.y)/2*innerHeight+'px'}}}
     hintEl.hidden=!show}}
 
-/* intro：從大門內側走到定點，一邊走一邊環視一圈（走到中間前就開始轉）。略過走路（intro=false）的人：第一次還是看一圈，看過就直接站定點 */
-const PAN_TURN=7.2;
+/* intro：從大門內側走到定點，一邊走一邊左右看一下。略過走路（intro=false）的人：第一次還是看一下，看過就直接站定點 */
+const PAN_TURN=9,PAN_AMP=.65;
 function enter(intro){if(!sc)build();act=true;yaw=0;pitch=.06;goal=null;pan=null;tPrev=performance.now();pos.copy(START);
   let seen=false;try{seen=localStorage.getItem(SEEN_PAN)==='1';localStorage.setItem(SEEN_PAN,'1')}catch(e){}
   if(intro){pos.set(0,EYE+.15,R-.6);pitch=.1;pan={t0:tPrev,from:pos.clone(),p0:pitch,walk:2.6,delay:1.4,turn:true}}
@@ -279,10 +287,11 @@ function exit(){resetAlive();act=false;goal=null;pan=null;document.body.classLis
 
 /* 過場：整個畫面淡成米白再淡回來（進出殿堂都用） */
 let fadeEl=null;
-function fade(on){if(!fadeEl){fadeEl=document.createElement('div');fadeEl.style.cssText='position:fixed;inset:0;z-index:60;background:#f4eedf;opacity:0;pointer-events:none;transition:opacity .45s ease';document.body.appendChild(fadeEl)}
+function fade(on){if(!fadeEl){fadeEl=document.createElement('div');fadeEl.style.cssText='position:fixed;inset:0;z-index:60;background:#f4eedf;opacity:0;pointer-events:none;transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;color:#8a7a5c;font-size:15px;letter-spacing:.1em';document.body.appendChild(fadeEl)}
   fadeEl.style.pointerEvents=on?'auto':'none';fadeEl.style.opacity=on?1:0}
 /* 作品小屋那邊鏡頭飛到大門口之後呼叫：淡出 → 換成大廳、從門口走進來 → 淡回來 */
-function walkIn(skip){fade(true);setTimeout(()=>{enter(!skip);requestAnimationFrame(()=>fade(false))},480)}
+function walkIn(skip){fade(true);setTimeout(()=>{if(!sc)build();const say=setTimeout(()=>{fadeEl.textContent='展廳準備中…'},800);
+  whenTex(()=>{clearTimeout(say);fadeEl.textContent='';enter(!skip);requestAnimationFrame(()=>fade(false))})},480)}
 /* 回作品小屋：淡出 → 換回島（art.html onHallExit 把鏡頭放在殿堂門口再慢慢拉遠）→ 淡回來 */
 function leave(){fade(true);setTimeout(()=>{exit();try{window.onHallExit&&window.onHallExit()}catch(e){}requestAnimationFrame(()=>fade(false))},480)}
 window.Hall3D={enter,exit,leave,walkIn,back,frame,get active(){return act}};
