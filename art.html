@@ -308,7 +308,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261104e"></script>
 <script>
-const ART_VER='20261104e';
+const ART_VER='20261105a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1993,7 +1993,7 @@ const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos
    鏡頭用 focus.fix 直接指定位置；最後一步剛好停在原本「門口 d6.8 pitch .2」的位置，接下去不會跳 */
 const CLIMB={ms:3000,inMs:2600,steps:7,inSteps:5,bob:.07,sway:.035,back:4.5,low:.85};   /* 大熊：三大步像用跳的 → 改成一路連續往上走，每一步只有頭部小小的上下＋左右晃 */
 /* 2026-11-02 大熊：到門口先停一下、再超快衝進去很怪 → 爬上階梯後不停，同一個步伐一路走進大門，快到門口時開始淡出進大廳 */
-function climbHall(arrive,done){hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront(),pm=portrait()?1.45:1,d1=6.8*pm,d2=1.2;
+function climbHall(arrive,done,gate){hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront(),pm=portrait()?1.45:1,d1=6.8*pm,d2=1.2;
   const dir=new THREE.Vector3(Math.sin(y),0,Math.cos(y)),P=s=>at.clone().addScaledVector(dir,d1*Math.cos(.2)+(1-s)*CLIMB.back*pm).add(new THREE.Vector3(0,d1*Math.sin(.2)-(1-s)*HALL_UP*CLIMB.low,0));
   const Q=s=>{const d=d1+(d2-d1)*s,pt=.2+(.06-.2)*s;return at.clone().addScaledVector(dir,d*Math.cos(pt)).add(new THREE.Vector3(0,d*Math.sin(pt),0))};   // 門口 → 門裡
   const L=s=>at.clone().add(new THREE.Vector3(0,-(1-s)*.9,0));   // 在下面時視線稍微往上看門
@@ -2002,19 +2002,68 @@ function climbHall(arrive,done){hallG.updateMatrixWorld(true);const at=hallG.loc
   /* 2026-11-02 大熊：跟其他動畫一樣，點畫面任何地方就跳過 → 直接淡出、站到雕像前（音樂鈕照常能按） */
   const hint=document.createElement('div');hint.textContent='點畫面略過';hint.style.cssText='position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:55;border-radius:99px;padding:6px 14px;background:rgba(255,255,255,.55);color:#35505a;font-size:13px;pointer-events:none';document.body.appendChild(hint);
   const finish=skip=>{if(gone)return;gone=true;document.removeEventListener('pointerdown',onTap,true);hint.remove();done(skip)};
-  const onTap=e=>{if(e.target.closest&&e.target.closest('#bgmBtn'))return;e.stopPropagation();e.preventDefault();finish(true)};
+  let tw=null,jump=false;const pg=c*.94+.06;   /* pg＝走到門口那一刻的進度：要驗票的人停在這裡等驗票員 */
+  const onTap=e=>{if(e.target.closest&&e.target.closest('#bgmBtn'))return;if(gate&&gate.shown)return;e.stopPropagation();e.preventDefault();if(gate){if(tw)tw.t0=performance.now()-pg*T;else jump=true;return}finish(true)};
   document.addEventListener('pointerdown',onTap,true);
   const walk=()=>{if(gone||!focus||focus.fix!==fx)return;
-    tweens.push({t0:performance.now(),d:T,f:p=>{const e=p<.12?p*p/(.24):p-.06,u=e/.94;   // 起步慢慢加速，之後等速走到底（不在門口停）
+    tw={t0:performance.now()-(jump?pg*T:0),d:T,f:p=>{if(gate&&p>=pg){tw.t0=performance.now()-pg*T;p=pg;if(!gate.shown){gate.shown=true;hint.style.display='none';gate.show(()=>{gate=null;hint.style.display='';if(!tweens.includes(tw))finish(false)})}}const e=p<.12?p*p/(.24):p-.06,u=e/.94;   // 起步慢慢加速，之後等速走到底（不在門口停）
       const ph=u*Math.PI*N,amp=Math.min(1,p/.12);
       if(u<c){const s=u/c;fx.pos.copy(P(s));fx.at.copy(L(s))}else{const s=(u-c)/(1-c);fx.pos.copy(Q(s));fx.at.copy(at)}
       fx.pos.y-=(1-Math.cos(ph*2))/2*CLIMB.bob*pm*amp;fx.pos.addScaledVector(side,Math.sin(ph)*CLIMB.sway*pm*amp);
       if(!gone&&p>.8)finish(false)},                                                     // 還在走就開始淡出
-      r:()=>{if(focus&&focus.fix===fx)delete focus.fix}})};
+      r:()=>{if(focus&&focus.fix===fx)delete focus.fix}};tweens.push(tw)};
   setTimeout(()=>{fx.soft=false;walk()},arrive?500:1300)}   // 從作品小屋按的：先飛到階梯下面（約 1.3 秒）再開始爬
 function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
   focus={pos:new THREE.Vector3(),d:1.2,yaw:hallFront(),pitch:.06,obj:hallG,loc:HALL_DOOR.clone()};   // 走完停在門裡（跟 fix 最後一格一樣，放掉 fix 時鏡頭不會跳）
-  climbHall(arrive,skip=>Hall3D.walkIn(skip))}
+  const need=hallNeedTicket();climbHall(arrive,skip=>{hallGuardGone();Hall3D.walkIn(skip)},need?{show:ticketGate}:null)}
+/* 2026-11-05 大門驗票：沒登入 LINE 的人走到大門，驗票員跳出來要入場券（輸入電話）。會員記到電話底下；不是會員一樣放行，記成非會員。
+   從 LINE 預約頁進來（有 token）、店內平板、體驗版、示範版都不驗。?ticket=1 強制出現（測試用） */
+const HT_KEY='otto2-hall-ticket',HT_NM_DAYS=30;let whoP=null,htGuard=null;
+function htGet(){try{return JSON.parse(localStorage.getItem(HT_KEY)||'null')||{}}catch(e){return {}}}
+function htSet(o){try{localStorage.setItem(HT_KEY,JSON.stringify(o))}catch(e){}}
+function hallTicketLog(){const t=htGet();return t.ticket?{ticket:t.ticket}:t.nm?{nm:true}:{}}
+function hallNeedTicket(){if(/[?&]ticket=1/.test(location.search))return true;if(DEMO||window.GUEST||token())return false;const t=htGet();return !(t.ticket||(t.nm&&Date.now()-t.at<HT_NM_DAYS*864e5))}
+function hallGuardGone(){if(htGuard){htGuard.g.parent&&htGuard.g.parent.remove(htGuard.g);htGuard=null}}
+function hallGuard(){const f=figBase({coat:'#27405a',sleeve:'#27405a',legs:'#1d2f42',shoe:'#3a2a22',skin:'#f3d4bb',mouth:'smile'});f.armR.children.slice(-2).forEach(c=>f.armR.remove(c));
+  f.head.add(cyl('#1d2f42',.27,.25,.17,0,.3,0,20));f.head.add(cyl('#17202c',.31,.31,.025,0,.22,.03,20));f.head.add(ball('#d9b46a',.05,0,.31,.25,1,1,.4,true));   // 制服帽＋金徽章
+  [.72,.6,.48].forEach(y=>f.g.children[0].add(ball('#d9b46a',.018,0,y,.185,1,1,.5,true)));
+  const tk=fbox('#f5e6b8',.2,.12,.012,0,-.42,.06);f.armR.add(tk);f.armR.rotation.x=-1.25;f.armR.rotation.z=-.1;   // 舉著一張入場券
+  f.g.traverse(m=>{if(m.isMesh)m.userData.keep=1});return f}
+const htPos=(x,h)=>{htGuard.g.position.set(x,GUARD_Y+h,GUARD_Z)},GUARD_Y=.02,GUARD_Z=2.55,GUARD_S=.72;
+function ticketGate(pass){
+  const waited=whoP?Promise.race([whoP,sleep(4500)]):Promise.resolve();
+  waited.catch(()=>{}).then(()=>{if(!hallNeedTicket())return pass();
+    const f=hallGuard();htGuard=f;f.g.scale.setScalar(GUARD_S);hallG.add(f.g);htPos(-1.5,0);
+    tweens.push({t0:performance.now(),d:620,f:p=>{if(!htGuard)return;htPos(-1.5+1.5*(1-(1-p)*(1-p)),Math.abs(Math.sin(p*Math.PI*2))*.32*(1-p*.4))},r:()=>{}});
+    setTimeout(()=>ticketPanel(pass),480)})}
+function ticketPanel(pass){let st=document.getElementById('htCss');if(!st){st=document.createElement('style');st.id='htCss';st.textContent=`
+#htGate{position:fixed;left:0;right:0;bottom:0;z-index:58;padding:0 14px calc(14px + env(safe-area-inset-bottom,0px));font-family:var(--sans);animation:htUp .28s ease-out}
+@keyframes htUp{from{transform:translateY(30px);opacity:0}}
+#htGate .htc{max-width:420px;margin:0 auto;background:#fffaf2;color:#2b2320;border:2px solid #27405a;border-radius:20px;padding:16px 16px 12px;box-shadow:0 6px 22px rgba(20,30,45,.3)}
+#htGate h3{margin:0 0 4px;font-size:19px;font-weight:800;color:#27405a}#htGate p{margin:0 0 11px;font-size:14px;line-height:1.55;color:#5d524c}
+#htGate input{width:100%;box-sizing:border-box;height:48px;border:2px solid #cfc2aa;border-radius:12px;padding:0 13px;font-size:18px;letter-spacing:.06em;background:#fff;color:#2b2320;font-family:inherit}
+#htGate input:focus{outline:none;border-color:#27405a}
+#htGate .hte{min-height:18px;margin:5px 2px 3px;font-size:13px;color:#b23a2c}
+#htGate button{display:block;width:100%;box-sizing:border-box;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;padding:12px 8px;border:0;cursor:pointer;background:#27405a;color:#fff}
+#htGate button:disabled{opacity:.6}#htGate button.htx{background:transparent;color:#6f635c;font-size:14px;font-weight:500;padding:10px 8px 4px}`;document.head.appendChild(st)}
+  const w=document.createElement('div');w.id='htGate';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');document.body.appendChild(w);
+  const vv=window.visualViewport,kb=()=>{if(vv)w.style.bottom=Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px'};if(vv){vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
+  const go=()=>{if(vv){vv.removeEventListener('resize',kb);vv.removeEventListener('scroll',kb)}w.remove();
+    if(htGuard){const x0=htGuard.g.position.x;htGuard.g.rotation.y=.8;tweens.push({t0:performance.now(),d:420,f:p=>{if(htGuard)htPos(x0+1.25*p,Math.abs(Math.sin(p*Math.PI))*.16)},r:()=>{}})}
+    setTimeout(pass,330)};
+  const say=(html)=>{w.innerHTML='<div class="htc">'+html+'</div>'};
+  const asking=(err,val)=>{say(`<h3>請出示入場券！</h3><p>輸入上課登記的手機號碼，我幫你查一下。</p><input id="htPh" type="tel" inputmode="numeric" autocomplete="tel" maxlength="12" placeholder="09xxxxxxxx" aria-label="手機號碼"><div class="hte" id="htErr" role="alert"></div><button id="htOk" type="button">驗票</button><button class="htx" id="htSkip" type="button">我還不是會員，直接參觀</button>`);
+    const i=$('htPh');i.value=val||'';$('htErr').textContent=err||'';$('htSkip').onclick=guest;
+    const send=async()=>{const ph=i.value.replace(/\D/g,'');if(!/^09\d{8}$/.test(ph)){$('htErr').textContent='請輸入手機號碼（09 開頭 10 碼）';i.focus();return}
+      $('htOk').disabled=true;$('htOk').textContent='查詢中…';let j=null;
+      try{j=await Promise.race([fetch(NOTIFY_URL+'/hall/ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph})}).then(r=>r.json()),sleep(8000).then(()=>null)])}catch(e){}
+      if(!j){say('<h3>驗票機有點忙</h3><p>先請進，下次再幫你驗票。</p><button id="htIn" type="button">走進殿堂</button>');$('htIn').onclick=go;return}
+      if(!j.ok)return asking(j.error||'請再試一次',i.value);
+      if(j.member){htSet({ticket:j.ticket,at:Date.now()});say('<h3>驗票成功！</h3><p>會員您好，請進，大師們在裡面等你。</p>');setTimeout(go,1100);return}
+      say('<h3>這支電話還不是會員</h3><p>沒關係，今天一樣歡迎你進來參觀！</p><button id="htIn" type="button">走進殿堂</button><button class="htx" id="htRe" type="button">我打錯了，重新輸入</button>');$('htIn').onclick=guest;$('htRe').onclick=()=>asking('',i.value)};
+    $('htOk').onclick=send;i.addEventListener('keydown',e=>{if(e.key==='Enter')send()})};
+  const guest=()=>{htSet({nm:1,at:Date.now()});go()};
+  asking()}
 window.onHallExit=()=>{$('hud').hidden=false;hallG.updateMatrixWorld(true);const at=hallG.localToWorld(HALL_DOOR.clone()),y=hallFront();
   look.copy(at);camPos.copy(at).add(new THREE.Vector3(Math.sin(y)*2.4,.25,Math.cos(y)*2.4));focus={pos:new THREE.Vector3(),d:15,yaw:y+.45,pitch:.34,obj:hallG,h:1.6}};
 /* 殿堂裡面是 3D 大廳（hall3d.js），點藝術家蓋一層 hall/index.html?room=…；展間裡播語音傳 hallAudio 過來，背景音樂先停 */
@@ -2516,7 +2565,7 @@ async function api(path,body){const r=await fetch(NOTIFY_URL+path,{method:'POST'
   let j=null;try{j=await r.json()}catch(e){}if(!j)throw new Error('連線不穩，請稍後再試');if(!j.ok)throw Object.assign(new Error(j.error||'出了點問題'),{code:j.code});return j}
 /* 2026-11-03 畫框背後收聽紀錄：大廳、展間（iframe）都呼叫這裡。demo／kiosk 不記；沒登入用這台手機的亂數代號。失敗不影響聽講座 */
 window.hallLog=(room,ep,pct)=>{try{if(/[?&](demo|kiosk)=1/.test(location.search))return;let anon='';try{anon=localStorage.getItem('otto2-hall-anon')||'';if(!anon){anon=Math.random().toString(36).slice(2,12)+Date.now().toString(36);localStorage.setItem('otto2-hall-anon',anon)}}catch(e){}
-  fetch(NOTIFY_URL+'/hall/log',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:token(),anon,room,ep,pct:pct||0})}).catch(()=>{})}catch(e){}};
+  fetch(NOTIFY_URL+'/hall/log',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:token(),anon,room,ep,pct:pct||0},hallTicketLog()))}).catch(()=>{})}catch(e){}};
 const imgUrl=(id,s)=>`${NOTIFY_URL}/island/img/${id}/${s}`;
 function fromServer(j){return{members:j.houses.map(h=>({id:h.id,name:h.name,style:h.style,since:h.since,staff:h.staff,works:h.works.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:w.by,cm:w.cm||null,rx:w.rx||{l:0,h:0,f:0}})),pet:h.pet||null,frog:h.frog||null,look:h.look||null,away:h.away||null})),
   album:j.album.map(w=>({id:w.id,img:imgUrl(w.id,'t'),full:imgUrl(w.id,'f'),title:w.title,date:w.date,by:'老師'})),me:G?G.me:ME.house}}
@@ -2539,7 +2588,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');whoAmI().then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else{const mm=G.members.find(x=>x.id===G.me);setTimeout(mm&&mm.away&&mm.away.s==='storm'?gpStormAsk:gpAsk,1500)}setTimeout(gpGuests,2600)})}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');(whoP=whoAmI()).then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else{const mm=G.members.find(x=>x.id===G.me);setTimeout(mm&&mm.away&&mm.away.s==='storm'?gpStormAsk:gpAsk,1500)}setTimeout(gpGuests,2600)})}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
