@@ -4,7 +4,7 @@
    開放的藝術家（OPEN）亮燈、點了走過去 → 蓋一層 hall/index.html?room=… 看語音和生平；還沒開放的用布蓋著。
    用到 art.html 的：renderer、makeArtist、hallStatue、ARTISTS、XFIGS、picks、lam、toon、cvs、toast、LOWMEM */
 (function(){
-const OPEN={'梵谷':'vangogh','莫內':'monet'};
+const OPEN={'梵谷':'vangogh'};   // 2026-11-05：一般人只開梵谷；工作人員在 build() 另外加莫內
 const EPN={'梵谷':3,'莫內':3};   // 雕像上方「🎧 語音導覽」徽章顯示開放的集數（導讀＋EP01、EP02，hall/index.html FREE_EPS）   // 之後開放別人就加一行（id 對到 hall/index.html 的 ROOMS）
 const WALL={'梵谷':'vangogh','莫內':'monet','克林姆':'klimt','林布蘭':'rembrandt','達文西':'davinci','葛飾北齋':'hokusai'};   // 壁龕背景的代表作（hall/wall/，維基共享資源公有領域）：星夜、睡蓮、吻、夜巡、蒙娜麗莎、神奈川沖浪裏
 const HALL=['梵谷','莫內','克林姆','林布蘭','達文西','葛飾北齋',null];   /* 2026-11-01 大熊：六位畫作已是公有領域的都要做、大廳都要有雕像 → 七格（最後一格布簾留給下一位） */   // 第一位在正前方，其他左右輪流往後排；null＝這格還沒決定是誰
@@ -101,7 +101,7 @@ function folkTick(t,dt){folk.forEach(v=>{const o=v.o,p=t+v.ph;
   else if(o.do==='look'){v.head.rotation.y=Math.sin(p*.45)*.25;v.body.rotation.z=Math.sin(p*.3)*.03}
   else v.head.rotation.x=Math.sin(p*.6)*.06})}
 
-function build(){
+function build(){const tier=window.hallTier?hallTier():'guest';if(tier==='staff')OPEN['莫內']='monet';if(tier!=='guest')EPN['梵谷']=14;if(tier==='staff')EPN['莫內']=13;   /* 2026-11-05 權限：莫內只有工作人員看得到；徽章集數照身分（梵谷總導覽＋13 集、莫內總導覽＋12 集） */
   sc=new THREE.Scene();sc.background=new THREE.Color('#d9e6ee');
   cam=new THREE.PerspectiveCamera(62,1,.1,80);pos=new THREE.Vector3(0,EYE,0);
   sc.add(new THREE.HemisphereLight('#fff8ec','#b9a98d',V2?.5:.72));
@@ -227,7 +227,7 @@ function tap(e,skipping){const v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.
 
 function openRoom(id){let o=document.getElementById('hallov');if(o)o.remove();
   o=document.createElement('div');o.id='hallov';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#efe7d8';
-  o.innerHTML='<iframe src="hall/index.html?v=20261104e&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
+  o.innerHTML='<iframe src="hall/index.html?v=20261105a&room='+id+'" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)}
 
 /* 從展間回來：退回大廳中間，雕像回到底座上 */
 function back(){resetAlive();goal={pos:standAt(yaw),yaw,pitch:.06}}

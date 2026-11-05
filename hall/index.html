@@ -124,10 +124,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 </style></head><body>
 <div class="bar"><button type="button" id="back">← 回作品小屋</button><b id="barT">畫框背後</b><i id="barR"></i><button type="button" class="ovb" id="ovB" hidden>☰ 總覽</button></div>
 <button type="button" class="goon" id="goon" hidden></button>
-<div class="lockt" id="lockT" hidden>🔒 這一站還沒開放，敬請期待</div>
+<div class="lockt" id="lockT" hidden>🔒 這一集會員才能聽</div>
 <div class="wrap">
   <section id="home">
-    <div class="hero"><small>OTTO2 ・ 大師開講</small><h1>畫框背後</h1><p>聽藝術家說自己的故事、走過他們的一生。<br>從梵谷、莫內開始，之後一位一位開講。</p></div>
+    <div class="hero"><small>OTTO2 ・ 大師開講</small><h1>畫框背後</h1><p>聽藝術家說自己的故事、走過他們的一生。<br>從梵谷開始，之後一位一位開講。</p></div>
     <div class="grid" id="grid"></div>
   </section>
   <section id="room" hidden></section>
@@ -140,6 +140,10 @@ const ARTISTS=[
   /* 2026-11-01 大熊：只排畫作已是公有領域、可以放真跡圖片的（過世滿 70 年）；畢卡索、達利、卡蘿等國際上還有版權，先不排 */
   {id:'monet',n:'莫內',sub:'印象派・法國',open:true},{id:'klimt',n:'克林姆',sub:'維也納分離派・奧地利'},
   {id:'rembrandt',n:'林布蘭',sub:'巴洛克・荷蘭'},{id:'davinci',n:'達文西',sub:'文藝復興・義大利'},{id:'hokusai',n:'葛飾北齋',sub:'浮世繪・日本'}];
+/* 2026-11-05 大熊定的權限：非會員＝梵谷前三集（總導覽＋EP01、EP02）；會員＝梵谷全部；工作人員＝全部。其他藝術家只有工作人員進得去。
+   身分問 art.html 的 hallTier()；單獨打開展間（沒有 parent）一律當非會員 */
+function hallTier(){try{if(parent!==window&&parent.hallTier)return parent.hallTier()}catch(e){}return 'guest'}
+ARTISTS.forEach(a=>{if(a.id!=='vangogh'&&hallTier()!=='staff')a.open=false});
 /* 展間內容：每一面展牆＝一幅畫＋一集語音（大熊用 Gemini Notebook 依「梵谷_NotebookLM素材包」一集一集做，壓成單聲道放 ../artist-audio/）
    audio 還沒做好的集數顯示「即將推出」；img 還沒放的畫顯示「展牆準備中」。guide＝最早那段 8 分鐘總導覽 */
 /* 2026-11-03 大熊：所有藝術家都只開放總導覽＋EP01、EP02，後面鎖起來；工作人員全開。之後開放新藝術家不用另外設定 */
@@ -335,7 +339,7 @@ function openZoom(src,alt){$('zImg').src=src;$('zImg').alt=alt;$('zoom').hidden=
 function home(){stopAudio();$('room').hidden=true;$('ovB').hidden=true;$('barR').hidden=false;$('goon').hidden=true;$('home').hidden=false;$('barT').textContent='畫框背後';scrollTo(0,0)}
 $('grid').innerHTML=ARTISTS.map(a=>`<button type="button" class="art${a.open?' open':''}" data-id="${a.id}"${a.open?'':' disabled'}><em>${a.open?'開放中':'籌備中'}</em><b>${esc(a.n)}</b><span>${esc(a.sub)}</span></button>`).join('');
 $('grid').querySelectorAll('.art.open').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
-function openRoom(id){const R=ROOMS[id];if(!R)return;paintWall(id);let staff=false;try{staff=!!parent.HALL_STAFF}catch(e){}const free=staff?null:FREE_EPS;   // 工作人員（作品小屋 /island/me 認出來的）不受上鎖限制
+function openRoom(id){const tier=hallTier();if(id!=='vangogh'&&tier!=='staff')id='vangogh';const R=ROOMS[id];if(!R)return;paintWall(id);const free=tier==='guest'?FREE_EPS:null;   // 會員、工作人員不受上鎖限制
   $('home').hidden=true;$('barT').textContent=R.n;list=[];stops=[];curStop=-1;
   hlRoom=id;hlLog('enter',0);if(R.guide)list.push({src:R.guide.src,label:R.guide.t,img:null,guide:1,ep:'guide'});
   /* 一站＝一集（有 ep 的那面牆）＋後面跟著的對照牆（例如浮世繪三組）；list 照站的順序排，播完自動接 */
@@ -351,7 +355,7 @@ function openRoom(id){const R=ROOMS[id];if(!R)return;paintWall(id);let staff=fal
       <div class="lab"><b>《${esc(w.t)}》</b><div class="o">${esc(w.o||'')}</div><div class="m">${w.meta||''}</div></div></div>
       ${ep(w)}${w.txt?`<p class="txt">${esc(w.txt)}</p>`:''}${w.tip?`<div class="tip"><b>👀 觀察小提示</b>　${esc(w.tip)}</div>`:''}`
     :`<div class="ghost"><b>《${esc(w.t)}》</b>展牆準備中・真跡與語音即將推出</div>`;
-  const eps=stops.filter(s=>s.w.audio&&!s.lock),gs=R.guide&&free!=null?[{w:R.guide}]:[],secs=eps.concat(gs).reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
+  const eps=stops.filter(s=>s.w.audio&&!s.lock),gs=R.guide?[{w:R.guide}]:[],secs=eps.concat(gs).reduce((a,s)=>{const [m,x]=(s.w.dur||'0:0').split(':');return a+(+m)*60+(+x)},0);
   const thumb=w=>w.img?cardImg(w.img):'';
   const card=(s,k)=>`<button type="button" class="card${s.lock?' lock':''}" data-k="${k}"${s.w._i!=null?` data-i="${s.w._i}"`:''}${s.w.img?` style="background-image:url('${esc(thumb(s.w))}')"`:''}><i>${s.lock?'🔒':esc(s.w.dur||'')}</i><em>${esc(s.w.ep||'')}${s.w.img?'・'+esc(s.pl):''}</em><b>${esc((R.cards||{})[s.w.ep]||s.w.t)}</b></button>`;
   const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
@@ -372,13 +376,15 @@ let ROOM=null;
 const cardImg=src=>src.replace(/^(\w+)\//,'$1/card/');   // 總覽卡片和下一站用小張：vangogh/x.jpg → vangogh/card/x.jpg
 function showOv(){if(!$('ov'))return;$('st').hidden=true;$('ov').hidden=false;$('ovB').hidden=true;$('barR').hidden=false;
   const c=curStop>=0&&$('ov').querySelector(`.card[data-k="${curStop}"]`);if(c)c.scrollIntoView({block:'center'});else scrollTo(0,0);lookDock()}
-function lockToast(){const t=$('lockT');t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,2200)}
+function lockToast(){const t=$('lockT');let can=false;try{can=parent!==window&&parent.hallCanTicket&&parent.hallCanTicket()}catch(e){}
+  t.innerHTML='🔒 這一集會員才能聽'+(can?'<button type="button" id="lockTk" style="display:block;margin:8px auto 0;padding:7px 14px;border:0;border-radius:99px;background:#e9cf8c;color:#3a2a10;font:700 14px inherit;pointer-events:auto;cursor:pointer">我是會員，輸入電話</button>':'');if(can)$('lockTk').onclick=()=>{stopAudio();parent.hallReticket()};
+  t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,can?6000:2200)}
 function showStop(k,dir){const s=stops[k];if(!s||s.lock)return;curStop=k;$('ov').hidden=true;$('ovB').hidden=false;$('barR').hidden=true;
   const n=k+1<openN?stops[k+1]:null,dots=stops.slice(0,openN).map((_,j)=>`<s class="${j===k?'on':''}"></s>`).join('');
   $('st').hidden=false;$('st').innerHTML=`<div class="stp ${dir<0?'in-r':'in-l'}"><div class="pgr"><button type="button" id="pv" aria-label="上一站"${k?'':' disabled'}>‹</button><div><b>第 ${k+1} 站 / ${openN}</b><div class="dots">${dots}</div></div><button type="button" id="nx" aria-label="下一站"${n?'':' disabled'}>›</button></div>
     <div class="period"><div><span>${esc(s.p.yr)}</span><b>${esc(s.p.n)}</b></div></div>${s.ws.map(ROOM.wall).join('')}
     ${n?`<button type="button" class="nxt" id="nx2">${n.w.img?`<img src="${esc(cardImg(n.w.img))}" alt="">`:''}<div><small>下一站・${esc(n.w.ep||'')}</small><b>${esc((ROOM.cards||{})[n.w.ep]||n.w.t)}</b></div><i>→</i></button>`
-       :`<button type="button" class="nxt" id="nx2"><div><small>${openN<stops.length?'後面的展牆還沒開放':'走完了'}</small><b>回到總覽</b></div><i>☰</i></button>`}</div>`;
+       :`<button type="button" class="nxt" id="nx2"><div><small>${openN<stops.length?'後面的展牆會員才能聽':'走完了'}</small><b>回到總覽</b></div><i>☰</i></button>`}</div>`;
   $('pv').onclick=()=>showStop(k-1,-1);$('nx').onclick=()=>showStop(k+1,1);$('nx2').onclick=()=>n?showStop(k+1,1):showOv();
   $('st').querySelectorAll('.ep[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(cur===i&&!au.paused)au.pause();else if(cur===i&&au.dataset.src)au.play();else playIdx(i)});
   $('st').querySelectorAll('.frame').forEach(b=>b.onclick=()=>openZoom(b.dataset.z,b.querySelector('img').alt));

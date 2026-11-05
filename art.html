@@ -306,9 +306,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261104e"></script>
+<script src="hall3d.js?v=20261105a"></script>
 <script>
-const ART_VER='20261105a';
+const ART_VER='20261105b';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1984,7 +1984,7 @@ function buildHall(){const a=HALL_A,ux=Math.cos(a),uz=Math.sin(a),rim=outline(a)
   const hit=new THREE.Mesh(new THREE.BoxGeometry(R*1.6,5.6,R*1.6),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2.5;hit.userData.keep=1;hit.userData.hall=true;g.add(hit);picks.push(hit);
   mergeGroup(g)}
 function openHall(){focusOn(hallG,15,1.6,.34);focus.yaw=Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A))+.45;   // 從主島這側斜斜看正面
-  sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。現在開放梵谷和莫內，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
+  sheet('畫框背後','大師開講・聽藝術家說自己的故事','走進萬神殿，大師們會從雕像活過來，帶你看他們的畫、聽畫框背後的故事。現在開放梵谷，之後一位一位開講。',[['走進殿堂',walkIntoHall,true],['關閉',closeSheet]])}
 /* 走進殿堂的過場：鏡頭慢慢飛到萬神殿大門口 → hall3d.js 淡出、在大廳裡從門口走進來；出來時反過來，從門口往後拉遠 */
 const HALL_DOOR=new THREE.Vector3(0,1.05,1.3),hallFront=()=>Math.atan2(-Math.cos(HALL_A),-Math.sin(HALL_A));
 /* 2026-10-31 大熊：要先「停在萬神殿門口」看一下，再走進去 → 對準正門（遠）→ 推到門口（雙雕像＋柱廊入鏡）停一下 → 再往門裡推、淡出進大廳
@@ -2015,7 +2015,7 @@ function climbHall(arrive,done,gate){hallG.updateMatrixWorld(true);const at=hall
   setTimeout(()=>{fx.soft=false;walk()},arrive?500:1300)}   // 從作品小屋按的：先飛到階梯下面（約 1.3 秒）再開始爬
 function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
   focus={pos:new THREE.Vector3(),d:1.2,yaw:hallFront(),pitch:.06,obj:hallG,loc:HALL_DOOR.clone()};   // 走完停在門裡（跟 fix 最後一格一樣，放掉 fix 時鏡頭不會跳）
-  const need=hallNeedTicket();climbHall(arrive,skip=>{hallGuardGone();Hall3D.walkIn(skip)},need?{show:ticketGate}:null)}
+  const need=hallNeedTicket();climbHall(arrive,skip=>{hallGuardGone();const w=whoP?Promise.race([whoP,sleep(4500)]):Promise.resolve();w.catch(()=>{}).then(()=>Hall3D.walkIn(skip))},need?{show:ticketGate}:null)}   /* 大廳要等認出身分才蓋（誰開放看身分） */
 /* 2026-11-05 大門驗票：沒登入 LINE 的人走到大門，驗票員跳出來要入場券（輸入電話）。會員記到電話底下；不是會員一樣放行，記成非會員。
    從 LINE 預約頁進來（有 token）、店內平板、體驗版、示範版都不驗。?ticket=1 強制出現（測試用） */
 const HT_KEY='otto2-hall-ticket',HT_NM_DAYS=30;let whoP=null,htGuard=null;
@@ -2023,6 +2023,11 @@ function htGet(){try{return JSON.parse(localStorage.getItem(HT_KEY)||'null')||{}
 function htSet(o){try{localStorage.setItem(HT_KEY,JSON.stringify(o))}catch(e){}}
 function hallTicketLog(){const t=htGet();return t.ticket?{ticket:t.ticket}:t.nm?{nm:true}:{}}
 function hallNeedTicket(){if(/[?&]ticket=1/.test(location.search))return true;if(DEMO||window.GUEST||token())return false;const t=htGet();return !(t.ticket||(t.nm&&Date.now()-t.at<HT_NM_DAYS*864e5))}
+/* 2026-11-05 聽講座的身分：staff／member／guest。?demo=1&tier=member 可模擬 */
+window.hallTier=()=>{const q=/[?&]demo=1/.test(location.search)&&/[?&]tier=(staff|member|guest)/.exec(location.search);if(q)return q[1];if(window.HALL_STAFF)return 'staff';return ME.member||htGet().ticket?'member':'guest'};
+/* 按了「直接參觀」的會員聽到上鎖集數時，可以回大門重新驗票 */
+window.hallCanTicket=()=>/[?&]ticket=1/.test(location.search)||!(DEMO||window.GUEST||token());
+window.hallReticket=()=>{try{localStorage.removeItem(HT_KEY)}catch(e){}const u=new URLSearchParams(location.search);u.set('hall','1');location.href=location.pathname+'?'+u};
 function hallGuardGone(){if(htGuard){htGuard.g.parent&&htGuard.g.parent.remove(htGuard.g);htGuard=null}}
 function hallGuard(){const f=figBase({coat:'#27405a',sleeve:'#27405a',legs:'#1d2f42',shoe:'#3a2a22',skin:'#f3d4bb',mouth:'smile'});f.armR.children.slice(-2).forEach(c=>f.armR.remove(c));
   f.head.add(cyl('#1d2f42',.27,.25,.17,0,.3,0,20));f.head.add(cyl('#17202c',.31,.31,.025,0,.22,.03,20));f.head.add(ball('#d9b46a',.05,0,.31,.25,1,1,.4,true));   // 制服帽＋金徽章
