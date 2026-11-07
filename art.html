@@ -313,7 +313,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261105c"></script>
 <script>
-const ART_VER='20261107a';
+const ART_VER='20261108a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -1810,7 +1810,7 @@ let tPrev=performance.now();
 /* ---------- 2026-11-07 大熊：雪橇禮物——晚上點到聖誕老公公抽一次（後台「扭蛋活動 → 🛷 雪橇禮物」設定，伺服器決定，跟遊樂島共用次數） ---------- */
 let SLED=null,SLEDBUSY=false;
 async function sledRefresh(){if(window.GUEST||DEMO||!token()){SLED=null;return}try{SLED=await api('/gacha/sled/state',{})}catch(e){SLED=null}}
-function sledGo(){if(!ANIGHT)return false;
+function sledGo(){if(!ANIGHT){if(SLED&&SLED.enabled){toast(`🎅 Ho Ho Ho！晚上 ${((SLED.from||17)+11)%12+1} 點後再來點我，有禮物送你喔！`);return true}return false} /* 2026-11-08 白天點也提示晚上有禮物 */
   if(window.GUEST||DEMO||!token()){toast('🎅 晚上點到聖誕老公公會掉禮物！用 LINE 打開就能領');return true}
   if(SLEDBUSY)return true;
   if(!SLED){SLEDBUSY=true;sledRefresh().then(()=>{SLEDBUSY=false;if(SLED&&SLED.enabled)sledGo();else toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅')});return true}
