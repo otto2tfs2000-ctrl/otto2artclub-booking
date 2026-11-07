@@ -74,6 +74,11 @@ html,body{height:100%}
 body{margin:0; color:var(--ink); font-family:var(--sans); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none;
   background:linear-gradient(180deg,#5b9fcb 0%,#80b9dc 42%,#b3d5e7 78%,#d3e6ec 100%)}
 #stage{position:fixed; inset:0}
+#aurora{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; display:none}
+body.xnite #aurora{display:block}
+/* 2026-11-07 大熊：手指滑動（轉島）時上下資訊先收起來，停下來約 1 秒再出現 */
+#hud > *{transition:opacity .35s}
+body.drag #hud > *{opacity:0; pointer-events:none}
 /* 2026-10-25 大熊：聖誕期間作品小屋也要暗色天空，但不要整片黑 → 深藍到淡藍的夜空漸層，標題改白字（XDECO 時 body 加 xnight） */
 body.xnight{background:linear-gradient(180deg,#1b2b5e 0%,#2f4c8c 45%,#6b8bc6 82%,#8ea8d8 100%)}
 body.xnight .oh-l,body.xnight .oh-logo{color:#fff; text-shadow:0 2px 10px rgba(10,20,50,.6)}
@@ -261,7 +266,7 @@ body.tour .pcTag{display:none!important}
 .flist .none{color:var(--ink2); font-size:14px; padding:10px; text-align:center}
 </style>
 
-<div id="stage"></div><div id="isoFx" aria-hidden="true"></div>
+<canvas id="aurora"></canvas><div id="stage"></div><div id="isoFx" aria-hidden="true"></div>
 <div class="say" id="say" hidden></div>
 <div id="tags" aria-hidden="false"></div>
 <div class="loading" id="loading">島嶼正在浮上來…</div>
@@ -308,7 +313,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261105c"></script>
 <script>
-const ART_VER='20261105c';
+const ART_VER='20261107a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -368,6 +373,8 @@ let _rockN=0;function lpRock(c,s,x,y,z){const m=lpMesh(jitterGeo(new THREE.Dodec
 /* ================= world ================= */
 /* 2026-10-24 聖誕佈置（10/25～12/31，大熊 10/25 說提前；?xmas=1 可提前看、?xmas=0 關掉）：地上薄雪、屋頂積雪、大樹變聖誕樹、碼頭雪人、飄雪。島民換裝是另一個開關 XMAS（10/25 起） */
 const XDECO=(()=>{const m=/[?&]xmas=([01])/.exec(location.search);if(m)return m[1]==='1';const t=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return t>='2026-10-25'&&t<'2027-01-01'})();   /* 2026-10-25 大熊：只到今年底（台北時間 10/25～12/31），明年不會自動再開 */
+/* 2026-11-07 大熊：聖誕期間照手機時間分白天／晚上：17:00～隔天 6:00 才是夜空（極光、星星），白天是原本的藍天（雪和佈置照舊）。?night=1／0 可以強制看 */
+const ANIGHT=XDECO&&(()=>{const q=location.search;if(/[?&]night=1/.test(q))return true;if(/[?&]night=0/.test(q))return false;const h=new Date().getHours();return h>=17||h<6})();
 let snowFall=null;
 let airship=null,turbines=[],falls=[],renderer,scene,camera,picks=[],movers=[],clouds=[],sky=[],artists=[],houses=[],bigTree,lanterns=[];
 
@@ -517,8 +524,8 @@ function buildBalloons(){const r=rng(61),an=window.Anniv26&&Anniv26.on();
 function buildSky(){
   const r=rng(8),tex=[1,2,3,4].map(s=>new THREE.CanvasTexture(paintCloud(s)));
   for(let i=0;i<14;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex[i%4],transparent:true,depthWrite:false,opacity:.95}));const w=9+r()*10;sp.scale.set(w,w/2,1);
-    const a=r()*6.28,d=(20+r()*16)*K;sp.position.set(Math.cos(a)*d,i<10?-9+r()*8:3+r()*6,Math.sin(a)*d);sp.userData={a,d,v:.004+r()*.006};if(XDECO)sp.material.color.set('#c3cfe8');scene.add(sp);clouds.push(sp)}
-  if(XDECO){const N=140,P=new Float32Array(N*3);for(let i=0;i<N;i++){const a=r()*6.28,el=.18+r()*1.1,R=170;P[i*3]=Math.cos(a)*Math.cos(el)*R;P[i*3+1]=Math.sin(el)*R;P[i*3+2]=Math.sin(a)*Math.cos(el)*R}   /* 夜空的小星星 */
+    const a=r()*6.28,d=(20+r()*16)*K;sp.position.set(Math.cos(a)*d,i<10?-9+r()*8:3+r()*6,Math.sin(a)*d);sp.userData={a,d,v:.004+r()*.006};if(ANIGHT)sp.material.color.set('#c3cfe8');scene.add(sp);clouds.push(sp)}
+  if(ANIGHT){const N=140,P=new Float32Array(N*3);for(let i=0;i<N;i++){const a=r()*6.28,el=.18+r()*1.1,R=170;P[i*3]=Math.cos(a)*Math.cos(el)*R;P[i*3+1]=Math.sin(el)*R;P[i*3+2]=Math.sin(a)*Math.cos(el)*R}   /* 夜空的小星星 */
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));const st=new THREE.Points(g,new THREE.PointsMaterial({color:'#fff6d8',size:1.1,fog:false,transparent:true,opacity:.85}));st.frustumCulled=false;scene.add(st)}
 }
 /* ---------- big tree: the class album ---------- */
@@ -738,7 +745,7 @@ function aSantaTick(dt,now){const S=ASANTA,on=XDECO&&!focus&&$('modal').hidden&&
   if(!S.fly){S.g.visible=false;S.next-=dt;if(S.next<=0){S.fly=true;S.t=0;S.dir=S.dir>0?-1:1}return}
   S.t+=dt;const p=S.t/10;if(p>=1){S.fly=false;S.next=14+Math.random()*10;S.g.visible=false;return}
   camera.getWorldDirection(_af);const rt=_ar.crossVectors(_af,_au).normalize(),D=Math.max(12,4.7/(.33*2*Math.tan(camera.fov*Math.PI/360)*camera.aspect));   /* 雪橇大約佔畫面寬度 1/3 */
-  _af.set(S.dir*(-1.35+2.7*p),.4+Math.sin(p*Math.PI)*.08,.5).unproject(camera).sub(camera.position).normalize();   /* 畫面上方約 1/4 處，從一邊飛到另一邊 */
+  _af.set(S.dir*(-1.35+2.7*p),.26+Math.sin(p*Math.PI)*.07,.5).unproject(camera).sub(camera.position).normalize();   /* 畫面上方約 1/4 處，從一邊飛到另一邊 */
   S.g.position.copy(camera.position).addScaledVector(_af,D);S.g.position.y+=Math.sin(now/320)*.12;
   _ah.copy(rt).multiplyScalar(S.dir);S.g.rotation.set(0,Math.atan2(-_ah.z,_ah.x),Math.cos(p*Math.PI)*.16);S.g.visible=true;
   S.legs.forEach(l=>{const a=Math.sin(now/85+l.ph)*.75;l.p.rotation.z=l.front?a:-a});
@@ -1737,10 +1744,10 @@ function glGuard(r){
 function build(){
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});glGuard(renderer);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWMEM?1.5:2));renderer.setClearColor(0,0);
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;$('stage').appendChild(renderer.domElement);
-  scene=new THREE.Scene();scene.fog=new THREE.Fog(XDECO?'#7d97cc':'#b3d5e7',90,240);if(XDECO)document.body.classList.add('xnight');camera=new THREE.PerspectiveCamera(38,1,.1,400);
+  scene=new THREE.Scene();scene.fog=new THREE.Fog(ANIGHT?'#7d97cc':'#b3d5e7',90,240);if(ANIGHT)document.body.classList.add('xnight','xnite');camera=new THREE.PerspectiveCamera(38,1,.1,400);
   /* 夜空時燈光只微微偏藍、暗一點點，島上不要變黑 */
-  scene.add(XDECO?new THREE.HemisphereLight('#e3eaff','#8a9bb8',.88):new THREE.HemisphereLight('#ffffff','#9db27f',.95));
-  const sun=new THREE.DirectionalLight(XDECO?'#eef2ff':'#fff0d4',XDECO?.78:.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
+  scene.add(ANIGHT?new THREE.HemisphereLight('#e3eaff','#8a9bb8',.88):new THREE.HemisphereLight('#ffffff','#9db27f',.95));
+  const sun=new THREE.DirectionalLight(ANIGHT?'#eef2ff':'#fff0d4',ANIGHT?.78:.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
   const sc=sun.shadow.camera;sc.left=-19*K;sc.right=19*K;sc.top=19*K;sc.bottom=-19*K;sc.near=1;sc.far=90;sun.shadow.bias=-.0006;sun.shadow.radius=4;scene.add(sun);
   buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();buildHall();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
   addEventListener('resize',resize);resize();
@@ -1779,6 +1786,54 @@ function focusOn(obj,d,h,pitch){const w=new THREE.Vector3();obj.getWorldPosition
 /* ================= loop ================= */
 const tweens=[];const tween=(d,f)=>new Promise(r=>{if(RM)d=Math.min(d,60);tweens.push({t0:performance.now(),d,f,r})});
 let tPrev=performance.now();
+/* ---------- 2026-11-07 大熊：晚上的天空——極光＋星星＋偶爾流星（跟遊樂島同一套），畫在 3D 後面的平面畫布 #aurora ---------- */
+(function(){const cv=$('aurora');if(!cv||!ANIGHT)return;const x=cv.getContext('2d');let W=0,H=0,stars=[],shoot=null,last=0,t=0;
+  const strip=document.createElement('canvas');strip.width=4;strip.height=160;
+  {const c=strip.getContext('2d'),g=c.createLinearGradient(0,160,0,0);g.addColorStop(0,'rgba(170,255,200,0)');g.addColorStop(.06,'rgba(150,255,190,.95)');g.addColorStop(.25,'rgba(70,235,150,.65)');
+    g.addColorStop(.6,'rgba(60,180,170,.25)');g.addColorStop(.85,'rgba(150,100,230,.12)');g.addColorStop(1,'rgba(150,100,230,0)');c.fillStyle=g;c.fillRect(0,0,4,160)}
+  const RIB=[{b:.3,a:.045,h:.2,k:2.2,s:.18,ph:0,al:.55},{b:.24,a:.04,h:.15,k:3.1,s:-.13,ph:2,al:.4},{b:.36,a:.03,h:.12,k:1.6,s:.1,ph:4,al:.3}];
+  function size(){const dpr=Math.min(devicePixelRatio||1,LOWMEM?1:1.5);W=innerWidth;H=innerHeight;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);x.setTransform(dpr,0,0,dpr,0,0);
+    stars=[];const n=Math.round(W*H/3200);for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H*.55,r:Math.random()*1.2+.3,p:Math.random()*6,s:Math.random()*2+.6})}
+  addEventListener('resize',size);size();
+  function draw(){x.clearRect(0,0,W,H);
+    for(const s of stars){x.fillStyle='rgba(255,255,240,'+(.5+.45*Math.sin(t*s.s+s.p)).toFixed(3)+')';x.beginPath();x.arc(s.x,s.y,s.r,0,6.283);x.fill()}
+    if(!shoot&&Math.random()<.004)shoot={x:W*(.3+Math.random()*.6),y:H*Math.random()*.2,l:0};
+    if(shoot){shoot.l+=.03;const L=shoot.l,sx=shoot.x-L*W*.35,sy=shoot.y+L*H*.15,g=x.createLinearGradient(sx,sy,sx+60,sy-30);g.addColorStop(0,'rgba(255,255,255,'+(1-L)+')');g.addColorStop(1,'rgba(255,255,255,0)');
+      x.strokeStyle=g;x.lineWidth=1.6;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+60,sy-30);x.stroke();if(L>=1)shoot=null}
+    x.globalCompositeOperation='lighter';const step=Math.max(2,W/(LOWMEM?120:200));
+    for(const R of RIB)for(let x0=0;x0<W;x0+=step){const u=x0/W,y0=H*(R.b+R.a*Math.sin(u*R.k*6.283+t*R.s+R.ph)+R.a*.5*Math.sin(u*R.k*13+t*R.s*1.7));
+      const fl=.45+.55*Math.pow(Math.sin(u*17+t*.9+R.ph),2),ed=Math.min(1,u*5,(1-u)*5),hh=H*R.h*(.8+.4*Math.sin(u*9+t*.6+R.ph));
+      x.globalAlpha=R.al*fl*ed;x.drawImage(strip,x0,y0-hh*.94,step+.8,hh)}
+    x.globalAlpha=1;x.globalCompositeOperation='source-over'}
+  function frame(now){requestAnimationFrame(frame);if(document.hidden||(window.Hall3D&&Hall3D.active))return;if(now-last<33)return;t+=Math.min(.1,(now-last)/1000);last=now;try{draw()}catch(e){}}
+  requestAnimationFrame(frame)})();
+/* ---------- 2026-11-07 大熊：雪橇禮物——晚上點到聖誕老公公抽一次（後台「扭蛋活動 → 🛷 雪橇禮物」設定，伺服器決定，跟遊樂島共用次數） ---------- */
+let SLED=null,SLEDBUSY=false;
+async function sledRefresh(){if(window.GUEST||DEMO||!token()){SLED=null;return}try{SLED=await api('/gacha/sled/state',{})}catch(e){SLED=null}}
+function sledGo(){if(!ANIGHT)return false;
+  if(window.GUEST||DEMO||!token()){toast('🎅 晚上點到聖誕老公公會掉禮物！用 LINE 打開就能領');return true}
+  if(SLEDBUSY)return true;
+  if(!SLED){SLEDBUSY=true;sledRefresh().then(()=>{SLEDBUSY=false;if(SLED&&SLED.enabled)sledGo();else toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅')});return true}
+  if(!SLED.enabled)return false;
+  if(!SLED.sim&&SLED.left<=0){toast('🎅 今晚的禮物送完囉，明天晚上再來找我！');return true}
+  SLEDBUSY=true;
+  api('/gacha/sled/spin',{}).then(j=>{if(!j.sim)SLED.left=j.left;sledShow(j.prize,j.sim)}).catch(e=>{if(e.code==='DONE')SLED.left=0;toast(e.message)}).finally(()=>{SLEDBUSY=false});
+  return true}
+function sledShow(p,sim){
+  const md=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:'';
+  const sub=p.type==='ticket'?`${md(p.exp)} 前到店裡領`:p.type==='silver'?`${md(p.exp)} 前到遊樂島轉（右上角「銀色扭蛋」）`:p.type==='bonus'?'已經存進你的紅利':p.type==='gift'?'走格子的禮物變多了':'';
+  const more=sim?'示範・不會入帳':SLED&&SLED.left>0?`今晚還能再領 ${SLED.left} 次`:'今晚的禮物領完囉，明天晚上再來';
+  modal(`<div style="text-align:center"><h2>${p.rare?'哇！是稀有禮物！':'聖誕老公公丟下一份禮物'}</h2><div style="font-size:64px;line-height:1.25">${esc(p.ic||'🎁')}</div>`+
+    `<div style="font-size:22px;font-weight:800;margin:2px 0 6px">${esc(p.nm)}</div>${sub?`<p>${esc(sub)}</p>`:''}<p style="font-size:13px;opacity:.7">${esc(more)}</p>`+
+    `<button class="pill main" type="button" id="sledOk" style="width:100%;margin-top:6px">收下</button></div>`);
+  $('sledOk').onclick=()=>{$('modal').hidden=true}}
+if(ANIGHT)setTimeout(sledRefresh,5000);
+/* 手指在畫面上滑動時把上下資訊收起來（body.drag），放開約 0.9 秒後再出現；點一下不算 */
+(function(){const el=$('stage');if(!el)return;let x0=0,y0=0,dn=0,tm=0;const B=document.body;
+  el.addEventListener('pointerdown',e=>{dn++;x0=e.clientX;y0=e.clientY});
+  el.addEventListener('pointermove',e=>{if(!dn||B.classList.contains('drag'))return;if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>12){clearTimeout(tm);B.classList.add('drag')}});
+  const up=()=>{dn=Math.max(0,dn-1);if(dn)return;clearTimeout(tm);tm=setTimeout(()=>B.classList.remove('drag'),900)};
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)})();
 function loop(now){
   if(window.Hall3D&&Hall3D.active){Hall3D.frame(now);tPrev=now;requestAnimationFrame(loop);return}   /* 在藝術殿堂裡面：只畫大廳，作品小屋暫停 */
   if(window.Ferry&&Ferry.covering&&Ferry.covering()&&now-(loop._c||0)<1000){tPrev=now;requestAnimationFrame(loop);return}loop._c=now; /* 熱氣球蓋住畫面時一秒只畫一次（手機同時畫兩個 3D 場景會卡） */
@@ -1824,7 +1879,7 @@ function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(
   if(u.gp)return gpTap(u.gp,u.kind);if(u.gpBowl)return gpFeed(u.gpBowl,u.kind);
   if(u.airship)return openAirship();if(u.hall)return openHall();
   if(u.xsd)return xsdTap(u.xsd);
-  if(u.santa)return toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅');
+  if(u.santa){if(sledGo())return;return toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅')}
   if(u.artist)return openArtist(u.artist);if(u.house)return openHouseSheet(u.house);if(u.album)return openAlbum()}
 function sheet(title,sub,text,btns){$('sName').textContent=title;$('sSub').textContent=sub||'';$('sText').textContent=text||'';$('sText').hidden=!text;
   $('sRow').innerHTML='';btns.forEach(([t,fn,main])=>{const b=document.createElement('button');b.type='button';b.className='pill'+(main?' main':'');b.textContent=t;b.onclick=fn;$('sRow').appendChild(b)});$('sheet').hidden=false}
