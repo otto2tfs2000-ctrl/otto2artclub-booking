@@ -120,7 +120,7 @@ button:focus-visible{outline:3px solid var(--gold); outline-offset:3px}
 .demo{font-size:12px; background:rgba(0,0,0,.55); color:#fff; border-radius:99px; padding:3px 12px; white-space:nowrap}
 .flash{position:fixed; left:50%; top:34%; transform:translate(-50%,-50%) scale(.2); font-size:96px; color:#fff; -webkit-text-stroke:4px var(--ink); paint-order:stroke fill; text-shadow:0 6px 0 var(--ink); opacity:0; pointer-events:none; transition:transform .35s cubic-bezier(.3,1.6,.5,1), opacity .2s}
 .flash.on{opacity:1; transform:translate(-50%,-50%) scale(1)}
-.toast{position:fixed; left:50%; top:26%; transform:translateX(-50%); background:var(--gold); border:2.5px solid var(--ink); border-radius:14px; padding:6px 16px; font-size:17px; box-shadow:0 4px 0 var(--ink); opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; white-space:nowrap}
+.toast{position:fixed; left:50%; top:26%; transform:translateX(-50%); background:rgba(255,255,255,.92); border:1px solid rgba(43,35,32,.12); border-radius:22px; padding:8px 18px; font-size:14px; line-height:1.45; color:var(--ink); box-shadow:0 8px 24px rgba(0,0,0,.08); opacity:0; transition:opacity .4s, transform .4s; pointer-events:none; white-space:nowrap; z-index:7} /* 2026-11-08 大熊：對話框以作品小屋為主（白色圓角長條、細框、小字） */
 .toast.on{opacity:1; transform:translateX(-50%) translateY(-8px)}
 .ptstip{position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 150px); transform:translate(-50%,-10px); width:min(330px,calc(100vw - 40px)); box-sizing:border-box; background:#fffaf2; border:2px solid #d63a2f; border-radius:16px; padding:10px 14px; box-shadow:0 6px 18px rgba(0,0,0,.25); z-index:30; opacity:0; transition:opacity .3s, transform .3s; text-align:center; color:var(--navy); pointer-events:none}
 .ptstip.on{opacity:1; transform:translate(-50%,0)}.ptstip b{display:block; font-weight:400; color:#d63a2f; font-size:18px}.ptstip span{display:block; font-size:14px; line-height:1.5}
@@ -550,7 +550,7 @@ body:not(.oct) #miUI .ohb i{color:var(--navy)}
 .miknow b{display:block; font-weight:400; font-size:16px}
 .miknow small{display:block; font-size:12px; color:#7a6d5a}
 .mishot img{display:block; width:auto; max-width:100%; max-height:56vh; border-radius:14px; margin:6px auto 2px; box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.toast{white-space:normal!important; max-width:calc(100vw - 40px); text-align:center; box-sizing:border-box} /* 長的提示要能換行，不要超出畫面 */
+.toast{white-space:normal!important; width:max-content; max-width:calc(100vw - 40px); text-align:center; box-sizing:border-box} /* 長的提示要能換行，不要超出畫面 */
 .miknow .tg{white-space:nowrap; font-style:normal; font-size:11px; color:#c4553b; background:#fde9e4; border-radius:99px; padding:1px 7px; margin-left:4px; vertical-align:2px}
 .miknow .tg.run{color:#7a5a1a; background:#fbefd6}
 .miknow .hh{display:block; font-style:normal; color:#e0607a; font-size:13px; letter-spacing:1px; margin-top:1px}
@@ -942,7 +942,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261108b';
+const PARK_VER='20261108c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3147,7 +3147,7 @@ function santaTap(rc){const S=SANTA;if(!S.g||!S.g.visible)return false;const onB
   const ev=S.cur&&S.cur.eventId&&(EV.list||[]).find(e=>e.id===S.cur.eventId);
   if(ev){EV.sel=ev;evOpen();return true}
   if(!onBan&&sledGo())return true;   /* 2026-11-07 晚上點聖誕老公公＝雪橇禮物 */
-  toast(S.cur&&S.cur.title?`🎅 Ho Ho Ho！${S.cur.title}`:'🎅 Ho Ho Ho！聖誕老公公祝你聖誕快樂！');return true}
+  toast(S.cur&&S.cur.title?`聖誕老公公：Ho Ho Ho～${S.cur.title} 🎅`:'聖誕老公公：Ho Ho Ho～聖誕快樂！🎅');return true} /* 跟作品小屋同一句 */
 
 /* 2026-10-24 第一次來：先跑完導覽，天竺鼠、走格子這些公告排在導覽後面，不要疊在一起 */
 function shopOpenNow(){const g=$('shopGate'),pg=$('shopPage');return !!((g&&!g.hidden)||(pg&&!pg.hidden))} /* 選品館開著時，導覽和公告都先等（2026-10-25 首頁「換好禮」直達） */
