@@ -942,7 +942,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261108g';
+const PARK_VER='20261108h';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2758,7 +2758,32 @@ function buildWalkRail(i1){const{W,D,c}=wtCurve(),Y=-.2;WT.c=c;WT.L=c.getLength(
   {const sl=[],nS=Math.round(WT.L/.4),bg=new THREE.BoxGeometry(.5,.04,.1);for(let k=0;k<nS;k++){const u=k/nS,p=c.getPointAt(u),t=c.getTangentAt(u);sl.push([bg,'#7a4c30',new THREE.Matrix4().makeTranslation(p.x,Y+.03,p.z).multiply(new THREE.Matrix4().makeRotationY(Math.atan2(t.x,t.z)))])}
     const m=new THREE.Mesh(evMerge(sl),new THREE.MeshLambertMaterial({vertexColors:true}));i1.add(m)} /* 枕木合成一個網格，一次畫完 */
   const keep={t:GA.train,th:GA.th,sm:GA.smoke};buildTrain();WT.cars=GA.train;GA.train=keep.t;GA.th=keep.th;GA.smoke=keep.sm;
+  {const dv=(/[?&]drv=(\w+)/.exec(location.search)||[])[1]||'baker';if(dv!=='old')try{bigEngine(WT.cars[0],dv)}catch(e){console.warn('engine',e)}} /* 2026-11-08 大熊選：大火車頭＋薑餅烘焙師開車（原本是老師照片，後台沒照片只顯示假圖）；?drv=santa|giftelf|elf|queen|yeti 可換人看，?drv=old 舊火車頭 */
   WT.cars.forEach(t=>{t.g.scale.setScalar(.8);t.off*=.8;i1.add(t.g);if(!/[?&]nomerge/.test(location.search))try{mergeStatic(t.g,new Set(t.bears))}catch(e){}}); /* 車廂零件合併，乘客小熊會轉頭不合 */WT.th=4}
+/* 2026-11-08 模擬：走格子火車頭換成第一版接駁車那台大火車頭（紅鍋爐、藍駕駛室、屋頂積雪），司機換成角色 */
+function bigEngine(t,dv){const E=t.g;E.children.slice().forEach(c=>E.remove(c));E.userData.face=null;const k=1.3,G2=new THREE.Group();G2.scale.setScalar(k);G2.rotation.y=-Math.PI/2;E.add(G2); /* 模型照 +x 做，轉成跟走格子車廂一樣朝 +z */
+  const M=(geo,c,x,y,z)=>{const m=mesh(geo,typeof c==='string'?toon(c):c,x,y,z);G2.add(m);return m};
+  M(new THREE.BoxGeometry(1.3,.18,.62),'#2b2320',0,.24,0);
+  M(new THREE.CylinderGeometry(.26,.26,.8,16),'#d63a2f',.15,.56,0).rotation.z=Math.PI/2;
+  M(new THREE.CylinderGeometry(.27,.27,.06,16),'#f2c94c',.5,.56,0).rotation.z=Math.PI/2;
+  M(new THREE.CylinderGeometry(.07,.09,.34,10),'#2b2320',.38,.92,0);M(new THREE.CylinderGeometry(.12,.08,.08,10),'#2b2320',.38,1.1,0);
+  {const l=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshBasicMaterial({color:'#ffe9a3'}));l.position.set(.6,.6,0);G2.add(l)}
+  /* 駕駛室：下半牆＋四根柱子＋屋頂（中間空的，看得到司機） */
+  M(new THREE.BoxGeometry(.52,.34,.66),'#2f5d9a',-.38,.5,0);
+  [[-.6,-.3],[-.6,.3],[-.16,-.3],[-.16,.3]].forEach(([x,z])=>M(new THREE.BoxGeometry(.05,.66,.05),'#2f5d9a',x,.98,z));
+  M(new THREE.BoxGeometry(.66,.08,.8),'#2b2320',-.38,1.33,0);M(new THREE.BoxGeometry(.6,.06,.74),'#f6f8fc',-.38,1.39,0);
+  M(new THREE.BoxGeometry(.54,.05,.68),'#f2c94c',-.38,.68,0);
+  [-.4,0,.4].forEach(x=>[-.31,.31].forEach(z=>M(new THREE.CylinderGeometry(.15,.15,.08,14),'#2b2320',x,.15,z).rotation.x=Math.PI/2));
+  /* 司機 */
+  if(dv==='santa'){const D=new THREE.Group();D.position.set(-.38,.6,0);D.scale.setScalar(1.15);G2.add(D);const A=(geo,c,x,y,z)=>{const m=mesh(geo,toon(c),x,y,z);D.add(m);return m};
+    A(new THREE.CylinderGeometry(.13,.16,.26,12),'#d0342c',0,.13,0);A(new THREE.SphereGeometry(.11,12,10),'#f2c6a0',0,.36,0);
+    const bd=A(new THREE.SphereGeometry(.1,10,8),'#f6f2ea',.06,.3,0);bd.scale.set(.7,1,1.05);A(new THREE.SphereGeometry(.025,8,6),'#e08a8a',.11,.37,0);
+    const h=A(new THREE.ConeGeometry(.1,.22,12),'#d0342c',-.01,.54,0);h.rotation.z=.45;A(new THREE.TorusGeometry(.1,.03,6,14),'#f6f2ea',0,.45,0).rotation.x=Math.PI/2;A(new THREE.SphereGeometry(.04,8,6),'#f6f2ea',-.09,.62,0)}
+  else if(window.Artists3D&&{giftelf:1,elf:1,baker:1,queen:1,yeti:1}[dv]){const nm={giftelf:'禮物精靈',elf:'彩繪精靈',baker:'薑餅烘焙師',queen:'粉雪女王',yeti:'薄荷雪怪'}[dv],D=Artists3D.make(nm); /* 用之前做好的 3D 聖誕角色（artists3d.js，跟作品小屋、走格子同一份） */
+    if(D){const bb=new THREE.Box3().setFromObject(D),h=bb.max.y-bb.min.y||1;D.scale.multiplyScalar(.74/h);D.position.set(-.4,.55-bb.min.y*.74/h,0);D.rotation.y=-Math.PI/2+.5;G2.add(D)}}
+  else{const IMG={baker:'xmas-baker.webp?v=20261024a',giftelf:'xmas-giftelf.webp?v=20261025a',elf:'mascot-elf.webp?v=20261024c',queen:'xmas-queen.webp?v=20261025a',yeti:'xmas-yeti.webp?v=20261025a'}[dv]||'mascot-elf.webp?v=20261024c';
+    const tx=new THREE.TextureLoader().load(IMG,t2=>{const r=t2.image.width/t2.image.height;sp.scale.set(.62*r,.62,1)});tx.anisotropy=4;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,alphaTest:.3}));sp.center.set(.5,0);sp.position.set(-.38,.6,0);sp.scale.set(.4,.62,1);G2.add(sp)}
+  t.bears=t.bears||[]}
 function wtTick(dt,now){if(!WT.cars||WT.custom||G.phase==='oct'||!ISL[0]||!ISL[0].visible)return;WT.th+=.16*(RM?.5:1)*dt;
   WT.cars.forEach((t,i)=>{let u=((WT.th*TR_R-t.off)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),tg=WT.c.getTangentAt(u);
     t.g.position.set(p.x,WT.Y+.02+(i?Math.abs(Math.sin(now/170+i))*.02:0),p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);
