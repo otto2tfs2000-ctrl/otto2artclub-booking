@@ -942,7 +942,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261108i';
+const PARK_VER='20261108j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1754,10 +1754,11 @@ function buildShuttle(B){const st=LK.inner.localToWorld(PLAZA.clone().add(NP_GAT
     if(k%2===0){const x=SH.xa+SH.R*Math.sin(f),z=LKZ+SH.R-SH.R*Math.cos(f),sl=mesh(new THREE.BoxGeometry(.5,.04,.1),toon('#7a4c30'),x,(WT.Y||-.2)+.03,z);sl.rotation.y=Math.atan2(Math.cos(f),Math.sin(f));B.add(sl)}}
   for(let k=0;k<=16;k++){const f=k/16*Math.PI/2;[-.18,.18].forEach(o=>{const r=SH.R-o,x=SH.xa+r*Math.cos(f),z=LKZ-SH.R+r*Math.sin(f);const m=mesh(new THREE.BoxGeometry(.05,.05,.17),rl,x,(WT.Y||-.2)+.08,z);m.rotation.y=Math.atan2(-Math.sin(f),Math.cos(f));B.add(m)});
     if(k%2===0){const x=SH.xa+SH.R*Math.cos(f),z=LKZ-SH.R+SH.R*Math.sin(f),sl=mesh(new THREE.BoxGeometry(.5,.04,.1),toon('#7a4c30'),x,(WT.Y||-.2)+.03,z);sl.rotation.y=Math.atan2(-Math.sin(f),Math.cos(f));B.add(sl)}}} /* Y 字分岔：上面那條從橋彎進外圈（去程），下面那條從外圈彎上橋（回程，火車不用倒車） */
-const seatOf=()=>{const c=WT.cars[1].g;return new THREE.Vector3(c.position.x,c.position.y+.42,c.position.z)};
+const seatOf=()=>{const c=WT.cars[1].g;return new THREE.Vector3(c.position.x,c.position.y+.3,c.position.z)};
+const bearRide=on=>{bear.scale.setScalar(on?.68:1)}; /* 坐車廂時小熊縮小，不會比車廂還大 */
 /* 去程：小熊在車站後面跳上車 → 火車開過橋、彎進走格子島外圈 → 停一下讓小熊跳下來 → 火車照常繞圈 */
 async function shGo(){WT.custom=true;wtPlaceD(SH.dSt);
-  {const A=bear.position.clone(),B2=seatOf();bear.rotation.y=Math.PI/2;await tween(500,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8})}
+  {const A=bear.position.clone(),B2=seatOf();bear.rotation.y=Math.PI/2;await tween(500,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8;bear.scale.setScalar(1-.32*p)})}
   sfx('chime');const d1=SH.Ls+SH.Lq+1.1+WT.cars[1].off;
   await tween(RM?500:5200,p=>{wtPlaceD(SH.dSt+(d1-SH.dSt)*easeIO(p));bear.position.copy(seatOf());bear.rotation.y=WT.cars[1].g.rotation.y});}
 function shRelease(){const d0=WT.dE,d1=d0+3.4;tween(3400,p=>wtPlaceD(d0+(d1-d0)*p)).then(()=>{const uE=(SH.um+(WT.dE-SH.Ls-SH.Lq)/WT.L);WT.th=uE*WT.L/TR_R;WT.custom=false})} /* 車廂都開進外圈後，交回平常的繞圈 */
@@ -1768,10 +1769,10 @@ async function shBack(off){const d1=-(LKZ-SH.R-SH_BZ),uB=(SH.um2+d1/WT.L+1)%1,la
   const place=th=>{WT.th=th;WT.cars.forEach(t=>{let u=((th*TR_R-t.off)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),tg=WT.c.getTangentAt(u);t.g.position.set(p.x,WT.Y+.02,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z)})};
   await tween(dur,p=>place(th0+(thT-th0)*easeOut(p)));
   const dB=d1+WT.cars[1].off;wtPlaceD2(dB);
-  {const A=bear.position.clone(),B2=seatOf();await tween(550,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.9})}
+  {const A=bear.position.clone(),B2=seatOf();await tween(550,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.9;bear.scale.setScalar(1-.32*p)})}
   const carX=SH.x0+SH.dSt-WT.cars[1].off,dEnd=SH.Lq+(SH.xa-carX)+WT.cars[1].off;
   sfx('chime');await tween(RM?500:5600,p=>{wtPlaceD2(dB+(dEnd-dB)*easeIO(p));bear.position.copy(seatOf());bear.rotation.y=WT.cars[1].g.rotation.y});
-  {const A=bear.position.clone();await tween(500,p=>{bear.position.lerpVectors(A,off,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8})}}
+  {const A=bear.position.clone();await tween(500,p=>{bear.position.lerpVectors(A,off,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8;bear.scale.setScalar(.68+.32*p)})}bear.scale.setScalar(1)}
 
 /* 走格子時廣場放到左邊（on），回扭蛋島放回原位（off）；只換父層，廣場裡每樣東西自己的座標都不變 */
 function lkPlace(on){if(!LK.P)return;if(on){plazaAdopt();LK.inner.add(GA.PR);LK.inner.add(GA.gate);LK.P.position.copy(LKC);LK.P.rotation.y=LKR;LK.P.visible=true;GA.PR.visible=true;GA.PR.position.y=0;GA.gate.visible=true;GA.gate.position.y=0;GA.gate.scale.setScalar(1);GA.bridge.visible=false;LK.B.visible=true;LK.B.position.y=0;LK.on=true}
@@ -2615,8 +2616,8 @@ async function lkOpen(xp){if(GA.mist)GA.mist.visible=false;if(NP&&WT.cars&&SH.Lq
   parkCam='link';await lkWalk(pth.slice(ng));await clear;setDim(0)}
   if(xp)await Promise.race([xp,sleep(4000)]);
   const st=tilePos(G.cur,G.lv[G.cur].pos),land=new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z),A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);
-  await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*(1.2+A.distanceTo(land)*.25);bear.rotation.x=-easeIO(p)*Math.PI*2});
-  bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10);if(NP&&WT.custom)shRelease()}
+  const sc0=bear.scale.x;await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*(1.2+A.distanceTo(land)*.25);bear.rotation.x=-easeIO(p)*Math.PI*2;bear.scale.setScalar(sc0+(1-sc0)*p)});
+  bear.rotation.x=0;bear.scale.setScalar(1);bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10);if(NP&&WT.custom)shRelease()}
 /* 回扭蛋島：跳到平交道旁 → 走過橋進廣場 → 廣場轉回原位、雲霧回來 */
 async function lkBack(){lkPlace(true);
   const arc=()=>{const ph=G.phase,pc=parkCam;G.phase='oct';parkCam=null;let g;try{g=camGoal0()}finally{G.phase=ph;parkCam=pc}const c0=camera.position.clone(),l0=look.clone(),c1=LK.inner.localToWorld(g.pos),l1=LK.inner.localToWorld(g.at),M=c0.clone().lerp(c1,.5);M.y=Math.max(c0.y,c1.y)+14;
@@ -2769,7 +2770,7 @@ function buildWalkRail(i1){const{W,D,c}=wtCurve(),Y=-.2;WT.c=c;WT.L=c.getLength(
   {const sl=[],nS=Math.round(WT.L/.4),bg=new THREE.BoxGeometry(.5,.04,.1);for(let k=0;k<nS;k++){const u=k/nS,p=c.getPointAt(u),t=c.getTangentAt(u);sl.push([bg,'#7a4c30',new THREE.Matrix4().makeTranslation(p.x,Y+.03,p.z).multiply(new THREE.Matrix4().makeRotationY(Math.atan2(t.x,t.z)))])}
     const m=new THREE.Mesh(evMerge(sl),new THREE.MeshLambertMaterial({vertexColors:true}));i1.add(m)} /* 枕木合成一個網格，一次畫完 */
   const keep={t:GA.train,th:GA.th,sm:GA.smoke};buildTrain();WT.cars=GA.train;GA.train=keep.t;GA.th=keep.th;GA.smoke=keep.sm;
-  {const dv=(/[?&]drv=(\w+)/.exec(location.search)||[])[1]||'baker';if(dv!=='old')try{bigEngine(WT.cars[0],dv)}catch(e){console.warn('engine',e)}} /* 2026-11-08 大熊選：大火車頭＋薑餅烘焙師開車（原本是老師照片，後台沒照片只顯示假圖）；?drv=santa|giftelf|elf|queen|yeti 可換人看，?drv=old 舊火車頭 */
+  {const dv=(/[?&]drv=(\w+)/.exec(location.search)||[])[1]||'baker';if(dv!=='old')try{bigEngine(WT.cars[0],dv);WT.cars.slice(1).forEach(c=>c.off+=.6)}catch(e){console.warn('engine',e)}} /* 大火車頭比較長，車廂往後拉開，不然擠在一起 */ /* 2026-11-08 大熊選：大火車頭＋薑餅烘焙師開車（原本是老師照片，後台沒照片只顯示假圖）；?drv=santa|giftelf|elf|queen|yeti 可換人看，?drv=old 舊火車頭 */
   WT.cars.forEach(t=>{t.g.scale.setScalar(.8);t.off*=.8;i1.add(t.g);if(!/[?&]nomerge/.test(location.search))try{mergeStatic(t.g,new Set(t.bears))}catch(e){}}); /* 車廂零件合併，乘客小熊會轉頭不合 */WT.th=4}
 /* 2026-11-08 模擬：走格子火車頭換成第一版接駁車那台大火車頭（紅鍋爐、藍駕駛室、屋頂積雪），司機換成角色 */
 function bigEngine(t,dv){const E=t.g;E.children.slice().forEach(c=>E.remove(c));E.userData.face=null;const k=1.3,G2=new THREE.Group();G2.scale.setScalar(k);G2.rotation.y=-Math.PI/2;E.add(G2); /* 模型照 +x 做，轉成跟走格子車廂一樣朝 +z */
