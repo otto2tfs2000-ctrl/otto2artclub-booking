@@ -942,7 +942,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261108f';
+const PARK_VER='20261108g';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1719,41 +1719,47 @@ function buildLink(){if(LK.P||!GA.PR)return;const P=new THREE.Group(),I=new THRE
   [-1,1].forEach(d=>{const pts=[];for(let i=0;i<=24;i++){const t=i/24;pts.push(new THREE.Vector3(g0.x+L*t,lkH(t)+.62,LKZ+d*wd*.53))}
     B.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:'#e8b94a'})));
     for(let i=0;i<=4;i++){const t=i/4;B.add(mesh(new THREE.CylinderGeometry(.06,.07,.7,8),toon('#7a4c30'),g0.x+L*t,lkH(t)+.3,LKZ+d*wd*.53));const l=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),new THREE.MeshBasicMaterial({color:'#ffd98a'}));l.position.set(g0.x+L*t,lkH(t)+.7,LKZ+d*wd*.53);B.add(l)}});
-  for(let x=LK_EDGE,k=0;x<LK_ISL;x+=.34,k++)B.add(mesh(new THREE.BoxGeometry(.28,.06,1.4),toon(k%2?'#d9d2c3':'#c9c1b0'),x+.14,Y+.09,LKZ)); /* 石板步道橫過鐵軌 */
+  if(!NP)for(let x=LK_EDGE,k=0;x<LK_ISL;x+=.34,k++)B.add(mesh(new THREE.BoxGeometry(.28,.06,1.4),toon(k%2?'#d9d2c3':'#c9c1b0'),x+.14,Y+.09,LKZ)); /* 石板步道橫過鐵軌 */
   const bars=[],lights=[];
-  [[-1,LK_EDGE+.15],[1,LK_ISL-.15]].forEach(([d,x])=>{const z=LKZ-d*1.0;
+  (NP?[]:[[-1,LK_EDGE+.15],[1,LK_ISL-.15]]).forEach(([d,x])=>{const z=LKZ-d*1.0; /* 新版：平交道變成分岔，不放柵欄號誌（會擋到彎道） */
     B.add(mesh(new THREE.CylinderGeometry(.07,.08,1.5,8),toon('#f2f2f2'),x,Y+.75,z));
     const xs=new THREE.Group();xs.position.set(x,Y+1.45,z);B.add(xs);[.6,-.6].forEach(r=>{const s=mesh(new THREE.BoxGeometry(.06,.12,.75),toon('#f4f4f4'),0,0,0);s.rotation.x=r;xs.add(s);const s2=mesh(new THREE.BoxGeometry(.065,.05,.75),toon('#d63a2f'),0,0,0);s2.rotation.x=r;xs.add(s2)});
     [-.17,.17].forEach(o=>{const l=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),new THREE.MeshBasicMaterial({color:'#5a1a16'}));l.position.set(x+(x<LK_RAIL?-.08:.08),Y+1.12,z+o);B.add(l);lights.push(l)});
-    const piv=new THREE.Group();piv.position.set(x,Y+.55,z);B.add(piv);for(let i=0;i<6;i++)piv.add(mesh(new THREE.BoxGeometry(.07,.09,.34),toon(i%2?'#d63a2f':'#ffffff'),0,0,d*(.2+i*.34)));piv.userData.up=x<LK_RAIL?1.35:-1.35;piv.rotation.x=piv.userData.up;bars.push(piv)});
+    const piv=new THREE.Group();piv.position.set(x,Y+.55,z);B.add(piv);for(let i=0;i<6;i++)piv.add(mesh(new THREE.BoxGeometry(.07,.09,.34),toon(i%2?'#d63a2f':'#ffffff'),0,0,d*(.2+i*.34)));piv.userData.up=x<LK_RAIL?1.35:-1.35;piv.rotation.x=piv.userData.up;piv.visible=!NP;bars.push(piv)});
   LK.cross={bars,lights,down:0};if(NP)buildShuttle(B);B.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false}})}
-/* ---------- 2026-11-08 接駁小火車（新版 ?np=1）：選品館島的「走格子島站」↔ 木橋 ↔ 平交道前。車頭一直朝走格子島，回程倒著開 ---------- */
-const SH={g0:0,x0:0,x1:0,eng:null,car:null,s:0};
-function shY(x){const g=SH.g0;return x<g?0:lkH(Math.min(1,(x-g)/(LK_EDGE-g)))}
-function shPlace(s){SH.s=s;const xc=SH.x0+(SH.x1-SH.x0)*s;[[SH.car,xc],[SH.eng,xc+1.25]].forEach(([o,x])=>{const y=shY(x),sl=(shY(x+.3)-shY(x-.3))/.6;o.position.set(x,y+.06,LKZ);o.rotation.z=Math.atan(sl)});return xc}
-function buildShuttle(B){const st=LK.inner.localToWorld(PLAZA.clone().add(NP_GATE));SH.g0=lkGate().x;SH.x0=st.x+2.15;SH.x1=LK_EDGE-.15-1.25-.55;
-  const rl=toon('#8d8f96'),sl=toon('#6b4426');
-  for(let x=SH.x0-.7;x<LK_EDGE-.05;x+=.17){const y=shY(x);[-.27,.27].forEach(z=>B.add(mesh(new THREE.BoxGeometry(.19,.05,.05),rl,x,y+.08,LKZ+z)))} /* 兩條鐵軌（一小段一小段，跟著拱橋高度） */
-  for(let x=SH.x0-.6,k=0;x<LK_EDGE-.1;x+=.4,k++)if(x<SH.g0)B.add(mesh(new THREE.BoxGeometry(.12,.04,.8),sl,x,.03,LKZ)); /* 廣場那一段的枕木（橋上有木板就不用） */
-  {const y=shY(LK_EDGE-.1);B.add(mesh(new THREE.BoxGeometry(.14,.32,.8),toon('#c8402f'),LK_EDGE-.12,y+.2,LKZ));B.add(mesh(new THREE.BoxGeometry(.16,.06,.82),toon('#f2f2f2'),LK_EDGE-.12,y+.3,LKZ))} /* 終點擋車器 */
-  const wheels=(g,xs)=>xs.forEach(x=>[-.31,.31].forEach(z=>{const w=mesh(new THREE.CylinderGeometry(.15,.15,.08,14),toon('#2b2320'),x,.15,z);w.rotation.x=Math.PI/2;g.add(w)}));
-  const E=new THREE.Group();E.add(mesh(new THREE.BoxGeometry(1.3,.18,.62),toon('#2b2320'),0,.24,0));
-  {const b=mesh(new THREE.CylinderGeometry(.26,.26,.8,16),toon('#d63a2f'),.15,.56,0);b.rotation.z=Math.PI/2;E.add(b)}
-  E.add(mesh(new THREE.CylinderGeometry(.27,.27,.06,16),toon('#f2c94c'),.5,.56,0).rotateZ(Math.PI/2));
-  E.add(mesh(new THREE.BoxGeometry(.5,.62,.66),toon('#2f5d9a'),-.38,.64,0));E.add(mesh(new THREE.BoxGeometry(.64,.08,.78),toon('#2b2320'),-.38,.99,0));E.add(mesh(new THREE.BoxGeometry(.6,.06,.72),toon('#f6f8fc'),-.38,1.05,0));
-  E.add(mesh(new THREE.BoxGeometry(.3,.22,.68),toon('#cfe3ff'),-.38,.78,0));
-  E.add(mesh(new THREE.CylinderGeometry(.07,.09,.34,10),toon('#2b2320'),.38,.92,0));E.add(mesh(new THREE.CylinderGeometry(.12,.08,.08,10),toon('#2b2320'),.38,1.1,0));
-  {const l=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshBasicMaterial({color:'#ffe9a3'}));l.position.set(.6,.6,0);E.add(l)}
-  wheels(E,[-.4,0,.4]);
-  const C=new THREE.Group();C.add(mesh(new THREE.BoxGeometry(1.05,.16,.62),toon('#2b2320'),0,.24,0));
-  C.add(mesh(new THREE.BoxGeometry(1.0,.08,.6),toon('#2f8f58'),0,.36,0));[-1,1].forEach(d=>{C.add(mesh(new THREE.BoxGeometry(1.0,.26,.05),toon('#2f8f58'),0,.52,d*.28));C.add(mesh(new THREE.BoxGeometry(.05,.26,.6),toon('#2f8f58'),d*.48,.52,0))});
-  C.add(mesh(new THREE.BoxGeometry(1.0,.05,.06),toon('#f2c94c'),0,.66,.29));C.add(mesh(new THREE.BoxGeometry(1.0,.05,.06),toon('#f2c94c'),0,.66,-.29));
-  C.add(mesh(new THREE.BoxGeometry(.25,.06,.06),toon('#2b2320'),.62,.24,0));wheels(C,[-.3,.3]);
-  B.add(E);B.add(C);SH.eng=E;SH.car=C;shPlace(1)}
-/* 小熊搭車：先跳上車廂 → 開到另一頭（dir>0 往走格子島，dir<0 回月台）→ 跳下車到 off */
-async function shRide(dir,off){const s0=dir>0?0:1,s1=1-s0;shPlace(s0);const seat=()=>new THREE.Vector3(SH.car.position.x,SH.car.position.y+.3,LKZ);
-  {const A=bear.position.clone(),B2=seat();bear.rotation.y=Math.PI/2*(dir>0?1:-1);await tween(500,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8})}
-  sfx('chime');await tween(RM?400:3600,p=>{shPlace(s0+(s1-s0)*easeIO(p));bear.position.copy(seat());bear.position.y+=Math.abs(Math.sin(p*40))*.02});
+/* ---------- 2026-11-08 大熊：用走格子島那台繞圈小火車直接開過去（同一台車兩島來回，不要中間另一台）。
+   平交道那裡變成分岔：支線從走格子島外圈鐵軌彎出來、開上木橋、停在「走格子島站」後面。
+   火車沿一條路線跑：d＝0 車站後面 → 直線過橋 → 四分之一圓彎進外圈鐵軌（往 +z）→ 接上原本的繞圈路線 ---------- */
+const SH={x0:0,xa:0,Ls:0,R:1.4,Lq:0,um:0,dSt:3.2};
+function shY(x){const g=lkGate().x;return x<g?0:lkH(Math.min(1,(x-g)/(LK_EDGE-g)))}
+function wtPathPos(d,o){const S=SH;
+  if(d<=S.Ls){const x=S.x0+d;o.x=x;o.z=LKZ;o.y=shY(Math.min(x,LK_EDGE))+.06;o.yaw=Math.PI/2;return o}
+  if(d<=S.Ls+S.Lq){const f=(d-S.Ls)/S.R;o.x=S.xa+S.R*Math.sin(f);o.z=LKZ+S.R-S.R*Math.cos(f);o.y=(WT.Y||-.2)+.06-.04*(f/(Math.PI/2));o.yaw=Math.atan2(Math.cos(f),Math.sin(f));return o}
+  let u=(S.um+(d-S.Ls-S.Lq)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),t=WT.c.getTangentAt(u);o.x=p.x;o.z=p.z;o.y=WT.Y+.02;o.yaw=Math.atan2(t.x,t.z);return o}
+const _wq={};
+function wtPlaceD(dE){WT.dE=dE;WT.cars.forEach(t=>{wtPathPos(dE-t.off,_wq);t.g.position.set(_wq.x,_wq.y,_wq.z);t.g.rotation.y=_wq.yaw})}
+function buildShuttle(B){const st=LK.inner.localToWorld(PLAZA.clone().add(NP_GATE));SH.x0=st.x+1.25;SH.xa=LK_RAIL-SH.R;SH.Ls=SH.xa-SH.x0;SH.Lq=Math.PI/2*SH.R;
+  {let best=1e9;for(let i=0;i<4000;i++){const p=WT.c.getPointAt(i/4000),d=Math.hypot(p.x-LK_RAIL,p.z-(LKZ+SH.R));if(d<best){best=d;SH.um=i/4000}}}
+  const rl=toon('#8d8f96');
+  for(let x=SH.x0-.4;x<SH.xa+.05;x+=.17){const y=shY(Math.min(x,LK_EDGE));[-.18,.18].forEach(z=>B.add(mesh(new THREE.BoxGeometry(.19,.05,.05),rl,x,y+.08,LKZ+z)))} /* 支線鐵軌：車站後面 → 木橋 */
+  for(let x=SH.x0-.3;x<lkGate().x;x+=.4)B.add(mesh(new THREE.BoxGeometry(.12,.04,.6),toon('#6b4426'),x,.03,LKZ)); /* 廣場那段的枕木 */
+  for(let k=0;k<=16;k++){const f=k/16*Math.PI/2;[-.18,.18].forEach(o=>{const r=SH.R-o,x=SH.xa+r*Math.sin(f),z=LKZ+SH.R-r*Math.cos(f);const m=mesh(new THREE.BoxGeometry(.05,.05,.17),rl,x,(WT.Y||-.2)+.08,z);m.rotation.y=Math.atan2(Math.cos(f),Math.sin(f));B.add(m)});
+    if(k%2===0){const x=SH.xa+SH.R*Math.sin(f),z=LKZ+SH.R-SH.R*Math.cos(f),sl=mesh(new THREE.BoxGeometry(.5,.04,.1),toon('#7a4c30'),x,(WT.Y||-.2)+.03,z);sl.rotation.y=Math.atan2(Math.cos(f),Math.sin(f));B.add(sl)}}} /* 彎進外圈鐵軌的分岔 */
+const seatOf=()=>{const c=WT.cars[1].g;return new THREE.Vector3(c.position.x,c.position.y+.42,c.position.z)};
+/* 去程：小熊在車站後面跳上車 → 火車開過橋、彎進走格子島外圈 → 停一下讓小熊跳下來 → 火車照常繞圈 */
+async function shGo(){WT.custom=true;wtPlaceD(SH.dSt);
+  {const A=bear.position.clone(),B2=seatOf();bear.rotation.y=Math.PI/2;await tween(500,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8})}
+  sfx('chime');const d1=SH.Ls+SH.Lq+1.1+WT.cars[1].off;
+  await tween(RM?500:5200,p=>{wtPlaceD(SH.dSt+(d1-SH.dSt)*easeIO(p));bear.position.copy(seatOf());bear.rotation.y=WT.cars[1].g.rotation.y});}
+function shRelease(){const d0=WT.dE,d1=d0+3.4;tween(3400,p=>wtPlaceD(d0+(d1-d0)*p)).then(()=>{const uE=(SH.um+(WT.dE-SH.Ls-SH.Lq)/WT.L);WT.th=uE*WT.L/TR_R;WT.custom=false})} /* 車廂都開進外圈後，交回平常的繞圈 */
+/* 回程：火車沿外圈開到分岔前停下 → 小熊跳上車 → 倒車彎進支線、開過橋回車站 → 小熊下車 */
+async function shBack(off){const uB=(SH.um+1.1/WT.L)%1,thT0=(uB*WT.L+WT.cars[1].off)/TR_R;let thT=thT0;const lap=WT.L/TR_R;while(thT<WT.th)thT+=lap;while(thT-WT.th>lap)thT-=lap;
+  WT.custom=true;const th0=WT.th,dist=(thT-th0)*TR_R,dur=Math.max(1200,Math.min(3200,dist*260));
+  const place=th=>{WT.th=th;WT.cars.forEach(t=>{let u=((th*TR_R-t.off)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),tg=WT.c.getTangentAt(u);t.g.position.set(p.x,WT.Y+.02,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z)})};
+  await tween(dur,p=>place(th0+(thT-th0)*easeOut(p)));
+  const dB=SH.Ls+SH.Lq+1.1+WT.cars[1].off;wtPlaceD(dB);
+  {const A=bear.position.clone(),B2=seatOf();await tween(550,p=>{bear.position.lerpVectors(A,B2,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.9})}
+  sfx('chime');await tween(RM?500:5200,p=>{wtPlaceD(dB+(SH.dSt-dB)*easeIO(p));bear.position.copy(seatOf());bear.rotation.y=WT.cars[1].g.rotation.y+Math.PI});
   {const A=bear.position.clone();await tween(500,p=>{bear.position.lerpVectors(A,off,easeIO(p));bear.position.y+=Math.sin(p*Math.PI)*.8})}}
 
 /* 走格子時廣場放到左邊（on），回扭蛋島放回原位（off）；只換父層，廣場裡每樣東西自己的座標都不變 */
@@ -2593,23 +2599,23 @@ async function lkOpen(xp){if(GA.mist)GA.mist.visible=false;
   const clear=tween(900,p=>setDim(1-p));
   (async()=>{for(const lv of [0,1])for(const t of tiles[lv]){dimObj(t,0);const y0=t.position.y;tween(200,p=>{t.position.y=y0+Math.sin(p*Math.PI)*.22});if(lv===0)sparkle(t.position.clone().add(new THREE.Vector3(0,.4,0)),2);await sleep(RM?0:20)}})();
   const pth=lkPath(),ng=pth.length-8;parkCam='swing';
-  if(NP){shPlace(0);await lkWalk(pth.slice(0,ng));parkCam='link';await shRide(1,pth[pth.length-2]);await lkWalk(pth.slice(-2));await clear;setDim(0)} /* 新版：月台上車、搭小火車過橋、平交道前下車走過去 */
+  if(NP){await lkWalk(pth.slice(0,ng));parkCam='link';await shGo();await clear;setDim(0)} /* 新版：月台上車、搭小火車過橋、平交道前下車走過去 */
   else{await lkWalk(pth.slice(0,ng+1)); /* 在廣場上：鏡頭停在剛轉過來的位置，看小熊走向門口、後面就是走格子島 */
   parkCam='link';await lkWalk(pth.slice(ng));await clear;setDim(0)}
   if(xp)await Promise.race([xp,sleep(4000)]);
   const st=tilePos(G.cur,G.lv[G.cur].pos),land=new THREE.Vector3(st.x,st.y+TILE_H-.06,st.z),A=bear.position.clone();bear.rotation.y=Math.atan2(land.x-A.x,land.z-A.z);
   await tween(780,p=>{bear.position.lerpVectors(A,land,easeIO(p));bear.position.y=A.y+(land.y-A.y)*p+Math.sin(p*Math.PI)*(1.2+A.distanceTo(land)*.25);bear.rotation.x=-easeIO(p)*Math.PI*2});
-  bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10)}
+  bear.rotation.x=0;bear.position.copy(land);sparkle(land.clone().add(new THREE.Vector3(0,.5,0)),10);if(NP&&WT.custom)shRelease()}
 /* 回扭蛋島：跳到平交道旁 → 走過橋進廣場 → 廣場轉回原位、雲霧回來 */
 async function lkBack(){lkPlace(true);
   const arc=()=>{const ph=G.phase,pc=parkCam;G.phase='oct';parkCam=null;let g;try{g=camGoal0()}finally{G.phase=ph;parkCam=pc}const c0=camera.position.clone(),l0=look.clone(),c1=LK.inner.localToWorld(g.pos),l1=LK.inner.localToWorld(g.at),M=c0.clone().lerp(c1,.5);M.y=Math.max(c0.y,c1.y)+14;
     LK.cam={pos:c0.clone(),at:l0.clone()};parkCam='swing';
     tween(2600,p=>{const e=easeIO(p),u=1-e;LK.cam.pos.set(0,0,0).addScaledVector(c0,u*u).addScaledVector(M,2*u*e).addScaledVector(c1,e*e);LK.cam.at.lerpVectors(l0,l1,e);camera.position.copy(LK.cam.pos);look.copy(LK.cam.at)})};if(NP)parkCam='link';else arc(); /* 鏡頭從上面拱過去（直線會穿過大扭蛋機），站到扭蛋島平常的角度（左邊那座），看小熊走過橋回來；轉回去就剛好接上 */
-  const pts=lkPath().reverse(),A=bear.position.clone(),p0=pts[0];bear.rotation.y=Math.atan2(p0.x-A.x,p0.z-A.z);
+  const pts=lkPath().reverse(),A=bear.position.clone(),p0=NP?new THREE.Vector3(LK_RAIL+.75,(WT.Y||-.2)+.12,LKZ+SH.R+1.1):pts[0];bear.rotation.y=Math.atan2(p0.x-A.x,p0.z-A.z); /* 新版：跳到外圈鐵軌旁等火車 */
   await tween(780,p=>{bear.position.lerpVectors(A,p0,easeIO(p));bear.position.y=A.y+(p0.y-A.y)*p+Math.sin(p*Math.PI)*(1.2+A.distanceTo(p0)*.25);bear.rotation.x=easeIO(p)*Math.PI*2});
   bear.rotation.x=0;bear.position.copy(p0);sparkle(p0.clone().add(new THREE.Vector3(0,.5,0)),8);
   tween(1700,p=>{if(XSC())return;SKY=1-easeIO(p);if(SKY<.35)snow.visible=false;skyApply(false)});
-  if(NP){shPlace(1);await lkWalk(pts.slice(0,2));const n=pts.length;await shRide(-1,pts[n-4].clone());arc();await lkWalk(pts.slice(n-4))} /* 新版：平交道前上車、開回月台、下車走進島 */
+  if(NP){const n=pts.length;await shBack(pts[n-4].clone());arc();await lkWalk(pts.slice(n-4))} /* 新版：平交道前上車、開回月台、下車走進島 */
   else await lkWalk(pts);bear.rotation.y=-1.25+LKR;
   await lkSwing(false);lkPlace(false);G.phase='oct';
   if(GA.mist){GA.mist.children.forEach(o=>{if(o.userData.p0)o.position.copy(o.userData.p0);if(o.material&&o.userData.op===undefined)o.userData.op=o.material.opacity});GA.mist.visible=true;
@@ -2753,7 +2759,7 @@ function buildWalkRail(i1){const{W,D,c}=wtCurve(),Y=-.2;WT.c=c;WT.L=c.getLength(
     const m=new THREE.Mesh(evMerge(sl),new THREE.MeshLambertMaterial({vertexColors:true}));i1.add(m)} /* 枕木合成一個網格，一次畫完 */
   const keep={t:GA.train,th:GA.th,sm:GA.smoke};buildTrain();WT.cars=GA.train;GA.train=keep.t;GA.th=keep.th;GA.smoke=keep.sm;
   WT.cars.forEach(t=>{t.g.scale.setScalar(.8);t.off*=.8;i1.add(t.g);if(!/[?&]nomerge/.test(location.search))try{mergeStatic(t.g,new Set(t.bears))}catch(e){}}); /* 車廂零件合併，乘客小熊會轉頭不合 */WT.th=4}
-function wtTick(dt,now){if(!WT.cars||G.phase==='oct'||!ISL[0]||!ISL[0].visible)return;WT.th+=.16*(RM?.5:1)*dt;
+function wtTick(dt,now){if(!WT.cars||WT.custom||G.phase==='oct'||!ISL[0]||!ISL[0].visible)return;WT.th+=.16*(RM?.5:1)*dt;
   WT.cars.forEach((t,i)=>{let u=((WT.th*TR_R-t.off)/WT.L)%1;if(u<0)u+=1;const p=WT.c.getPointAt(u),tg=WT.c.getTangentAt(u);
     t.g.position.set(p.x,WT.Y+.02+(i?Math.abs(Math.sin(now/170+i))*.02:0),p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);
     t.bears.forEach((b,j)=>{b.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z)-t.g.rotation.y;b.position.y=.36+Math.max(0,Math.sin(now/260+i*1.3+j))*.04;if(b.userData.bal)b.userData.bal.rotation.z=Math.sin(now/400+i+j)*.15})})}
