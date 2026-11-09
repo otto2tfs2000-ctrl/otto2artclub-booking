@@ -942,7 +942,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261109a';
+const PARK_VER='20261109b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1072,10 +1072,12 @@ function snowTex(W,D){const N=1024,cv=document.createElement('canvas');cv.width=
   for(let k=0;k<260;k++){x.fillStyle=`rgba(255,255,255,${.5+r()*.5})`;x.fillRect(r()*N,r()*N,1.6,1.6)}
   for(let k=0;k<60;k++){x.fillStyle=`rgba(150,175,205,${.15+r()*.15})`;x.beginPath();x.arc(r()*N,r()*N,1.5+r()*2,0,Math.PI*2);x.fill()}
   const t=new THREE.CanvasTexture(cv);t.repeat.set(1/W,1/D);t.offset.set(.5,.5);t.anisotropy=4;return t}
+/* 2026-11-09 大熊：走格子白天太亮。雪地原本為了晚上月光會自己發光，白天把發光降下來、燈光也暗一點（skyApply 依白天／晚上切換） */
+function snowMat(m){m.userData.snowE=m.emissiveIntensity;(GA.snowMats||(GA.snowMats=[])).push(m);return m}
 function buildIsland(lv){
   const L=LEVELS[lv],o=L.off,W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.pad||0);
   const g=new THREE.Group();g.position.copy(o);scene.add(g);
-  const stx=snowTex(W,D);g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[toon('#f2f5fa',{map:stx,emissive:'#dfe7f3',emissiveMap:stx,emissiveIntensity:.3}) /* 2026-10-04 夜晚月光下雪地要亮：底色接近白＋自己發一點光，貼圖的藍灰陰影還在 */,toon('#8a5a3b')],0,-.62,0));
+  const stx=snowTex(W,D);g.add(mesh(roundedSlab(W,D,.5,1.1,.15),[snowMat(toon('#f2f5fa',{map:stx,emissive:'#dfe7f3',emissiveMap:stx,emissiveIntensity:.3})) /* 2026-10-04 夜晚月光下雪地要亮：底色接近白＋自己發一點光，貼圖的藍灰陰影還在 */,toon('#8a5a3b')],0,-.62,0));
   g.add(mesh(roundedSlab(W-1.2,D-1.2,1.1,1,.1),[toon('#7a4c30'),toon('#7a4c30')],0,-1.85,0));
   const rock=mesh(new THREE.ConeGeometry(Math.min(W,D)*.4,3.2,7),toon('#6e4429'),0,-3.5,0);rock.rotation.x=Math.PI;g.add(rock);
   for(let k=0;k<18;k++){const a=k/18*Math.PI*2;const ic=mesh(new THREE.ConeGeometry(.08,.35+Math.random()*.3,6),toon('#cfeaff'),Math.cos(a)*(W/2-.3),-.8,Math.sin(a)*(D/2-.3));ic.rotation.x=Math.PI;g.add(ic)}
@@ -1698,7 +1700,8 @@ function skyApply(oct){document.body.classList.toggle('dayfade',SKYHOLD);const v
   if(!scene)return;document.body.classList.remove('octload'); /* 2026-10-05 載入完就拿掉十月載入底色，不然十月切到走格子背景會一直是亮藍天空 */const day=(oct&&!XNIGHT())||SKYHOLD,gal=false; /* 2026-10-04 大熊要回到天空島＋雲朵，畫廊背景先關掉（galTex 程式留著） */scene.background=day&&SKY===0?(gal?galTex():skyTex()):null;
   if(day){const fc=gal?'#f3ebdd':'#d9eef9';if(!scene.fog)scene.fog=new THREE.Fog(fc,40,85);scene.fog.color.set(fc).lerp(_fn.set('#16275a'),SKY)}else scene.fog=null;
   /* 2026-10-04 走格子是晚上：燈光改成偏藍的月光、暗一點，聖誕樹和串燈的暖黃才亮得起來（原本白天燈光，雪地整片很亮） */
-  if(GA.hemi){const n=day?SKY:(!XNIGHT()?.2:oct?.28:1); /* 11 月扭蛋島：天空是晚上，但島上只微微偏藍，不要整片變暗（商店、門口是圖片，會跟 3D 落差很大） */GA.hemi.intensity=.8-.14*(1-n)-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.12*(1-n)-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n)}
+  if(GA.hemi){const n=day?SKY:(!XNIGHT()?.2:oct?.28:1); /* 11 月扭蛋島：天空是晚上，但島上只微微偏藍，不要整片變暗（商店、門口是圖片，會跟 3D 落差很大） */GA.hemi.intensity=.8-.14*(1-n)-.32*n;GA.hemi.color.set('#dfe9ff').lerp(_fn.set('#9fb3e6'),n);GA.hemi.groundColor.set('#5a6a9a').lerp(_fn.set('#2a3560'),n);GA.sun.intensity=.8-.12*(1-n)-.3*n;GA.sun.color.set('#fff1dc').lerp(_fn.set('#c4d2ff'),n);
+    const wd=!oct&&!day&&!XNIGHT();if(wd){GA.hemi.intensity*=.84;GA.sun.intensity*=.86}if(GA.snowMats)GA.snowMats.forEach(m=>{m.emissiveIntensity=m.userData.snowE*(wd?.12:1)})} /* 走格子白天：雪地不發光、燈光暗一點 */
   clouds.forEach(c=>c.visible=!gal);if(GA.mist&&oct)GA.mist.visible=!gal;
   /* 畫廊模式不用雲遮：廣場後面放一面看不見的牆（只寫深度），後面的走格子島、橋、鎖都不會畫出來，只看到畫廊背景 */
   if(!GA.gmask){GA.gmask=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({colorWrite:false}));GA.gmask.position.set(PLAZA.x,8,PLAZA.z-PLAZA_R-.4);GA.gmask.renderOrder=-1;scene.add(GA.gmask)}GA.gmask.visible=gal;{const mn=!!(oct&&XNIGHT());if(GA.mist&&GA.mist.userData.mn!==mn){GA.mist.userData.mn=mn;GA.mist.traverse(m=>{if(m.material&&m.material.emissive)m.material.emissive.set(mn?'#3c4f86':'#000000')})}}if(GA.mist&&GA.mist.userData.gal!==gal){GA.mist.userData.gal=gal;GA.mist.traverse(m=>{if(m.material&&m.material.color)m.material.color.set(gal?'#f7f0e4':'#e9efff')})}}
@@ -2765,7 +2768,7 @@ function wtCurve(){const L=LEVELS[0],W=L.w*GAP+1.9+(L.pad||0),D=L.h*GAP+1.9+(L.p
 function buildWalkRail(i1){const{W,D,c}=wtCurve(),Y=-.2;WT.c=c;WT.L=c.getLength();WT.Y=Y;
   const sh=rrShape(W+2.5,D+2.5,1.9);sh.holes.push(rrShape(W-.6,D-.6,.8));
   const g=new THREE.ExtrudeGeometry(sh,{depth:.42,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:2,curveSegments:10});g.rotateX(-Math.PI/2);
-  const ring=mesh(g,[toon('#eef3fa',{emissive:'#dfe7f3',emissiveIntensity:.25}),toon('#8a5a3b')],0,Y-.47,0);ring.castShadow=false;i1.add(ring);
+  const ring=mesh(g,[snowMat(toon('#eef3fa',{emissive:'#dfe7f3',emissiveIntensity:.25})),toon('#8a5a3b')],0,Y-.47,0);ring.castShadow=false;i1.add(ring);
   const sp=c.getSpacedPoints(420);[-.18,.18].forEach(o=>{const rp=sp.slice(0,-1).map((p,i)=>{const t=c.getTangentAt(i/420),n=new THREE.Vector3(-t.z,0,t.x).normalize();return p.clone().addScaledVector(n,o)});
     const tb=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp,true),420,.03,5,true),toon('#8d8480'),0,Y+.06,0);tb.castShadow=false;i1.add(tb)});
   {const sl=[],nS=Math.round(WT.L/.4),bg=new THREE.BoxGeometry(.5,.04,.1);for(let k=0;k<nS;k++){const u=k/nS,p=c.getPointAt(u),t=c.getTangentAt(u);sl.push([bg,'#7a4c30',new THREE.Matrix4().makeTranslation(p.x,Y+.03,p.z).multiply(new THREE.Matrix4().makeRotationY(Math.atan2(t.x,t.z)))])}
