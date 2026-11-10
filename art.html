@@ -672,7 +672,7 @@ function xmasPondFolk(){const P=PONDS[1];   /* 第二個湖的這一側：離所
   ].forEach(([u,ar,H,n,say,rim,a,o])=>{
     const r=P.r+1.5,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,g=xsdMake(u,ar,H,n,say,rim,o);g.position.set(x,heightAt(x,z),z);scene.add(g)});
   /* 2026-10-25 大熊：兩個不要放一起，雪怪放到水邊附近的樹下 → 找離湖最近、旁邊沒有小屋的那棵樹，站在樹和湖之間 */
-  const ok=(x,z)=>!inPond(x,z,.4)&&pathDist(x,z)>.9&&usedSpots().every(h=>Math.hypot(h.x-x,h.z-z)>2.4)&&ESPOTS.every(([ex,ez])=>Math.hypot(ex-x,ez-z)>2)&&XSD.every(o=>Math.hypot(o.position.x-x,o.position.z-z)>6);
+  const ok=(x,z)=>!inPond(x,z,.4)&&pathDist(x,z)>.9&&usedSpots().every(h=>Math.hypot(h.x-x,h.z-z)>2.4)&&ESPOTS_ALL.every(([ex,ez])=>Math.hypot(ex-x,ez-z)>2)&&XSD.every(o=>Math.hypot(o.position.x-x,o.position.z-z)>6);
   let best=null;TREEPOS.forEach(t=>PONDS.forEach(p=>{const d=Math.hypot(t.x-p.x,t.z-p.z)-p.r;if(d<1||d>5)return;const ux=(p.x-t.x)/(d+p.r),uz=(p.z-t.z)/(d+p.r);
     for(const k of [1.75,1.55,1.95]){   /* 站在樹冠邊緣（太靠樹幹會被松樹的枝葉擋住） */const x=t.x+ux*k,z=t.z+uz*k;if(ok(x,z)&&(!best||d<best.d)){best={x,z,d};break}}}));
   /* 2026-10-25 大熊給了雪怪的動態影片 → 用會動的版本（眨眼、揮手、張手跳、大笑），原本的丟雪球、冒愛心留著穿插 */
@@ -815,6 +815,24 @@ function paintWork(kind,S=256){
   else if(kind==='wave'){x.fillStyle='#efe3c8';x.fillRect(0,0,S,S);x.fillStyle='#6f8fb0';x.beginPath();x.moveTo(170*k,200*k);x.lineTo(200*k,160*k);x.lineTo(230*k,200*k);x.fill();x.fillStyle='#fff';x.beginPath();x.moveTo(193*k,168*k);x.lineTo(200*k,160*k);x.lineTo(207*k,168*k);x.fill();
     x.fillStyle='#1f3f73';x.beginPath();x.moveTo(0,256*k);x.lineTo(0,150*k);x.bezierCurveTo(40*k,60*k,120*k,30*k,150*k,80*k);x.bezierCurveTo(120*k,70*k,100*k,110*k,120*k,140*k);x.bezierCurveTo(90*k,150*k,120*k,210*k,256*k,210*k);x.lineTo(256*k,256*k);x.fill();
     x.fillStyle='#fff';for(let i=0;i<14;i++){const t=i/14,cx=(40+t*110),cy=60+Math.sin(t*3)*20+(1-t)*60;circ(cx,cy,5,'#fff')}x.strokeStyle='#8fb0d0';x.lineWidth=3*k;for(let i=0;i<6;i++){x.beginPath();x.arc((30+i*18)*k,(170+i*8)*k,30*k,-2.6,-1);x.stroke()}}
+  else if(kind==='kand'){x.fillStyle='#efe6d2';x.fillRect(0,0,S,S);
+    [[86,92,58,['#1b1b1f','#6a3aa0','#d8382c','#f2c230']],[190,170,30,['#1f4fb0','#f2c230','#d8382c']],[204,56,20,['#d8382c','#1b1b1f']],[52,200,16,['#f2c230','#1f4fb0']]].forEach(([a,b,R,cs])=>cs.forEach((c,i)=>circ(a,b,R*(1-i/cs.length),c)));
+    x.strokeStyle='#1b1b1f';x.lineWidth=3*k;[[14,140,130,176],[136,18,166,128],[96,236,246,214],[150,112,250,124],[20,60,60,20]].forEach(([a,b,c,d])=>{x.beginPath();x.moveTo(a*k,b*k);x.lineTo(c*k,d*k);x.stroke()});
+    x.fillStyle='#f2c230';x.beginPath();x.moveTo(120*k,166*k);x.lineTo(152*k,226*k);x.lineTo(96*k,220*k);x.fill();x.fillStyle='#1f4fb0';x.beginPath();x.moveTo(214*k,96*k);x.lineTo(244*k,104*k);x.lineTo(224*k,132*k);x.fill();
+    for(let i=0;i<4;i++)for(let j=0;j<3;j++){x.fillStyle=(i+j)%2?'#1b1b1f':'#efe6d2';x.fillRect((14+i*9)*k,(18+j*9)*k,9*k,9*k)}}
+  else if(kind==='klee'){const P=['#d8442c','#e87a2a','#f2b631','#c93a52','#8a3a6a','#3a5a9a','#2f8a7a','#a8492a','#5a2f4a'];x.fillStyle='#2a1c2a';x.fillRect(0,0,S,S);
+    for(let i=0;i<8;i++)for(let j=0;j<8;j++){if(j<2&&r()<.6)continue;x.fillStyle=P[Math.floor(r()*P.length)];x.fillRect(i*32*k,j*32*k,31*k,31*k);
+      if(j>1&&r()<.3){x.fillStyle=P[Math.floor(r()*P.length)];x.beginPath();x.moveTo(i*32*k,(j*32+31)*k);x.lineTo((i*32+15.5)*k,j*32*k);x.lineTo((i*32+31)*k,(j*32+31)*k);x.fill()}}
+    circ(196,44,26,'#e8452c')}
+  else if(kind==='cutout'){x.fillStyle='#f6f0e2';x.fillRect(0,0,S,S);[['#f2a31c',0,0,128,128],['#2f8a3e',128,128,128,128],['#c93a6a',128,0,128,128],['#1f4fb0',0,128,128,128]].forEach(([c,a,b,w,h])=>{x.fillStyle=c;x.fillRect((a+8)*k,(b+8)*k,(w-16)*k,(h-16)*k)});
+    const leaf=(cx,cy,sc,rot,c)=>{x.save();x.translate(cx*k,cy*k);x.rotate(rot);x.scale(sc*k,sc*k);x.fillStyle=c;for(let q=0;q<5;q++)[-1,1].forEach(sd=>{x.beginPath();x.ellipse(sd*11,-28+q*13,11,6,sd*.7,0,7);x.fill()});x.fillRect(-3,-36,6,70);x.restore()};
+    leaf(64,64,1.25,.3,'#f6f0e2');leaf(192,64,1.25,-.4,'#f6f0e2');leaf(64,192,1.25,-.2,'#f2a31c');leaf(192,192,1.25,.5,'#f6f0e2');leaf(128,128,1.1,0,'#1b1b1f')}
+  else if(kind==='scream'){['#e8502a','#f08a1c','#f2c230','#e8502a','#c93a2a','#f2a31c'].forEach((c,i)=>{x.strokeStyle=c;x.lineWidth=24*k;x.beginPath();for(let a=-10;a<=266;a+=8){const y=i*20+8+Math.sin(a/256*6.283*1.5+i*.9)*8;x.lineTo(a*k,y*k)}x.stroke()});
+    x.fillStyle='#2f4a86';x.fillRect(0,118*k,S,S);['#3f66a8','#27407a','#4a7ab8'].forEach((c,i)=>{x.strokeStyle=c;x.lineWidth=14*k;x.beginPath();x.arc((150+i*10)*k,(190+i*6)*k,(70-i*18)*k,3.4,6.6);x.stroke()});
+    x.fillStyle='#7a4a2a';x.beginPath();x.moveTo(0,150*k);x.lineTo(256*k,236*k);x.lineTo(256*k,256*k);x.lineTo(0,256*k);x.fill();x.strokeStyle='#4a2c18';x.lineWidth=5*k;[0,16,32].forEach(o=>{x.beginPath();x.moveTo(0,(128+o)*k);x.lineTo(256*k,(214+o)*k);x.stroke()});
+    x.fillStyle='#1f2433';x.beginPath();x.moveTo(104*k,256*k);x.quadraticCurveTo(100*k,190*k,128*k,186*k);x.quadraticCurveTo(156*k,190*k,152*k,256*k);x.fill();
+    x.fillStyle='#ecdcb4';x.beginPath();x.ellipse(128*k,160*k,20*k,28*k,0,0,7);x.fill();[-1,1].forEach(sd=>{x.beginPath();x.ellipse((128+sd*24)*k,166*k,7*k,16*k,sd*.2,0,7);x.fill()});
+    circ(120,152,3.5,'#2a211c');circ(136,152,3.5,'#2a211c');x.fillStyle='#2a211c';x.beginPath();x.ellipse(128*k,172*k,5*k,8*k,0,0,7);x.fill()}
   return c;
 }
 // demo stand-ins for class photos and student works: soft painterly blocks, labelled as examples in the UI
@@ -833,6 +851,11 @@ const ARTISTS=[
   {n:'草間彌生',work:'點點南瓜',kind:'pumpkin',robe:'dots',skin:'#f3d6bd',hair:'#a5534c',bob:1,care:'把島上的蘑菇點上點點',say:'一輩子都在畫圓點，最有名的是黃色點點南瓜。'},
   {n:'馬格利特',work:'藍天與蘋果',kind:'apple',robe:'#3a3b40',skin:'#f3d0b0',care:'把白雲掛到天上',say:'比利時的超現實畫家，最愛把平常的東西放在意想不到的地方。'},
   {n:'葛飾北齋',work:'大浪',kind:'wave',robe:'#515d76',skin:'#eecba9',hair:'#bdbdbd',beard:'#bdbdbd',topknot:1,care:'看守島邊的雲海',say:'日本浮世繪畫家，筆下的大浪全世界都認得。'},
+  /* 2026-11-10 大熊加四位島民（造型是我設計的，見下面「四位新島民」） */
+  {n:'康丁斯基',work:'點線面的音樂',kind:'kand',robe:'#efe6d2',skin:'#f6d6bc',care:'替島上的風配上顏色',say:'抽象畫的先驅，覺得顏色和形狀就像音樂一樣會唱歌。'},
+  {n:'保羅克利',work:'城堡與太陽',kind:'klee',robe:'#c9603a',skin:'#f6d6bc',care:'帶著一條線在島上散步',say:'瑞士出生的畫家，用色塊、線條和小符號畫出像詩一樣的畫。'},
+  {n:'馬諦斯',work:'剪紙的葉子',kind:'cutout',robe:'#f6f0e2',skin:'#f6d6bc',care:'幫島上的葉子剪出新形狀',say:'野獸派的代表，顏色大膽；晚年改用剪刀剪色紙來「畫畫」。'},
+  {n:'孟克',work:'晚霞下的吶喊',kind:'scream',robe:'#1f2433',skin:'#f6dcc6',care:'每天傍晚看著晚霞',say:'挪威畫家，把心裡的感覺直接畫出來，最有名的是《吶喊》。'},
 ];
 function patternTex(kind){const c=cvs(128,128),x=c.getContext('2d');if(kind==='stripes'){for(let i=0;i<8;i++){x.fillStyle=i%2?'#ece8df':'#465069';x.fillRect(0,i*16,128,16)}}
   else{x.fillStyle='#a5534c';x.fillRect(0,0,128,128);x.fillStyle='#efe9df';for(let i=0;i<5;i++)for(let j=0;j<5;j++){x.beginPath();x.arc(i*28+(j%2)*14,j*28,7,0,7);x.fill()}}
@@ -1165,6 +1188,100 @@ function figDoneX(f,A,s=1.05){f.g.traverse(o=>{if(o.isMesh&&!o.userData.keep)o.m
   f.g.traverse(o=>{if(o.isMesh){o.userData.artist=A;picks.push(o)}});f.g.scale.setScalar(s);return f.g}
 // drop the paintbrush figBase puts in the right hand, for the ones holding something else there
 const noBrush=f=>f.armR.children.slice(-2).forEach(o=>f.armR.remove(o));
+/* ===== 2026-11-10 四位新島民：康丁斯基、保羅克利、馬諦斯、孟克（大熊要加的；造型是我設計的，沒有他的公仔圖） =====
+   零件跟聖誕版一樣合併（頭、身體、兩手各一塊）。孟克兩手要一直捧著臉 → artistTick 動的是一隻假的手（fixArm） */
+function nfDone(f,A,s=1.05){f.g.traverse(o=>{if(o.isMesh&&!o.userData.keep)o.material=muteMat(o.material)});
+  const parts=[f.head,f.armL,f.armR];parts.forEach(p=>f.body.remove(p));mergeGroup(f.body);parts.forEach(p=>{mergeGroup(p);f.body.add(p)});
+  f.g.userData={A,body:f.body,armR:f.fixArm?new THREE.Group():f.armR,head:f.head,pet:f.pet};
+  f.g.traverse(o=>{if(o.isMesh){o.userData.artist=A;picks.push(o)}});f.g.scale.setScalar(s);return f.g}
+Object.assign(TX,{
+  kand:()=>texOf(256,256,(x,w,h)=>{x.fillStyle='#efe6d2';x.fillRect(0,0,w,h);
+    [[70,70,34,['#1b1b1f','#6a3aa0','#d8382c']],[190,170,22,['#1f4fb0','#f2c230']],[200,50,14,['#d8382c','#1b1b1f']],[60,190,12,['#f2c230','#1f4fb0']]].forEach(([a,b,r,cs])=>cs.forEach((c,i)=>{x.fillStyle=c;x.beginPath();x.arc(a,b,r*(1-i/cs.length),0,7);x.fill()}));
+    x.strokeStyle='#1b1b1f';x.lineWidth=3;[[10,120,120,150],[130,20,160,120],[100,230,240,210],[150,110,250,120]].forEach(([a,b,c,d])=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.stroke()});
+    x.fillStyle='#f2c230';x.beginPath();x.moveTo(120,160);x.lineTo(150,220);x.lineTo(95,215);x.fill();
+    x.fillStyle='#1f4fb0';x.beginPath();x.moveTo(20,20);x.lineTo(50,25);x.lineTo(30,55);x.fill();
+    x.strokeStyle='#d8382c';x.lineWidth=4;x.beginPath();x.arc(150,60,26,3.4,5.6);x.stroke();
+    for(let i=0;i<4;i++)for(let j=0;j<3;j++){x.fillStyle=(i+j)%2?'#1b1b1f':'#efe6d2';x.fillRect(215+i*8,225+j*8,8,8)}},2,1),
+  klee:()=>texOf(256,256,(x,w,h)=>{const P=['#d8442c','#e87a2a','#f2b631','#c93a52','#8a3a6a','#3a5a9a','#2f8a7a','#f0d58a','#a8492a','#5a2f4a'],r=rng(77);
+    const n=8,s=w/n;for(let i=0;i<n;i++)for(let j=0;j<n;j++){x.fillStyle=P[Math.floor(r()*P.length)];x.fillRect(i*s,j*s,s+1,s+1);
+      if(r()<.28){x.fillStyle=P[Math.floor(r()*P.length)];x.beginPath();x.moveTo(i*s,j*s+s);x.lineTo(i*s+s/2,j*s);x.lineTo(i*s+s,j*s+s);x.fill()}}
+    x.strokeStyle='rgba(40,20,20,.35)';x.lineWidth=1.5;for(let i=0;i<=n;i++){x.beginPath();x.moveTo(i*s,0);x.lineTo(i*s,h);x.stroke();x.beginPath();x.moveTo(0,i*s);x.lineTo(w,i*s);x.stroke()}},2,1.5),
+  matisse:()=>texOf(256,256,(x,w,h)=>{x.fillStyle='#f6f0e2';x.fillRect(0,0,w,h);
+    const leaf=(cx,cy,sc,rot,c)=>{x.save();x.translate(cx,cy);x.rotate(rot);x.scale(sc,sc);x.fillStyle=c;
+      for(let k=0;k<5;k++){[-1,1].forEach(sd=>{x.beginPath();x.ellipse(sd*11,-28+k*13,11,6,sd*.7,0,7);x.fill()})}x.fillRect(-3,-36,6,70);x.restore()};
+    [[50,60,1,.3,'#1f4fb0'],[150,50,.9,-.5,'#e8452c'],[220,130,1,.9,'#2f8a3e'],[90,160,1.1,-.2,'#f2a31c'],[180,215,.9,.4,'#c93a6a'],[30,220,.8,1.2,'#1f4fb0'],[240,30,.7,.1,'#f2a31c']].forEach(a=>leaf(...a));
+    x.fillStyle='#1b1b1f';[[120,105],[20,130],[215,75],[130,240]].forEach(([a,b])=>{x.beginPath();x.arc(a,b,5,0,7);x.fill()})},2,1.4),
+  scream:()=>texOf(256,128,(x,w,h)=>{const C=['#e8502a','#f08a1c','#f2c230','#e8502a','#c93a2a','#f2a31c','#3a4a8a','#f08a1c'];
+    C.forEach((c,i)=>{x.strokeStyle=c;x.lineWidth=20;x.beginPath();for(let a=0;a<=w;a+=8){const y=i*18+4+Math.sin(a/w*6.283*2+i*.9)*7;a?x.lineTo(a,y):x.moveTo(a,y)}x.stroke()})},3,1),
+});
+function nfGlasses(h,c='#2a2420',r=.062){[-1,1].forEach(s=>{const g=new THREE.Mesh(new THREE.TorusGeometry(r,.008,6,22),toon(c));g.position.set(.1*s,0,.29);h.add(g);
+  const a=fbox(c,.01,.012,.27,.215*s,.005,.165);a.rotation.y=.42*s;h.add(a)});h.add(fbox(c,.08,.011,.011,0,.012,.3))}
+function nfMous(h,c,tilt=.3,w=1.6){[-1,1].forEach(s=>{const m=ball(c,.05,.05*s,-.105,.272,w,.7,.7,true);m.rotation.z=tilt*s;h.add(m)})}
+const nfUp=(arm,x,y,z)=>arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),new THREE.Vector3(x,y,z).normalize());
+Object.assign(FIG,{
+'康丁斯基'(A){const f=figBase({coat:T('kand'),sleeve:T('kand'),legs:'#26262c',cuff:'#26262c',shoe:'#1a1a1c',cuffArm:'#f6f1e7',skin:'#f6d6bc',mouth:'none'}),h=f.head,G='#c2c2be',D='#9a9a96';
+  f.body.add(fbox('#f6f1e7',.11,.3,.04,0,.6,.18));[-1,1].forEach(s=>{const lp=fbox('#1f1f25',.06,.2,.03,.08*s,.68,.185);lp.rotation.z=-.3*s;f.body.add(lp)});
+  [-1,1].forEach(s=>{const b=ball('#d8382c',.045,.04*s,.775,.2,1.2,.8,.5,true);f.body.add(b)});f.body.add(ball('#a82a22',.02,0,.775,.215,1,1,.6,true));
+  // receding grey hair combed back, goatee, round glasses
+  h.add(ball(G,.29,0,.075,-.06,1.02,.95,.95));backHair(h,G,.3,.76);sideHair(h,G,3,.085,.1);brow(h,D,1,-.12,.135,.09,.024);
+  nfMous(h,G,.28);h.add(ball(G,.07,0,-.25,.2,1,1.5,.8,true));nfGlasses(h,'#2a2420');
+  // 一支「同心圓」：他把顏色當成聲音，手上那支像指揮棒
+  const p=new THREE.Group();p.add(cyl('#2a2420',.012,.012,.42,0,-.34,0,6));const d=new THREE.Group();d.position.y=.17;d.rotation.x=Math.PI/2;p.add(d);
+  [['#1b1b1f',.17],['#1f4fb0',.145],['#f2c230',.115],['#d8382c',.085],['#6a3aa0',.05],['#f6f1e7',.022]].forEach(([c,r],i)=>d.add(cyl(c,r,r,.02+i*.006,0,0,0,26)));
+  p.scale.setScalar(1.2);p.position.set(-.04,-.3,.1);p.rotation.set(.45,0,.2);f.armL.add(p);f.armL.rotation.set(-.6,0,-1.0);
+  // 頭上飄著的點、線、面
+  const fl=new THREE.Group();fl.position.set(.02,.4,-.02);fl.scale.setScalar(.85);h.add(fl);
+  const tri=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.02,3),toon('#f2c230'));tri.rotation.x=Math.PI/2;tri.position.set(.2,.02,.05);fl.add(tri);
+  const ci=cyl('#1f4fb0',.06,.06,.02,-.18,.06,.05,20);ci.rotation.x=Math.PI/2;fl.add(ci);fl.add(fbox('#d8382c',.09,.09,.02,0,.12,.0));
+  const ln=fbox('#1b1b1f',.34,.012,.012,.02,-.04,.04);ln.rotation.z=.25;fl.add(ln);fl.userData.float=1;
+  return nfDone(f,A)},
+'保羅克利'(A){const f=figBase({robe:T('klee'),sleeve:T('klee'),wide:1,feet:'shoe',shoe:'#4a3022',skin:'#f6d6bc',mouth:'smile',
+    robeProf:[[0,.08],[.27,.08],[.28,.13],[.25,.4],[.21,.62],[.17,.76],[.14,.82],[0,.84]]}),h=f.head,H='#33261e';
+  [-1,1].forEach(s=>f.body.add(cyl('#3a2f4a',.06,.065,.12,.09*s,.0,0,10)));
+  const col=new THREE.Mesh(new THREE.TorusGeometry(.15,.03,6,18),toon('#f6f1e7'));col.rotation.x=Math.PI/2;col.position.y=.82;f.body.add(col);
+  // 厚厚的黑瀏海、短落腮鬍、特別大的眼睛
+  h.add(ball(H,.305,0,.06,-.04,1.03,1,.98));h.add(ball(H,.2,0,.2,.13,1.35,.42,.85));backHair(h,H,.05,.78,1);
+  h.add(ball(H,.25,0,-.13,.07,1.08,.62,.84));for(let k=0;k<7;k++){const a=Math.PI*(.12+k/6*.76);h.add(ball(H,.05,Math.cos(a)*.2,-.2-Math.sin(a)*.07,.2,1,1,.8,true))}nfMous(h,H,.25,1.5);brow(h,H,1,-.05,.115,.09,.024);
+  [-1,1].forEach(s=>{h.add(ball('#121214',.048,.098*s,-.005,.266,1,1.1,.62,true));h.add(ball('#ffffff',.013,.098*s+.016,.02,.295,1,1,1,true))});
+  // 手上舉著《城堡與太陽》的紅太陽
+  const p=new THREE.Group();p.add(cyl('#5a3a26',.012,.012,.4,0,-.34,0,6));p.add(ball('#e8452c',.12,0,.16,0));p.add(ball('#f08a3a',.05,-.04,.2,.09,1,1,.5,true));
+  p.scale.setScalar(1.2);p.position.set(-.04,-.3,.1);p.rotation.set(.45,0,.2);f.armL.add(p);f.armL.rotation.set(-.6,0,-1.05);
+  // 《金魚》：一條金魚在身邊游
+  const fish=new THREE.Group(),O='#f08a1c';fish.add(ball(O,.11,0,0,0,1.5,.95,.6));fish.add(ball('#f6b23a',.07,-.02,-.03,0,1.5,.7,.62,true));
+  const tl=new THREE.Mesh(new THREE.ConeGeometry(.09,.14,4),toon('#e8452c'));tl.rotation.z=-Math.PI/2;tl.scale.z=.35;tl.position.set(-.2,0,0);fish.add(tl);
+  const fn=new THREE.Mesh(new THREE.ConeGeometry(.05,.09,4),toon('#e8452c'));fn.scale.z=.35;fn.position.set(0,.12,0);fish.add(fn);
+  [-1,1].forEach(s=>{fish.add(ball('#ffffff',.026,.1,.025,.05*s,1,1,.5,true));fish.add(ball('#121214',.014,.11,.025,.062*s,1,1,.5,true))});
+  fish.position.set(.56,1.0,.12);fish.rotation.y=-.5;f.body.add(keep(fish));f.pet=fish;
+  return nfDone(f,A)},
+'馬諦斯'(A){const f=figBase({robe:T('matisse'),sleeve:'#2b4fb0',wide:1,feet:'shoe',shoe:'#3a2a20',skin:'#f6d6bc',mouth:'smile',
+    robeProf:[[0,.06],[.28,.06],[.29,.11],[.26,.4],[.22,.62],[.18,.76],[.14,.82],[0,.84]]}),h=f.head,W='#f1efe9',D='#cfcdc6';
+  [-1,1].forEach(s=>f.body.add(cyl('#2b4fb0',.06,.065,.1,.09*s,.0,0,10)));
+  const sc=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,6,18),toon('#e8452c'));sc.rotation.x=Math.PI/2;sc.position.y=.81;f.body.add(sc);
+  // 光頭頂、兩側白髮、圓圓的白鬍子、金邊圓眼鏡
+  backHair(h,W,.36,.76);sideHair(h,W,3,.09,.04);beard(h,W,{y:-.2,lumps:8,h:.85});nfMous(h,W,.3,1.7);brow(h,D,1,-.15,.135,.09,.026);nfGlasses(h,'#b8902a',.066);
+  [0,1].forEach(k=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.09,.004,4,10,Math.PI*.4),toon('#e2b496'));w.rotation.z=Math.PI*.3;w.position.set(0,.19+k*.03,.24-k*.02);h.add(w)});
+  // 右手大剪刀（晚年用剪刀畫畫）
+  noBrush(f);const s=new THREE.Group();[-1,1].forEach(k=>{const bl=fbox('#c9ccd2',.03,.3,.012,0,.15,0);const g=new THREE.Group();g.add(bl);
+    const rg=new THREE.Mesh(new THREE.TorusGeometry(.045,.013,6,14),toon('#d8382c'));rg.position.set(.03*k,-.06,0);g.add(rg);g.rotation.z=.2*k;s.add(g)});s.add(ball('#8a8a8e',.014,0,.02,.012,1,1,.6,true));
+  s.position.set(0,-.38,.04);s.rotation.set(-2.6,0,0);s.scale.setScalar(1.7);f.armR.add(s);f.armR.rotation.set(-.9,0,.75);
+  // 左手拿一片剪好的葉子
+  const lf=new THREE.Group(),LC='#2f8a3e';lf.add(fbox(LC,.03,.5,.012,0,0,0));for(let k=0;k<5;k++)[-1,1].forEach(sd=>{const l=ball(LC,.075,.075*sd,.2-k*.09,0,1.15,.55,.1,true);l.rotation.z=.6*sd;lf.add(l)});
+  lf.position.set(-.05,-.3,.14);lf.rotation.set(.9,0,.3);f.armL.add(lf);f.armL.rotation.set(-.75,0,-.6);
+  return nfDone(f,A)},
+'孟克'(A){const f=figBase({coat:'#1f2433',coatH:.56,legs:'#191d2a',cuff:'#191d2a',shoe:'#121216',skin:'#f6dcc6',mouth:'none'}),h=f.head,H='#6b4a30';
+  f.body.add(flathe([[.21,.22],[.25,.26],[.2,.52]],toon('#1f2433',{side:THREE.DoubleSide}),18));
+  [0,1,2].forEach(i=>f.body.add(ball('#0f1118',.02,0,.6-i*.1,.2,1,1,.5,true)));
+  // 《吶喊》晚霞圍巾
+  const sm=tm(T('scream'));const sc=new THREE.Mesh(new THREE.TorusGeometry(.18,.07,8,22),sm);sc.rotation.x=Math.PI/2;sc.position.y=.81;sc.castShadow=true;f.body.add(sc);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(.11,.34,.035),sm);tail.position.set(.1,.58,.21);tail.rotation.z=.12;f.body.add(tail);const t2=new THREE.Mesh(new THREE.BoxGeometry(.1,.22,.035),sm);t2.position.set(-.06,.66,.215);t2.rotation.z=-.2;f.body.add(t2);
+  // 旁分棕髮、小鬍子、嚇到的眉毛和圓圓張開的嘴
+  h.add(ball(H,.305,0,.07,-.05,1.03,.98,.97));const sw=ball(H,.2,.07,.21,.12,1.3,.42,.9);sw.rotation.z=-.25;h.add(sw);backHair(h,H,.05,.78,1);sideHair(h,H,2,.08,.06);
+  brow(h,H,1,.45,.16,.085,.022);nfMous(h,H,.2,1.3);
+  h.add(ball('#5a2a22',.04,0,-.185,.262,.85,1.25,.45,true));h.add(ball('#c8605a',.02,0,-.2,.275,.9,.8,.4,true));
+  // 兩手捧著臉
+  noBrush(f);f.fixArm=1;nfUp(f.armL,-.16,.3,.16);nfUp(f.armR,.16,.3,.16);
+  return nfDone(f,A)},
+});
 const rnose=h=>h.add(keep(ball('#e0352f',.056,0,-.055,.29,1,.95,.9,true)));
 function xstar(c='#f0c23a',r=.09,d=.04){const s=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2+Math.PI/2,R=i%2?r*.45:r;i?s.lineTo(Math.cos(a)*R,Math.sin(a)*R):s.moveTo(Math.cos(a)*R,Math.sin(a)*R)}
   const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:true,bevelThickness:d*.4,bevelSize:r*.12,bevelSegments:2});g.translate(0,0,-d/2);
@@ -1482,7 +1599,7 @@ function clearWalk(a,b){for(let t=0;t<=1;t+=.05){const x=a.x+(b[0]-a.x)*t,z=a.z+
 const CHAT_ARTISTS={'畢卡索':'picasso'};
 function buildArtists(){
   ARTISTS.forEach((A,i)=>{
-    const [ex,ez]=ESPOTS[i%ESPOTS.length],a=Math.atan2(ez,ex);
+    const [ex,ez]=ESPOTS_ALL[i%ESPOTS_ALL.length],a=Math.atan2(ez,ex);
     const e=makeEasel(new THREE.CanvasTexture(paintWork(A.kind,256)),1,{artist:A});e.position.set(ex,heightAt(ex,ez),ez);e.rotation.y=Math.atan2(ex,ez);scene.add(e);
     const inX=ex+Math.cos(a)*.75-Math.sin(a)*.5,inZ=ez+Math.sin(a)*.75+Math.cos(a)*.5;
     const art=makeArtist(A);art.position.set(inX,heightAt(inX,inZ),inZ);art.rotation.y=Math.atan2(ex-inX,ez-inZ);scene.add(art);
@@ -1528,6 +1645,13 @@ const HSPOTS=(()=>{const out=HSPOTS_OUT.slice();
       if(out.some(h=>Math.hypot(h.x-x,h.z-z)<2.4))continue;out.push({x,z,a})}});
   return out})();
 const usedSpots=()=>HSPOTS.slice(0,Math.max(HSPOTS_OUT.length,(G&&G.members?G.members.length:0)));
+/* 2026-11-10 四位新島民的畫架：另外找位置。原本 12 個畫架（ESPOTS）不能動——小屋位置是避開那 12 個算出來的，一動大家的家會搬 */
+const ESPOTS2=(()=>{const r=rng(321),out=[];let tries=0;
+  while(out.length<4&&tries<8000){tries++;const a=r()*6.28,d=5.2+r()*(R0*.7-5.2),x=Math.cos(a)*d,z=Math.sin(a)*d,q=tries>4000?.8:1;
+    if(!onIsland(x,z,.7)||inPond(x,z,1.8)||pathDist(x,z)<.9)continue;
+    if(HSPOTS.some(h=>Math.hypot(h.x-x,h.z-z)<2.3*q)||ESPOTS.concat(out).some(([ox,oz])=>Math.hypot(ox-x,oz-z)<3*q))continue;out.push([x,z])}
+  return out})();
+const ESPOTS_ALL=ESPOTS.concat(ESPOTS2);
 let _plank;function plankTex(){if(_plank)return _plank;const c=cvs(128,128),x=c.getContext('2d');for(let i=0;i<8;i++){x.fillStyle=['#c9b49a','#bea88d','#d2bea5'][i%3];x.fillRect(i*16,0,16,128);x.fillStyle='rgba(80,60,40,.25)';x.fillRect(i*16,0,1.5,128)}
   x.fillStyle='rgba(80,60,40,.18)';x.fillRect(0,60,128,2);return _plank=new THREE.CanvasTexture(c)}
 /* little Townscaper-ish houses that grow one floor at a time.
@@ -1716,7 +1840,7 @@ function buildAnimals(){
   // trees: round broccoli trees, tall Solarpunk trees and a few autumn ones, kept off paths, lakes and easels
   const tr=rng(44),KINDS=['pine','round','pine','blossom','round','pine','autumn','round','pine','blossom','round','pine','round','autumn','pine'],trees=[];let placed=0;
   for(let k=0;k<1500&&placed<KINDS.length;k++){const a=tr()*6.28,d=5+tr()*(R0*.78-5),x=Math.cos(a)*d,z=Math.sin(a)*d;
-    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||Math.hypot(x-3.16,z-4.62)<3.2||ESPOTS.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||usedSpots().some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
+    if(!onIsland(x,z,.8)||inPond(x,z,1.8)||pathDist(x,z)<1.3||trees.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<3.8)||Math.hypot(x-3.16,z-4.62)<3.2||ESPOTS_ALL.some(([ex,ez])=>Math.hypot(ex-x,ez-z)<2.2)||usedSpots().some(h=>Math.hypot(h.x-x,h.z-z)<2.3))continue;
     if(Math.abs(((a-PIER_A+Math.PI*3)%(2*Math.PI))-Math.PI)<.3)continue;
     const kind=KINDS[placed++];trees.push([x,z]);TREEPOS.push({x,z,kind});lpTree(x,z,(kind==='pine'?1.15:1)*(1+tr()*.35),kind,k+1)}
   if(XBULBS.length)xBulbMesh(XBULBS,.085);
@@ -1905,6 +2029,10 @@ const INFO={
   '草間彌生':{full:'草間彌生 Yayoi Kusama',life:'1929–・日本',style:'當代藝術',works:'南瓜、無限鏡屋',fact:'從小就看見滿滿的圓點，後來把圓點變成一輩子的創作。'},
   '馬格利特':{full:'雷內・馬格利特 René Magritte',life:'1898–1967・比利時',style:'超現實主義',works:'人子、這不是一根菸斗、戈爾孔達',fact:'總是戴著圓頂禮帽、穿西裝作畫，最有名的畫是一顆青蘋果擋在臉前面。'},
   '葛飾北齋':{full:'葛飾北齋 Katsushika Hokusai',life:'1760–1849・日本',style:'浮世繪',works:'神奈川沖浪裏、富嶽三十六景',fact:'一生搬家九十多次、換了三十多個名字，到九十歲還在畫。'},
+  '康丁斯基':{full:'瓦西里・康丁斯基 Wassily Kandinsky',life:'1866–1944・俄羅斯',style:'抽象藝術',works:'構成第八號、黃・紅・藍、同心圓',fact:'本來是學法律的，三十歲才決定去學畫；他覺得顏色就像音樂，是最早畫純抽象畫的畫家之一。'},
+  '保羅克利':{full:'保羅・克利 Paul Klee',life:'1879–1940・瑞士出生',style:'抽象、符號與童趣',works:'城堡與太陽、金魚、塞內西歐',fact:'從小拉小提琴，差點去當音樂家；他說畫畫就像「帶著一條線去散步」。'},
+  '馬諦斯':{full:'亨利・馬諦斯 Henri Matisse',life:'1869–1954・法國',style:'野獸派',works:'舞蹈、紅色的和諧、藍色裸女（剪紙）',fact:'二十歲生病躺在床上，媽媽送他一盒顏料才開始畫畫；晚年坐輪椅，改用剪刀剪色紙來「畫畫」。'},
+  '孟克':{full:'愛德華・孟克 Edvard Munch',life:'1863–1944・挪威',style:'表現主義',works:'吶喊、生命之舞、病童',fact:'《吶喊》不只一張：他用蛋彩、粉彩畫了好幾個版本，還做成版畫。'},
 };
 /* 藝術家介紹卡下面：他到過哪幾家、留過什麼話（2026-10-05 大熊說留言很可愛，要找得回來） */
 function saidHtml(A){const L=[];G.members.forEach(m=>m.works.forEach(w=>{if(w.cm&&w.cm.a===A.n)L.push({m,w})}));
