@@ -39,7 +39,8 @@
     +'.jpsp{display:flex;flex-direction:column;gap:2px;background:linear-gradient(135deg,#fff3c4,#ffe08a);border:2px solid #e8b94a;border-radius:12px;padding:7px 10px}.jpsp b{font-size:16px;color:#8a5a00}.jpsp span{font-size:12px;color:#6b4a00}'
     +'.jptop{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;text-align:left;font-size:14px}'
     +'.jptop li{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:10px;background:#fff}.jptop i{font-style:normal;font-size:20px}.jptop b{margin-left:auto;font-size:14px}'
-    +'.jpin .jpme{margin:0;font-size:14px}.jpin .jpsub2{gap:8px}.jpin .jpsub2 .btn{font-size:16px;padding:6px 18px}';
+    +'.jpin .jpme{margin:0;font-size:14px}.jpbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.jpbtns .btn{font-size:16px;padding:8px 0;width:100%}'
+    +'.jpgrid li span{min-width:0;white-space:nowrap}.jpgrid li{min-height:48px;box-sizing:border-box}.jptop li{min-height:36px;box-sizing:border-box}.jpin>*{box-sizing:border-box;width:100%}.jpin .jpbear{width:auto;align-self:center}';
   document.head.appendChild(css);
 
   function btn(){let b=q('jpBtn');if(!jpOn()){if(b)b.remove();return}
@@ -54,11 +55,10 @@
     /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
     card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
       <p class="jpsub">點螢幕跳起來拿禮物・不限次數・今晚 12 點截止</p>
-      <button type="button" class="btn red jpstart" id="jpGo">開始玩</button>
       <ul class="jpgrid">
         <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 4 下</small></span></li>
-        <li><i>🎁</i><span>禮物 +1・🧸 +2<br><small>⭐ +5 在高處</small></span></li>
-        <li><i>🪙</i><span>金幣、鑽石<br><small>紅利點數，今天最多 ${JP_BCAP}</small></span></li>
+        <li><i>🎁</i><span>禮物 +1<br><small>🧸 +2・⭐ +5 在高處</small></span></li>
+        <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，最多 ${JP_BCAP} 點</small></span></li>
         <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
         <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
         <li><i>🏆</i><span>送出成績<br><small>比榜上高就蓋過去</small></span></li>
@@ -66,7 +66,8 @@
       <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限第一位達成的會員</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
-      <div class="acts jpsub2"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div></div>`);
+      <div class="jpbtns"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div>
+      <button type="button" class="btn red jpstart" id="jpGo">開始玩</button></div>`);   /* 2026-11-11 大熊：開始玩放最下面 */
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
     setTimeout(()=>{try{art()}catch(e){}},60)}
 
