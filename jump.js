@@ -51,7 +51,12 @@
     btn();if(_auto)return;
     if(busy||!q('pop').hidden){setTimeout(maybe,1500);return}_auto=1;intro()}
 
-  function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
+  const MYV=((document.currentScript&&document.currentScript.src)||'').replace(/.*[?&]v=/,'');
+  let _fc=0;
+  function freshCheck(){if(_fc++||!MYV)return;   /* 2026-11-11：LINE 裡頁面一直開著會停在舊版，打開遊戲時比對一次，舊了就重新整理 */
+    fetch('park.html?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/jump\.js\?v=([\w]+)/);
+      if(m&&m[1]!==MYV){const u=new URLSearchParams(location.search);u.set('v',String(Date.now()));if(!u.has('jump'))u.set('jump','1');u.set('nogf','1');location.replace('park.html?'+u.toString())}}).catch(()=>{})}
+  function intro(){freshCheck();const st=load();if(q('jpBtn'))q('jpBtn').remove();
     /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
     card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
       <p class="jpsub">點螢幕跳起來拿禮物・不限次數・10:00–23:59</p>
@@ -235,11 +240,14 @@
   async function rankCard(msg){
     if(jpReal()&&!msg){try{const j=await xcall(API,{op:'rank'});JS=j.jp;RANK=j.rank}catch(e){}}
     const top=(RANK&&RANK.top)||[],medal=['🥇','🥈','🥉'];
-    card(`<h2>🏆 荷包大補血排行榜</h2>${msg?`<p style="margin:0 0 4px">${msg}</p>`:''}
-      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
-      ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p style="margin:10px 0">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
-      <p style="margin:0 0 10px;font-size:14px">${jpReal()?rkLine():''}</p>
-      <div class="acts"><button type="button" class="btn ghost" id="jpNo">回遊樂島</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div>`);
+    /* 2026-11-11 大熊：排行榜跟開場一樣的排版——名次清單在上、獎品區（特別獎金色一塊＋前三名清單）在下、兩顆鈕等寬 */
+    card(`<div class="jpin"><h2>🏆 荷包大補血排行榜</h2>${msg?`<p class="jpsub" style="color:#2f8f58;font-weight:800">${msg}</p>`:''}
+      ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p class="jpme">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
+      ${jpReal()?`<p class="jpme">${rkLine()}</p>`:''}
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限第一位達成的會員</span></div>
+      <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
+      <p class="jpsub">比的是單局禮物數・10:00–23:59</p>
+      <div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">回遊樂島</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start}
 
   window.Jump12={intro,on:jpOn};
