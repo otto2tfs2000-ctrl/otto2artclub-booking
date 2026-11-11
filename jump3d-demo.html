@@ -141,14 +141,19 @@ function makeSanta(){var em=function(c,e,k){return toon(c,{emissive:new T.Color(
 var cv=$('gl'),R=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setClearColor(0,0);
 var scene=new T.Scene();scene.fog=new T.Fog('#22357a',45,105);
 var cam=new T.PerspectiveCamera(55,1,.1,200);
-scene.add(new T.AmbientLight('#c8d4ff',.62));var sun=new T.DirectionalLight('#fff4dd',.85);sun.position.set(4,9,6);scene.add(sun);
+scene.add(new T.AmbientLight('#c8d4ff',.75));var sun=new T.DirectionalLight('#fff4dd',.85);sun.position.set(4,9,6);scene.add(sun);
 function fit(){var dp=Math.min(2,devicePixelRatio||1),W=cv.clientWidth||innerWidth,H=cv.clientHeight||innerHeight;R.setPixelRatio(dp);R.setSize(W,H,false);cam.aspect=W/H;
   var portrait=cam.aspect<1;cam.fov=portrait?64:50;cam.position.set(0,portrait?7.2:6,portrait?8.6:7.5);cam.lookAt(0,0,-12);cam.updateProjectionMatrix();paintSky()}
 addEventListener('resize',fit);
 /* 雪地：大片白地＋中間淡藍跑道＋跑道兩邊的雪堆線（跟著速度往後捲） */
-var ground=mesh(new T.PlaneGeometry(80,160),new T.MeshBasicMaterial({color:'#7f92c4'}),0,0,-60,scene);   /* 2026-11-12 大熊：雪地太亮看不到障礙 → 調暗 */ground.rotation.x=-Math.PI/2;
-var LX=[-1.7,0,1.7];var lane=mesh(new T.PlaneGeometry(5.4,160),new T.MeshBasicMaterial({color:'#a3b3da'}),0,.01,-60,scene);lane.rotation.x=-Math.PI/2;
-var dashes=[];for(var i=0;i<26;i++)[-.85,.85].forEach(function(xx){var d=mesh(new T.PlaneGeometry(.1,1.4),new T.MeshBasicMaterial({color:'#e8eeff'}),xx,.02,-i*4,scene);d.rotation.x=-Math.PI/2;dashes.push(d)});
+var ground=mesh(new T.PlaneGeometry(80,160),new T.MeshBasicMaterial({color:'#dbe4f5'}),0,0,-60,scene);   /* 2026-11-12 大熊：雪地只要暗一點點，不要變成跑道 */   /* 2026-11-12 大熊：雪地太亮看不到障礙 → 調暗 */ground.rotation.x=-Math.PI/2;
+var LX=[-1.7,0,1.7];var lane=mesh(new T.PlaneGeometry(5.4,160),new T.MeshBasicMaterial({color:'#dbe4f5'}),0,.01,-60,scene);lane.rotation.x=-Math.PI/2;lane.visible=false;
+/* 每條跑道兩道淡淡的雪橇壓痕（看得出三條路，但不像馬路），旁邊散著小雪堆和閃閃的雪 */
+var dashes=[],TRK=new T.MeshBasicMaterial({color:'#bccae6',transparent:true,opacity:.55});
+for(var i=0;i<14;i++)[-1.7,0,1.7].forEach(function(cx){[-.28,.28].forEach(function(o){var d=mesh(new T.PlaneGeometry(.07,7.6),TRK,cx+o,.02,-i*8,scene);d.rotation.x=-Math.PI/2;dashes.push(d)})});
+var DRIFT=toon('#f4f8ff');
+for(i=0;i<34;i++){var dr=mesh(new T.SphereGeometry(.5,12,8,0,Math.PI*2,0,Math.PI/2),DRIFT,(Math.random()<.5?-1:1)*(2.9+Math.random()*1.5),0,-Math.random()*104,scene);dr.scale.set(1+Math.random(),.35+Math.random()*.3,.8+Math.random()*.6);dashes.push(dr)}
+var SPK=[];
 /* 兩旁的聖誕樹、小樹、雪人：前後錯開，經過時看得到立體感 */
 var scenery=[],proto={tree:makeXmasTree(),small:null,snow:makeSnowman()};
 function sceneryAt(z){var r=Math.random(),k=r<.65?'tree':r<.85?'small':'snow',o=k==='snow'?proto.snow.clone():proto.tree.clone();
@@ -184,6 +189,7 @@ var KIND={
   xs:{boost:1,lab:['加速×2','#9be7ff'],w:0,glow:'#9be7ff',mk:function(){return starMesh('#9be7ff',1.2)}}
 };
 var IK=Object.keys(KIND).filter(function(k){return KIND[k].w>0}),IW=IK.reduce(function(a,k){return a+KIND[k].w},0);
+for(var q=0;q<60;q++){var sk=glow('#ffffff',.18);sk.position.set((Math.random()-.5)*14,.06,-Math.random()*100);scene.add(sk);SPK.push(sk)}
 
 /* ---------- 遊戲 ---------- */
 var LV=[.6,2.0,3.3],JUMPS=3,G=-30,V0=11.2,DBLT=5,BOOST=5,SANTA_FIRST=10,SANTA_EVERY=30,SANTA_PASS=6;
@@ -276,7 +282,8 @@ function frame(now){var dt=Math.min(.05,(now-last)/1000||0);last=now;
   shadow.scale.setScalar(Math.max(.4,1-by*.15));
   /* 場景往後捲 */
   for(var j=0;j<scenery.length;j++){var s=scenery[j];s.position.z+=sp*dt;if(s.position.z>10){s.position.z-=85;s.position.x=(Math.random()<.5?-1:1)*(4.2+Math.random()*7)}}
-  for(j=0;j<dashes.length;j++){var d=dashes[j];d.position.z+=sp*dt;if(d.position.z>8)d.position.z-=104}
+  for(j=0;j<dashes.length;j++){var d=dashes[j];d.position.z+=sp*dt;if(d.position.z>8)d.position.z-=d.geometry.type==='PlaneGeometry'?112:104}
+  for(j=0;j<SPK.length;j++){var k2=SPK[j];k2.position.z+=sp*dt;if(k2.position.z>8){k2.position.z-=100;k2.position.x=(Math.random()-.5)*14}k2.material.opacity=.35+.5*Math.abs(Math.sin(el*3+j))}
   for(var b=bursts.length-1;b>=0;b--){var q=bursts[b];q.userData.t+=dt;if(q.userData.grow){q.scale.setScalar(.4+q.userData.t*6);q.material.opacity=Math.max(0,1-q.userData.t*3.5)}else{q.position.addScaledVector(q.userData.v,dt);q.userData.v.y-=6*dt;q.material.opacity=Math.max(0,1-q.userData.t*2)}
     if(q.material.opacity<=0){scene.remove(q);bursts.splice(b,1)}}
   if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').style.opacity=0}
