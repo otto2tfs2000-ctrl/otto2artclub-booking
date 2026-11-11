@@ -29,7 +29,17 @@
     +'.jptip{position:absolute;left:0;right:0;bottom:0;z-index:1;margin:0;padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 10px);text-align:center;color:#2b3a6a;font-size:13px;font-weight:700;pointer-events:none}'
     +'.jprank{list-style:none;margin:8px 0 10px;padding:0;text-align:left;font-size:15px}.jprank li{display:flex;gap:8px;align-items:center;padding:5px 10px;border-radius:10px}'
     +'.jprank li:nth-child(odd){background:#fff6ea}.jprank li.me{background:#ffe08a;font-weight:800}.jprank i{font-style:normal;width:30px;text-align:center}.jprank b{margin-left:auto}'
-    +'.jpprize{background:#fff6ea;border:2px solid #f0d2a8;border-radius:12px;padding:6px 10px;font-size:13px;line-height:1.6;margin:6px 0 10px}';
+    +'.jpprize{background:#fff6ea;border:2px solid #f0d2a8;border-radius:12px;padding:6px 10px;font-size:13px;line-height:1.6;margin:6px 0 10px}'
+    +'.jpin{display:flex;flex-direction:column;gap:10px;text-align:center}.jpin .jpbear{font-size:46px;line-height:1}'
+    +'.jpin h2{margin:0;line-height:1.15}.jpin h2 small{display:block;font-size:17px;color:#2b2320;margin-top:4px;letter-spacing:.04em}'
+    +'.jpin .jpsub{margin:0;font-size:13px;color:#6b5d55}.jpin .jpstart{width:100%;font-size:21px;padding:11px 0}'
+    +'.jpgrid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;text-align:left}'
+    +'.jpgrid li{display:flex;gap:6px;align-items:center;background:#fff6ea;border-radius:12px;padding:6px 8px;font-size:13px;line-height:1.3;min-width:0}'
+    +'.jpgrid i{font-style:normal;font-size:22px;flex:none}.jpgrid small{color:#7a6a60;font-size:11.5px}'
+    +'.jpsp{display:flex;flex-direction:column;gap:2px;background:linear-gradient(135deg,#fff3c4,#ffe08a);border:2px solid #e8b94a;border-radius:12px;padding:7px 10px}.jpsp b{font-size:16px;color:#8a5a00}.jpsp span{font-size:12px;color:#6b4a00}'
+    +'.jptop{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;text-align:left;font-size:14px}'
+    +'.jptop li{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:10px;background:#fff}.jptop i{font-style:normal;font-size:20px}.jptop b{margin-left:auto;font-size:14px}'
+    +'.jpin .jpme{margin:0;font-size:14px}.jpin .jpsub2{gap:8px}.jpin .jpsub2 .btn{font-size:16px;padding:6px 18px}';
   document.head.appendChild(css);
 
   function btn(){let b=q('jpBtn');if(!jpOn()){if(b)b.remove();return}
@@ -41,11 +51,22 @@
     if(busy||!q('pop').hidden){setTimeout(maybe,1500);return}_auto=1;intro()}
 
   function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
-    card(`<div class="hwbig">🐻</div><h2>荷包大補血<br>雪地跳跳搶禮物</h2><p style="margin:0">小熊往前衝，點螢幕跳起來拿禮物！只到今晚 12 點，不限次數</p>
-      <div class="hwrule">👆 點螢幕跳，在空中還能再點，最多連跳 4 下<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 拿到鈴鐺，5 秒內全部雙倍<br>⛄ 不限時間，跑越久越快，撞到雪堆、石頭就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
-      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}</div>
-      ${st.top?`<p style="margin:0 0 8px">你在榜上的成績 🎁 <b>${st.top}</b></p>`:''}
-      <div class="acts"><button type="button" class="btn ghost" id="jpNo">晚點再玩</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn red" id="jpGo">開始</button></div>`);
+    /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
+    card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
+      <p class="jpsub">點螢幕跳起來拿禮物・不限次數・今晚 12 點截止</p>
+      <button type="button" class="btn red jpstart" id="jpGo">開始玩</button>
+      <ul class="jpgrid">
+        <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 4 下</small></span></li>
+        <li><i>🎁</i><span>禮物 +1・🧸 +2<br><small>⭐ +5 在高處</small></span></li>
+        <li><i>🪙</i><span>金幣、鑽石<br><small>紅利點數，今天最多 ${JP_BCAP}</small></span></li>
+        <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
+        <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
+        <li><i>🏆</i><span>送出成績<br><small>比榜上高就蓋過去</small></span></li>
+      </ul>
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限第一位達成的會員</span></div>
+      <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
+      ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
+      <div class="acts jpsub2"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
     setTimeout(()=>{try{art()}catch(e){}},60)}
 
@@ -103,7 +124,10 @@
     document.body.appendChild(ov);window.HW_ON=true;
     const cv=q('jpCv'),x=cv.getContext('2d');let W=0,H=0;
     {const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)}
-    const U=Math.min(W,560)/400,GROUND=H-Math.max(90,H*.16),GRAV=H*2.9,JUMP=H*1.02,bg=sky(W,H,DP);
+    const U=Math.min(W,560)/400,GROUND=Math.round(H*.64),  /* 2026-11-11 大熊：手指會擋住，地面移到約 2/3 高 */
+      GRAV=H*2.9,JUMP=H*1.02,bg=sky(W,H,DP);
+    /* 前景大樹：地面下面那一片雪地上，跑得比地面快（1.35 倍）、樹頂不超過跑道，製造前後感 */
+    const fronts=[];{let fx0=0;while(fx0<W*2.4){fronts.push({k:Math.random()<.7?'tree':'small',x:fx0,s:.8+Math.random()*.35});fx0+=(150+Math.random()*170)*U}}
     const hills=[];{let hx=0;while(hx<W*2.2){const r=Math.random(),k=r<.18?'tree':r<.32?'snowman':'small';hills.push({k,x:hx,s:k==='tree'?1:.6+Math.random()*.5});hx+=(k==='tree'?150:70+Math.random()*80)*U}}
     const bh=74*U,bear={x:W*.2,y:GROUND,vy:0,air:0,jumps:0,h:bh,w:bh/((A.bear&&A.bear.ar)||1.4),run:0};
     let things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=2.6,scroll=0,coins=0,lastT=-1,fastShown=0;
@@ -154,6 +178,13 @@
         if(a){const w=hh/a.ar;x.drawImage(a.c,hx-w/2,base-hh,w,hh)}else{x.font=Math.round(hh*.8)+'px sans-serif';x.textAlign='center';x.fillText(h.k==='snowman'?'⛄':'🎄',hx,base)}}
       x.fillStyle='#eef3ff';x.fillRect(0,GROUND-2,W,H-GROUND+2);x.fillStyle='#c9d6f2';for(let gx=-(scroll%60);gx<W;gx+=60)x.fillRect(gx,GROUND+16*U,26,4);
       x.strokeStyle='#ffffff';x.lineWidth=3;x.beginPath();x.moveTo(0,GROUND);x.lineTo(W,GROUND);x.stroke();
+      /* 前景：雪地往下漸漸變暗一點，再畫一排會快速經過的大樹（畫在小熊、障礙後面才不會擋到） */
+      {const fg=x.createLinearGradient(0,GROUND+30*U,0,H);fg.addColorStop(0,'rgba(200,214,245,0)');fg.addColorStop(1,'rgba(150,170,220,.55)');x.fillStyle=fg;x.fillRect(0,GROUND+30*U,W,H-GROUND);
+        const fper=fronts.length?fronts[fronts.length-1].x+200*U:W,room=H-GROUND-26*U;
+        for(const f of fronts){const a=A[f.k];const fxp=((f.x-scroll*1.35)%fper+fper)%fper-90*U;if(fxp>W+120)continue;
+          const hh=Math.min(room*.95,(f.k==='tree'?230:150)*U*f.s);
+          x.fillStyle='rgba(30,40,80,.16)';x.beginPath();x.ellipse(fxp,H-4,hh*.32,8,0,0,7);x.fill();
+          if(a){const w=hh/a.ar;x.drawImage(a.c,fxp-w/2,H-hh-2,w,hh)}else{x.font=Math.round(hh*.8)+'px sans-serif';x.textAlign='center';x.fillText('🎄',fxp,H-6)}}}
       x.textAlign='center';x.textBaseline='middle';
       for(const o of things){if(o.type==='obs'){drawObs(o);continue}if(o.done)continue;const I=ITEMS[o.k],s=(I.big?50:42)*U,bob=Math.sin(el*5+o.x*.02)*4;
         if(I.dbl){const pu=.5+.5*Math.sin(el*8+o.x*.01),R=s*(1.05+.35*pu),gg=x.createRadialGradient(o.x,o.y+bob,s*.1,o.x,o.y+bob,R);  /* 2026-11-11 大熊：鈴鐺要會發光——金色光暈一閃一閃＋光芒 */
