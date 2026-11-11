@@ -1,5 +1,5 @@
 /* ---------- 2026-11-11 大熊：雙 11 限定「雪橇丟禮物」（只到 11/11 晚上 12 點；park.html?sled=1 隨時預覽） ----------
-   全螢幕 30 秒（最後 10 秒加速）。背景＝當下的遊樂島畫面（極光＋3D 島）拍一張；聖誕老公公＝天上飛的那一組 makeSanta()，先畫成一張圖。
+   全螢幕 30 秒（最後 10 秒加速）。背景＝平面夜空＋極光＋雪地，上面放島上的聖誕樹、雪人模型；聖誕老公公＝天上飛的那一組 makeSanta()，都先畫成圖。
    東西從雪橇掉下來，點到就拿：🎁 +1、🧸 +2、⭐ +5、金幣 紅利 1／3、鑽石 紅利 5、🔔 5 秒雙倍、💣 這一局全部歸零。
    不限次數；每局結束看成績，按「送出成績」才上排行榜（比榜上高才蓋過去）。排名只看禮物數。
    伺服器 /xmas/sled11（op info/start/end/submit/rank）；訪客體驗版只記在這支手機、不上榜。
@@ -46,7 +46,7 @@
       ${st.top?`<p style="margin:0 0 8px">你在榜上的成績 🎁 <b>${st.top}</b></p>`:''}
       <div class="acts"><button type="button" class="btn ghost" id="slNo">晚點再玩</button><button type="button" class="btn ghost" id="slRk">排行榜</button><button type="button" class="btn red" id="slGo">開始</button></div>`);
     q('slNo').onclick=()=>{q('pop').hidden=true;btn()};q('slRk').onclick=()=>rankCard();q('slGo').onclick=start;
-    setTimeout(()=>{try{sprites(size(),Math.min(2,devicePixelRatio||1));santaSprite()}catch(e){}},60)}
+    setTimeout(()=>{try{sprites(size(),Math.min(2,devicePixelRatio||1));art()}catch(e){}},60)}
 
   async function start(){if(_busy)return;_busy=1;sfx('tap');{const b=q('slGo');if(b){b.disabled=true;b.textContent='雪橇準備中…'}}
     for(let i=0;i<40&&slExpectReal()&&!XS;i++)await sleep(250);
@@ -80,31 +80,58 @@
     };
     return _spr={S,DP,SW,SH,CY,SPR}}
 
-  /* 聖誕老公公：用遊樂島天上飛的那一組模型，借主畫面的 renderer 畫一張透明底的圖（不另開 WebGL，手機才不會被收回） */
-  let _santa;
-  function santaSprite(){if(_santa!==undefined)return _santa;_santa=null;
-    try{const g=makeSanta();g.scale.setScalar(1);
-      const sc=new THREE.Scene();sc.add(g);sc.add(new THREE.AmbientLight('#ffffff',.8));const dl=new THREE.DirectionalLight('#fff4dd',.9);dl.position.set(2,4,6);sc.add(dl);
-      const d=renderer.domElement,hw=2.6,hh=hw*d.height/d.width,cam=new THREE.OrthographicCamera(-hw,hw,hh,-hh,.1,50);cam.position.set(.2,1.7,8);cam.lookAt(1.35,.85,0);
-      const oc=new THREE.Color();renderer.getClearColor(oc);const oa=renderer.getClearAlpha();
-      renderer.setClearColor(0x000000,0);renderer.render(sc,cam);
-      const band=Math.min(d.height,d.height*1.2/hh),c=document.createElement('canvas');c.width=640;c.height=Math.max(8,Math.round(640*band/d.width));
-      c.getContext('2d').drawImage(d,0,(d.height-band)/2,d.width,band,0,0,c.width,c.height);
-      renderer.setClearColor(oc,oa);g.traverse(o=>{if(o.geometry)o.geometry.dispose()});
-      try{renderer.render(scene,camera)}catch(e){}
-      _santa=c}catch(e){_santa=null;try{renderer.render(scene,camera)}catch(_){}}
-    return _santa}
+  /* 把遊樂島的 3D 模型畫成一張透明底的圖：借主畫面的 renderer（不另開 WebGL，手機才不會被收回），照模型大小取景、裁下來。
+     回傳 {c 圖, ax 模型原點在圖裡的橫向位置 0~1, ar 高/寬} */
+  function shot(g,px){const sc=new THREE.Scene();sc.add(g);sc.add(new THREE.AmbientLight('#ffffff',.85));const dl=new THREE.DirectionalLight('#fff4dd',.9);dl.position.set(2,4,6);sc.add(dl);
+    const box=new THREE.Box3().setFromObject(g),ctr=box.getCenter(new THREE.Vector3()),sz=box.getSize(new THREE.Vector3());
+    const mw=Math.max(sz.x,.2)*1.08,mh=Math.max(sz.y,.2)*1.12,d=renderer.domElement;
+    let hw=mw/2,hh=hw*d.height/d.width;if(hh<mh/2){hh=mh/2;hw=hh*d.width/d.height}
+    const cam=new THREE.OrthographicCamera(-hw,hw,hh,-hh,.1,200);cam.position.set(ctr.x,ctr.y+sz.y*.12,ctr.z+40);cam.lookAt(ctr);
+    const oc=new THREE.Color();renderer.getClearColor(oc);const oa=renderer.getClearAlpha();
+    renderer.setClearColor(0x000000,0);renderer.render(sc,cam);
+    const ppu=d.width/(2*hw),cw=Math.min(d.width,mw*ppu),ch=Math.min(d.height,mh*ppu),c=document.createElement('canvas');
+    c.width=Math.max(8,Math.round(px));c.height=Math.max(8,Math.round(px*ch/cw));
+    c.getContext('2d').drawImage(d,(d.width-cw)/2,(d.height-ch)/2,cw,ch,0,0,c.width,c.height);
+    renderer.setClearColor(oc,oa);g.traverse(o=>{if(o.geometry)o.geometry.dispose()});
+    return{c,ax:(mw/2-ctr.x)/mw,ar:ch/cw}}
+  /* 聖誕老公公＝天上飛的那一組（makeSanta）；聖誕樹、小樹、雪人＝島上的模型。開場視窗出現時先畫好 */
+  let _art;
+  function art(){if(_art!==undefined)return _art;_art=null;
+    try{const A={};
+      {const g=makeSanta();g.scale.setScalar(1);A.santa=shot(g,640)}
+      try{A.tree=shot(makeXmasTree(1),360)}catch(e){}
+      try{A.small=shot(makeXmasTreeSmall(),220)}catch(e){}
+      try{A.snowman=shot(makeSnowman(),200)}catch(e){}
+      _art=A}catch(e){_art=null}
+    try{renderer.render(scene,camera)}catch(e){}
+    return _art}
 
-  /* 背景：現在的遊樂島（夜空底色＋極光畫布＋3D 島），拍一張當背景，稍微壓暗讓掉下來的東西清楚 */
+  /* 背景：平面的夜空＋星星＋極光（跟遊樂島晚上同一種畫法）＋雪地，上面放島上的聖誕樹和雪人。不放走格子地圖（2026-11-11 大熊） */
   function snap(W,H,DP){const c=document.createElement('canvas');c.width=Math.ceil(W*DP);c.height=Math.ceil(H*DP);const g=c.getContext('2d');g.setTransform(DP,0,0,DP,0,0);
-    const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#070d2b');gr.addColorStop(.7,'#16245e');gr.addColorStop(1,'#22367c');g.fillStyle=gr;g.fillRect(0,0,W,H);
-    for(let i=0;i<50;i++){g.fillStyle=`rgba(255,255,255,${.35+Math.random()*.45})`;g.beginPath();g.arc(Math.random()*W,Math.random()*H*.6,Math.random()*1.4+.4,0,7);g.fill()}
-    try{const a=q('aurora');if(a&&a.width&&getComputedStyle(a).display!=='none'){const r=a.getBoundingClientRect();g.drawImage(a,r.left,r.top,r.width,r.height)}}catch(e){}
-    try{renderer.render(scene,camera);const d=renderer.domElement,r=d.getBoundingClientRect();g.drawImage(d,r.left,r.top,r.width,r.height)}catch(e){}
-    g.fillStyle='rgba(7,13,43,.3)';g.fillRect(0,0,W,H);return c}
+    const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#060b26');gr.addColorStop(.55,'#12205a');gr.addColorStop(1,'#243a86');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    for(let i=0;i<Math.round(W*H/2600);i++){g.fillStyle=`rgba(255,255,240,${(.4+Math.random()*.55).toFixed(2)})`;g.beginPath();g.arc(Math.random()*W,Math.random()*H*.62,Math.random()*1.2+.3,0,7);g.fill()}
+    /* 極光 */
+    const strip=document.createElement('canvas');strip.width=4;strip.height=160;{const k=strip.getContext('2d'),a=k.createLinearGradient(0,160,0,0);a.addColorStop(0,'rgba(170,255,200,0)');a.addColorStop(.06,'rgba(150,255,190,.95)');a.addColorStop(.25,'rgba(70,235,150,.65)');a.addColorStop(.6,'rgba(60,180,170,.25)');a.addColorStop(.85,'rgba(150,100,230,.12)');a.addColorStop(1,'rgba(150,100,230,0)');k.fillStyle=a;k.fillRect(0,0,4,160)}
+    const RIB=[{b:.36,a:.045,h:.24,k:2.2,ph:0,al:.6},{b:.28,a:.04,h:.18,k:3.1,ph:2,al:.45},{b:.44,a:.03,h:.15,k:1.6,ph:4,al:.35}],tt=Math.random()*20,step=Math.max(2,W/200);
+    g.globalCompositeOperation='lighter';
+    for(const R of RIB)for(let x0=0;x0<W;x0+=step){const u=x0/W,y0=H*(R.b+R.a*Math.sin(u*R.k*6.283+tt+R.ph)+R.a*.5*Math.sin(u*R.k*13+tt*1.7));
+      const fl=.45+.55*Math.pow(Math.sin(u*17+tt+R.ph),2),ed=Math.min(1,u*5,(1-u)*5),hh=H*R.h*(.8+.4*Math.sin(u*9+tt+R.ph));g.globalAlpha=R.al*fl*ed;g.drawImage(strip,x0,y0-hh*.94,step+.8,hh)}
+    g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    /* 月亮 */
+    g.fillStyle='rgba(255,244,200,.14)';g.beginPath();g.arc(W-58,H*.11+60,44,0,7);g.fill();g.fillStyle='#fff3c4';g.beginPath();g.arc(W-58,H*.11+60,25,0,7);g.fill();
+    /* 雪地：後面一層淡的、前面一層亮的 */
+    const hill=(y0,amp,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(0,H);g.lineTo(0,H-y0);g.bezierCurveTo(W*.25,H-y0-amp,W*.5,H-y0+amp*.6,W*.72,H-y0-amp*.3);g.bezierCurveTo(W*.86,H-y0-amp*.7,W*.95,H-y0-amp*.2,W,H-y0-amp*.5);g.lineTo(W,H);g.fill()};
+    hill(H*.2,26,'#9fb2e0');
+    const A=art()||{},put=(a,cx,base,h)=>{if(!a)return;const w=h/a.ar;g.drawImage(a.c,cx-w*a.ax,base-h*.96,w,h)};
+    const u=Math.min(W,520);
+    put(A.small,W*.33,H-H*.2+4,u*.2);put(A.small,W*.62,H-H*.2+8,u*.17);put(A.small,W*.9,H-H*.2-6,u*.19);
+    hill(H*.105,22,'#eef3ff');
+    put(A.tree,W*.8,H-H*.105+10,u*.62);put(A.small,W*.1,H-H*.105-2,u*.3);put(A.snowman,W*.42,H-H*.105+16,u*.2);put(A.small,W*.56,H-H*.105+22,u*.15);
+    if(!A.tree){g.textAlign='center';g.textBaseline='middle';g.font='64px sans-serif';g.fillText('🎄',W*.8,H-H*.105-30);g.font='40px sans-serif';g.fillText('🎄',W*.12,H-H*.105-18);g.fillText('⛄',W*.42,H-H*.105-14)}
+    return c}
 
   function play(){return new Promise(res=>{MGN++;const gone=MGS();
-    const DP=Math.min(2,devicePixelRatio||1),S=size(),santa=santaSprite(),bg=snap(innerWidth,innerHeight,DP);
+    const DP=Math.min(2,devicePixelRatio||1),S=size(),AR=art(),santa=AR&&AR.santa,bg=snap(innerWidth,innerHeight,DP);
     const ov=document.createElement('div');ov.id='slFull';
     ov.innerHTML=`<div class="slhud"><span>⏱ <b id="slT">${SL_SEC}</b></span><span class="dbl" id="slD" hidden>🔔 雙倍 <b id="slDt">5.0</b></span><span>🎁 <b id="slS">0</b>　🪙 <b id="slB">0</b></span></div><canvas id="slCv"></canvas><p class="sltip">點禮物和紅利，小心炸彈 💣</p>`;
     document.body.appendChild(ov);window.HW_ON=true;
@@ -138,7 +165,7 @@
       x.drawImage(bg,0,0,W,H);
       /* 雪橇：圖是往右飛的，往左飛就翻過來；圖裡雪橇在左邊 24% 的位置，對準掉東西的地方 */
       x.save();x.translate(sp.x,sp.y);x.scale(sp.right?1:-1,1);x.rotate(Math.sin(el*2.6)*.035);
-      if(santa){const w=Math.min(270,W*.64),h=w*santa.height/santa.width;x.drawImage(santa,-w*.24,-h*.6,w,h)}
+      if(santa){const w=Math.min(270,W*.64),h=w*santa.ar;x.drawImage(santa.c,-w*santa.ax,-h*.62,w,h)}
       else{x.textAlign='center';x.textBaseline='middle';x.scale(-1,1);x.font='40px sans-serif';x.fillText('🦌',-46,0);x.font='46px sans-serif';x.fillText('🛷',22,8);x.font='34px sans-serif';x.fillText('🎅',24,-16)}
       x.restore();
       items.forEach(it=>{const c=SPR[it.k]||SPR.g1;x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.rot)*.2);x.drawImage(c,-S,-CY,SW,SH);x.restore()});
