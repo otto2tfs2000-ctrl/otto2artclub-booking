@@ -127,7 +127,7 @@
     const U=Math.min(W,560)/400,GROUND=Math.round(H*.64),  /* 2026-11-11 大熊：手指會擋住，地面移到約 2/3 高 */
       GRAV=H*2.9,JUMP=H*1.02,bg=sky(W,H,DP);
     /* 前景大樹：地面下面那一片雪地上，跑得比地面快（1.35 倍）、樹頂不超過跑道，製造前後感 */
-    const fronts=[];{let fx0=0;while(fx0<W*2.4){fronts.push({k:Math.random()<.7?'tree':'small',x:fx0,s:.8+Math.random()*.35});fx0+=(150+Math.random()*170)*U}}
+    const fronts=[];{let fx0=0;while(fx0<W*2.4){fronts.push({k:Math.random()<.75?'tree':'small',x:fx0,s:.78+Math.random()*.22});fx0+=(120+Math.random()*150)*U}}
     const hills=[];{let hx=0;while(hx<W*2.2){const r=Math.random(),k=r<.18?'tree':r<.32?'snowman':'small';hills.push({k,x:hx,s:k==='tree'?1:.6+Math.random()*.5});hx+=(k==='tree'?150:70+Math.random()*80)*U}}
     const bh=74*U,bear={x:W*.2,y:GROUND,vy:0,air:0,jumps:0,h:bh,w:bh/((A.bear&&A.bear.ar)||1.4),run:0};
     let things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=2.6,scroll=0,coins=0,lastT=-1,fastShown=0;
@@ -179,10 +179,10 @@
       x.fillStyle='#eef3ff';x.fillRect(0,GROUND-2,W,H-GROUND+2);x.fillStyle='#c9d6f2';for(let gx=-(scroll%60);gx<W;gx+=60)x.fillRect(gx,GROUND+16*U,26,4);
       x.strokeStyle='#ffffff';x.lineWidth=3;x.beginPath();x.moveTo(0,GROUND);x.lineTo(W,GROUND);x.stroke();
       /* 前景：雪地往下漸漸變暗一點，再畫一排會快速經過的大樹（畫在小熊、障礙後面才不會擋到） */
-      {const fg=x.createLinearGradient(0,GROUND+30*U,0,H);fg.addColorStop(0,'rgba(200,214,245,0)');fg.addColorStop(1,'rgba(150,170,220,.55)');x.fillStyle=fg;x.fillRect(0,GROUND+30*U,W,H-GROUND);
+      {const fg=x.createLinearGradient(0,GROUND+30*U,0,H);fg.addColorStop(0,'rgba(200,214,245,0)');fg.addColorStop(1,'rgba(110,135,205,.75)');x.fillStyle=fg;x.fillRect(0,GROUND+30*U,W,H-GROUND);
         const fper=fronts.length?fronts[fronts.length-1].x+200*U:W,room=H-GROUND-26*U;
         for(const f of fronts){const a=A[f.k];const fxp=((f.x-scroll*1.35)%fper+fper)%fper-90*U;if(fxp>W+120)continue;
-          const hh=Math.min(room*.95,(f.k==='tree'?230:150)*U*f.s);
+          const hh=room*(f.k==='tree'?1.02:.66)*f.s;   /* 大樹幾乎佔滿下面那片雪地 */
           x.fillStyle='rgba(30,40,80,.16)';x.beginPath();x.ellipse(fxp,H-4,hh*.32,8,0,0,7);x.fill();
           if(a){const w=hh/a.ar;x.drawImage(a.c,fxp-w/2,H-hh-2,w,hh)}else{x.font=Math.round(hh*.8)+'px sans-serif';x.textAlign='center';x.fillText('🎄',fxp,H-6)}}}
       x.textAlign='center';x.textBaseline='middle';
