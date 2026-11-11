@@ -1,5 +1,5 @@
 /* ---------- 2026-11-11 晚大熊：「雪地跳跳・小熊搶禮物」（大熊 11/11 改名，不要寫雙 11），只有 11/12 一天（park.html?jump=1 隨時預覽；雪橇丟禮物 sled.js 沒開放，留著備用） ----------
-   像沒網路時的小恐龍：小熊一直往前跑，點螢幕跳（空中可再跳一次），吃禮物、紅利；撞到雪堆、石頭這局直接結束（大熊選的）。最長 30 秒、最後 10 秒加速。
+   像沒網路時的小恐龍：小熊一直往前跑，點螢幕跳（空中可再跳一次），吃禮物、紅利；撞到雪堆、石頭這局直接結束（大熊選的）。（11/11 晚改：不限時間、越跑越快，撞到才結束；空中最多連跳 4 下；障礙變少；結束畫面停在遊戲上；特別獎門檻 100）
    🎁 +1、🧸 +2、⭐ +5（只在高處，要二段跳）、金幣 紅利 1／3、鑽石 紅利 5、🔔 5 秒雙倍。
    背景＝平面夜空＋極光＋雪坡，後面捲動島上的聖誕樹、雪人模型；小熊＝遊樂島那隻 makeBear()。
    不限次數；每局結束看成績，按「送出成績」才上排行榜（比榜上高才蓋過去），排名只看禮物數。伺服器 /xmas/jump12；訪客體驗版只記在這支手機、不上榜。
@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=10,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=150;
+  const API='/xmas/jump12',JP_SPECIAL=100,JP_JUMPS=4;
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY));
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
@@ -42,7 +42,7 @@
 
   function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
     card(`<div class="hwbig">🐻</div><h2>荷包大補血<br>雪地跳跳搶禮物</h2><p style="margin:0">小熊往前衝，點螢幕跳起來拿禮物！只到今晚 12 點，不限次數</p>
-      <div class="hwrule">👆 點螢幕跳，空中再點一下二段跳<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 拿到鈴鐺，5 秒內全部雙倍<br>⛄ 撞到雪堆、石頭，這局就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
+      <div class="hwrule">👆 點螢幕跳，在空中還能再點，最多連跳 4 下<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 拿到鈴鐺，5 秒內全部雙倍<br>⛄ 不限時間，跑越久越快，撞到雪堆、石頭就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
       <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}</div>
       ${st.top?`<p style="margin:0 0 8px">你在榜上的成績 🎁 <b>${st.top}</b></p>`:''}
       <div class="acts"><button type="button" class="btn ghost" id="jpNo">晚點再玩</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn red" id="jpGo">開始</button></div>`);
@@ -95,54 +95,55 @@
     bell:{e:'🔔',dbl:1,lab:'雙倍',w:6,glow:'rgba(255,243,176,.6)'}};
   const IK=Object.keys(ITEMS),IW=IK.reduce((a,k)=>a+ITEMS[k].w,0);
 
-  function play(){return new Promise(res=>{MGN++;const gone=MGS();
+  function closeOv(){const o=q('jpFull');if(o)o.remove();window.HW_ON=false;q('pop').style.zIndex=''}
+  function play(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
-    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">${JP_SEC}</b></span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，空中再點一下可以二段跳</p>`;
+    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 4 下</p>`;
     document.body.appendChild(ov);window.HW_ON=true;
     const cv=q('jpCv'),x=cv.getContext('2d');let W=0,H=0;
     {const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)}
     const U=Math.min(W,560)/400,GROUND=H-Math.max(90,H*.16),GRAV=H*2.9,JUMP=H*1.02,bg=sky(W,H,DP);
     const hills=[];{let hx=0;while(hx<W*2.2){const r=Math.random(),k=r<.18?'tree':r<.32?'snowman':'small';hills.push({k,x:hx,s:k==='tree'?1:.6+Math.random()*.5});hx+=(k==='tree'?150:70+Math.random()*80)*U}}
     const bh=74*U,bear={x:W*.2,y:GROUND,vy:0,air:0,jumps:0,h:bh,w:bh/((A.bear&&A.bear.ar)||1.4),run:0};
-    let things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=1.8,scroll=0,coins=0,lastT=-1,fastShown=false;
+    let things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=2.6,scroll=0,coins=0,lastT=-1,fastShown=0;
     const hudUp=()=>{q('jpS').textContent=gift;q('jpB').textContent=bon};
-    const jump=e=>{if(e)e.preventDefault();if(over)return;if(bear.jumps<2){bear.vy=-(bear.jumps?JUMP*.85:JUMP);bear.jumps++;bear.air=1;sfx('tick')}};
+    const jump=e=>{if(e)e.preventDefault();if(over)return;if(bear.jumps<JP_JUMPS){bear.vy=-(bear.jumps?JUMP*.78:JUMP);bear.jumps++;bear.air=1;sfx('tick')}};  /* 2026-11-11 大熊：空中可以多跳幾下 */
     cv.addEventListener('pointerdown',jump);
-    const speed=()=>(el>=JP_FAST?1.4:1)*W*.42+Math.min(el,JP_FAST)*W*.004;
+    const sp1=()=>1+Math.min(el,60)/60*.6,speed=()=>sp1()*W*.42;  /* 2026-11-11 大熊：不限時間，越跑越快（60 秒到最快 1.6 倍） */
     const pickItem=()=>{for(let n=0;n<6;n++){let r=Math.random()*IW,k=IK[0];for(const kk of IK){if((r-=ITEMS[kk].w)<=0){k=kk;break}}if(ITEMS[k].b&&coins>=6)continue;return k}return'g1'};
     function spawnItem(){const k=pickItem(),I=ITEMS[k];if(I.b)coins++;
       const lv=I.high?2:(Math.random()<.35?0:Math.random()<.75?1:2),y=GROUND-[28,150,250][lv]*U,n=(!I.high&&!I.dbl&&Math.random()<.35)?3:1;
       for(let j=0;j<n;j++)things.push({type:'item',k,x:W+40+j*46*U,y:y-(n>1?Math.sin(j/(n-1)*Math.PI)*30*U:0),r:22*U})}
-    function spawnObs(){const big=el>8&&Math.random()<.35;things.push({type:'obs',k:Math.random()<.5?'pile':'rock',x:W+40,w:(big?70:44)*U,h:(big?50:36)*U})}
+    function spawnObs(){const big=el>25&&Math.random()<.25;things.push({type:'obs',k:Math.random()<.5?'pile':'rock',x:W+40,w:(big?70:44)*U,h:(big?50:36)*U})}
     function eat(it){it.done=1;const I=ITEMS[it.k],m=dbl>0?2:1;
       if(I.dbl){dbl=JP_DBL;fx.push({x:it.x,y:it.y,t:'🔔 雙倍 5 秒！',c:'#ffd447',a:1.3});sfx('chime');return}
       if(I.g){gift+=I.g*m;fx.push({x:it.x,y:it.y,t:'+'+I.g*m,c:m>1||I.g>=5?'#ffd447':'#fff',a:1});sfx(I.g>=5?'sparkle':'pop')}
       if(I.b){bon+=I.b*m;fx.push({x:it.x,y:it.y,t:'紅利 +'+I.b*m,c:'#ffd447',a:1});sfx('sparkle')}
       hudUp()}
-    function crash(o){o.done=1;over=true;crashed=true;flash=1;shake=.4;fx.push({x:bear.x+30,y:bear.y-bear.h,t:'💥 撞到了！',c:'#ff6a5a',a:1.4});sfx('thunk');setTimeout(end,1300)}
+    function crash(o){o.done=1;over=true;crashed=true;flash=1;shake=.4;fx.push({x:bear.x+30,y:bear.y-bear.h,t:'💥 撞到了！',c:'#ff6a5a',a:1.4});sfx('thunk');setTimeout(end,1000)}
     function drawObs(o){const ox=o.x,w=o.w,h=o.h,gy=GROUND;x.save();
       if(o.k==='pile'){x.fillStyle='#e9f0ff';x.strokeStyle='#2b3a6a';x.lineWidth=3;x.beginPath();x.moveTo(ox-w/2,gy);x.quadraticCurveTo(ox-w*.35,gy-h*1.1,ox,gy-h);x.quadraticCurveTo(ox+w*.4,gy-h*1.05,ox+w/2,gy);x.closePath();x.fill();x.stroke();
         x.fillStyle='#c9d6f2';x.beginPath();x.ellipse(ox+w*.12,gy-h*.35,w*.18,h*.14,0,0,7);x.fill()}
       else{x.fillStyle='#7b7f93';x.strokeStyle='#2b2320';x.lineWidth=3;x.beginPath();x.moveTo(ox-w/2,gy);x.lineTo(ox-w*.42,gy-h*.6);x.lineTo(ox-w*.1,gy-h);x.lineTo(ox+w*.3,gy-h*.85);x.lineTo(ox+w/2,gy-h*.3);x.lineTo(ox+w/2,gy);x.closePath();x.fill();x.stroke();
         x.fillStyle='#f4f7ff';x.beginPath();x.moveTo(ox-w*.42,gy-h*.6);x.lineTo(ox-w*.1,gy-h);x.lineTo(ox+w*.3,gy-h*.85);x.lineTo(ox+w*.15,gy-h*.72);x.lineTo(ox-w*.2,gy-h*.8);x.closePath();x.fill()}
       x.restore()}
-    const end=()=>{window.HW_ON=false;ov.remove();res({sc:gift,b:bon,crashed,sec:el})};
+    const end=()=>{res({sc:gift,b:bon,crashed,sec:el})};  /* 2026-11-11 大熊：結束不要跳回走格子，畫面留著，結果視窗蓋在上面（closeOv 才收掉） */
     function frame(now){if(!ov.isConnected)return;if(gone()){window.HW_ON=false;ov.remove();return}
       const dt=Math.min(.05,(now-t0)/1000);t0=now;
       const sp=over?0:speed();scroll+=sp*dt;
       if(!over){el+=dt;
-        if(!fastShown&&el>=JP_FAST){fastShown=true;fx.push({x:W/2,y:H*.4,t:'⚡ 最後 10 秒加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}
-        bear.vy+=GRAV*dt;bear.y+=bear.vy*dt;if(bear.y>=GROUND){bear.y=GROUND;bear.vy=0;bear.jumps=0;bear.air=0}bear.run+=dt*(el>=JP_FAST?16:12);
+        {const k=Math.floor(el/20);if(k>fastShown&&k<=3){fastShown=k;fx.push({x:W/2,y:H*.4,t:'⚡ 加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}}
+        bear.vy+=GRAV*dt;bear.y+=bear.vy*dt;if(bear.y<H*.2+bear.h){bear.y=H*.2+bear.h;if(bear.vy<0)bear.vy=0}if(bear.y>=GROUND){bear.y=GROUND;bear.vy=0;bear.jumps=0;bear.air=0}bear.run+=dt*12*sp1();
         if(dbl>0)dbl=Math.max(0,dbl-dt);
-        nextItem-=dt;if(nextItem<=0){spawnItem();nextItem=(el>=JP_FAST?.55:.75)*(.7+Math.random()*.6)}
-        nextObs-=dt;if(nextObs<=0){spawnObs();nextObs=(el>=JP_FAST?1.0:1.35)*(.75+Math.random()*.6)}
+        nextItem-=dt;if(nextItem<=0){spawnItem();nextItem=(.75/Math.sqrt(sp1()))*(.7+Math.random()*.6)}
+        nextObs-=dt;if(nextObs<=0){spawnObs();nextObs=(2.4-Math.min(el,60)/60*.9)*(.8+Math.random()*.6)}  /* 2026-11-11 大熊：障礙太多太難 */
         const bx0=bear.x-bear.w*.32,bx1=bear.x+bear.w*.32,by0=bear.y-bear.h*.9,by1=bear.y;
         for(const o of things){o.x-=sp*dt;if(o.done||over)continue;
           if(o.type==='obs'){if(bx1>o.x-o.w*.38&&bx0<o.x+o.w*.38&&by1>GROUND-o.h*.8)crash(o)}
           else{const px=Math.max(bx0,Math.min(o.x,bx1)),py=Math.max(by0,Math.min(o.y,by1));if(Math.hypot(o.x-px,o.y-py)<o.r)eat(o)}}
         things=things.filter(o=>!(o.done&&o.type==='item')&&o.x>-80);
-        if(!over&&el>=JP_SEC){over=true;sfx('chime');setTimeout(end,1200)}}
+        }
       fx.forEach(f=>{f.y-=56*dt;f.a-=dt*1.3});fx=fx.filter(f=>f.a>0);
       x.save();if(shake>0){shake-=dt;x.translate((Math.random()-.5)*12,(Math.random()-.5)*12)}
       x.drawImage(bg,0,0,W,H);
@@ -175,7 +176,7 @@
       if(flash>0){flash-=dt*2.2;x.fillStyle=`rgba(255,60,40,${Math.max(0,flash)*.45})`;x.fillRect(-12,-12,W+24,H+24)}
       if(over&&!crashed){x.fillStyle='rgba(7,13,43,.5)';x.fillRect(-12,-12,W+24,H+24);x.font=`900 ${Math.round(40*U)}px sans-serif`;x.fillStyle='#ffd447';x.strokeStyle='#1a1430';x.lineWidth=6;x.strokeText('時間到！',W/2,H/2);x.fillText('時間到！',W/2,H/2)}
       x.restore();
-      const lt=Math.ceil(Math.max(0,JP_SEC-el));if(lt!==lastT){lastT=lt;q('jpT').textContent=lt}
+      const lt=Math.floor(el);if(lt!==lastT){lastT=lt;q('jpT').textContent=lt}
       const dOn=dbl>0&&!over;if(q('jpD').hidden===dOn)q('jpD').hidden=!dOn;if(dOn)q('jpDt').textContent=dbl.toFixed(1);
       if(ov.isConnected)requestAnimationFrame(frame)}
     requestAnimationFrame(frame)})}
@@ -188,13 +189,14 @@
     const st=load(),can=jpReal()&&!bad&&sc>st.top;
     const SPM={won:'✨ 恭喜！你是第一位拿到特別獎的會員，現金點數 1111，工作室會跟你聯絡',taken:'✨ 拿到 150 個了！不過特別獎已經有人先拿走，排行榜還能拚',notMember:'✨ 拿到 150 個了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 示範模式：這局有達到特別獎門檻（不會真的發）'},spMsg=SPM[spc]||'';
     const got=[add+swap?`🎁 聖誕禮物 <b>${add+swap}</b> 個`:'',addB?`🪙 紅利 <b>${addB}</b> 點`:''].filter(Boolean).join('、');
+    if(q('jpFull'))q('pop').style.zIndex='70';
     card(`<div class="hwbig">${r.crashed?'💥':'🐻'}</div><h2>${r.crashed?`撞到了！跑了 ${Math.floor(r.sec)} 秒`:'時間到！跑完全程'}</h2>
       <div class="hwsc">🎁 ${sc}　🪙 ${b}</div>
       ${got?`<p style="margin:0 0 6px">入帳 ${got}</p>`:''}
       ${spMsg?`<p style="margin:0 0 8px;font-weight:800;color:#b8721a">${spMsg}</p>`:''}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?(can?(st.top?`比你榜上的 🎁 ${st.top} 高，送出去就會蓋過去`:'送出成績就能上排行榜'):(st.top?`沒有超過你榜上的 🎁 <b>${st.top}</b>，再挑戰一次`:'再挑戰一次，拿到分數就能上榜')):'這是體驗版，用 LINE 登入才能上排行榜'}</p>
-      <div class="acts">${can?`<button type="button" class="btn red" id="jpUp">送出成績</button>`:''}<button type="button" class="btn ${can?'ghost':'red'}" id="jpGo">再玩一次</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">先這樣</button></div>`);
-    q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpGo').onclick=start;q('jpRk').onclick=()=>rankCard();
+      <div class="acts">${can?`<button type="button" class="btn red" id="jpUp">送出成績</button>`:''}<button type="button" class="btn ${can?'ghost':'red'}" id="jpGo">再玩一次</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">回遊樂島</button></div>`);
+    q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start;q('jpRk').onclick=()=>rankCard();
     if(q('jpUp'))q('jpUp').onclick=async()=>{const u=q('jpUp');u.disabled=true;u.textContent='送出中…';
       try{const j=await xcall(API,{op:'submit'});JS=j.jp;RANK=j.rank;sfx('chime');rankCard('成績送出去了！')}catch(e){u.disabled=false;u.textContent='送出成績';toast(e.message||'連線不穩，再按一次')}}}
 
@@ -205,8 +207,8 @@
       <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
       ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p style="margin:10px 0">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?rkLine():''}</p>
-      <div class="acts"><button type="button" class="btn ghost" id="jpNo">關閉</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div>`);
-    q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpGo').onclick=start}
+      <div class="acts"><button type="button" class="btn ghost" id="jpNo">回遊樂島</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div>`);
+    q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start}
 
   window.Jump12={intro,on:jpOn};
   setTimeout(maybe,700);
