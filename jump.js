@@ -9,7 +9,7 @@
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
   const API='/xmas/jump12',JP_SPECIAL=400,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
-  const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY));
+  const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY&&new Date(Date.now()+8*3600e3).getUTCHours()>=10));   /* 2026-11-11 大熊：10:00–23:59 */
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
   const jpExpectReal=()=>!!(window.PROD&&!window.GUEST&&!window.KIOSK&&token());
   let JS=null,RANK=null,_auto=0,_wait=0,_busy=0;
@@ -54,7 +54,7 @@
   function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
     /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
     card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
-      <p class="jpsub">點螢幕跳起來拿禮物・不限次數・今晚 12 點截止</p>
+      <p class="jpsub">點螢幕跳起來拿禮物・不限次數・10:00–23:59</p>
       <ul class="jpgrid">
         <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 3 下</small></span></li>
         <li><i>🎁</i><span>禮物 +1<br><small>🧸 +2・⭐ +5 在高處</small></span></li>
@@ -135,12 +135,12 @@
     const hudUp=()=>{q('jpS').textContent=gift;q('jpB').textContent=bon};
     const jump=e=>{if(e)e.preventDefault();if(over)return;if(bear.jumps<JP_JUMPS){bear.vy=-(bear.jumps?JUMP*.78:JUMP);bear.jumps++;bear.air=1;sfx('tick')}};  /* 2026-11-11 大熊：空中可以多跳幾下 */
     cv.addEventListener('pointerdown',jump);
-    const sp1=()=>1+Math.min(el,60)/60*.6,speed=()=>sp1()*W*.42;  /* 2026-11-11 大熊：不限時間，越跑越快（60 秒到最快 1.6 倍） */
+    const ramp=()=>Math.max(0,Math.min(1,(el-40)/30)),sp1=()=>1+ramp()*.6,speed=()=>sp1()*W*.42;  /* 2026-11-11 大熊：前 40 秒速度不變，第 40 秒起 30 秒內加到 1.6 倍 */
     const pickItem=()=>{for(let n=0;n<6;n++){let r=Math.random()*IW,k=IK[0];for(const kk of IK){if((r-=ITEMS[kk].w)<=0){k=kk;break}}if(ITEMS[k].b&&coins>=6)continue;return k}return'g1'};
     function spawnItem(){const k=pickItem(),I=ITEMS[k];if(I.b)coins++;
       const lv=I.high?2:(Math.random()<.35?0:Math.random()<.75?1:2),y=GROUND-[28,150,250][lv]*U,n=(!I.high&&!I.dbl&&Math.random()<.35)?3:1;
       for(let j=0;j<n;j++)things.push({type:'item',k,x:W+40+j*46*U,y:y-(n>1?Math.sin(j/(n-1)*Math.PI)*30*U:0),r:22*U})}
-    function spawnObs(){const big=el>25&&Math.random()<.25;things.push({type:'obs',k:Math.random()<.5?'pile':'rock',x:W+40,w:(big?70:44)*U,h:(big?50:36)*U})}
+    function spawnObs(){const big=el>40&&Math.random()<.25;things.push({type:'obs',k:Math.random()<.5?'pile':'rock',x:W+40,w:(big?70:44)*U,h:(big?50:36)*U})}
     function eat(it){it.done=1;const I=ITEMS[it.k],m=dbl>0?2:1;
       if(I.dbl){dbl=JP_DBL;fx.push({x:it.x,y:it.y,t:'🔔 雙倍 5 秒！',c:'#ffd447',a:1.3});sfx('chime');return}
       if(I.g){gift+=I.g*m;fx.push({x:it.x,y:it.y,t:'+'+I.g*m,c:m>1||I.g>=5?'#ffd447':'#fff',a:1});sfx(I.g>=5?'sparkle':'pop')}
@@ -158,11 +158,11 @@
       const dt=Math.min(.05,(now-t0)/1000);t0=now;
       const sp=over?0:speed();scroll+=sp*dt;
       if(!over){el+=dt;
-        {const k=Math.floor(el/20);if(k>fastShown&&k<=3){fastShown=k;fx.push({x:W/2,y:H*.4,t:'⚡ 加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}}
+        {const k=el>=40?1+Math.floor((el-40)/15):0;if(k>fastShown&&k<=3){fastShown=k;fx.push({x:W/2,y:H*.4,t:'⚡ 加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}}
         bear.vy+=GRAV*dt;bear.y+=bear.vy*dt;if(bear.y<H*.2+bear.h){bear.y=H*.2+bear.h;if(bear.vy<0)bear.vy=0}if(bear.y>=GROUND){bear.y=GROUND;bear.vy=0;bear.jumps=0;bear.air=0}bear.run+=dt*12*sp1();
         if(dbl>0)dbl=Math.max(0,dbl-dt);
         nextItem-=dt;if(nextItem<=0){spawnItem();nextItem=(.75/Math.sqrt(sp1()))*(.7+Math.random()*.6)}
-        nextObs-=dt;if(nextObs<=0){spawnObs();nextObs=(2.4-Math.min(el,60)/60*.9)*(.8+Math.random()*.6)}  /* 2026-11-11 大熊：障礙太多太難 */
+        nextObs-=dt;if(nextObs<=0){spawnObs();nextObs=(2.4-ramp()*.9)*(.8+Math.random()*.6)}  /* 2026-11-11 大熊：障礙太多太難 */
         const bx0=bear.x-bear.w*.32,bx1=bear.x+bear.w*.32,by0=bear.y-bear.h*.9,by1=bear.y;
         for(const o of things){o.x-=sp*dt;if(o.done||over)continue;
           if(o.type==='obs'){if(bx1>o.x-o.w*.38&&bx0<o.x+o.w*.38&&by1>GROUND-o.h*.8)crash(o)}
