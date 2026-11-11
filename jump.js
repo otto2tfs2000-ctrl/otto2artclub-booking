@@ -1,5 +1,5 @@
 /* ---------- 2026-11-11 晚大熊：「雪地跳跳・小熊搶禮物」（大熊 11/11 改名，不要寫雙 11），只有 11/12 一天（park.html?jump=1 隨時預覽；雪橇丟禮物 sled.js 沒開放，留著備用） ----------
-   像沒網路時的小恐龍：小熊一直往前跑，點螢幕跳（空中可再跳一次），吃禮物、紅利；撞到雪堆、石頭這局直接結束（大熊選的）。（11/11 晚改：不限時間、越跑越快，撞到才結束；空中最多連跳 4 下；障礙變少；結束畫面停在遊戲上；特別獎門檻 100）
+   像沒網路時的小恐龍：小熊一直往前跑，點螢幕跳（空中可再跳一次），吃禮物、紅利；撞到雪堆、石頭這局直接結束（大熊選的）。（11/11 晚改：不限時間、越跑越快，撞到才結束；空中最多連跳 3 下；障礙變少；結束畫面停在遊戲上；特別獎門檻 100）
    🎁 +1、🧸 +2、⭐ +5（只在高處，要二段跳）、金幣 紅利 1／3、鑽石 紅利 5、🔔 5 秒雙倍。
    背景＝平面夜空＋極光＋雪坡，後面捲動島上的聖誕樹、雪人模型；小熊＝遊樂島那隻 makeBear()。
    不限次數；每局結束看成績，按「送出成績」才上排行榜（比榜上高才蓋過去），排名只看禮物數。伺服器 /xmas/jump12；訪客體驗版只記在這支手機、不上榜。
@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=10,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=100,JP_JUMPS=4;
+  const API='/xmas/jump12',JP_SPECIAL=100,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY));
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
@@ -56,7 +56,7 @@
     card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
       <p class="jpsub">點螢幕跳起來拿禮物・不限次數・今晚 12 點截止</p>
       <ul class="jpgrid">
-        <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 4 下</small></span></li>
+        <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 3 下</small></span></li>
         <li><i>🎁</i><span>禮物 +1<br><small>🧸 +2・⭐ +5 在高處</small></span></li>
         <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，最多 ${JP_BCAP} 點</small></span></li>
         <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
@@ -121,7 +121,7 @@
   function play(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
-    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 4 下</p>`;
+    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
     document.body.appendChild(ov);window.HW_ON=true;
     const cv=q('jpCv'),x=cv.getContext('2d');let W=0,H=0;
     {const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)}

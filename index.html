@@ -1492,7 +1492,7 @@ function renderHome(){
       </button>
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
-  const goJump=()=>{ parkToken(); location.href="park.html?v=20261111i&jump=1&nogf=1" };   /* 雪地跳跳那天：直接開遊戲，不先跳扭蛋機 */
+  const goJump=()=>{ parkToken(); location.href="park.html?v="+Date.now()+"&jump=1&nogf=1" };   /* 雪地跳跳那天：直接開遊戲，不先跳扭蛋機 */
   document.getElementById("hmGacha").onclick=()=>hmGame.jp?goJump():openGacha();
   document.getElementById("hmHall").onclick=()=>{ parkToken(); location.href="art.html?v=20261101c&hall=1" };
   document.getElementById("hmGoWalk").onclick=()=>hmGame.jp?goJump():openGacha();
@@ -2281,7 +2281,7 @@ function boot(){
   } else if(!boot._gc && /go(=|%3D)jump/i.test(q)){
     /* 2026-11-12 小熊雪地跳跳預覽：https://liff.line.me/2010906803-FMDYktUN?go=jump；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v=20261111j&jump=1") });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v="+Date.now()+"&jump=1")   /* 每次網址都不一樣，LINE 不會拿到舊的快取 */ });
   } else if(!boot._gc && /go(=|%3D)sled/i.test(q)){
     /* 2026-11-11 雙 11 雪橇丟禮物預覽：https://liff.line.me/2010906803-FMDYktUN?go=sled；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;
