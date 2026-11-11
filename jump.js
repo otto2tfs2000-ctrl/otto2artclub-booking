@@ -5,7 +5,7 @@
    不限次數；每局結束看成績，按「送出成績」才上排行榜（比榜上高才蓋過去），排名只看禮物數。伺服器 /xmas/jump12；訪客體驗版只記在這支手機、不上榜。
    用到 park.html 的：card toast sfx hud save xcall XS G token gToday sleep busy MGN MGS renderer scene camera makeBear makeXmasTree makeXmasTreeSmall makeSnowman THREE，玩的時候 window.HW_ON 暫停 3D */
 (function(){
-  const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=10,JP_DBL=5,JP_LIVE=true;
+  const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=15,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
   const API='/xmas/jump12',JP_SPECIAL=400,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
@@ -63,7 +63,7 @@
       <ul class="jpgrid">
         <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 3 下</small></span></li>
         <li><i>🎁</i><span>禮物 +1<br><small>🧸 +2・⭐ +5 在高處</small></span></li>
-        <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，最多 ${JP_BCAP} 點</small></span></li>
+        <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，每場最多 ${JP_BCAP} 點</small></span></li>
         <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
         <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
         <li><i>🏆</i><span>送出成績<br><small>比榜上高就蓋過去</small></span></li>
@@ -149,7 +149,7 @@
     function eat(it){it.done=1;const I=ITEMS[it.k],m=dbl>0?2:1;
       if(I.dbl){dbl=JP_DBL;fx.push({x:it.x,y:it.y,t:'🔔 雙倍 5 秒！',c:'#ffd447',a:1.3});sfx('chime');return}
       if(I.g){gift+=I.g*m;fx.push({x:it.x,y:it.y,t:'+'+I.g*m,c:m>1||I.g>=5?'#ffd447':'#fff',a:1});sfx(I.g>=5?'sparkle':'pop')}
-      if(I.b){bon+=I.b*m;fx.push({x:it.x,y:it.y,t:'紅利 +'+I.b*m,c:'#ffd447',a:1});sfx('sparkle')}
+      if(I.b){const b0=bon;bon=Math.min(JP_BCAP,bon+I.b*m);const got=bon-b0;fx.push({x:it.x,y:it.y,t:got?(bon>=JP_BCAP?`紅利 +${got}（滿 ${JP_BCAP} 點了）`:'紅利 +'+got):`紅利滿 ${JP_BCAP} 點了`,c:'#ffd447',a:1});sfx('sparkle')}  /* 2026-11-12 大熊：每場紅利最多 15 點 */
       hudUp()}
     function crash(o){o.done=1;over=true;crashed=true;flash=1;shake=.4;fx.push({x:bear.x+30,y:bear.y-bear.h,t:'💥 撞到了！',c:'#ff6a5a',a:1.4});sfx('thunk');setTimeout(end,1000)}
     function drawObs(o){const ox=o.x,w=o.w,h=o.h,gy=GROUND;x.save();
