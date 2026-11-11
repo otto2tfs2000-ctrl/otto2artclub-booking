@@ -33,7 +33,7 @@
   document.head.appendChild(css);
 
   function btn(){let b=q('jpBtn');if(!jpOn()){if(b)b.remove();return}
-    if(!b){b=document.createElement('button');b.id='jpBtn';b.type='button';b.setAttribute('aria-label','雪地跳跳・小熊搶禮物');b.onclick=()=>{if(!busy&&q('pop').hidden)intro()};document.body.appendChild(b)}
+    if(!b){b=document.createElement('button');b.id='jpBtn';b.type='button';b.setAttribute('aria-label','荷包大補血・雪地跳跳搶禮物');b.onclick=()=>{if(!busy&&q('pop').hidden)intro()};document.body.appendChild(b)}
     b.innerHTML='🐻<small>今天</small>'}
   async function maybe(){if(!jpOn())return;
     if(jpReal()&&!JS)sync().then(btn);else if(jpExpectReal()&&!XS&&_wait++<20)setTimeout(()=>{if(jpReal()&&!JS)sync().then(btn)},1500);
@@ -41,9 +41,9 @@
     if(busy||!q('pop').hidden){setTimeout(maybe,1500);return}_auto=1;intro()}
 
   function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
-    card(`<div class="hwbig">🐻</div><h2>雪地跳跳・小熊搶禮物</h2><p style="margin:0">小熊往前衝，點螢幕跳起來拿禮物！只到今晚 12 點，不限次數</p>
+    card(`<div class="hwbig">🐻</div><h2>荷包大補血<br>雪地跳跳搶禮物</h2><p style="margin:0">小熊往前衝，點螢幕跳起來拿禮物！只到今晚 12 點，不限次數</p>
       <div class="hwrule">👆 點螢幕跳，空中再點一下二段跳<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 拿到鈴鐺，5 秒內全部雙倍<br>⛄ 撞到雪堆、石頭，這局就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
-      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br>${PRIZE}</div>
+      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}</div>
       ${st.top?`<p style="margin:0 0 8px">你在榜上的成績 🎁 <b>${st.top}</b></p>`:''}
       <div class="acts"><button type="button" class="btn ghost" id="jpNo">晚點再玩</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn red" id="jpGo">開始</button></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
@@ -176,15 +176,17 @@
     requestAnimationFrame(frame)})}
 
   const rkLine=()=>RANK&&RANK.me?`你在榜上 🎁 <b>${load().top}</b>・第 <b>${RANK.me}</b> 名（共 ${RANK.total} 人）`:(load().top?`你在榜上 🎁 <b>${load().top}</b>`:'你還沒有送出成績');
-  async function done(r){const st0=load(),sc=r.sc,b=r.b||0;let add=0,addB=0,swap=0,bad=false;
+  async function done(r){const st0=load(),sc=r.sc,b=r.b||0;let add=0,addB=0,swap=0,bad=false,spc='';
     if(jpReal()){let j=null;for(let i=0;i<3&&!j;i++){try{j=await xcall(API,{op:'end',gift:sc,bonus:b})}catch(e){if(i===2||/結束/.test(e.message||'')){toast(e.message||'連線不穩，成績沒送出去');break}await new Promise(z=>setTimeout(z,1200))}}
-      if(j){JS=j.jp;RANK=j.rank;add=j.jpRes.addG;addB=j.jpRes.addB;swap=j.jpRes.swap||0;bad=!!j.jpRes.bad;try{hud()}catch(e){}}}
+      if(j){JS=j.jp;RANK=j.rank;add=j.jpRes.addG;addB=j.jpRes.addB;swap=j.jpRes.swap||0;bad=!!j.jpRes.bad;spc=j.jpRes.special||'';try{hud()}catch(e){}}}
     else{const g=Math.min(JP_GCAP,sc);add=Math.max(0,g-st0.best);const st=Object.assign({},st0,{plays:st0.plays+1,best:Math.max(st0.best,g),bbest:Math.max(st0.bbest,Math.min(JP_BCAP,b)),last:sc});keep(st);if(add){G.gifts+=add;try{save();hud()}catch(e){}}}
     const st=load(),can=jpReal()&&!bad&&sc>st.top;
+    const SPM={won:'✨ 恭喜！你是第一位拿到特別獎的會員，現金點數 1111，工作室會跟你聯絡',taken:'✨ 拿到 150 個了！不過特別獎已經有人先拿走，排行榜還能拚',notMember:'✨ 拿到 150 個了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 示範模式：這局有達到特別獎門檻（不會真的發）'},spMsg=SPM[spc]||'';
     const got=[add+swap?`🎁 聖誕禮物 <b>${add+swap}</b> 個`:'',addB?`🪙 紅利 <b>${addB}</b> 點`:''].filter(Boolean).join('、');
     card(`<div class="hwbig">${r.crashed?'💥':'🐻'}</div><h2>${r.crashed?`撞到了！跑了 ${Math.floor(r.sec)} 秒`:'時間到！跑完全程'}</h2>
       <div class="hwsc">🎁 ${sc}　🪙 ${b}</div>
       ${got?`<p style="margin:0 0 6px">入帳 ${got}</p>`:''}
+      ${spMsg?`<p style="margin:0 0 8px;font-weight:800;color:#b8721a">${spMsg}</p>`:''}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?(can?(st.top?`比你榜上的 🎁 ${st.top} 高，送出去就會蓋過去`:'送出成績就能上排行榜'):(st.top?`沒有超過你榜上的 🎁 <b>${st.top}</b>，再挑戰一次`:'再挑戰一次，拿到分數就能上榜')):'這是體驗版，用 LINE 登入才能上排行榜'}</p>
       <div class="acts">${can?`<button type="button" class="btn red" id="jpUp">送出成績</button>`:''}<button type="button" class="btn ${can?'ghost':'red'}" id="jpGo">再玩一次</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">先這樣</button></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpGo').onclick=start;q('jpRk').onclick=()=>rankCard();
@@ -194,8 +196,8 @@
   async function rankCard(msg){
     if(jpReal()&&!msg){try{const j=await xcall(API,{op:'rank'});JS=j.jp;RANK=j.rank}catch(e){}}
     const top=(RANK&&RANK.top)||[],medal=['🥇','🥈','🥉'];
-    card(`<h2>🏆 雪地跳跳排行榜</h2>${msg?`<p style="margin:0 0 4px">${msg}</p>`:''}
-      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br>${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
+    card(`<h2>🏆 荷包大補血排行榜</h2>${msg?`<p style="margin:0 0 4px">${msg}</p>`:''}
+      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br><small>限第一位達成的會員（有點數或堂數）</small><br>${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
       ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p style="margin:10px 0">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?rkLine():''}</p>
       <div class="acts"><button type="button" class="btn ghost" id="jpNo">關閉</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div>`);
