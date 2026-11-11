@@ -155,8 +155,13 @@
       x.strokeStyle='#ffffff';x.lineWidth=3;x.beginPath();x.moveTo(0,GROUND);x.lineTo(W,GROUND);x.stroke();
       x.textAlign='center';x.textBaseline='middle';
       for(const o of things){if(o.type==='obs'){drawObs(o);continue}if(o.done)continue;const I=ITEMS[o.k],s=(I.big?50:42)*U,bob=Math.sin(el*5+o.x*.02)*4;
-        if(I.glow){x.fillStyle=I.glow;x.beginPath();x.arc(o.x,o.y+bob,s*.75,0,7);x.fill()}
-        x.font=Math.round(s)+'px sans-serif';x.fillText(I.e,o.x,o.y+bob);
+        if(I.dbl){const pu=.5+.5*Math.sin(el*8+o.x*.01),R=s*(1.05+.35*pu),gg=x.createRadialGradient(o.x,o.y+bob,s*.1,o.x,o.y+bob,R);  /* 2026-11-11 大熊：鈴鐺要會發光——金色光暈一閃一閃＋光芒 */
+          gg.addColorStop(0,'rgba(255,250,200,.95)');gg.addColorStop(.45,'rgba(255,214,80,.6)');gg.addColorStop(1,'rgba(255,200,40,0)');x.fillStyle=gg;x.beginPath();x.arc(o.x,o.y+bob,R,0,7);x.fill();
+          x.save();x.translate(o.x,o.y+bob);x.rotate(el*1.5);x.strokeStyle=`rgba(255,236,150,${.45+.4*pu})`;x.lineWidth=3;x.lineCap='round';
+          for(let r=0;r<8;r++){x.rotate(Math.PI/4);x.beginPath();x.moveTo(0,-s*.62);x.lineTo(0,-s*(.82+.25*pu));x.stroke()}x.restore();
+          x.save();x.shadowColor='#ffe066';x.shadowBlur=18+14*pu;x.font=Math.round(s*(1+.08*pu))+'px sans-serif';x.fillText(I.e,o.x,o.y+bob);x.restore()}
+        else{if(I.glow){x.fillStyle=I.glow;x.beginPath();x.arc(o.x,o.y+bob,s*.75,0,7);x.fill()}
+        x.font=Math.round(s)+'px sans-serif';x.fillText(I.e,o.x,o.y+bob)}
         x.font='800 '+Math.round(11*U+1)+'px sans-serif';const tw=x.measureText(I.lab).width+10;
         x.fillStyle=I.dbl||I.b||I.g>=5?'#ffd447':'rgba(255,255,255,.95)';x.strokeStyle='#2b2320';x.lineWidth=1.5;x.beginPath();
         if(x.roundRect)x.roundRect(o.x-tw/2,o.y+bob+s*.5,tw,16,8);else x.rect(o.x-tw/2,o.y+bob+s*.5,tw,16);x.fill();x.stroke();x.fillStyle='#2b2320';x.fillText(I.lab,o.x,o.y+bob+s*.5+8.5)}
