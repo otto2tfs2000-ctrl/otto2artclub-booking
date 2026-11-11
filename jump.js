@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=10,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=100,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
+  const API='/xmas/jump12',JP_SPECIAL=400,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY));
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
