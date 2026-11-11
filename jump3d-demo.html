@@ -26,6 +26,14 @@ button{font:800 18px/1 inherit;font-family:inherit;border:3px solid var(--ink);b
 button.g{background:#fff;color:var(--ink)}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#tut{position:fixed;left:0;right:0;top:34%;display:flex;justify-content:center;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#tut .tbox{background:rgba(11,20,55,.78);border:2px solid rgba(255,255,255,.35);border-radius:20px;padding:14px 22px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:220px}
+#tut b{font-size:22px;color:#ffd447}#tut small{font-size:13px;color:#dfe6ff}
+#tut .hand{font-size:44px;line-height:1}
+#tut .hand.lr{animation:handlr 1.2s ease-in-out infinite}#tut .hand.up{animation:handup 1s ease-in-out infinite}
+@keyframes handlr{0%,100%{transform:translateX(-46px)}50%{transform:translateX(46px)}}
+@keyframes handup{0%{transform:translateY(24px);opacity:.3}60%{transform:translateY(-24px);opacity:1}100%{transform:translateY(-24px);opacity:0}}
+#tut.ok b{color:#7dffb0}
 .fly{position:fixed;left:0;top:0;z-index:5;font-size:34px;line-height:1;pointer-events:none;transform:translate(-50%,-50%);transition:transform .55s cubic-bezier(.5,-0.3,.7,1),opacity .55s}
 .pop{position:fixed;left:0;top:0;z-index:6;font-weight:900;font-size:30px;pointer-events:none;transform:translate(-50%,-50%);text-shadow:0 2px 0 #1a1430,0 0 8px rgba(0,0,0,.5);animation:popup .8s ease-out forwards}
 @keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-180%) scale(1)}}
@@ -45,13 +53,14 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   <div class="chip" id="hGB">🎁 <b id="hG">0</b>　🪙 <b id="hB">0</b></div>
 </div>
 <div id="ring"></div>
+<div id="tut" hidden><div class="tbox"><div class="hand" id="tHand">👆</div><b id="tTxt">左右滑，換跑道</b><small id="tSub">試試看往左或往右滑</small></div></div>
 <div id="toast" style="opacity:0"></div>
 <p id="tip" hidden>左右滑（或點左右兩邊）換跑道・往上滑或點中間跳</p>
 <div id="dlg">
   <div class="card" id="intro">
     <div style="font-size:44px;line-height:1" aria-hidden="true">🐻</div>
     <h1>荷包大補血<small>雪地跳跳搶禮物・3D 試玩版</small></h1>
-    <p>三條跑道：左右滑（或點螢幕左、右邊）換跑道，往上滑或點中間跳，空中最多連跳 3 下。地上一排排禮物跑過去就拿到，天上的要跳。矮的雪堆、石頭可以跳過，聖誕樹路障只能閃。聖誕老公公第 10 秒就會來（正式版是第 30 秒）。</p>
+    <p>三條跑道：左右滑（或點螢幕左、右邊）換跑道，往上滑或點中間跳，空中最多連跳 3 下。地上一排排禮物跑過去就拿到，天上的要跳。矮的雪堆、石頭可以跳過，聖誕樹路障只能閃。一開始會先教你怎麼滑。聖誕老公公大約第 18 秒就會來（正式版是第 30 秒）。</p>
     <button type="button" id="go">開始玩</button>
     <p style="font-size:12px">給大熊看畫面用：不入帳、不上排行榜。</p>
   </div>
@@ -132,14 +141,14 @@ function makeSanta(){var em=function(c,e,k){return toon(c,{emissive:new T.Color(
 var cv=$('gl'),R=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setClearColor(0,0);
 var scene=new T.Scene();scene.fog=new T.Fog('#22357a',45,105);
 var cam=new T.PerspectiveCamera(55,1,.1,200);
-scene.add(new T.AmbientLight('#c8d4ff',.75));var sun=new T.DirectionalLight('#fff4dd',.85);sun.position.set(4,9,6);scene.add(sun);
+scene.add(new T.AmbientLight('#c8d4ff',.62));var sun=new T.DirectionalLight('#fff4dd',.85);sun.position.set(4,9,6);scene.add(sun);
 function fit(){var dp=Math.min(2,devicePixelRatio||1),W=cv.clientWidth||innerWidth,H=cv.clientHeight||innerHeight;R.setPixelRatio(dp);R.setSize(W,H,false);cam.aspect=W/H;
   var portrait=cam.aspect<1;cam.fov=portrait?64:50;cam.position.set(0,portrait?7.2:6,portrait?8.6:7.5);cam.lookAt(0,0,-12);cam.updateProjectionMatrix();paintSky()}
 addEventListener('resize',fit);
 /* 雪地：大片白地＋中間淡藍跑道＋跑道兩邊的雪堆線（跟著速度往後捲） */
-var ground=mesh(new T.PlaneGeometry(80,160),toon('#dfe8fb'),0,0,-60,scene);ground.rotation.x=-Math.PI/2;
-var LX=[-1.7,0,1.7];var lane=mesh(new T.PlaneGeometry(5.4,160),toon('#d6e2f8'),0,.01,-60,scene);lane.rotation.x=-Math.PI/2;
-var dashes=[];for(var i=0;i<26;i++)[-.85,.85].forEach(function(xx){var d=mesh(new T.PlaneGeometry(.1,1.4),toon('#a9bce6'),xx,.02,-i*4,scene);d.rotation.x=-Math.PI/2;dashes.push(d)});
+var ground=mesh(new T.PlaneGeometry(80,160),new T.MeshBasicMaterial({color:'#7f92c4'}),0,0,-60,scene);   /* 2026-11-12 大熊：雪地太亮看不到障礙 → 調暗 */ground.rotation.x=-Math.PI/2;
+var LX=[-1.7,0,1.7];var lane=mesh(new T.PlaneGeometry(5.4,160),new T.MeshBasicMaterial({color:'#a3b3da'}),0,.01,-60,scene);lane.rotation.x=-Math.PI/2;
+var dashes=[];for(var i=0;i<26;i++)[-.85,.85].forEach(function(xx){var d=mesh(new T.PlaneGeometry(.1,1.4),new T.MeshBasicMaterial({color:'#e8eeff'}),xx,.02,-i*4,scene);d.rotation.x=-Math.PI/2;dashes.push(d)});
 /* 兩旁的聖誕樹、小樹、雪人：前後錯開，經過時看得到立體感 */
 var scenery=[],proto={tree:makeXmasTree(),small:null,snow:makeSnowman()};
 function sceneryAt(z){var r=Math.random(),k=r<.65?'tree':r<.85?'small':'snow',o=k==='snow'?proto.snow.clone():proto.tree.clone();
@@ -194,10 +203,11 @@ function spawnItem(){var k=pick(),I=KIND[k];if(I.b)coins++;var ln=Math.floor(Mat
 /* 障礙：一次佔 1～2 條跑道（不會三條全擋）。矮的（雪堆、石頭）可以跳；聖誕樹路障只能閃 */
 function spawnObs(){var lanes=[0,1,2].sort(function(){return Math.random()-.5}).slice(0,el>20&&Math.random()<.45?2:1);
   lanes.forEach(function(ln,i){var tall=el>8&&Math.random()<.35;if(tall){var t=proto.tree.clone();t.scale.setScalar(1.1);t.position.set(LX[ln],0,-80);scene.add(t);things.push({type:'obs',g:t,h:99,tall:1})}else oneObs(LX[ln])})}
-function oneObs(lx){var big=el>40&&Math.random()<.25,rock=Math.random()<.5,g;
-  if(rock){g=mesh(new T.DodecahedronGeometry(big?.75:.55,0),toon('#7b7f93',{flatShading:true}));g.scale.y=.75;var cap=mesh(new T.DodecahedronGeometry(big?.5:.36,0),toon('#f4f7ff',{flatShading:true}),0,(big?.45:.33),0,g);cap.scale.y=.4}
-  else{g=new T.Group();mesh(new T.SphereGeometry(big?.85:.6,14,10,0,Math.PI*2,0,Math.PI/2),toon('#f4f8ff'),0,0,0,g);mesh(new T.SphereGeometry(big?.45:.32,12,8,0,Math.PI*2,0,Math.PI/2),toon('#ffffff'),.35,0,.2,g)}
-  g.position.set(lx,0,-80);scene.add(g);things.push({type:'obs',g:g,h:big?1.05:.75})}
+/* 2026-11-12 大熊：雪堆改成立體雪人（遊樂島那個）、石頭大一點 */
+function oneObs(lx){var big=el>40&&Math.random()<.25,rock=Math.random()<.5,g,h;
+  if(rock){g=mesh(new T.DodecahedronGeometry(big?1.1:.85,0),toon('#6b6f84',{flatShading:true}));g.scale.y=.75;var cap=mesh(new T.DodecahedronGeometry(big?.72:.55,0),toon('#f4f7ff',{flatShading:true}),0,(big?.66:.5),0,g);cap.scale.y=.4;h=big?1.25:.95}
+  else{g=proto.snow.clone();g.scale.setScalar(big?1.25:1.05);g.rotation.y=0;h=big?1.4:1.15}
+  g.position.set(lx,0,-80);scene.add(g);things.push({type:'obs',g:g,h:h})}
 /* 2026-11-12 大熊：3D 看不出有沒有真的碰到 → 碰到時：東西飛向右上角分數、原地閃一圈金光、跳出 +N、分數跳一下、畫面邊緣亮一下 */
 var EMO={g1:'🎁',g2:'🧸',g5:'⭐',c1:'🪙',c3:'🪙',c5:'💎',bell:'🔔',xg:'🎁',xb:'💣',xs:'🌟'},bursts=[];
 function scr(v){var p=v.clone().project(cam);return{x:(p.x+1)/2*cv.clientWidth,y:(1-p.y)/2*cv.clientHeight}}
@@ -217,8 +227,14 @@ function eat(o){o.done=1;var I=KIND[o.k],m=(dbl>0||boost>0)?2:1;var wp=o.g.getWo
   if(I.dbl){dbl=DBLT;toast('🔔 雙倍 5 秒！');beep(1320,.15);return}
   if(I.g){gift+=I.g*m;beep(I.g>=5?1175:880,.07)}
   if(I.b){bon=Math.min(15,bon+I.b*m);beep(1568,.12)}}
-var li=1,bx=0;function move(d){if(!on)return;var n=Math.max(0,Math.min(2,li+d));if(n!==li){li=n;beep(520,.05,'triangle',.06)}}
-function jump(e){if(e&&e.preventDefault)e.preventDefault();if(!on)return;if(jumps<JUMPS){vy=jumps?V0*.8:V0;jumps++;beep(jumps>1?880:660,.06,'triangle',.08)}}
+var li=1,bx=0,tut=0,tutT=0;   /* tut：0 沒有、1 教左右滑、2 教往上滑、3 教完 */
+function tutShow(step){tut=step;tutT=0;var b=$('tut'),h=$('tHand');b.classList.remove('ok');
+  if(step===1){b.hidden=false;h.className='hand lr';h.textContent='👆';$('tTxt').textContent='← 左右滑，換跑道 →';$('tSub').textContent='試試看往左或往右滑'}
+  else if(step===2){b.hidden=false;h.className='hand up';h.textContent='👆';$('tTxt').textContent='↑ 往上滑，跳起來';$('tSub').textContent='空中再滑一次可以連跳，最多 3 下'}
+  else{b.hidden=true}}
+function tutDone(step){if(tut!==step)return;var b=$('tut');b.classList.add('ok');$('tSub').textContent='很好！';tut=step+.5;setTimeout(function(){tutShow(step+1);if(step===2)no=1.2},700)}
+function move(d){if(!on)return;var n=Math.max(0,Math.min(2,li+d));if(n!==li){li=n;beep(520,.05,'triangle',.06)}tutDone(1)}
+function jump(e){if(e&&e.preventDefault)e.preventDefault();if(!on)return;if(jumps<JUMPS){vy=jumps?V0*.8:V0;jumps++;beep(jumps>1?880:660,.06,'triangle',.08)}tutDone(2)}
 var ptr=null;
 cv.addEventListener('pointerdown',function(e){e.preventDefault();ptr={x:e.clientX,y:e.clientY,done:false}});
 cv.addEventListener('pointermove',function(e){if(!ptr||ptr.done)return;var dx=e.clientX-ptr.x,dy=e.clientY-ptr.y;
@@ -239,6 +255,8 @@ function frame(now){var dt=Math.min(.05,(now-last)/1000||0);last=now;
     var k=el>=40?1+Math.floor((el-40)/15):0;if(k>fastShown&&k<=3){fastShown=k;toast('⚡ 加速！')}
     vy+=G*dt;by+=vy*dt;if(by<=0){by=0;vy=0;jumps=0}
     if(dbl>0)dbl=Math.max(0,dbl-dt);if(boost>0)boost=Math.max(0,boost-dt);
+    if(tut===1||tut===2){tutT+=dt;if(tutT>5)tutDone(tut)}
+    if(tut&&tut<3)no=Math.max(no,1);   /* 教學中不出障礙 */
     santaTick(dt);
     ni-=dt;if(ni<=0){spawnItem();ni=(.75/Math.sqrt(1+ramp()*.6))*(.7+Math.random()*.6)}
     no-=dt;if(no<=0){spawnObs();no=(2.4-ramp()*.9)*(.8+Math.random()*.6)}
@@ -268,9 +286,9 @@ function frame(now){var dt=Math.min(.05,(now-last)/1000||0);last=now;
   requestAnimationFrame(frame)}
 
 function start(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}
-  things.forEach(function(o){scene.remove(o.g);if(o.sh)scene.remove(o.sh)});things=[];el=0;gift=0;bon=0;dbl=0;boost=0;ni=.6;no=2.6;coins=0;by=0;vy=0;jumps=0;fastShown=0;li=1;bx=0;sn=SANTA_FIRST;sOn=false;sWarn=false;santa.visible=false;
-  on=true;$('dlg').hidden=true;$('hud').hidden=false;$('tip').hidden=false}
-function finish(){$('hud').hidden=true;$('tip').hidden=true;$('rG').textContent=gift;$('rB').textContent=bon;$('rT').textContent='撞到了！跑了 '+Math.floor(el)+' 秒';$('intro').hidden=true;$('result').hidden=false;$('dlg').hidden=false}
+  things.forEach(function(o){scene.remove(o.g);if(o.sh)scene.remove(o.sh)});things=[];el=0;gift=0;bon=0;dbl=0;boost=0;ni=.6;no=2.6;coins=0;by=0;vy=0;jumps=0;fastShown=0;li=1;bx=0;sn=SANTA_FIRST+8;sOn=false;sWarn=false;santa.visible=false;
+  on=true;$('dlg').hidden=true;$('hud').hidden=false;$('tip').hidden=false;tutShow(1)}
+function finish(){$('tut').hidden=true;tut=0;$('hud').hidden=true;$('tip').hidden=true;$('rG').textContent=gift;$('rB').textContent=bon;$('rT').textContent='撞到了！跑了 '+Math.floor(el)+' 秒';$('intro').hidden=true;$('result').hidden=false;$('dlg').hidden=false}
 $('go').addEventListener('click',start);$('again').addEventListener('click',start);$('back').addEventListener('click',function(){$('result').hidden=true;$('intro').hidden=false});
 fit();requestAnimationFrame(function(n){last=n;frame(n)});
 })();
