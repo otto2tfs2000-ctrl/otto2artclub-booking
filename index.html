@@ -251,6 +251,13 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gcbox.hw .hm-ic.hwic{background:#ffe7c8;font-size:34px;display:grid;place-items:center;animation:gcCardHop 2.2s ease-in-out infinite}
 .gcbox.hw .gc-go button{color:#4a2270}
 .gcbox.hw .gc-go button:first-child{background:#ff9b3d;color:#2b1440}
+/* 2026-11-12 荷包大補血・雪地跳跳（hmGameCard jp）：極光夜空配色，第一顆鈕金色 */
+.gcbox.jp{background:linear-gradient(135deg,#0b1a4a,#123a5c 55%,#2fae86 140%);border-color:#ffd447;box-shadow:0 8px 22px rgba(47,174,134,.3)}
+.gcbox.jp::after{content:"❄";color:#bfe9ff;opacity:.4}
+.gcbox.jp .gc-new{background:#ffd447;color:#2b2320}
+.gcbox.jp .hm-ic.hwic{background:#e8f4ff;font-size:34px;display:grid;place-items:center;animation:gcCardHop 2.2s ease-in-out infinite}
+.gcbox.jp .gc-go button{color:#123a5c}
+.gcbox.jp .gc-go button:first-child{background:#ffd447;color:#2b2320}
 .gcbox::after{content:"❄";position:absolute;right:-8px;top:-22px;font-size:96px;line-height:1;color:rgba(255,255,255,.16);pointer-events:none;animation:gcCardRays 30s linear infinite}
 .gcbox .hm-card.gc{margin:0;border:0;box-shadow:none;background:transparent;border-radius:18px 18px 0 0}
 .gcbox .hm-card.gc::after{display:none}
@@ -375,7 +382,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.76</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.77</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1439,6 +1446,8 @@ function hmGameCard(){
   /* 2026-10-25 大熊要改成聖誕：一打開就是走格子島，卡片寫整座遊樂島，聖誕畫面到 12/31 */
   /* 2026-10-31 萬聖節當天整張卡片換成搗蛋南瓜（?hw=1 預覽），11/1 自動回聖誕 */
   if(d==="2026-10-31"||/[?&]hw=1/.test(location.search))return{t:"萬聖節搗蛋南瓜",s:"今天限定！點南瓜拿禮物，小心炸彈",tag:"今天限定",hw:true};
+  /* 2026-11-12 一天：荷包大補血・雪地跳跳搶禮物（park jump.js），整張卡片換掉，第一顆鈕直接進遊戲（?jump=1 預覽） */
+  if(d==="2026-11-12"||/[?&]jump=1/.test(location.search))return{t:"荷包大補血・雪地跳跳",s:"今天限定！點螢幕跳起來搶禮物，前三名有大獎",tag:"今天限定",jp:true};
   if(d<="2026-12-31")return{t:"聖誕遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"聖誕限定"};
   return{t:"Otto2 遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"小遊戲"};
 }
@@ -1452,9 +1461,9 @@ function renderHome(){
       <div class="hm-tagline">選人數、選課程、挑喜歡的時段，線上就能完成預約。</div>
       ${goldBanner("hmGold")}
       ${myHold?`<button class="hm-hold" id="hmHold">💰 你有一筆 <b>NT$${myHold.amount.toLocaleString()}</b> 訂金還沒排課（${esc(myHold.date)} 付款）<br><b>點這裡選時間 ›</b> 約好後訂金自動扣抵，不用再付。</button>`:''}
-      <div class="gcbox${hmGame.hw?' hw':''}">
+      <div class="gcbox${hmGame.hw?' hw':hmGame.jp?' jp':''}">
       <button class="hm-card gc" id="hmGacha">
-        ${hmGame.hw?'<span class="hm-ic hwic">🎃</span>':''}<span class="hm-ic"${hmGame.hw?' style="display:none"':''}><svg viewBox="0 0 40 40" aria-hidden="true">
+        ${hmGame.hw?'<span class="hm-ic hwic">🎃</span>':hmGame.jp?'<span class="hm-ic hwic">🐻</span>':''}<span class="hm-ic"${hmGame.hw||hmGame.jp?' style="display:none"':''}><svg viewBox="0 0 40 40" aria-hidden="true">
           <path d="M20 5 L29 17 H24 L32 27 H25 L33 34 H7 L15 27 H8 L16 17 H11 Z" fill="#2F8A45" stroke="#1A1A1A" stroke-width="1.8" stroke-linejoin="round"/>
           <rect x="17" y="34" width="6" height="4" fill="#8A5A2B" stroke="#1A1A1A" stroke-width="1.4"/>
           <path d="M20 1.5 l1.3 2.7 3 .4 -2.2 2 .5 3 -2.6-1.4 -2.6 1.4 .5-3 -2.2-2 3-.4z" fill="#F2C94C" stroke="#1A1A1A" stroke-width=".9"/>
@@ -1463,7 +1472,7 @@ function renderHome(){
         <span class="hm-ar">›</span>
       </button>
       ${hmBonusHtml()}
-      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 點南瓜':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 黃金扭蛋 ×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 轉扭蛋</button>`}<button type="button" id="hmGoShop">🎁 換好禮</button></div>
+      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 點南瓜':hmGame.jp?'🐻 開始跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 黃金扭蛋 ×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 轉扭蛋</button>`}<button type="button" id="hmGoShop">🎁 換好禮</button></div>
       </div>
       <button class="hm-card hall" id="hmHall">
         <span class="hm-ic">🏛</span>
@@ -1482,9 +1491,10 @@ function renderHome(){
       </button>
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
-  document.getElementById("hmGacha").onclick=()=>openGacha();
+  const goJump=()=>{ parkToken(); location.href="park.html?v=20261111e&jump=1&nogf=1" };   /* 雪地跳跳那天：直接開遊戲，不先跳扭蛋機 */
+  document.getElementById("hmGacha").onclick=()=>hmGame.jp?goJump():openGacha();
   document.getElementById("hmHall").onclick=()=>{ parkToken(); location.href="art.html?v=20261101c&hall=1" };
-  document.getElementById("hmGoWalk").onclick=()=>openGacha();
+  document.getElementById("hmGoWalk").onclick=()=>hmGame.jp?goJump():openGacha();
   document.getElementById("hmGoOct").onclick=()=>goldCoins>0?openGold():openGacha("oct");
   const hg=document.getElementById("hmGold"); if(hg)hg.onclick=openGold;
   document.getElementById("hmGoShop").onclick=()=>openGacha("oct&shop=1");
