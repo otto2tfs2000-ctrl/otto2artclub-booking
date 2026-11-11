@@ -151,7 +151,7 @@
     const pick=()=>{for(let n=0;n<6;n++){let r=Math.random()*KSUM,o=KINDS[0];for(const k of KINDS){if((r-=k.w)<0){o=k;break}}
         if(o.b&&coins>=6)continue;if(o.bomb&&el<1.5)continue;return Object.assign({},o)}return Object.assign({},KINDS[0])};
     const end=()=>{window.HW_ON=false;ov.remove();res({sc:gift,b:bon,boom})};
-    function frame(now){if(gone()){window.HW_ON=false;ov.remove();return}
+    function frame(now){if(!ov.isConnected)return;if(gone()){window.HW_ON=false;ov.remove();return}
       const dt=Math.min(.05,(now-t0)/1000);t0=now;if(!over)el+=dt;
       const fast=el>=SL_FAST,spd=fast?1.4:1;
       if(!over&&!fastShown&&fast){fastShown=true;fx.push({x:W/2,y:H*.42,t:'⚡ 最後 10 秒加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}
