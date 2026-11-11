@@ -1,4 +1,4 @@
-/* ---------- 2026-11-11 晚大熊：「小熊雪地跳跳」，只有 11/12 一天（park.html?jump=1 隨時預覽；雪橇丟禮物 sled.js 沒開放，留著備用） ----------
+/* ---------- 2026-11-11 晚大熊：「雪地跳跳・小熊搶禮物」（大熊 11/11 改名，不要寫雙 11），只有 11/12 一天（park.html?jump=1 隨時預覽；雪橇丟禮物 sled.js 沒開放，留著備用） ----------
    像沒網路時的小恐龍：小熊一直往前跑，點螢幕跳（空中可再跳一次），吃禮物、紅利；撞到雪堆、石頭這局直接結束（大熊選的）。最長 30 秒、最後 10 秒加速。
    🎁 +1、🧸 +2、⭐ +5（只在高處，要二段跳）、金幣 紅利 1／3、鑽石 紅利 5、🔔 5 秒雙倍。
    背景＝平面夜空＋極光＋雪坡，後面捲動島上的聖誕樹、雪人模型；小熊＝遊樂島那隻 makeBear()。
@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=10,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12';
+  const API='/xmas/jump12',JP_SPECIAL=150;
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY));
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
@@ -33,7 +33,7 @@
   document.head.appendChild(css);
 
   function btn(){let b=q('jpBtn');if(!jpOn()){if(b)b.remove();return}
-    if(!b){b=document.createElement('button');b.id='jpBtn';b.type='button';b.setAttribute('aria-label','小熊雪地跳跳');b.onclick=()=>{if(!busy&&q('pop').hidden)intro()};document.body.appendChild(b)}
+    if(!b){b=document.createElement('button');b.id='jpBtn';b.type='button';b.setAttribute('aria-label','雪地跳跳・小熊搶禮物');b.onclick=()=>{if(!busy&&q('pop').hidden)intro()};document.body.appendChild(b)}
     b.innerHTML='🐻<small>今天</small>'}
   async function maybe(){if(!jpOn())return;
     if(jpReal()&&!JS)sync().then(btn);else if(jpExpectReal()&&!XS&&_wait++<20)setTimeout(()=>{if(jpReal()&&!JS)sync().then(btn)},1500);
@@ -41,9 +41,9 @@
     if(busy||!q('pop').hidden){setTimeout(maybe,1500);return}_auto=1;intro()}
 
   function intro(){const st=load();if(q('jpBtn'))q('jpBtn').remove();
-    card(`<div class="hwbig">🐻</div><h2>今天限定｜小熊雪地跳跳</h2><p style="margin:0">只到今晚 12 點，不限次數</p>
-      <div class="hwrule">👆 點螢幕跳，空中再點一下二段跳<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 吃到鈴鐺，5 秒內全部雙倍<br>⛄ 撞到雪堆、石頭，這局就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
-      <div class="jpprize">${PRIZE}</div>
+    card(`<div class="hwbig">🐻</div><h2>雪地跳跳・小熊搶禮物</h2><p style="margin:0">小熊往前衝，點螢幕跳起來拿禮物！只到今晚 12 點，不限次數</p>
+      <div class="hwrule">👆 點螢幕跳，空中再點一下二段跳<br>🎁 +1、🧸 +2、⭐ +5（在高處）<br>🪙 金幣、鑽石是紅利點數（今天最多 ${JP_BCAP} 點）<br>🔔 拿到鈴鐺，5 秒內全部雙倍<br>⛄ 撞到雪堆、石頭，這局就結束<br>🏆 玩完按「送出成績」，比榜上高就蓋過去</div>
+      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br>${PRIZE}</div>
       ${st.top?`<p style="margin:0 0 8px">你在榜上的成績 🎁 <b>${st.top}</b></p>`:''}
       <div class="acts"><button type="button" class="btn ghost" id="jpNo">晚點再玩</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn red" id="jpGo">開始</button></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
@@ -194,8 +194,8 @@
   async function rankCard(msg){
     if(jpReal()&&!msg){try{const j=await xcall(API,{op:'rank'});JS=j.jp;RANK=j.rank}catch(e){}}
     const top=(RANK&&RANK.top)||[],medal=['🥇','🥈','🥉'];
-    card(`<h2>🏆 小熊雪地跳跳排行榜</h2>${msg?`<p style="margin:0 0 4px">${msg}</p>`:''}
-      <div class="jpprize">${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
+    card(`<h2>🏆 雪地跳跳排行榜</h2>${msg?`<p style="margin:0 0 4px">${msg}</p>`:''}
+      <div class="jpprize">✨ 特別獎：一局拿到 ${JP_SPECIAL} 個禮物 → 現金點數 1111<br>${PRIZE}<br>只到今晚 12 點，比的是禮物數</div>
       ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p style="margin:10px 0">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?rkLine():''}</p>
       <div class="acts"><button type="button" class="btn ghost" id="jpNo">關閉</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div>`);
