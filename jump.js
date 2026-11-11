@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=15,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=400,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
+  const API='/xmas/jump12',JP_SPECIAL=300,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY&&new Date(Date.now()+8*3600e3).getUTCHours()>=10));   /* 2026-11-11 大熊：10:00–23:59 */
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
@@ -66,7 +66,7 @@
         <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，每場最多 ${JP_BCAP} 點</small></span></li>
         <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
         <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
-        <li><i>🏆</i><span>送出成績<br><small>比榜上高就蓋過去</small></span></li>
+        <li><i>🎅</i><span>30 秒雪橇空襲<br><small>🎁+10・💣扣半・🌟×2</small></span></li>
       </ul>
       <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
@@ -102,6 +102,7 @@
       try{A.tree=shot(makeXmasTree(1),300)}catch(e){}
       try{A.small=shot(makeXmasTreeSmall(),200)}catch(e){}
       try{A.snowman=shot(makeSnowman(),160,.5)}catch(e){}
+      try{const g=makeSanta();g.scale.setScalar(1);A.santa=shot(g,420)}catch(e){}
       _art=A}catch(e){_art=null}
     try{renderer.render(scene,camera)}catch(e){}
     return _art}
@@ -120,13 +121,17 @@
   const ITEMS={g1:{e:'🎁',g:1,lab:'+1',w:44},g2:{e:'🧸',g:2,lab:'+2',w:14},g5:{e:'⭐',g:5,lab:'+5',w:6,high:1,glow:'rgba(255,224,90,.55)'},
     c1:{e:'🪙',b:1,lab:'紅利 1',w:7},c3:{e:'🪙',b:3,lab:'紅利 3',w:2.5,big:1,glow:'rgba(255,224,90,.5)'},c5:{e:'💎',b:5,lab:'紅利 5',w:1,high:1,glow:'rgba(155,231,255,.6)'},
     bell:{e:'🔔',dbl:1,lab:'雙倍',w:6,glow:'rgba(255,243,176,.6)'}};
-  const IK=Object.keys(ITEMS),IW=IK.reduce((a,k)=>a+ITEMS[k].w,0);
+  /* 2026-11-12 大熊：第 30 秒起每 30 秒，聖誕老公公拉雪橇飛過一次，丟大禮包 +10、炸彈（禮物扣一半）、加速星（5 秒變快但禮物雙倍） */
+  Object.assign(ITEMS,{xg:{e:'🎁',g:10,lab:'+10',w:0,huge:1,glow:'rgba(255,224,90,.6)'},xb:{e:'💣',bomb:1,lab:'扣一半',w:0},xs:{e:'🌟',boost:1,lab:'加速×2',w:0,glow:'rgba(150,220,255,.7)'}});
+  const SANTA_EVERY=/[?&]jpsanta=1/.test(location.search)?6:30,   /* ?jpsanta=1：測試用，6 秒就來 */
+    SANTA_PASS=6,BOOST=5;
+  const IK=Object.keys(ITEMS).filter(k=>ITEMS[k].w>0),IW=IK.reduce((a,k)=>a+ITEMS[k].w,0);
 
   function closeOv(){const o=q('jpFull');if(o)o.remove();window.HW_ON=false;q('pop').style.zIndex=''}
   function play(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
-    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
+    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span class="dbl" id="jpBo" hidden style="background:#9be7ff;border-color:#9be7ff">🌟 加速×2 <b id="jpBot">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
     document.body.appendChild(ov);window.HW_ON=true;
     const cv=q('jpCv'),x=cv.getContext('2d');let W=0,H=0;
     {const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)}
@@ -136,17 +141,28 @@
     const fronts=[];{let fx0=0;while(fx0<W*2.4){fronts.push({k:Math.random()<.75?'tree':'small',x:fx0,s:.78+Math.random()*.22});fx0+=(120+Math.random()*150)*U}}
     const hills=[];{let hx=0;while(hx<W*2.2){const r=Math.random(),k=r<.18?'tree':r<.32?'snowman':'small';hills.push({k,x:hx,s:k==='tree'?1:.6+Math.random()*.5});hx+=(k==='tree'?150:70+Math.random()*80)*U}}
     const bh=74*U,bear={x:W*.2,y:GROUND,vy:0,air:0,jumps:0,h:bh,w:bh/((A.bear&&A.bear.ar)||1.4),run:0};
-    let things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=2.6,scroll=0,coins=0,lastT=-1,fastShown=0;
+    let santa={on:0,t:0,next:SANTA_EVERY,warn:0,drop:0,stars:0},boost=0,things=[],fx=[],gift=0,bon=0,dbl=0,t0=performance.now(),el=0,over=false,crashed=false,flash=0,shake=0,nextItem=.6,nextObs=2.6,scroll=0,coins=0,lastT=-1,fastShown=0;
     const hudUp=()=>{q('jpS').textContent=gift;q('jpB').textContent=bon};
     const jump=e=>{if(e)e.preventDefault();if(over)return;if(bear.jumps<JP_JUMPS){bear.vy=-(bear.jumps?JUMP*.78:JUMP);bear.jumps++;bear.air=1;sfx('tick')}};  /* 2026-11-11 大熊：空中可以多跳幾下 */
     cv.addEventListener('pointerdown',jump);
-    const ramp=()=>Math.max(0,Math.min(1,(el-40)/30)),sp1=()=>1+ramp()*.6,speed=()=>sp1()*W*.42;  /* 2026-11-11 大熊：前 40 秒速度不變，第 40 秒起 30 秒內加到 1.6 倍 */
+    const ramp=()=>Math.max(0,Math.min(1,(el-40)/30)),sp1=()=>1+ramp()*.6,speed=()=>sp1()*W*.42*(boost>0?1.35:1);  /* 2026-11-11 大熊：前 40 秒速度不變，第 40 秒起 30 秒內加到 1.6 倍 */
     const pickItem=()=>{for(let n=0;n<6;n++){let r=Math.random()*IW,k=IK[0];for(const kk of IK){if((r-=ITEMS[kk].w)<=0){k=kk;break}}if(ITEMS[k].b&&coins>=6)continue;return k}return'g1'};
     function spawnItem(){const k=pickItem(),I=ITEMS[k];if(I.b)coins++;
       const lv=I.high?2:(Math.random()<.35?0:Math.random()<.75?1:2),y=GROUND-[28,150,250][lv]*U,n=(!I.high&&!I.dbl&&Math.random()<.35)?3:1;
       for(let j=0;j<n;j++)things.push({type:'item',k,x:W+40+j*46*U,y:y-(n>1?Math.sin(j/(n-1)*Math.PI)*30*U:0),r:22*U})}
+    /* 聖誕老公公：從右邊飛到左邊，經過畫面右半邊時每 0.45 秒丟一個，東西往下掉到三種高度之一再跟著畫面往左跑 */
+    function santaTick(dt){
+      if(!santa.on){if(!santa.warn&&el>=santa.next-2){santa.warn=1;fx.push({x:W/2,y:H*.3,t:'🎅 聖誕老公公來了！',c:'#ffd447',a:2,big:true});sfx('chime')}
+        if(el>=santa.next){santa.on=1;santa.t=0;santa.drop=.3;santa.stars=0}return}
+      santa.t+=dt;const p=santa.t/SANTA_PASS;santa.x=W+150-(W*.95+150)*p;santa.y=H*.2+Math.sin(santa.t*3)*8;
+      if(santa.x<W*.98&&santa.x>W*.38){santa.drop-=dt;if(santa.drop<=0){santa.drop=.45;
+        let r=Math.random(),k=r<.5?'xg':r<.85?'xb':'xs';if(k==='xs'&&santa.stars++>=1)k='xg';
+        things.push({type:'item',k,x:santa.x-30*U,y:santa.y+20*U,ty:GROUND-[28,150,250][Math.floor(Math.random()*3)]*U,fall:1,r:(k==='xg'?26:22)*U})}}
+      if(p>=1){santa.on=0;santa.warn=0;santa.next+=SANTA_EVERY}}
     function spawnObs(){const big=el>40&&Math.random()<.25;things.push({type:'obs',k:Math.random()<.5?'pile':'rock',x:W+40,w:(big?70:44)*U,h:(big?50:36)*U})}
-    function eat(it){it.done=1;const I=ITEMS[it.k],m=dbl>0?2:1;
+    function eat(it){it.done=1;const I=ITEMS[it.k],m=(dbl>0||boost>0)?2:1;
+      if(I.bomb){const lost=gift-Math.floor(gift/2);gift=Math.floor(gift/2);flash=.7;shake=.3;fx.push({x:it.x,y:it.y,t:lost?`💣 禮物少一半！-${lost}`:'💣 碰！',c:'#ff6a5a',a:1.4});sfx('thunk');hudUp();return}
+      if(I.boost){boost=BOOST;fx.push({x:it.x,y:it.y,t:'🌟 加速！禮物雙倍 5 秒',c:'#9be7ff',a:1.4});sfx('toot');return}
       if(I.dbl){dbl=JP_DBL;fx.push({x:it.x,y:it.y,t:'🔔 雙倍 5 秒！',c:'#ffd447',a:1.3});sfx('chime');return}
       if(I.g){gift+=I.g*m;fx.push({x:it.x,y:it.y,t:'+'+I.g*m,c:m>1||I.g>=5?'#ffd447':'#fff',a:1});sfx(I.g>=5?'sparkle':'pop')}
       if(I.b){const b0=bon;bon=Math.min(JP_BCAP,bon+I.b*m);const got=bon-b0;fx.push({x:it.x,y:it.y,t:got?(bon>=JP_BCAP?`紅利 +${got}（滿 ${JP_BCAP} 點了）`:'紅利 +'+got):`紅利滿 ${JP_BCAP} 點了`,c:'#ffd447',a:1});sfx('sparkle')}  /* 2026-11-12 大熊：每場紅利最多 15 點 */
@@ -165,11 +181,12 @@
       if(!over){el+=dt;
         {const k=el>=40?1+Math.floor((el-40)/15):0;if(k>fastShown&&k<=3){fastShown=k;fx.push({x:W/2,y:H*.4,t:'⚡ 加速！',c:'#ffd447',a:1.6,big:true});sfx('toot')}}
         bear.vy+=GRAV*dt;bear.y+=bear.vy*dt;if(bear.y<H*.2+bear.h){bear.y=H*.2+bear.h;if(bear.vy<0)bear.vy=0}if(bear.y>=GROUND){bear.y=GROUND;bear.vy=0;bear.jumps=0;bear.air=0}bear.run+=dt*12*sp1();
-        if(dbl>0)dbl=Math.max(0,dbl-dt);
+        if(dbl>0)dbl=Math.max(0,dbl-dt);if(boost>0)boost=Math.max(0,boost-dt);
+        santaTick(dt);
         nextItem-=dt;if(nextItem<=0){spawnItem();nextItem=(.75/Math.sqrt(sp1()))*(.7+Math.random()*.6)}
         nextObs-=dt;if(nextObs<=0){spawnObs();nextObs=(2.4-ramp()*.9)*(.8+Math.random()*.6)}  /* 2026-11-11 大熊：障礙太多太難 */
         const bx0=bear.x-bear.w*.32,bx1=bear.x+bear.w*.32,by0=bear.y-bear.h*.9,by1=bear.y;
-        for(const o of things){o.x-=sp*dt;if(o.done||over)continue;
+        for(const o of things){o.x-=sp*dt;if(o.fall){o.y=Math.min(o.ty,o.y+H*.7*dt);if(o.y>=o.ty)o.fall=0}if(o.done||over)continue;
           if(o.type==='obs'){if(bx1>o.x-o.w*.38&&bx0<o.x+o.w*.38&&by1>GROUND-o.h*.8)crash(o)}
           else{const px=Math.max(bx0,Math.min(o.x,bx1)),py=Math.max(by0,Math.min(o.y,by1));if(Math.hypot(o.x-px,o.y-py)<o.r)eat(o)}}
         things=things.filter(o=>!(o.done&&o.type==='item')&&o.x>-80);
@@ -191,8 +208,10 @@
           const hh=room*(f.k==='tree'?1.02:.66)*f.s;   /* 大樹幾乎佔滿下面那片雪地 */
           x.fillStyle='rgba(30,40,80,.16)';x.beginPath();x.ellipse(fxp,H-4,hh*.32,8,0,0,7);x.fill();
           if(a){const w=hh/a.ar;x.drawImage(a.c,fxp-w/2,H-hh-2,w,hh)}else{x.font=Math.round(hh*.8)+'px sans-serif';x.textAlign='center';x.fillText('🎄',fxp,H-6)}}}
+      if(santa.on&&A.santa){const w=Math.min(240,W*.6),h=w*A.santa.ar;x.save();x.translate(santa.x,santa.y);x.scale(-1,1);x.drawImage(A.santa.c,-w/2,-h/2,w,h);x.restore()}
+      else if(santa.on){x.font=Math.round(44*U)+'px sans-serif';x.textAlign='center';x.fillText('🎅🛷🦌',santa.x,santa.y)}
       x.textAlign='center';x.textBaseline='middle';
-      for(const o of things){if(o.type==='obs'){drawObs(o);continue}if(o.done)continue;const I=ITEMS[o.k],s=(I.big?50:42)*U,bob=Math.sin(el*5+o.x*.02)*4;
+      for(const o of things){if(o.type==='obs'){drawObs(o);continue}if(o.done)continue;const I=ITEMS[o.k],s=(I.huge?60:I.big?50:42)*U,bob=Math.sin(el*5+o.x*.02)*4;
         if(I.dbl){const pu=.5+.5*Math.sin(el*8+o.x*.01),R=s*(1.05+.35*pu),gg=x.createRadialGradient(o.x,o.y+bob,s*.1,o.x,o.y+bob,R);  /* 2026-11-11 大熊：鈴鐺要會發光——金色光暈一閃一閃＋光芒 */
           gg.addColorStop(0,'rgba(255,250,200,.95)');gg.addColorStop(.45,'rgba(255,214,80,.6)');gg.addColorStop(1,'rgba(255,200,40,0)');x.fillStyle=gg;x.beginPath();x.arc(o.x,o.y+bob,R,0,7);x.fill();
           x.save();x.translate(o.x,o.y+bob);x.rotate(el*1.5);x.strokeStyle=`rgba(255,236,150,${.45+.4*pu})`;x.lineWidth=3;x.lineCap='round';
@@ -201,8 +220,8 @@
         else{if(I.glow){x.fillStyle=I.glow;x.beginPath();x.arc(o.x,o.y+bob,s*.75,0,7);x.fill()}
         x.font=Math.round(s)+'px sans-serif';x.fillText(I.e,o.x,o.y+bob)}
         x.font='800 '+Math.round(11*U+1)+'px sans-serif';const tw=x.measureText(I.lab).width+10;
-        x.fillStyle=I.dbl||I.b||I.g>=5?'#ffd447':'rgba(255,255,255,.95)';x.strokeStyle='#2b2320';x.lineWidth=1.5;x.beginPath();
-        if(x.roundRect)x.roundRect(o.x-tw/2,o.y+bob+s*.5,tw,16,8);else x.rect(o.x-tw/2,o.y+bob+s*.5,tw,16);x.fill();x.stroke();x.fillStyle='#2b2320';x.fillText(I.lab,o.x,o.y+bob+s*.5+8.5)}
+        x.fillStyle=I.bomb?'#e5484d':I.boost?'#9be7ff':I.dbl||I.b||I.g>=5?'#ffd447':'rgba(255,255,255,.95)';x.strokeStyle='#2b2320';x.lineWidth=1.5;x.beginPath();
+        if(x.roundRect)x.roundRect(o.x-tw/2,o.y+bob+s*.5,tw,16,8);else x.rect(o.x-tw/2,o.y+bob+s*.5,tw,16);x.fill();x.stroke();x.fillStyle=I.bomb?'#fff':'#2b2320';x.fillText(I.lab,o.x,o.y+bob+s*.5+8.5)}
       {const sq=bear.air?1:1+Math.sin(bear.run)*.05,hop=bear.air||over?0:Math.abs(Math.sin(bear.run))*5*U;
         x.fillStyle='rgba(30,40,80,.18)';x.beginPath();x.ellipse(bear.x,GROUND+3,bear.w*.4*(1-Math.min(.5,(GROUND-bear.y)/400)),6,0,0,7);x.fill();
         x.save();x.translate(bear.x,bear.y-hop);x.rotate(crashed?-.5:bear.air?-.12:Math.sin(bear.run)*.06);x.scale(1/sq,sq);
@@ -210,11 +229,13 @@
         x.restore()}
       for(const f of fx){x.globalAlpha=Math.max(0,Math.min(1,f.a));x.font=`900 ${Math.round((f.big?26:22)*U)}px sans-serif`;x.lineWidth=4;x.strokeStyle='#1a1430';x.strokeText(f.t,f.x,f.y);x.fillStyle=f.c;x.fillText(f.t,f.x,f.y);x.globalAlpha=1}
       if(dbl>0&&!over){x.strokeStyle=`rgba(255,212,71,${.55+.3*Math.sin(el*10)})`;x.lineWidth=10;x.strokeRect(5,5,W-10,H-10)}
+      if(boost>0&&!over){x.strokeStyle=`rgba(155,231,255,${.55+.3*Math.sin(el*12)})`;x.lineWidth=6;x.strokeRect(14,14,W-28,H-28)}
       if(flash>0){flash-=dt*2.2;x.fillStyle=`rgba(255,60,40,${Math.max(0,flash)*.45})`;x.fillRect(-12,-12,W+24,H+24)}
       if(over&&!crashed){x.fillStyle='rgba(7,13,43,.5)';x.fillRect(-12,-12,W+24,H+24);x.font=`900 ${Math.round(40*U)}px sans-serif`;x.fillStyle='#ffd447';x.strokeStyle='#1a1430';x.lineWidth=6;x.strokeText('時間到！',W/2,H/2);x.fillText('時間到！',W/2,H/2)}
       x.restore();
       const lt=Math.floor(el);if(lt!==lastT){lastT=lt;q('jpT').textContent=lt}
       const dOn=dbl>0&&!over;if(q('jpD').hidden===dOn)q('jpD').hidden=!dOn;if(dOn)q('jpDt').textContent=dbl.toFixed(1);
+      const bOn=boost>0&&!over;if(q('jpBo').hidden===bOn)q('jpBo').hidden=!bOn;if(bOn)q('jpBot').textContent=boost.toFixed(1);
       if(ov.isConnected)requestAnimationFrame(frame)}
     requestAnimationFrame(frame)})}
 
