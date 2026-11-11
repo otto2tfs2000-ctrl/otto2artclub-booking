@@ -19,8 +19,8 @@
   async function sync(){if(!jpReal())return;try{const j=await xcall(API,{op:'info'});JS=j.jp;RANK=j.rank}catch(e){}}
 
   const css=document.createElement('style');
-  css.textContent='#jpBtn{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 132px);z-index:30;width:54px;height:54px;border-radius:50%;border:3px solid #2b2320;background:#2f8f58;font-size:28px;box-shadow:0 4px 0 #2b2320;cursor:pointer;animation:hwBob 1.6s ease-in-out infinite}'
-    +'#jpBtn small{position:absolute;right:-8px;top:-8px;background:#ffd447;color:#2b2320;font-size:11px;font-weight:800;border-radius:10px;padding:1px 6px;border:2px solid #2b2320}'
+  css.textContent='#jpBtn{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 132px);z-index:30;display:flex;align-items:center;gap:4px;height:44px;padding:0 14px 0 10px;border-radius:99px;border:3px solid #2b2320;background:#d63a2f;color:#fff;font:800 15px/1 inherit;box-shadow:0 4px 0 #2b2320;cursor:pointer;animation:hwBob 1.6s ease-in-out infinite;white-space:nowrap}#jpBtn i{font-style:normal;font-size:24px}'  /* 2026-11-11 大熊：小熊圓鈕看不懂 → 紅底膠囊寫字 */
+
     +'#jpFull{position:fixed;inset:0;z-index:60;background:#0b1437;touch-action:none;user-select:none;-webkit-user-select:none}'
     +'#jpFull canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}'
     +'.jphud{position:absolute;left:0;right:0;top:0;z-index:1;pointer-events:none;display:flex;justify-content:space-between;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;color:#fff;font-size:16px;font-weight:800}'
@@ -45,7 +45,7 @@
 
   function btn(){let b=q('jpBtn');if(!jpOn()){if(b)b.remove();return}
     if(!b){b=document.createElement('button');b.id='jpBtn';b.type='button';b.setAttribute('aria-label','荷包大補血・雪地跳跳搶禮物');b.onclick=()=>{if(!busy&&q('pop').hidden)intro()};document.body.appendChild(b)}
-    b.innerHTML='🐻<small>今天</small>'}
+    b.innerHTML='<i>🐻</i>雪地跳跳'}
   async function maybe(){if(!jpOn())return;
     if(jpReal()&&!JS)sync().then(btn);else if(jpExpectReal()&&!XS&&_wait++<20)setTimeout(()=>{if(jpReal()&&!JS)sync().then(btn)},1500);
     btn();if(_auto)return;

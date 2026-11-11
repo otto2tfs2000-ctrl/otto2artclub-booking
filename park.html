@@ -519,6 +519,17 @@ body:not(.oct) .gchip img{width:22px; height:22px}
 body:not(.oct) .gchip b{font-size:16px}
 body:not(.oct) .levels{order:1; margin:0 auto; width:min(230px,62%)}
 body:not(.oct) .levels button{padding:5px 12px; font-size:14px}
+/* 2026-11-11 大熊：上面聖誕樹＋吊飾禮物那一塊再扁一點 */
+body:not(.oct) .top{padding:3px 12px 3px; margin-top:6px; border-radius:14px}
+body:not(.oct) .tree{padding:1px 0 3px; font-size:12px; gap:6px}
+body:not(.oct) .tree .bar{height:7px}
+body:not(.oct) .tree .tt em{font-size:11px; padding:2px 9px}
+body:not(.oct) .colR{padding:3px 0 0; gap:6px}
+body:not(.oct) .mat{width:18px; height:18px}
+body:not(.oct) .colR .matlbl{font-size:12px; line-height:1.2}
+body:not(.oct) .colR .matlbl b,body:not(.oct) .gchip b{font-size:14px}
+body:not(.oct) .colR .gchip{font-size:12px}
+body:not(.oct) .gchip img{width:18px; height:18px}
 body:not(.oct) .hud > div:first-child{transition:opacity .3s}
 body.busy:not(.oct) .hud > div:first-child{opacity:0; pointer-events:none}
 body.busy:not(.oct) .hud > div:first-child *{pointer-events:none!important}
@@ -5341,7 +5352,7 @@ addEventListener('keydown',e=>{if(e.code==='Space'&&$('pop').hidden&&document.ac
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
 <script src="sled.js?v=20261111c"></script>
-<script src="jump.js?v=20261111h"></script>
+<script src="jump.js?v=20261111i"></script>
 <script>
 /* ══ 十月黑熊扭蛋（2026-09-30）══════════════════════════════
    預約頁首頁最上面的「十月黑熊扭蛋」卡片點下去才會載入這支，平常不佔頁面載入時間。
