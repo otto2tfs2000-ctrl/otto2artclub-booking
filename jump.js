@@ -68,7 +68,7 @@
         <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
         <li><i>🏆</i><span>送出成績<br><small>比榜上高就蓋過去</small></span></li>
       </ul>
-      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限第一位達成的會員</span></div>
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div>
@@ -224,7 +224,7 @@
       if(j){JS=j.jp;RANK=j.rank;add=j.jpRes.addG;addB=j.jpRes.addB;swap=j.jpRes.swap||0;bad=!!j.jpRes.bad;spc=j.jpRes.special||'';try{hud()}catch(e){}}}
     else{const g=Math.min(JP_GCAP,sc);add=Math.max(0,g-st0.best);const st=Object.assign({},st0,{plays:st0.plays+1,best:Math.max(st0.best,g),bbest:Math.max(st0.bbest,Math.min(JP_BCAP,b)),last:sc});keep(st);if(add){G.gifts+=add;try{save();hud()}catch(e){}}}
     const st=load(),can=jpReal()&&!bad&&sc>st.top;
-    const SPM={won:'✨ 恭喜！你是第一位拿到特別獎的會員，現金點數 1111，工作室會跟你聯絡',taken:'✨ 拿到 150 個了！不過特別獎已經有人先拿走，排行榜還能拚',notMember:'✨ 拿到 150 個了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 示範模式：這局有達到特別獎門檻（不會真的發）'},spMsg=SPM[spc]||'';
+    const SPM={won:'✨ 恭喜！你拿到特別獎（前 5 位會員），現金點數 1111，工作室會跟你聯絡',taken:'✨ 達標了！不過特別獎 5 個名額已經送完，排行榜還能拚',notMember:'✨ 達標了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 示範模式：這局有達到特別獎門檻（不會真的發）'},spMsg=SPM[spc]||'';
     const got=[add+swap?`🎁 聖誕禮物 <b>${add+swap}</b> 個`:'',addB?`🪙 紅利 <b>${addB}</b> 點`:''].filter(Boolean).join('、');
     if(q('jpFull'))q('pop').style.zIndex='70';
     card(`<div class="hwbig">${r.crashed?'💥':'🐻'}</div><h2>${r.crashed?`撞到了！跑了 ${Math.floor(r.sec)} 秒`:'時間到！跑完全程'}</h2>
@@ -244,7 +244,7 @@
     card(`<div class="jpin"><h2>🏆 荷包大補血排行榜</h2>${msg?`<p class="jpsub" style="color:#2f8f58;font-weight:800">${msg}</p>`:''}
       ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${medal[i]||i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p class="jpme">${jpReal()?'還沒有人送出成績，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
       ${jpReal()?`<p class="jpme">${rkLine()}</p>`:''}
-      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限第一位達成的會員</span></div>
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       <p class="jpsub">比的是單局禮物數・10:00–23:59</p>
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">回遊樂島</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div></div>`);
