@@ -2508,7 +2508,7 @@ async function xGachaShow(req){
 /* 2026-10-08 試做過「每天的扭蛋也全螢幕跳出」，大熊不要，停用（程式留著，沒有地方呼叫） */
 /* 2026-11-08 大熊：打開遊戲有黃金扭蛋金幣就直接跳黃金扭蛋機，沒有金幣但今天還有次數就跳一般扭蛋機，都轉過了就直接玩走格子（畫框背後是另一頁，不會跳） */
 function gachaFirst(){if(window.KIOSK||/[?&]nogf=1/.test(location.search))return; /* nogf=1：測試用，不跳 */const t0=Date.now();
-  const go=()=>{if(!G||!window.__parkReady||busy||!$('pop').hidden||document.body.classList.contains('touring')||(typeof shopOpenNow==='function'&&shopOpenNow()))return setTimeout(go,600);
+  const go=()=>{if(!G||!window.__parkReady||busy||window.HW_ON||!$('pop').hidden||document.body.classList.contains('touring')||(typeof shopOpenNow==='function'&&shopOpenNow()))return setTimeout(go,600);
     if(!ST&&!gErrMsg&&Date.now()-t0<6000)return setTimeout(go,400);if(Date.now()-t0<2500)return setTimeout(go,300); /* 等次數、金幣都載好 */
     if(ST&&ST.sim){const k='otto2-gf-sim-'+new Date(Date.now()+8*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}} /* 2026-11-09 示範模式（工作人員）次數無限，一天只自動跳一次，之後自己按 */
     if(goldHas()){goldGachaOpen(GOLD.coins,false);return}
