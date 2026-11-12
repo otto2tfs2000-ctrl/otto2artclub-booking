@@ -297,15 +297,15 @@
     return prizeDraw(d,pick)}
   function prizeDraw(d,pick){
     const done=d.choice;
-    const optP=`<b>① 贈送儲值點 ${d.pts} 點</b><span>入帳後 ${d.ptsMon} 個月內使用，到期沒用完的會自動扣除</span>`,optE=d.ext?`<b>② 方案效期展延 ${d.extMon} 個月</b><span>${d.ext.plan}：${d.ext.from} → ${d.ext.to}</span>`:`<b>② 方案效期展延 ${d.extMon} 個月</b><span>你目前沒有帶效期的方案，只能選 ①</span>`;
+    const optP=`<b>① 🎁 贈送金 ${d.pts} 元</b><span>${d.ptsMon} 個月內上課可折抵、可分次用；另外記（不併入儲值金），預約頁看得到，到期自動失效</span>`,optE=d.ext?`<b>② 方案效期展延 ${d.extMon} 個月</b><span>${d.ext.plan}：${d.ext.from} → ${d.ext.to}</span>`:`<b>② 方案效期展延 ${d.extMon} 個月</b><span>你目前沒有帶效期的方案，只能選 ①</span>`;
     const box=(h,on,id)=>`<div ${id?`id="${id}"`:''} style="border:2px solid ${on?'#d63a2f':'#eadfce'};background:${on?'#fff1ec':'#fff'};border-radius:14px;padding:12px;margin:0 0 10px;display:flex;flex-direction:column;gap:4px;text-align:left;${id?'cursor:pointer':''}">${h}</div>`;
     if(done){card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">一局 🎁 ${d.s} 個禮物</p>
-      ${box(done.c==='pts'?`<b>已經贈送儲值點 ${d.pts} 點 ✅</b><span>請在 ${done.exp} 前使用，到期沒用完的會自動扣除</span>`:`<b>方案已展延 ${d.extMon} 個月 ✅</b><span>${done.plan||'方案'}：${done.from} → ${done.to}</span>`,true)}
+      ${box(done.c==='pts'?`<b>🎁 贈送金 ${d.pts} 元已發送 ✅</b><span>請在 ${done.exp} 前使用（上課結帳折抵，可分次用），到期自動失效。預約頁「查詢我的點數」看得到</span>`:`<b>方案已展延 ${d.extMon} 個月 ✅</b><span>${done.plan||'方案'}：${done.from} → ${done.to}</span>`,true)}
       <div class="jpbtns"><button type="button" class="btn red" id="jpNo">好的</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
     let sel=pick==='ext'&&!d.ext?'':pick;
     const draw=()=>{card(`<div class="jpin"><h2>✨ 恭喜拿到特別獎</h2><p class="jpsub">一局 🎁 ${d.s} 個禮物・獎品兩種選一種</p>
       ${box(optP,sel==='pts','pzP')}${box(optE,sel==='ext',d.ext?'pzE':'')}
-      <p class="jpsub" style="font-size:13px">選了就不能改。${d.deadline.slice(5).replace('-','/')} 前沒選，會自動贈送儲值點。</p>
+      <p class="jpsub" style="font-size:13px">選了就不能改。${d.deadline.slice(5).replace('-','/')} 前沒選，會自動發贈送金。</p>
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">晚點再選</button><button type="button" class="btn red" id="jpOk" ${sel?'':'disabled style="opacity:.5"'}>確定選這個</button></div></div>`);
       q('pzP').onclick=()=>{sel='pts';draw()};if(q('pzE'))q('pzE').onclick=()=>{sel='ext';draw()};
       q('jpNo').onclick=()=>{q('pop').hidden=true};
