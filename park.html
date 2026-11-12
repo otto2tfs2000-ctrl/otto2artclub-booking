@@ -953,7 +953,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261109b';
+const PARK_VER='20261112p';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -992,11 +992,11 @@ const T={
   gacha:{c:'#ff9a8a',lbl:'扭蛋機',ic:'gacha'}, angel:{c:'#ffe3a0',lbl:'金色天使',ic:'angel'}, snow:{c:'#f4f7fb',lbl:'雪地',ic:'tree'},
   mix:{c:'#ffb3c7',lbl:'調色',ic:'palette',mg:'mix'}, stack:{c:'#b7e4a8',lbl:'疊禮物',ic:'tower',mg:'stack'},
   memo:{c:'#cdb8f2',lbl:'翻牌',ic:'cards',mg:'memo'}, catch:{c:'#9fd8f5',lbl:'接禮物',ic:'catch',mg:'catch'},
-  hue:{c:'#ffe08a',lbl:'辨色',ic:'hue',mg:'hue'}, stairs:{c:'#ffc59e',lbl:'下樓梯',ic:'stairs',mg:'stairs'}, plant:{c:'#bfe8b0',lbl:'種樹',ic:'sapling'}, elf:{c:'#a8e6b4',lbl:'抓精靈',ic:'elf',mg:'elf'}, simon:{c:'#c7d2ff',lbl:'記燈',ic:'bulbs',mg:'simon'},
+  hue:{c:'#ffe08a',lbl:'辨色',ic:'hue',mg:'hue'}, stairs:{c:'#ffc59e',lbl:'下樓梯',ic:'stairs',mg:'stairs'}, plant:{c:'#bfe8b0',lbl:'種樹',ic:'sapling'}, elf:{c:'#a8e6b4',lbl:'抓精靈',ic:'elf',mg:'elf'}, simon:{c:'#c7d2ff',lbl:'記燈',ic:'bulbs',mg:'simon'}, jump:{c:'#bfe3ff',lbl:'雪地跳跳',ic:'bearblack',mg:'jump'},
 };
 const LEVELS=[
   {name:'第一層',w:11,h:8,pad:2.0,off:new THREE.Vector3(0,0,0),
-   path:['start','lot','mix','bell','hue','lot','simon','stack','big','memo','gift', 'lot','plant','star','catch','gacha','plant', 'lot','ginger','stairs','lot','plant','sock','elf','gacha','again','plant', 'santa','plant','gacha','lot','plant','lot','fwd']},
+   path:['start','lot','mix','bell','hue','lot','simon','stack','big','memo','jump', 'lot','plant','star','catch','gacha','plant', 'lot','ginger','stairs','lot','plant','sock','elf','gacha','again','plant', 'santa','plant','gacha','lot','plant','lot','fwd']},
   {name:'第二層',w:6,h:4,off:new THREE.Vector3(0,6.2,-13),
    path:['start','snow','angel','snow','snow','fwd', 'snow','angel','snow', 'snow','snow','fwd','snow','angel', 'snow','snow']}, /* 2026-10-30 大熊：第二層只留金色天使（集貼紙）＋雪橇，走完一圈開預約大禮盒；不放扭蛋機、禮物、小遊戲 */
 ];
@@ -4378,6 +4378,7 @@ const MG={
   elf:{t:'抓搗蛋老師',ic:'elf',rule:'老師們戴上精靈帽，從煙囪冒出來搗蛋，快點他們！聖誕老人不要點，點到扣 2 分。15 秒。'},
   stairs:{t:'小朋友下樓梯',ic:'stairs',rule:'按住畫面左邊或右邊移動，一層一層往下跳。不要碰到上面的尖刺，也不要掉到最下面。紅色刺刺的台階會扣血，綠色的會彈起來。30 秒內下越多層越好。'},
   simon:{t:'聖誕燈記憶',ic:'bulbs',rule:'看聖誕燈亮的順序，照同樣的順序點一遍。每過一關會多一顆，點錯就結束。'},
+  jump:{t:'雪地跳跳',ic:'bearblack',rule:'小熊會一直往前跑，點一下畫面跳起來，在空中還能再點（最多連跳 3 下）。沿路拿禮物、金幣，撞到雪堆或石頭就結束。跑越久越快！'},   /* 2026-11-12 大熊：平面版雪地跳跳放進一般小遊戲（jump.js 的 Jump12.mini），不限時間、沒有公告 */
 };
 function card(html){$('card').innerHTML=html;$('pop').hidden=false}
 /* 全螢幕小遊戲的畫布：邏輯寬固定 300（速度、手感跟以前一樣），高度跟著螢幕拉長，再整張放大到螢幕寬 */
@@ -4393,7 +4394,7 @@ async function minigame(kind,room){
   /* 玩到一半按右上「不玩了」：遊戲停掉回小島（MGN 加一，遊戲裡的計時器看到就自己停）。格子上的小遊戲跟「略過」一樣送 1 個禮物 */
   MGN++;let quit;const qp=new Promise(q=>quit=q);$('mgX').hidden=false;$('mgX').onclick=()=>{MGN++;$('mgX').hidden=true;$('pop').hidden=true;$('pop').classList.remove('mgfull');quit(null)};
   $('pop').classList.add('mgfull'); /* 2026-10-30 大熊：小遊戲改全螢幕（跟萬聖節點南瓜一樣） */
-  const r=await Promise.race([{mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs}[kind](),qp]);$('mgX').hidden=true;$('pop').classList.remove('mgfull');
+  const r=await Promise.race([{mix:gMix,stack:gStack,memo:gMemo,catch:gCatch,hue:gHue,elf:gElf,simon:gSimon,stairs:gStairs,jump:gJump}[kind](),qp]);$('mgX').hidden=true;$('pop').classList.remove('mgfull');
   if(!r){if(room)return -1;addGifts(1);toast('這次先不玩，送你 1 個禮物');return 1}
   const old=G.arc.best[kind],isBest=!old||r.s>old.s;if(isBest)G.arc.best[kind]={s:r.s,lbl:r.lbl};
   scoreSend(kind,r);
@@ -4403,6 +4404,22 @@ async function minigame(kind,room){
   const bestTxt=isBest?`新紀錄：${r.lbl}！`:`你的最高紀錄：${old.lbl}。`;
   await popup(g?'giftbig':m.ic,g?`拿到 ${g} 個禮物！`:r.g&&room?'玩得很好！':'差一點點',`${r.msg}${bestTxt}${note}`);
   return g;
+}
+/* 雪地跳跳（平面版，jump.js）。禮物跟其他小遊戲一樣一局 0～3 個；紅利由伺服器 /xmas/jumpmini 發（每天最多 3 點，算走格子總上限） */
+const JM_BCAP=3;
+async function gJump(){
+  if(!window.Jump12||!Jump12.mini){toast('遊戲還在載入，稍後再試');return null}
+  $('pop').hidden=true;
+  const r=await Jump12.mini({bcap:JM_BCAP,quit:()=>$('mgX').onclick()});
+  const sc=r.sc,sec=Math.floor(r.sec);let bMsg='';
+  if(window.PROD&&XS&&!window.GUEST&&token()){
+    try{const j=await xcall('/xmas/jumpmini',{gift:sc,bonus:r.b,sec:r.sec}),q=j.jmRes||{};hud();
+      bMsg=q.addB?`另外送你紅利 ${q.addB} 點！`:q.swap?`紅利已經到上限，改送你 ${q.swap} 個禮物。`:r.b?`今天雪地跳跳的紅利已經拿過了（每天最多 ${JM_BCAP} 點，算最好的一局）。`:''}
+    catch(e){if(r.b)bMsg='連線不穩，這局的紅利沒送出去。'}}
+  else if(r.b)bMsg='體驗版不送紅利。';
+  Jump12.close();
+  const g=sc>=60?3:sc>=30?2:sc>=10?1:0;
+  return{s:sc,lbl:`${sc} 個`,g,msg:`跑了 ${sec} 秒，沿路拿到 ${sc} 個禮物。${sc>=60?'太厲害了！':sc>=10?'':'拿到 10 個以上就有禮物。'}${bMsg}`};
 }
 async function gameRoom(){
   if(busy)return;
@@ -5353,7 +5370,7 @@ window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.ho
 </script>
 <script src="sled.js?v=20261111c"></script>
 <script src="jump3d.js?v=20261112n"></script>
-<script src="jump.js?v=20261112n"></script>
+<script src="jump.js?v=20261112p"></script>
 <script>
 /* ══ 十月黑熊扭蛋（2026-09-30）══════════════════════════════
    預約頁首頁最上面的「十月黑熊扭蛋」卡片點下去才會載入這支，平常不佔頁面載入時間。

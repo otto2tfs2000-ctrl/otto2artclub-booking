@@ -141,11 +141,13 @@
     const st=load(),hard=Math.max(+st.top||0,+st.hi||0,+st.last||0)>=JP_HARD;
     let tutorial=true;try{tutorial=!localStorage.getItem(TKEY);localStorage.setItem(TKEY,'1')}catch(e){}
     return window.JumpPlay3D({ov,gone,sfx,bcap:JP_BCAP,jumps:JP_JUMPS,santaEvery:SANTA_EVERY,tutorial:tutorial&&!hard,hard}).catch(e=>{console.warn('3D 開不了，改平面版',e);closeOv();return play2d()})}
-  function play2d(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
+  /* 2026-11-12 大熊：平面版也放進一般小遊戲（遊戲室＋走格子一格）。opt.mini＝小遊戲模式：右上多一顆「不玩了」、紅利上限用 opt.bcap */
+  function play2d(opt){opt=opt||{};const BC=opt.bcap!=null?opt.bcap:JP_BCAP;closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
-    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span class="dbl" id="jpBo" hidden style="background:#9be7ff;border-color:#9be7ff">🌟 加速×2 <b id="jpBot">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
+    ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span class="dbl" id="jpBo" hidden style="background:#9be7ff;border-color:#9be7ff">🌟 加速×2 <b id="jpBot">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas>${opt.mini?'<button type="button" id="jpQuit" style="position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:2;font:inherit;font-size:14px;color:#2b2320;background:#fffaf2;border:2px solid #2b2320;border-radius:99px;padding:5px 13px;box-shadow:0 3px 0 #2b2320">✕ 不玩了</button>':''}<p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
     document.body.appendChild(ov);window.HW_ON=true;
+    if(opt.mini&&q('jpQuit'))q('jpQuit').onclick=e=>{e.stopPropagation();if(opt.quit)opt.quit()};
     const cv=q('jpCv'),x=cv.getContext('2d');let W=0,H=0;
     {const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0)}
     const U=Math.min(W,560)/400,GROUND=Math.round(H*.64),  /* 2026-11-11 大熊：手指會擋住，地面移到約 2/3 高 */
@@ -178,7 +180,7 @@
       if(I.boost){boost=BOOST;fx.push({x:it.x,y:it.y,t:'🌟 加速！禮物雙倍 5 秒',c:'#9be7ff',a:1.4});sfx('toot');return}
       if(I.dbl){dbl=JP_DBL;fx.push({x:it.x,y:it.y,t:'🔔 雙倍 5 秒！',c:'#ffd447',a:1.3});sfx('chime');return}
       if(I.g){gift+=I.g*m;fx.push({x:it.x,y:it.y,t:'+'+I.g*m,c:m>1||I.g>=5?'#ffd447':'#fff',a:1});sfx(I.g>=5?'sparkle':'pop')}
-      if(I.b){const b0=bon;bon=Math.min(JP_BCAP,bon+I.b*m);const got=bon-b0;fx.push({x:it.x,y:it.y,t:got?(bon>=JP_BCAP?`紅利 +${got}（滿 ${JP_BCAP} 點了）`:'紅利 +'+got):`紅利滿 ${JP_BCAP} 點了`,c:'#ffd447',a:1});sfx('sparkle')}  /* 2026-11-12 大熊：每場紅利最多 15 點 */
+      if(I.b){const b0=bon;bon=Math.min(BC,bon+I.b*m);const got=bon-b0;fx.push({x:it.x,y:it.y,t:got?(bon>=BC?`紅利 +${got}（滿 ${BC} 點了）`:'紅利 +'+got):`紅利滿 ${BC} 點了`,c:'#ffd447',a:1});sfx('sparkle')}  /* 2026-11-12 大熊：每場紅利最多 15 點 */
       hudUp()}
     function crash(o){o.done=1;over=true;crashed=true;flash=1;shake=.4;fx.push({x:bear.x+30,y:bear.y-bear.h,t:'💥 撞到了！',c:'#ff6a5a',a:1.4});sfx('thunk');setTimeout(end,1000)}
     function drawObs(o){const ox=o.x,w=o.w,h=o.h,gy=GROUND;x.save();
@@ -311,7 +313,7 @@
         try{if(PZD){const t=new Date(Date.now()+8*3600e3),e=new Date(t);e.setUTCMonth(e.getUTCMonth()+3);_pzDemo=sel==='pts'?{c:'pts',exp:e.toISOString().slice(0,10)}:{c:'ext',plan:'創意實踐家',from:'2027-03-01',to:'2027-08-01'};toast('這是測試畫面，沒有真的入帳')}else await gcall(API,{op:'prize',choice:sel});sfx('chime');prizeCard()}catch(e){b.disabled=false;b.textContent='確定選這個';toast(e.message||'連線不穩，再按一次')}}};
     draw()}
 
-  window.Jump12={intro,on:jpOn};
+  window.Jump12={intro,on:jpOn,mini:o=>play2d(Object.assign({mini:1},o||{})),close:closeOv};
   if(PZ)setTimeout(()=>{_auto=1;prizeCard(PZC)},900);
   setTimeout(maybe,700);
 })();
