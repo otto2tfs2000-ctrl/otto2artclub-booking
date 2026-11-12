@@ -69,7 +69,7 @@
         <li><i>⚠️</i><span>撞到紅圈障礙<br><small>這局就結束</small></span></li>
         <li><i>🎅</i><span>30 秒雪橇空襲<br><small>🎁+10・💣扣半・🌟×2</small></span></li>
       </ul>
-      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員<br>獎品二選一：入儲值點 1111（3 個月內用）或方案展延 5 個月<br>拿到特別獎的人不列入前三名</span></div>
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員（員工也算）<br>獎品二選一：贈送儲值點 1111（3 個月內用）或方案展延 5 個月<br>拿到特別獎的人、員工不列入前三名</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div>
@@ -257,7 +257,7 @@
       if(j){JS=j.jp;RANK=j.rank;add=j.jpRes.addG;addB=j.jpRes.addB;swap=j.jpRes.swap||0;bad=!!j.jpRes.bad;spc=j.jpRes.special||'';up=!!j.jpRes.up;try{hud()}catch(e){}}}
     else{const g=Math.min(JP_GCAP,sc);add=Math.max(0,g-st0.best);const st=Object.assign({},st0,{plays:st0.plays+1,best:Math.max(st0.best,g),bbest:Math.max(st0.bbest,Math.min(JP_BCAP,b)),last:sc});keep(st);if(add){G.gifts+=add;try{save();hud()}catch(e){}}}
     const st=load();   /* 2026-11-12 大熊：玩完自動上榜（伺服器 end 就寫了），只留最好的一局，不用再按送出 */
-    const SPM={won:'✨ 恭喜！你拿到特別獎（前 5 位會員）！明天早上 9 點會傳 LINE 給你，可以選「入儲值點 1111（3 個月內用）」或「方案展延 5 個月」',taken:'✨ 達標了！不過特別獎 5 個名額已經送完，排行榜還能拚',notMember:'✨ 達標了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 示範模式：這局有達到特別獎門檻（不會真的發）'},spMsg=SPM[spc]||'';
+    const SPM={won:'✨ 恭喜！你拿到特別獎（前 5 位會員）！明天早上 9 點會傳 LINE 給你，可以選「贈送儲值點 1111（3 個月內用）」或「方案展延 5 個月」',taken:'✨ 達標了！不過特別獎 5 個名額已經送完，排行榜還能拚',notMember:'✨ 達標了！特別獎限會員（有點數或堂數），排行榜照樣算',sim:'✨ 達標了！'},spMsg=SPM[spc]||'';
     const got=[add+swap?`🎁 聖誕禮物 <b>${add+swap}</b> 個`:'',addB?`🪙 紅利 <b>${addB}</b> 點`:''].filter(Boolean).join('、');
     if(q('jpFull'))q('pop').style.zIndex='70';
     card(`<div class="hwbig">${r.crashed?'💥':'🐻'}</div><h2>${r.crashed?`撞到了！跑了 ${Math.floor(r.sec)} 秒`:'時間到！跑完全程'}</h2>
@@ -277,9 +277,9 @@
     card(`<div class="jpin"><h2>🏆 荷包大補血排行榜</h2>${msg?`<p class="jpsub" style="color:#2f8f58;font-weight:800">${msg}</p>`:''}
       ${top.length?`<ol class="jprank">${top.map((x,i)=>`<li class="${x.me?'me':''}"><i>${x.sp?'✨':x.pl?medal[x.pl-1]:i+1}</i><span>${x.me?'你':(x.n||'神秘玩家')}</span><b>🎁 ${x.s}</b></li>`).join('')}</ol>`:`<p class="jpme">${jpReal()?'還沒有人上榜，你可以當第一個！':'用 LINE 登入才看得到排行榜'}</p>`}
       ${jpReal()?`<p class="jpme">${rkLine()}</p>`:''}
-      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員<br>獎品二選一：入儲值點 1111（3 個月內用）或方案展延 5 個月<br>拿到特別獎的人不列入前三名</span></div>
+      <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員（員工也算）<br>獎品二選一：贈送儲值點 1111（3 個月內用）或方案展延 5 個月<br>拿到特別獎的人、員工不列入前三名</span></div>
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
-      <p class="jpsub">比的是單局禮物數・10:00–23:59${top.some(x=>x.sp)?'<br>✨＝特別獎得主，不列入前三名，名次往下遞補':''}</p>
+      <p class="jpsub">比的是單局禮物數・10:00–23:59${top.some(x=>x.sp)?'<br>✨＝特別獎得主；特別獎得主和員工不列入前三名，名次往下遞補':''}</p>
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">回遊樂島</button><button type="button" class="btn red" id="jpGo">${load().plays?'再玩一次':'開始玩'}</button></div></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start}
 
@@ -290,15 +290,15 @@
     if(!(window.PROD&&token())){if(_pzTry++<20){setTimeout(()=>prizeCard(pick),1000);return}card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">請從 LINE 收到的訊息點按鈕打開</p><div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">關閉</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
     let d=null;try{d=(await gcall(API,{op:'prize',choice:'info'})).prize}catch(e){card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">${e.message||'讀不到資料'}</p><div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">關閉</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
     const done=d.choice;
-    const optP=`<b>① 入儲值點 ${d.pts} 點</b><span>入帳後 ${d.ptsMon} 個月內使用</span>`,optE=d.ext?`<b>② 方案效期展延 ${d.extMon} 個月</b><span>${d.ext.plan}：${d.ext.from} → ${d.ext.to}</span>`:`<b>② 方案效期展延 ${d.extMon} 個月</b><span>你目前沒有帶效期的方案，只能選 ①</span>`;
+    const optP=`<b>① 贈送儲值點 ${d.pts} 點</b><span>入帳後 ${d.ptsMon} 個月內使用，到期沒用完的會自動扣除</span>`,optE=d.ext?`<b>② 方案效期展延 ${d.extMon} 個月</b><span>${d.ext.plan}：${d.ext.from} → ${d.ext.to}</span>`:`<b>② 方案效期展延 ${d.extMon} 個月</b><span>你目前沒有帶效期的方案，只能選 ①</span>`;
     const box=(h,on,id)=>`<div ${id?`id="${id}"`:''} style="border:2px solid ${on?'#d63a2f':'#eadfce'};background:${on?'#fff1ec':'#fff'};border-radius:14px;padding:12px;margin:0 0 10px;display:flex;flex-direction:column;gap:4px;text-align:left;${id?'cursor:pointer':''}">${h}</div>`;
     if(done){card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">一局 🎁 ${d.s} 個禮物</p>
-      ${box(done.c==='pts'?`<b>已經入儲值點 ${d.pts} 點 ✅</b><span>請在 ${done.exp} 前使用</span>`:`<b>方案已展延 ${d.extMon} 個月 ✅</b><span>${done.plan||'方案'}：${done.from} → ${done.to}</span>`,true)}
+      ${box(done.c==='pts'?`<b>已經贈送儲值點 ${d.pts} 點 ✅</b><span>請在 ${done.exp} 前使用，到期沒用完的會自動扣除</span>`:`<b>方案已展延 ${d.extMon} 個月 ✅</b><span>${done.plan||'方案'}：${done.from} → ${done.to}</span>`,true)}
       <div class="jpbtns"><button type="button" class="btn red" id="jpNo">好的</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
     let sel=pick==='ext'&&!d.ext?'':pick;
     const draw=()=>{card(`<div class="jpin"><h2>✨ 恭喜拿到特別獎</h2><p class="jpsub">一局 🎁 ${d.s} 個禮物・獎品兩種選一種</p>
       ${box(optP,sel==='pts','pzP')}${box(optE,sel==='ext',d.ext?'pzE':'')}
-      <p class="jpsub" style="font-size:13px">選了就不能改。${d.deadline.slice(5).replace('-','/')} 前沒選，會自動入儲值點。</p>
+      <p class="jpsub" style="font-size:13px">選了就不能改。${d.deadline.slice(5).replace('-','/')} 前沒選，會自動贈送儲值點。</p>
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">晚點再選</button><button type="button" class="btn red" id="jpOk" ${sel?'':'disabled style="opacity:.5"'}>確定選這個</button></div></div>`);
       q('pzP').onclick=()=>{sel='pts';draw()};if(q('pzE'))q('pzE').onclick=()=>{sel='ext';draw()};
       q('jpNo').onclick=()=>{q('pop').hidden=true};
