@@ -31,6 +31,21 @@ function paintSky(){var dp=Math.min(2,devicePixelRatio||1),W=vw(),H=vh();sky.wid
 var gradMap=(function(){var t=new T.DataTexture(new Uint8Array([90,170,255]),3,1,T.LuminanceFormat);t.minFilter=t.magFilter=T.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t})();
 function toon(c,ex){return new T.MeshToonMaterial(Object.assign({color:c,gradientMap:gradMap},ex||{}))}
 function mesh(geo,mat,x,y,z,p){var m=new T.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);if(p)p.add(m);return m}
+/* 2026-11-12 效能（客人說會停頓、當機）：一個模型裡同一種材質的零件併成一塊、顏色寫進頂點（一棵聖誕樹 34 次繪製 → 3 次）。
+   併完的模型用 clone() 重複利用（共用同一份形狀和材質），所以玩再久也不會一直吃記憶體。會動的零件（小熊的腳）不要丟進來。 */
+function bake(g){if(g.isMesh)return g;g.updateMatrixWorld(true);var inv=new T.Matrix4().copy(g.matrixWorld).invert(),B={},keep=[],c=new T.Color();
+  g.traverse(function(o){if(o===g)return;var rel=new T.Matrix4().multiplyMatrices(inv,o.matrixWorld);
+    if(o.isSprite||(o.isMesh&&(o.material.map||o.material.transparent))){keep.push([o,rel]);return}
+    if(!o.isMesh)return;
+    var m=o.material,k=[m.type,m.flatShading?1:0,m.side,m.emissive?m.emissive.getHexString()+'_'+m.emissiveIntensity:''].join('|'),b=B[k]||(B[k]={m:m,p:[],n:[],c:[]});
+    var ge=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();ge.applyMatrix4(rel);
+    var P=ge.attributes.position.array,N=ge.attributes.normal.array;c.copy(m.color);
+    for(var i=0;i<P.length;i+=3){b.p.push(P[i],P[i+1],P[i+2]);b.n.push(N[i],N[i+1],N[i+2]);b.c.push(c.r,c.g,c.b)}
+    ge.dispose();o.geometry.dispose()});
+  while(g.children.length)g.remove(g.children[0]);
+  Object.keys(B).forEach(function(k){var b=B[k],ge=new T.BufferGeometry();ge.setAttribute('position',new T.Float32BufferAttribute(b.p,3));ge.setAttribute('normal',new T.Float32BufferAttribute(b.n,3));ge.setAttribute('color',new T.Float32BufferAttribute(b.c,3));
+    var m=b.m.clone();m.color.set('#ffffff');m.vertexColors=true;g.add(new T.Mesh(ge,m))});
+  keep.forEach(function(a){var o=a[0];a[1].decompose(o.position,o.quaternion,o.scale);g.add(o)});return g}
 function santaHat(y,s){var g=new T.Group(),c=mesh(new T.ConeGeometry(.22,.46,16),toon('#d63a2f'),.05,.2,0);c.rotation.z=-.35;g.add(c);
   var b=mesh(new T.TorusGeometry(.2,.06,8,20),toon('#ffffff'));b.rotation.x=Math.PI/2;g.add(b);g.add(mesh(new T.SphereGeometry(.07,10,8),toon('#ffffff'),.2,.4,0));g.position.y=y;g.scale.setScalar(s);return g}
 function makeBear(){var g=new T.Group(),m=toon('#1c1c1f'),snout=toon('#c9a27a'),dark=toon('#1c1c1f'),white=toon('#ffffff');
@@ -80,7 +95,8 @@ var cv=$('gl'),R=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});RR=R
 var scene=new T.Scene();scene.fog=new T.Fog('#22357a',45,105);
 var cam=new T.PerspectiveCamera(55,1,.1,200);
 scene.add(new T.AmbientLight('#c8d4ff',.75));var sun=new T.DirectionalLight('#fff4dd',.85);sun.position.set(4,9,6);scene.add(sun);
-function fit(){var dp=Math.min(2,devicePixelRatio||1),W=cv.clientWidth||innerWidth,H=cv.clientHeight||innerHeight;R.setPixelRatio(dp);R.setSize(W,H,false);cam.aspect=W/H;
+var QD=Math.min(2,devicePixelRatio||1),qa=0,qn=0;
+function fit(){var dp=QD,W=cv.clientWidth||innerWidth,H=cv.clientHeight||innerHeight;R.setPixelRatio(dp);R.setSize(W,H,false);cam.aspect=W/H;
   var portrait=cam.aspect<1;cam.fov=portrait?64:50;cam.position.set(0,portrait?7.2:6,portrait?8.6:7.5);cam.lookAt(0,0,-12);cam.updateProjectionMatrix();paintSky()}
 addEventListener('resize',fit);var KD=null;function cleanup(){if(dead)return;dead=1;window.HW_ON=false;try{removeEventListener('resize',fit);if(KD)removeEventListener('keydown',KD)}catch(e){}try{R.dispose();R.forceContextLoss()}catch(e){}if(O.ov.isConnected&&O.gone&&O.gone())O.ov.remove()}
 /* 雪地：大片白地＋中間淡藍跑道＋跑道兩邊的雪堆線（跟著速度往後捲） */
@@ -90,10 +106,11 @@ var LX=[-1.7,0,1.7];var lane=mesh(new T.PlaneGeometry(5.4,160),new T.MeshBasicMa
 var dashes=[],TRK=new T.MeshBasicMaterial({color:'#bccae6',transparent:true,opacity:.55});
 var i;   /* 2026-11-12 大熊：不要任何線條，雪地就是一整片雪 */
 var DRIFT=toon('#f4f8ff');
-for(i=0;i<34;i++){var dr=mesh(new T.SphereGeometry(.5,12,8,0,Math.PI*2,0,Math.PI/2),DRIFT,(Math.random()<.5?-1:1)*(2.9+Math.random()*1.5),0,-Math.random()*104,scene);dr.scale.set(1+Math.random(),.35+Math.random()*.3,.8+Math.random()*.6);dashes.push(dr)}
+var DRIFTG=new T.SphereGeometry(.5,12,8,0,Math.PI*2,0,Math.PI/2);
+for(i=0;i<34;i++){var dr=mesh(DRIFTG,DRIFT,(Math.random()<.5?-1:1)*(2.9+Math.random()*1.5),0,-Math.random()*104,scene);dr.scale.set(1+Math.random(),.35+Math.random()*.3,.8+Math.random()*.6);dashes.push(dr)}
 var SPK=[];
 /* 兩旁的聖誕樹、小樹、雪人：前後錯開，經過時看得到立體感 */
-var scenery=[],proto={tree:makeXmasTree(),small:null,snow:makeBadSnowman()};
+var scenery=[],proto={tree:bake(makeXmasTree()),small:null,snow:bake(makeBadSnowman())};
 function sceneryAt(z){var r=Math.random(),k=r<.75?'tree':'small',o=k==='snow'?proto.snow.clone():proto.tree.clone();
   var side=Math.random()<.5?-1:1,s=k==='tree'?.9+Math.random()*.7:k==='small'?.45+Math.random()*.25:1.2;o.scale.setScalar(s);
   o.position.set(side*(4.2+Math.random()*7),0,z);o.rotation.y=Math.random()*6;scene.add(o);scenery.push(o)}
@@ -101,15 +118,16 @@ for(var zz=8;zz>-75;zz-=2.4)sceneryAt(zz-Math.random()*2);
 var bear=makeBear();bear.rotation.y=Math.PI;bear.scale.setScalar(1.15);scene.add(bear);
 var shadow=mesh(new T.CircleGeometry(.42,20),new T.MeshBasicMaterial({color:'#1e2a5a',transparent:true,opacity:.2}),0,.03,0,scene);shadow.rotation.x=-Math.PI/2;
 var me=mesh(new T.RingGeometry(.5,.62,32),new T.MeshBasicMaterial({color:'#ffc93a',transparent:true,opacity:.95,depthWrite:false}),0,.04,0,scene);me.rotation.x=-Math.PI/2;
-var santa=makeSanta();santa.scale.setScalar(1.5);santa.visible=false;scene.add(santa);
+var santa=bake(makeSanta());santa.scale.setScalar(1.5);santa.visible=false;scene.add(santa);
 
 /* 掉落物：真的 3D 物件＋上面一張分數小標籤 */
 var glowTex=(function(){var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.3,'rgba(255,255,255,.5)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new T.CanvasTexture(c)})();
 function glow(col,s){var sp=new T.Sprite(new T.SpriteMaterial({map:glowTex,color:col,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));sp.scale.setScalar(s);return sp}
+var glowM={};function glowS(col,s){var sp=new T.Sprite(glowM[col]||(glowM[col]=new T.SpriteMaterial({map:glowTex,color:col,transparent:true,depthWrite:false,blending:T.AdditiveBlending})));sp.scale.setScalar(s);return sp}
 var labCache={};
 function label(t,bg,fg){var k=t+bg;if(!labCache[k]){var c=document.createElement('canvas');c.width=160;c.height=56;var x=c.getContext('2d');x.font='900 30px sans-serif';var w=Math.min(150,x.measureText(t).width+28);
-  x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=4;x.beginPath();if(x.roundRect)x.roundRect((160-w)/2,6,w,44,22);else x.rect((160-w)/2,6,w,44);x.fill();x.stroke();x.fillStyle=fg||'#2b2320';x.textAlign='center';x.textBaseline='middle';x.fillText(t,80,29);labCache[k]=new T.CanvasTexture(c)}
-  var sp=new T.Sprite(new T.SpriteMaterial({map:labCache[k],transparent:true,depthWrite:false}));sp.scale.set(.9,.315,1);return sp}
+  x.fillStyle=bg;x.strokeStyle='#2b2320';x.lineWidth=4;x.beginPath();if(x.roundRect)x.roundRect((160-w)/2,6,w,44,22);else x.rect((160-w)/2,6,w,44);x.fill();x.stroke();x.fillStyle=fg||'#2b2320';x.textAlign='center';x.textBaseline='middle';x.fillText(t,80,29);labCache[k]=new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,depthWrite:false})}
+  var sp=new T.Sprite(labCache[k]);sp.scale.set(.9,.315,1);return sp}
 var GOLD=toon('#f2c14e',{emissive:new T.Color('#6a4a10'),emissiveIntensity:.6});
 function giftBox(s,box,rib){var g=new T.Group();mesh(new T.BoxGeometry(.5,.5,.5),toon(box),0,0,0,g);mesh(new T.BoxGeometry(.52,.52,.1),toon(rib),0,0,0,g);mesh(new T.BoxGeometry(.1,.52,.52),toon(rib),0,0,0,g);
   var b1=mesh(new T.TorusGeometry(.1,.035,6,12),toon(rib),-.08,.3,0,g);b1.rotation.y=.6;var b2=mesh(new T.TorusGeometry(.1,.035,6,12),toon(rib),.08,.3,0,g);b2.rotation.y=-.6;g.scale.setScalar(s);return g}
@@ -142,7 +160,7 @@ function speed(){return (HARD?15:14)*(1+ramp()*(HARD?.7:.6))*(boost>0?1.35:1)}
 var SHG=new T.CircleGeometry(.32,16),SHM=new T.MeshBasicMaterial({color:'#1e2a5a',transparent:true,opacity:.22,depthWrite:false});
 /* 2026-11-12 大熊：大家不知道什麼時候跳 → 天上的東西，地上對應位置畫金色圈圈；快到時畫面跳出「↑ 跳！」 */
 var JRING=new T.RingGeometry(.45,.62,28),JRM=new T.MeshBasicMaterial({color:'#ffc93a',transparent:true,opacity:.85,depthWrite:false,side:T.DoubleSide});
-function add(o,k,x,y,z){var I=KIND[k],obj=I.mk();if((o.fall?o.ty:y)>1){var jr=new T.Mesh(JRING,JRM);jr.rotation.x=-Math.PI/2;jr.position.set(x,.03,z);scene.add(jr);o.jr=jr}var g=new T.Group();g.add(obj);var sh=new T.Mesh(SHG,SHM);sh.rotation.x=-Math.PI/2;scene.add(sh);o.sh=sh;if(I.glow){var gl=glow(I.glow,1.5);g.add(gl)}var lb=label(I.lab[0],I.lab[1],I.lab[2]);lb.position.y=-.55;g.add(lb);
+function add(o,k,x,y,z){var I=KIND[k],obj=(I.pr||(I.pr=bake(I.mk()))).clone();if((o.fall?o.ty:y)>1){var jr=new T.Mesh(JRING,JRM);jr.rotation.x=-Math.PI/2;jr.position.set(x,.03,z);scene.add(jr);o.jr=jr}var g=new T.Group();g.add(obj);var sh=new T.Mesh(SHG,SHM);sh.rotation.x=-Math.PI/2;scene.add(sh);o.sh=sh;if(I.glow){var gl=glowS(I.glow,1.5);g.add(gl)}var lb=label(I.lab[0],I.lab[1],I.lab[2]);lb.position.y=-.55;g.add(lb);
   g.position.set(x,y,z);scene.add(g);o.g=g;o.spin=obj;o.k=k;things.push(o);return o}
 function pick(){for(var n=0;n<6;n++){var r=Math.random()*IW,k=IK[0];for(var i=0;i<IK.length;i++){r-=KIND[IK[i]].w;if(r<=0){k=IK[i];break}}if(KIND[k].b&&coins>=6)continue;return k}return 'g1'}
 function spawnItem(){var k=pick(),I=KIND[k];if(I.b)coins++;var ln=Math.floor(Math.random()*3);
@@ -156,8 +174,9 @@ function obsWrap(model,lx,h,txt,ly){var w=new T.Group();w.add(model);var r=new T
 function spawnObs(){var lanes=[0,1,2].sort(function(){return Math.random()-.5}).slice(0,HARD?(el>12&&Math.random()<.5?2:1):(el>20&&Math.random()<.45?2:1));
   lanes.forEach(function(ln,i){var tall=el>8&&Math.random()<.35;if(tall){var t=proto.tree.clone();t.scale.setScalar(1.1);obsWrap(t,LX[ln],99,'⚠ 閃開',3.45)}else oneObs(LX[ln])})}
 /* 2026-11-12 大熊：雪堆改成立體雪人（遊樂島那個）、石頭大一點 */
+var RKP={};function rockP(big){var k=big?1:0;if(!RKP[k]){var w=new T.Group(),g=mesh(new T.DodecahedronGeometry(big?.82:.68,0),toon('#6b6f84',{flatShading:true}),0,0,0,w);g.scale.set(1,1.5,1);var cap=mesh(new T.DodecahedronGeometry(big?.55:.45,0),toon('#f4f7ff',{flatShading:true}),0,(big?.62:.5),0,g);cap.scale.y=.3;RKP[k]=bake(w)}return RKP[k]}
 function oneObs(lx){var big=HARD?(el>25&&Math.random()<.3):(el>40&&Math.random()<.25),rock=Math.random()<.5,g,h;
-  if(rock){g=mesh(new T.DodecahedronGeometry(big?.82:.68,0),toon('#6b6f84',{flatShading:true}));g.scale.set(1,1.5,1);g.position.y=0;var cap=mesh(new T.DodecahedronGeometry(big?.55:.45,0),toon('#f4f7ff',{flatShading:true}),0,(big?.62:.5),0,g);cap.scale.y=.3;h=big?1.4:1.15}   /* 2026-11-12 大熊：石頭再大、跟雪人一樣高 */
+  if(rock){g=rockP(big).clone();h=big?1.4:1.15}   /* 2026-11-12 大熊：石頭再大、跟雪人一樣高 */
   else{g=proto.snow.clone();g.scale.setScalar(big?1.25:1.05);g.rotation.y=0;h=big?1.4:1.15}
   obsWrap(g,lx,h,'⚠ 跳過',h+.55)}
 /* 2026-11-12 大熊：3D 看不出有沒有真的碰到 → 碰到時：東西飛向右上角分數、原地閃一圈金光、跳出 +N、分數跳一下、畫面邊緣亮一下 */
@@ -202,7 +221,8 @@ function santaTick(dt){
     add({type:'item',fall:1,tx:LX[Math.floor(Math.random()*3)],ty:Math.random()<.6?.55:2.1},k,santa.position.x,santa.position.y-.8,-30)}}
   if(p>=1){sOn=false;sWarn=false;sn+=SANTA_EVERY;santa.visible=false}}
 
-function frame(now){if(!O.ov.isConnected||(O.gone&&O.gone())){cleanup();return}var dt=Math.min(.05,(now-last)/1000||0);last=now;
+function frame(now){if(!O.ov.isConnected||(O.gone&&O.gone())){cleanup();return}var raw=now-last;if(on&&raw>0&&raw<250){qa+=raw;qn++;if(qn>=90){var av=qa/qn;qa=qn=0;if(av>30&&QD>1){QD=QD>1.5?1.5:Math.max(1,QD-.25);R.setPixelRatio(QD);R.setSize(cv.clientWidth||innerWidth,cv.clientHeight||innerHeight,false)}}}
+  var dt=Math.min(.05,(now-last)/1000||0);last=now;
   var sp=on?speed():3;
   if(on){el+=dt;
     var k=el>=40?1+Math.floor((el-40)/15):0;if(k>fastShown&&k<=3){fastShown=k;toast('⚡ 加速！')}
@@ -234,7 +254,7 @@ function frame(now){if(!O.ov.isConnected||(O.gone&&O.gone())){cleanup();return}v
   for(j=0;j<dashes.length;j++){var d=dashes[j];d.position.z+=sp*dt;if(d.position.z>8)d.position.z-=d.geometry.type==='PlaneGeometry'?112:104}
   for(j=0;j<SPK.length;j++){var k2=SPK[j];k2.position.z+=sp*dt;if(k2.position.z>8){k2.position.z-=100;k2.position.x=(Math.random()-.5)*14}k2.material.opacity=.35+.5*Math.abs(Math.sin(el*3+j))}
   for(var b=bursts.length-1;b>=0;b--){var q=bursts[b];q.userData.t+=dt;if(q.userData.grow){q.scale.setScalar(.4+q.userData.t*6);q.material.opacity=Math.max(0,1-q.userData.t*3.5)}else{q.position.addScaledVector(q.userData.v,dt);q.userData.v.y-=6*dt;q.material.opacity=Math.max(0,1-q.userData.t*2)}
-    if(q.material.opacity<=0){scene.remove(q);bursts.splice(b,1)}}
+    if(q.material.opacity<=0){scene.remove(q);q.material.dispose();bursts.splice(b,1)}}
   DANGER.opacity=.55+.4*Math.abs(Math.sin(last/1000*5));me.position.x=bx;
   if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').style.opacity=0}
   var cy=cam.position.y;if(shake>0){shake-=dt;cam.position.x=(Math.random()-.5)*.25}else cam.position.x=0;
@@ -247,7 +267,14 @@ function start(){
   if(HARD)setTimeout(function(){toast('🔥 困難模式：你已經破 700，更快、障礙更多！','#ff8a5c');toastT=3},300);
   on=true;$('hud').hidden=false;$('tip').hidden=false;if(O.tutorial)tutShow(1);else{tut=0;$('tut').hidden=true}}
 function finish(){$('jc').hidden=true;$('tut').hidden=true;tut=0;$('tip').hidden=true;RES({sc:gift,b:bon,crashed:true,sec:el})}
-fit();start();requestAnimationFrame(function(n){last=n;frame(n)});
+function prewarm(){try{var i=0;Object.keys(KIND).forEach(function(k){add({type:'item'},k,LX[i%3],i%2?2.1:.55,-6-i*2);i++});
+    obsWrap(rockP(0).clone(),LX[0],1,'⚠ 跳過',1.7);obsWrap(rockP(1).clone(),LX[1],1,'⚠ 跳過',1.7);obsWrap(proto.snow.clone(),LX[2],1,'⚠ 跳過',1.7);obsWrap(proto.tree.clone(),LX[1],99,'⚠ 閃開',3.45);
+    things.forEach(function(o){if(o.type==='obs')o.g.position.z=-30});
+    for(var b=0;b<2;b++){var sp=glow('#ffe066',.35);sp.position.set(0,1,-8);scene.add(sp);bursts.push(sp)}
+    santa.visible=true;santa.position.set(0,6,-28);R.render(scene,cam);santa.visible=false;
+    things.forEach(function(o){scene.remove(o.g);if(o.sh)scene.remove(o.sh);if(o.jr)scene.remove(o.jr)});things=[];
+    bursts.forEach(function(q){scene.remove(q);q.material.dispose()});bursts=[]}catch(e){santa.visible=false}}
+fit();prewarm();start();requestAnimationFrame(function(n){last=n;frame(n)});
 
     }catch(e){try{if(RR){RR.dispose();RR.forceContextLoss()}}catch(_){}REJ(e)}
   })};
