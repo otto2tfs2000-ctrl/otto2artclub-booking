@@ -7,7 +7,7 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=15,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=888,   /* 2026-11-12 大熊：換 3D 300→1000→666（炸彈難）→888（大熊 147 秒拿 733） */
+  const API='/xmas/jump12',JP_SPECIAL=888,JP_HARD=700,   /* 2026-11-12 大熊：今天拿過 700 以上，之後每局困難模式 */   /* 2026-11-12 大熊：換 3D 300→1000→666（炸彈難）→888（大熊 147 秒拿 733） */
   JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY&&new Date(Date.now()+8*3600e3).getUTCHours()>=10));   /* 2026-11-11 大熊：10:00–23:59 */
@@ -133,8 +133,9 @@
   const TKEY='otto2-jump3d-tut';
   function play(){if(!window.JumpPlay3D||/[?&]jp2d=1/.test(location.search))return play2d();
     closeOv();MGN++;const gone=MGS();const ov=document.createElement('div');ov.id='jpFull';document.body.appendChild(ov);window.HW_ON=true;
+    const st=load(),hard=Math.max(+st.top||0,+st.hi||0,+st.last||0)>=JP_HARD;
     let tutorial=true;try{tutorial=!localStorage.getItem(TKEY);localStorage.setItem(TKEY,'1')}catch(e){}
-    return window.JumpPlay3D({ov,gone,sfx,bcap:JP_BCAP,jumps:JP_JUMPS,santaEvery:SANTA_EVERY,tutorial}).catch(e=>{console.warn('3D 開不了，改平面版',e);closeOv();return play2d()})}
+    return window.JumpPlay3D({ov,gone,sfx,bcap:JP_BCAP,jumps:JP_JUMPS,santaEvery:SANTA_EVERY,tutorial:tutorial&&!hard,hard}).catch(e=>{console.warn('3D 開不了，改平面版',e);closeOv();return play2d()})}
   function play2d(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
@@ -259,6 +260,7 @@
       <div class="hwsc">🎁 ${sc}　🪙 ${b}</div>
       ${got?`<p style="margin:0 0 6px">入帳 ${got}</p>`:''}
       ${spMsg?`<p style="margin:0 0 8px;font-weight:800;color:#b8721a">${spMsg}</p>`:''}
+      ${sc>=JP_HARD&&Math.max(+st0.top||0,+st0.hi||0,+st0.last||0)<JP_HARD?`<p style="margin:0 0 8px;font-weight:800;color:#d9542b">🔥 你破 ${JP_HARD} 了！下一局開始是困難模式</p>`:''}
       <p style="margin:0 0 10px;font-size:14px">${jpReal()?(up?`🏆 新紀錄！已經自動放上排行榜${RANK&&RANK.me?`（第 <b>${RANK.me}</b> 名）`:''}`:(st.top?`排行榜保留你最好的 🎁 <b>${st.top}</b>，這局沒超過，再挑戰一次`:'再挑戰一次，拿到分數就會自動上榜')):'這是體驗版，用 LINE 登入才能上排行榜'}</p>
       <div class="acts"><button type="button" class="btn red" id="jpGo">再玩一次</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">回遊樂島</button></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start;q('jpRk').onclick=()=>rankCard();

@@ -1,6 +1,6 @@
 /* ---------- 2026-11-12 大熊：雪地跳跳換成 3D（三條跑道、左右滑換道、往上滑跳） ----------
    這支檔案是用 預覽圖/build-jump3d.py 從 預覽圖/bear-jump-3d-demo.html 轉出來的，改玩法請改試玩頁再重轉。
-   jump.js 的 play() 會呼叫 window.JumpPlay3D({ov,gone,sfx,bcap,jumps,santaEvery,tutorial})，回傳 {sc,b,crashed,sec}；
+   jump.js 的 play() 會呼叫 window.JumpPlay3D({ov,gone,sfx,bcap,jumps,santaEvery,tutorial,hard})，回傳 {sc,b,crashed,sec}；
    開不了 3D（WebGL 失敗）或網址帶 ?jp2d=1 就用原本平面版。 */
 (function(){
   var st=document.createElement('style');st.textContent="#jpFull{color:#fff;font-family:\"PingFang TC\",\"Noto Sans TC\",system-ui,sans-serif}\n\n/* 版面：整個畫面是 3D 雪地跑道（後面一張極光夜空），分數列釘在上方，開始／結算視窗疊在中間 */\n#j3sky,#j3gl{position:absolute;inset:0;width:100%;height:100%;display:block}\n#j3gl{touch-action:none}\n#j3hud{position:absolute;top:0;left:0;right:0;display:flex;gap:6px;justify-content:space-between;align-items:center;pointer-events:none;flex-wrap:wrap;\n  padding-block:calc(env(safe-area-inset-top,0px) + 10px) 0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}\n.j3chip{background:rgba(11,20,55,.72);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 11px;font-weight:800;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}\n.j3chip b{color:#ffd447;font-size:19px}\n.j3chip.y{background:#ffd447;color:#3a2600;border-color:#ffd447}.j3chip.y b{color:#3a2600}\n.j3chip.c{background:#9be7ff;color:#0b2a3a;border-color:#9be7ff}.j3chip.c b{color:#0b2a3a}\n#j3toast{position:absolute;left:0;right:0;top:28%;text-align:center;font-weight:900;font-size:26px;color:#ffd447;text-shadow:0 2px 0 #1a1430,0 0 12px rgba(0,0,0,.6);pointer-events:none;transition:opacity .3s}\n#j3tip{position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 10px);text-align:center;color:#2b3a6a;font-size:13px;font-weight:700;pointer-events:none}\n#j3tut{position:absolute;left:0;right:0;top:34%;display:flex;justify-content:center;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}\n#j3tut .j3tbox{background:rgba(11,20,55,.78);border:2px solid rgba(255,255,255,.35);border-radius:20px;padding:14px 22px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:220px}\n#j3tut b{display:block;text-align:center;font-size:22px;color:#ffd447}#j3tut small{text-align:center;font-size:13px;color:#dfe6ff}\n#j3tut .j3hand{font-size:44px;line-height:1}\n#j3tut .j3hand.lr{animation:handlr 1.2s ease-in-out infinite}#j3tut .j3hand.up{animation:handup 1s ease-in-out infinite}\n@keyframes handlr{0%,100%{transform:translateX(-46px)}50%{transform:translateX(46px)}}\n@keyframes handup{0%{transform:translateY(24px);opacity:.3}60%{transform:translateY(-24px);opacity:1}100%{transform:translateY(-24px);opacity:0}}\n#j3tut.ok b{color:#7dffb0}\n.j3fly{position:fixed;left:0;top:0;z-index:65;font-size:34px;line-height:1;pointer-events:none;transform:translate(-50%,-50%);transition:transform .55s cubic-bezier(.5,-0.3,.7,1),opacity .55s}\n.j3pop{position:fixed;left:0;top:0;z-index:66;font-weight:900;font-size:30px;pointer-events:none;transform:translate(-50%,-50%);text-shadow:0 2px 0 #1a1430,0 0 8px rgba(0,0,0,.5);animation:popup .8s ease-out forwards}\n@keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-180%) scale(1)}}\n.j3chip.j3bump{animation:bump .3s ease-out}\n@keyframes bump{40%{transform:scale(1.25)}}\n#jc{position:absolute;left:0;right:0;bottom:33%;text-align:center;font-weight:900;font-size:34px;color:#ffd447;text-shadow:0 2px 0 #1a1430,0 0 12px rgba(0,0,0,.6);pointer-events:none;animation:jcb .4s ease-in-out infinite alternate}\n@keyframes jcb{to{transform:translateY(-8px) scale(1.1)}}\n#j3ring{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 0 rgba(255,212,71,0);transition:box-shadow .25s}\n#j3ring.on{box-shadow:inset 0 0 40px 10px rgba(255,212,71,.55);transition:none}\n@media (prefers-reduced-motion: reduce){.j3fly{transition:none}.j3pop{animation-duration:.01s}}\n";document.head.appendChild(st);
@@ -131,12 +131,14 @@ var IK=Object.keys(KIND).filter(function(k){return KIND[k].w>0}),IW=IK.reduce(fu
 for(var q=0;q<60;q++){var sk=glow('#ffffff',.18);sk.position.set((Math.random()-.5)*14,.06,-Math.random()*100);scene.add(sk);SPK.push(sk)}
 
 /* ---------- 遊戲 ---------- */
+/* 2026-11-12 大熊：同一個人今天已經拿過 700 以上，之後每局都是困難模式（一開始就比較快、更早加速、障礙更多）。試玩頁用 ?hard=1 看 */
+var HARD=!!O.hard;
 var LV=[.6,2.0,3.3],JUMPS=O.jumps||3,G=-30,V0=11.2,DBLT=5,BOOST=5,SANTA_FIRST=O.santaEvery,SANTA_EVERY=O.santaEvery,SANTA_PASS=6;
 var on=false,el=0,last=0,gift=0,bon=0,dbl=0,boost=0,things=[],ni=.6,no=2.6,coins=0,by=0,vy=0,jumps=0,run=0,fastShown=0,sn=SANTA_FIRST,sOn=false,sT=0,sDrop=0,sStars=0,sWarn=false,shake=0,AC=null;
 function beep(f,d,ty,v){try{var s=O.sfx;if(!s)return;if(ty==='sawtooth')s('thunk');else if(f>=1500)s('sparkle');else if(f>=1300)s('chime');else if(f===990)s('toot');else if(f>=1100)s('sparkle');else if(ty==='triangle')s('tick');else s('pop')}catch(e){}}
 var toastT=0;function toast(t,c){var e=$('toast');e.textContent=t;e.style.color=c||'#ffd447';e.style.opacity=1;toastT=1.4}
-function ramp(){return Math.max(0,Math.min(1,(el-40)/30))}
-function speed(){return 14*(1+ramp()*.6)*(boost>0?1.35:1)}
+function ramp(){return HARD?Math.max(0,Math.min(1,(el-20)/30)):Math.max(0,Math.min(1,(el-40)/30))}
+function speed(){return (HARD?15:14)*(1+ramp()*(HARD?.7:.6))*(boost>0?1.35:1)}
 var SHG=new T.CircleGeometry(.32,16),SHM=new T.MeshBasicMaterial({color:'#1e2a5a',transparent:true,opacity:.22,depthWrite:false});
 /* 2026-11-12 大熊：大家不知道什麼時候跳 → 天上的東西，地上對應位置畫金色圈圈；快到時畫面跳出「↑ 跳！」 */
 var JRING=new T.RingGeometry(.45,.62,28),JRM=new T.MeshBasicMaterial({color:'#ffc93a',transparent:true,opacity:.85,depthWrite:false,side:T.DoubleSide});
@@ -151,10 +153,10 @@ function spawnItem(){var k=pick(),I=KIND[k];if(I.b)coins++;var ln=Math.floor(Mat
 var DANGER=new T.MeshBasicMaterial({color:'#ff3b2f',transparent:true,opacity:.8,depthWrite:false,side:T.DoubleSide}),DRING=new T.RingGeometry(.62,.86,32),DFILL=new T.CircleGeometry(.62,32),DFM=new T.MeshBasicMaterial({color:'#ff3b2f',transparent:true,opacity:.18,depthWrite:false});
 function obsWrap(model,lx,h,txt,ly){var w=new T.Group();w.add(model);var r=new T.Mesh(DRING,DANGER);r.rotation.x=-Math.PI/2;r.position.y=.04;w.add(r);var f=new T.Mesh(DFILL,DFM);f.rotation.x=-Math.PI/2;f.position.y=.035;w.add(f);
   var lb=label(txt,'#ff3b2f','#ffffff');lb.scale.set(1.8,.63,1);lb.position.y=ly;w.add(lb);w.position.set(lx,0,-80);scene.add(w);things.push({type:'obs',g:w,h:h,tall:h>50?1:0})}
-function spawnObs(){var lanes=[0,1,2].sort(function(){return Math.random()-.5}).slice(0,el>20&&Math.random()<.45?2:1);
+function spawnObs(){var lanes=[0,1,2].sort(function(){return Math.random()-.5}).slice(0,HARD?(el>12&&Math.random()<.5?2:1):(el>20&&Math.random()<.45?2:1));
   lanes.forEach(function(ln,i){var tall=el>8&&Math.random()<.35;if(tall){var t=proto.tree.clone();t.scale.setScalar(1.1);obsWrap(t,LX[ln],99,'⚠ 閃開',3.45)}else oneObs(LX[ln])})}
 /* 2026-11-12 大熊：雪堆改成立體雪人（遊樂島那個）、石頭大一點 */
-function oneObs(lx){var big=el>40&&Math.random()<.25,rock=Math.random()<.5,g,h;
+function oneObs(lx){var big=HARD?(el>25&&Math.random()<.3):(el>40&&Math.random()<.25),rock=Math.random()<.5,g,h;
   if(rock){g=mesh(new T.DodecahedronGeometry(big?.82:.68,0),toon('#6b6f84',{flatShading:true}));g.scale.set(1,1.5,1);g.position.y=0;var cap=mesh(new T.DodecahedronGeometry(big?.55:.45,0),toon('#f4f7ff',{flatShading:true}),0,(big?.62:.5),0,g);cap.scale.y=.3;h=big?1.4:1.15}   /* 2026-11-12 大熊：石頭再大、跟雪人一樣高 */
   else{g=proto.snow.clone();g.scale.setScalar(big?1.25:1.05);g.rotation.y=0;h=big?1.4:1.15}
   obsWrap(g,lx,h,'⚠ 跳過',h+.55)}
@@ -210,7 +212,7 @@ function frame(now){if(!O.ov.isConnected||(O.gone&&O.gone())){cleanup();return}v
     if(tut&&tut<3)no=Math.max(no,1);   /* 教學中不出障礙 */
     santaTick(dt);
     ni-=dt;if(ni<=0){spawnItem();ni=(.75/Math.sqrt(1+ramp()*.6))*(.7+Math.random()*.6)}
-    no-=dt;if(no<=0){spawnObs();no=(2.4-ramp()*.9)*(.8+Math.random()*.6)}
+    no-=dt;if(no<=0){spawnObs();no=(HARD?2.1-ramp()*.85:2.4-ramp()*.9)*(.8+Math.random()*.6)}
     for(var i=0;i<things.length;i++){var o=things[i];o.g.position.z+=sp*dt;
       if(o.fall){o.g.position.x+=(o.tx-o.g.position.x)*Math.min(1,dt*2.5);o.g.position.y=Math.max(o.ty,o.g.position.y-9*dt);if(o.g.position.y<=o.ty&&Math.abs(o.g.position.x-o.tx)<.05)o.fall=0}
       if(o.spin){o.spin.rotation.y+=dt*2.4}
@@ -242,6 +244,7 @@ function frame(now){if(!O.ov.isConnected||(O.gone&&O.gone())){cleanup();return}v
 
 function start(){
   things.forEach(function(o){scene.remove(o.g);if(o.sh)scene.remove(o.sh);if(o.jr)scene.remove(o.jr)});$('jc').hidden=true;things=[];el=0;gift=0;bon=0;dbl=0;boost=0;ni=.6;no=2.6;coins=0;by=0;vy=0;jumps=0;fastShown=0;li=1;bx=0;sn=SANTA_FIRST;sOn=false;sWarn=false;santa.visible=false;
+  if(HARD)setTimeout(function(){toast('🔥 困難模式：你已經破 700，更快、障礙更多！','#ff8a5c');toastT=3},300);
   on=true;$('hud').hidden=false;$('tip').hidden=false;if(O.tutorial)tutShow(1);else{tut=0;$('tut').hidden=true}}
 function finish(){$('jc').hidden=true;$('tut').hidden=true;tut=0;$('tip').hidden=true;RES({sc:gift,b:bon,crashed:true,sec:el})}
 fit();start();requestAnimationFrame(function(n){last=n;frame(n)});
