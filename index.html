@@ -394,7 +394,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.80</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.81</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -2293,7 +2293,7 @@ function boot(){
   } else if(!boot._gc && /go(=|%3D)jump/i.test(q)){
     /* 2026-11-12 小熊雪地跳跳預覽：https://liff.line.me/2010906803-FMDYktUN?go=jump；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;
-    liffReady.then(()=>{ parkToken(); location.replace("park.html?v="+Date.now()+"&jump=1")   /* 每次網址都不一樣，LINE 不會拿到舊的快取 */ });
+    liffReady.then(()=>{ parkToken(); location.replace("park.html?v="+Date.now()+"&jump=1"+(/jpprize(=|%3D)1/i.test(q)?"&jpprize=1"+((q.match(/[?&]c(?:=|%3D)(pts|ext)/i)||[])[1]?"&c="+q.match(/[?&]c(?:=|%3D)(pts|ext)/i)[1]:""):""))   /* 每次網址都不一樣，LINE 不會拿到舊的快取 */ });
   } else if(!boot._gc && /go(=|%3D)sled/i.test(q)){
     /* 2026-11-11 雙 11 雪橇丟禮物預覽：https://liff.line.me/2010906803-FMDYktUN?go=sled；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;
