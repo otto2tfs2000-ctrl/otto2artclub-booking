@@ -163,9 +163,12 @@ var JRING=new T.RingGeometry(.45,.62,28),JRM=new T.MeshBasicMaterial({color:'#ff
 function add(o,k,x,y,z){var I=KIND[k],obj=(I.pr||(I.pr=bake(I.mk()))).clone();if((o.fall?o.ty:y)>1){var jr=new T.Mesh(JRING,JRM);jr.rotation.x=-Math.PI/2;jr.position.set(x,.03,z);scene.add(jr);o.jr=jr}var g=new T.Group();g.add(obj);var sh=new T.Mesh(SHG,SHM);sh.rotation.x=-Math.PI/2;scene.add(sh);o.sh=sh;if(I.glow){var gl=glowS(I.glow,1.5);g.add(gl)}var lb=label(I.lab[0],I.lab[1],I.lab[2]);lb.position.y=-.55;g.add(lb);
   g.position.set(x,y,z);scene.add(g);o.g=g;o.spin=obj;o.k=k;things.push(o);return o}
 function pick(){for(var n=0;n<6;n++){var r=Math.random()*IW,k=IK[0];for(var i=0;i<IK.length;i++){r-=KIND[IK[i]].w;if(r<=0){k=IK[i];break}}if(KIND[k].b&&coins>=6)continue;return k}return 'g1'}
-function spawnItem(){var k=pick(),I=KIND[k];if(I.b)coins++;var ln=Math.floor(Math.random()*3);
+/* 2026-11-12 傍晚 大熊：炸彈多一點、不要太快拿到 888 → 平常路上也會有炸彈（原本只有聖誕老公公會丟），禮物越多出得越多；教學中不出 */
+function bombRate(){return (tut&&tut<3)?0:gift>=600?.24:gift>=300?.16:el>15?.08:0}
+function spawnItem(){var ln=Math.floor(Math.random()*3);if(Math.random()<bombRate()){add({type:'item'},'xb',LX[ln],.55,-80);return}
+  var k=pick(),I=KIND[k];if(I.b)coins++;
   if(I.high){var nh=I.g?3:1;for(var h3=0;h3<nh;h3++)add({type:'item'},k,LX[ln],3.3,-80-h3*1.6);return}   /* 2026-11-12 大熊：天上的禮物一次三個 */                      /* 星星、鑽石：高處，要連跳 */
-  if(k==='g1'&&Math.random()<.75){var n=4+Math.floor(Math.random()*3);for(var j=0;j<n;j++)add({type:'item'},k,LX[ln],.55,-80-j*1.6);return}   /* 地上一排禮物 */
+  if(k==='g1'&&Math.random()<.75){var n=4+Math.floor(Math.random()*3),bi=(gift>=300&&Math.random()<.3)?1+Math.floor(Math.random()*(n-2)):-1;for(var j=0;j<n;j++)add({type:'item'},j===bi?'xb':k,LX[ln],.55,-80-j*1.6);return}   /* 地上一排禮物；300 個以後，一排禮物中間有時夾一顆炸彈（要跳過去） */   /* 地上一排禮物 */
   var yy0=Math.random()<.5?.55:2.1,n3=(yy0>1&&I.g)?3:1;for(var j3=0;j3<n3;j3++)add({type:'item'},k,LX[ln],yy0,-80-j3*1.6)}                    /* 其他：地上或半空 */
 /* 障礙：一次佔 1～2 條跑道（不會三條全擋）。矮的（雪堆、石頭）可以跳；聖誕樹路障只能閃 */
 var DANGER=new T.MeshBasicMaterial({color:'#ff3b2f',transparent:true,opacity:.8,depthWrite:false,side:T.DoubleSide}),DRING=new T.RingGeometry(.62,.86,32),DFILL=new T.CircleGeometry(.62,32),DFM=new T.MeshBasicMaterial({color:'#ff3b2f',transparent:true,opacity:.18,depthWrite:false});
