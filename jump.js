@@ -59,7 +59,7 @@
       if(m&&m[1]!==MYV){const u=new URLSearchParams(location.search);u.set('v',String(Date.now()));if(!u.has('jump'))u.set('jump','1');u.set('nogf','1');location.replace('park.html?'+u.toString())}}).catch(()=>{})}
   function intro(){freshCheck();const st=load();if(q('jpBtn'))q('jpBtn').remove();
     /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
-    card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
+    card(`<div class="jpin">${lineBox()}<div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
       <p class="jpsub">三條跑道搶禮物・不限次數・10:00–23:59</p>
       <ul class="jpgrid">
         <li><i>👆</i><span>左右滑換跑道<br><small>往上滑跳，最多連跳 3 下</small></span></li>
@@ -73,7 +73,7 @@
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div>
-      <button type="button" class="btn red jpstart" id="jpGo">開始玩</button></div>`);   /* 2026-11-11 大熊：開始玩放最下面 */
+      <button type="button" class="btn ${jpReal()?'red':'ghost'} jpstart" id="jpGo">${jpReal()?'開始玩':'先試玩（不算成績）'}</button></div>`);   /* 2026-11-11 大熊：開始玩放最下面 */
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
     setTimeout(()=>{try{art()}catch(e){}},60)}
 
@@ -131,6 +131,10 @@
   function closeOv(){const o=q('jpFull');if(o)o.remove();window.HW_ON=false;q('pop').style.zIndex=''}
   /* 2026-11-12 大熊：換成 3D（jump3d.js）；開不了 3D 或 ?jp2d=1 才用下面的平面版 play2d */
   const TKEY='otto2-jump3d-tut';
+  /* 2026-11-12 大熊：有人從網頁連結（訪客版／沒登入）玩到 776 沒上榜。沒登入 LINE 的一律先提醒、給一顆直接開 LINE 遊樂島的按鈕 */
+  const LINE_JP='https://liff.line.me/2010906803-FMDYktUN?go=jump';
+  const lineBox=()=>jpReal()?'':`<div style="background:#d63a2f;color:#fff;border-radius:14px;padding:12px 12px 10px;margin:0 0 12px;text-align:center;font-weight:800;line-height:1.5">⚠️ 你現在是用網頁連結玩<br><span style="font-weight:600;font-size:14px">這裡玩的成績<u>不會</u>上排行榜、也拿不到獎品</span>
+    <a href="${LINE_JP}" style="display:block;margin-top:8px;background:#ffd447;color:#5a3a00;border-radius:999px;padding:10px;text-decoration:none;font-size:17px">👉 用 LINE 打開來玩（成績才算）</a></div>`;
   function play(){if(!window.JumpPlay3D||/[?&]jp2d=1/.test(location.search))return play2d();
     closeOv();MGN++;const gone=MGS();const ov=document.createElement('div');ov.id='jpFull';document.body.appendChild(ov);window.HW_ON=true;
     const st=load(),hard=Math.max(+st.top||0,+st.hi||0,+st.last||0)>=JP_HARD;
@@ -261,7 +265,7 @@
       ${got?`<p style="margin:0 0 6px">入帳 ${got}</p>`:''}
       ${spMsg?`<p style="margin:0 0 8px;font-weight:800;color:#b8721a">${spMsg}</p>`:''}
       ${sc>=JP_HARD&&Math.max(+st0.top||0,+st0.hi||0,+st0.last||0)<JP_HARD?`<p style="margin:0 0 8px;font-weight:800;color:#d9542b">🔥 你破 ${JP_HARD} 了！下一局開始是困難模式</p>`:''}
-      <p style="margin:0 0 10px;font-size:14px">${jpReal()?(up?`🏆 新紀錄！已經自動放上排行榜${RANK&&RANK.me?`（第 <b>${RANK.me}</b> 名）`:''}`:(st.top?`排行榜保留你最好的 🎁 <b>${st.top}</b>，這局沒超過，再挑戰一次`:'再挑戰一次，拿到分數就會自動上榜')):'這是體驗版，用 LINE 登入才能上排行榜'}</p>
+      <p style="margin:0 0 10px;font-size:14px">${jpReal()?(up?`🏆 新紀錄！已經自動放上排行榜${RANK&&RANK.me?`（第 <b>${RANK.me}</b> 名）`:''}`:(st.top?`排行榜保留你最好的 🎁 <b>${st.top}</b>，這局沒超過，再挑戰一次`:'再挑戰一次，拿到分數就會自動上榜')):'這是體驗版，這局成績不算'}</p>${lineBox()}
       <div class="acts"><button type="button" class="btn red" id="jpGo">再玩一次</button><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">回遊樂島</button></div>`);
     q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start;q('jpRk').onclick=()=>rankCard();
     if(up)try{sfx('chime')}catch(e){}}
