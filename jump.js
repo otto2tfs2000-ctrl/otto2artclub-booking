@@ -7,7 +7,8 @@
 (function(){
   const JP_DAY='2026-11-12',JP_SEC=30,JP_FAST=20,JP_GCAP=20,JP_BCAP=15,JP_DBL=5,JP_LIVE=true;
   const PRIZE='🥇 第一名 現金點數 111<br>🥈 第二名 A5 水彩繪本<br>🥉 第三名 聖誕公公娃娃一組';
-  const API='/xmas/jump12',JP_SPECIAL=300,JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
+  const API='/xmas/jump12',JP_SPECIAL=1000,   /* 2026-11-12 大熊：換 3D 變簡單，門檻 300 → 1000 */
+  JP_JUMPS=3;   /* 2026-11-11 大熊：4 下太多，改 3 下 */
   const q=id=>document.getElementById(id);
   const jpOn=()=>!window.KIOSK&&(/[?&]jump=1/.test(location.search)||(JP_LIVE&&gToday()===JP_DAY&&new Date(Date.now()+8*3600e3).getUTCHours()>=10));   /* 2026-11-11 大熊：10:00–23:59 */
   const jpReal=()=>!!(window.PROD&&XS&&!window.GUEST&&token());
@@ -59,13 +60,13 @@
   function intro(){freshCheck();const st=load();if(q('jpBtn'))q('jpBtn').remove();
     /* 2026-11-11 大熊嫌排版醜：重排成 規則兩欄小格＋特別獎一塊＋前三名清單，開始鈕滿寬放最上面 */
     card(`<div class="jpin"><div class="jpbear">🐻</div><h2>荷包大補血<small>雪地跳跳搶禮物</small></h2>
-      <p class="jpsub">點螢幕跳起來拿禮物・不限次數・10:00–23:59</p>
+      <p class="jpsub">三條跑道搶禮物・不限次數・10:00–23:59</p>
       <ul class="jpgrid">
-        <li><i>👆</i><span>點一下跳<br><small>空中最多連跳 3 下</small></span></li>
+        <li><i>👆</i><span>左右滑換跑道<br><small>往上滑跳，最多連跳 3 下</small></span></li>
         <li><i>🎁</i><span>禮物 +1<br><small>🧸 +2・⭐ +5 在高處</small></span></li>
         <li><i>🪙</i><span>金幣・鑽石<br><small>紅利點數，每場最多 ${JP_BCAP} 點</small></span></li>
         <li><i>🔔</i><span>發光鈴鐺<br><small>5 秒內全部雙倍</small></span></li>
-        <li><i>⛄</i><span>撞到雪堆、石頭<br><small>這局就結束</small></span></li>
+        <li><i>⚠️</i><span>撞到紅圈障礙<br><small>這局就結束</small></span></li>
         <li><i>🎅</i><span>30 秒雪橇空襲<br><small>🎁+10・💣扣半・🌟×2</small></span></li>
       </ul>
       <div class="jpsp"><b>✨ 特別獎 現金點數 1111</b><span>一局拿到 ${JP_SPECIAL} 個禮物・限前 5 位達成的會員</span></div>
@@ -128,7 +129,13 @@
   const IK=Object.keys(ITEMS).filter(k=>ITEMS[k].w>0),IW=IK.reduce((a,k)=>a+ITEMS[k].w,0);
 
   function closeOv(){const o=q('jpFull');if(o)o.remove();window.HW_ON=false;q('pop').style.zIndex=''}
-  function play(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
+  /* 2026-11-12 大熊：換成 3D（jump3d.js）；開不了 3D 或 ?jp2d=1 才用下面的平面版 play2d */
+  const TKEY='otto2-jump3d-tut';
+  function play(){if(!window.JumpPlay3D||/[?&]jp2d=1/.test(location.search))return play2d();
+    closeOv();MGN++;const gone=MGS();const ov=document.createElement('div');ov.id='jpFull';document.body.appendChild(ov);window.HW_ON=true;
+    let tutorial=true;try{tutorial=!localStorage.getItem(TKEY);localStorage.setItem(TKEY,'1')}catch(e){}
+    return window.JumpPlay3D({ov,gone,sfx,bcap:JP_BCAP,jumps:JP_JUMPS,santaEvery:SANTA_EVERY,tutorial}).catch(e=>{console.warn('3D 開不了，改平面版',e);closeOv();return play2d()})}
+  function play2d(){closeOv();return new Promise(res=>{MGN++;const gone=MGS();
     const DP=Math.min(2,devicePixelRatio||1),A=art()||{};
     const ov=document.createElement('div');ov.id='jpFull';
     ov.innerHTML=`<div class="jphud"><span>⏱ <b id="jpT">0</b> 秒</span><span class="dbl" id="jpD" hidden>🔔 雙倍 <b id="jpDt">5.0</b></span><span class="dbl" id="jpBo" hidden style="background:#9be7ff;border-color:#9be7ff">🌟 加速×2 <b id="jpBot">5.0</b></span><span>🎁 <b id="jpS">0</b>　🪙 <b id="jpB">0</b></span></div><canvas id="jpCv"></canvas><p class="jptip">點一下跳，在空中還能再點，最多連跳 3 下</p>`;
