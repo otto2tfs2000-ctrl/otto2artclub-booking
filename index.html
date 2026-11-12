@@ -382,7 +382,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.77</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.78</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1448,7 +1448,7 @@ function hmGameCard(){
   if(d==="2026-10-31"||/[?&]hw=1/.test(location.search))return{t:"萬聖節搗蛋南瓜",s:"今天限定！點南瓜拿禮物，小心炸彈",tag:"今天限定",hw:true};
   /* 2026-11-12 一天：荷包大補血・雪地跳跳搶禮物（park jump.js），整張卡片換掉，第一顆鈕直接進遊戲（?jump=1 預覽） */
   if((d==="2026-11-12"&&new Date(Date.now()+8*3600e3).getUTCHours()>=10)||/jump(=|%3D)1/i.test(location.href))   /* 從 LINE 開時參數可能還包在 liff.state 裡（%3D），兩種都認 */
-    return{t:"荷包大補血・雪地跳跳",s:"點螢幕跳起來搶禮物，前三名有大獎",tag:"今天限定",jp:true};
+    return{t:"荷包大補血・雪地跳跳",s:"左右滑、往上跳搶禮物，888 個送 1111",tag:"今天限定",jp:true};
   if(d<="2026-12-31")return{t:"聖誕遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"聖誕限定"};
   return{t:"Otto2 遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"小遊戲"};
 }
