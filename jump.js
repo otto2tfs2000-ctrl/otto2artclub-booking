@@ -73,7 +73,7 @@
       <ol class="jptop"><li><i>🥇</i>第一名<b>現金點數 111</b></li><li><i>🥈</i>第二名<b>A5 水彩繪本</b></li><li><i>🥉</i>第三名<b>聖誕公公娃娃一組</b></li></ol>
       ${st.top?`<p class="jpme">你在榜上 🎁 <b>${st.top}</b></p>`:''}
       <div class="jpbtns"><button type="button" class="btn ghost" id="jpRk">排行榜</button><button type="button" class="btn ghost" id="jpNo">晚點再玩</button></div>
-      <button type="button" class="btn ${jpReal()?'red':'ghost'} jpstart" id="jpGo">${jpReal()?'開始玩':'先試玩（不算成績）'}</button></div>`);   /* 2026-11-11 大熊：開始玩放最下面 */
+      <button type="button" class="btn ${jpExpectReal()?'red':'ghost'} jpstart" id="jpGo">${jpExpectReal()?'開始玩':'先試玩（不算成績）'}</button></div>`);   /* 2026-11-11 大熊：開始玩放最下面 */
     q('jpNo').onclick=()=>{q('pop').hidden=true;btn()};q('jpRk').onclick=()=>rankCard();q('jpGo').onclick=start;
     setTimeout(()=>{try{art()}catch(e){}},60)}
 
@@ -133,7 +133,8 @@
   const TKEY='otto2-jump3d-tut';
   /* 2026-11-12 大熊：有人從網頁連結（訪客版／沒登入）玩到 776 沒上榜。沒登入 LINE 的一律先提醒、給一顆直接開 LINE 遊樂島的按鈕 */
   const LINE_JP='https://liff.line.me/2010906803-FMDYktUN?go=jump';
-  const lineBox=()=>jpReal()?'':`<div style="background:#d63a2f;color:#fff;border-radius:14px;padding:12px 12px 10px;margin:0 0 12px;text-align:center;font-weight:800;line-height:1.5">⚠️ 你現在是用網頁連結玩<br><span style="font-weight:600;font-size:14px">這裡玩的成績<u>不會</u>上排行榜、也拿不到獎品</span>
+  /* 2026-11-12 13:40 修：剛打開遊樂島時資料還沒載完，jpReal() 暫時是 false，LINE 裡的人也看到紅框。改看有沒有 LINE 登入（jpExpectReal） */
+  const lineBox=()=>jpExpectReal()?'':`<div style="background:#d63a2f;color:#fff;border-radius:14px;padding:12px 12px 10px;margin:0 0 12px;text-align:center;font-weight:800;line-height:1.5">⚠️ 你現在是用網頁連結玩<br><span style="font-weight:600;font-size:14px">這裡玩的成績<u>不會</u>上排行榜、也拿不到獎品</span>
     <a href="${LINE_JP}" style="display:block;margin-top:8px;background:#ffd447;color:#5a3a00;border-radius:999px;padding:10px;text-decoration:none;font-size:17px">👉 用 LINE 打開來玩（成績才算）</a></div>`;
   function play(){if(!window.JumpPlay3D||/[?&]jp2d=1/.test(location.search))return play2d();
     closeOv();MGN++;const gone=MGS();const ov=document.createElement('div');ov.id='jpFull';document.body.appendChild(ov);window.HW_ON=true;
