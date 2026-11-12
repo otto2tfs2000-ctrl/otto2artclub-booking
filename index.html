@@ -252,8 +252,8 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gcbox.hw .gc-go button{color:#4a2270}
 .gcbox.hw .gc-go button:first-child{background:#ff9b3d;color:#2b1440}
 /* 2026-11-12 荷包大補血・雪地跳跳（hmGameCard jp）：大熊嫌深藍不吸引人 → 紅包紅＋金光、禮物跳動、光澤掃過、開始鈕會呼吸 */
-.gcbox.jp{background:radial-gradient(circle at 88% 0%,rgba(255,214,90,.75) 0,rgba(255,214,90,0) 42%),linear-gradient(135deg,#ff5a3c,#e01b24 48%,#a8001c);border:2px solid #ffd447;box-shadow:0 0 0 3px rgba(255,212,71,.35),0 10px 26px rgba(214,20,31,.42);animation:jpGlow 1.8s ease-in-out infinite}
-@keyframes jpGlow{50%{box-shadow:0 0 0 6px rgba(255,212,71,.6),0 12px 30px rgba(214,20,31,.55)}}
+.gcbox.jp{background:radial-gradient(circle at 88% 0%,rgba(255,214,90,.75) 0,rgba(255,214,90,0) 42%),linear-gradient(135deg,#ff5a3c,#e01b24 48%,#a8001c);border:2px solid #ffd447;box-shadow:0 0 10px 3px rgba(255,214,70,.7),0 0 28px 8px rgba(255,190,40,.45);animation:jpGlow 1.4s ease-in-out infinite;margin:6px 2px 18px}
+@keyframes jpGlow{50%{box-shadow:0 0 18px 7px rgba(255,226,90,.95),0 0 46px 16px rgba(255,190,40,.65);border-color:#fff3b0}}   /* 2026-11-12 大熊：我想發光 → 外圈金光加強 */
 .gcbox.jp::after{content:"🎁";font-size:40px;right:12px;top:10px;color:inherit;opacity:1;filter:drop-shadow(0 4px 6px rgba(120,0,0,.35));animation:jpGift 1.3s ease-in-out infinite}
 @keyframes jpGift{50%{transform:translateY(-9px) rotate(10deg)}}
 .gcbox.jp::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.32) 48%,transparent 60%);transform:translateX(-120%);animation:jpShine 3s ease-in-out infinite;pointer-events:none;z-index:3}
@@ -263,11 +263,13 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gcbox.jp .hm-tx small{color:#fff3c4;font-weight:700}
 .gcbox.jp .hm-ic.hwic{background:#fff4d6;font-size:34px;display:grid;place-items:center;box-shadow:0 0 0 3px #ffd447;animation:gcCardHop 1.6s ease-in-out infinite}
 .gcbox.jp .gc-go button{color:#b8141f}
-.gcbox.jp .gc-go button:first-child{background:linear-gradient(#ffe680,#ffc21a);color:#7a1a00;box-shadow:0 3px 0 #b8741a;animation:jpBtn 1.1s ease-in-out infinite}
-@keyframes jpBtn{50%{transform:scale(1.07)}}
+.gcbox.jp .gc-go button:first-child{background:linear-gradient(#fff2a8,#ffc21a);color:#7a1a00;box-shadow:0 3px 0 #b8741a,0 0 14px 4px rgba(255,236,140,.9);animation:jpBtn 1.1s ease-in-out infinite}
+@keyframes jpBtn{50%{transform:scale(1.07);box-shadow:0 3px 0 #b8741a,0 0 24px 9px rgba(255,246,180,1)}}
+.gcbox.jp .jp-spk{position:absolute;z-index:4;pointer-events:none;color:#fff6c2;text-shadow:0 0 8px #ffd447,0 0 16px #ffb800;animation:jpSpk 1.6s ease-in-out infinite}
+@keyframes jpSpk{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(45deg)}}
 .gcbox.jp .jp-prize{position:relative;z-index:1;margin:0 14px 10px;padding:7px 10px;border-radius:12px;background:rgba(120,0,10,.32);border:1px dashed rgba(255,226,122,.7);color:#fff;font-size:13.5px;font-weight:800;text-align:center;line-height:1.5}
 .gcbox.jp .jp-prize b{color:#ffe27a;font-size:16px}
-@media (prefers-reduced-motion: reduce){.gcbox.jp,.gcbox.jp::after,.gcbox.jp::before,.gcbox.jp .gc-go button:first-child{animation:none}}
+@media (prefers-reduced-motion: reduce){.gcbox.jp .jp-spk,.gcbox.jp,.gcbox.jp::after,.gcbox.jp::before,.gcbox.jp .gc-go button:first-child{animation:none}}
 .gcbox::after{content:"❄";position:absolute;right:-8px;top:-22px;font-size:96px;line-height:1;color:rgba(255,255,255,.16);pointer-events:none;animation:gcCardRays 30s linear infinite}
 .gcbox .hm-card.gc{margin:0;border:0;box-shadow:none;background:transparent;border-radius:18px 18px 0 0}
 .gcbox .hm-card.gc::after{display:none}
@@ -392,7 +394,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.79</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.80</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1482,7 +1484,7 @@ function renderHome(){
         <span class="hm-tx"><b>${hmGame.t}<span class="gc-new">${hmGame.tag}</span></b>${myMember&&myMember.bonus>0&&!hmGame.jp?"":`<small>${hmGame.s}</small>`}</span>
         <span class="hm-ar">›</span>
       </button>
-      ${hmGame.jp?'<div class="jp-prize">💰 一局 <b>888</b> 個禮物送現金點數 <b>1111</b><br>🏆 前三名還有現金點數、繪本、聖誕娃娃</div>':hmBonusHtml()}
+      ${hmGame.jp?'<span class="jp-spk" style="left:8px;top:6px;font-size:22px">✦</span><span class="jp-spk" style="right:62px;top:6px;font-size:16px;animation-delay:.5s">✦</span><span class="jp-spk" style="right:8px;bottom:62px;font-size:20px;animation-delay:1s">✦</span><span class="jp-spk" style="left:12px;bottom:66px;font-size:14px;animation-delay:.8s">✦</span><div class="jp-prize">💰 一局 <b>888</b> 個禮物送現金點數 <b>1111</b><br>🏆 前三名還有現金點數、繪本、聖誕娃娃</div>':hmBonusHtml()}
       <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 點南瓜':hmGame.jp?'🐻 開始跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 黃金扭蛋 ×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 轉扭蛋</button>`}<button type="button" id="hmGoShop">🎁 換好禮</button></div>
       </div>
       <button class="hm-card hall" id="hmHall">
