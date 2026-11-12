@@ -284,11 +284,15 @@
     q('jpNo').onclick=()=>{q('pop').hidden=true;closeOv();btn()};q('jpGo').onclick=start}
 
   /* 2026-11-12 大熊：特別獎得主隔天收到 LINE（?go=jump&jpprize=1&c=pts|ext），在這裡選「入儲值點 1111」或「方案展延 5 個月」，伺服器 op:'prize' 直接入帳／展延 */
-  const PZ=/[?&]jpprize=1/.test(location.search),PZC=(location.search.match(/[?&]c=(pts|ext)/)||[])[1]||'';
+  const PZ=/[?&]jpprize=1/.test(location.search),PZD=/[?&]demo=1/.test(location.search),PZC=(location.search.match(/[?&]c=(pts|ext)/)||[])[1]||'';
   let _pzTry=0;
+  let _pzDemo=null;   /* 後台「傳給我測試」的按鈕：示範畫面，不呼叫伺服器、不入帳 */
   async function prizeCard(pick){
+    if(PZD){const d={winner:true,s:1429,choice:_pzDemo,pts:1111,ptsMon:3,extMon:5,deadline:'2026-11-15',ext:{plan:'創意實踐家',from:'2027-03-01',to:'2027-08-01'}};return prizeDraw(d,pick)}
     if(!(window.PROD&&token())){if(_pzTry++<20){setTimeout(()=>prizeCard(pick),1000);return}card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">請從 LINE 收到的訊息點按鈕打開</p><div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">關閉</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
     let d=null;try{d=(await gcall(API,{op:'prize',choice:'info'})).prize}catch(e){card(`<div class="jpin"><h2>✨ 特別獎</h2><p class="jpsub">${e.message||'讀不到資料'}</p><div class="jpbtns"><button type="button" class="btn ghost" id="jpNo">關閉</button></div></div>`);q('jpNo').onclick=()=>{q('pop').hidden=true};return}
+    return prizeDraw(d,pick)}
+  function prizeDraw(d,pick){
     const done=d.choice;
     const optP=`<b>① 贈送儲值點 ${d.pts} 點</b><span>入帳後 ${d.ptsMon} 個月內使用，到期沒用完的會自動扣除</span>`,optE=d.ext?`<b>② 方案效期展延 ${d.extMon} 個月</b><span>${d.ext.plan}：${d.ext.from} → ${d.ext.to}</span>`:`<b>② 方案效期展延 ${d.extMon} 個月</b><span>你目前沒有帶效期的方案，只能選 ①</span>`;
     const box=(h,on,id)=>`<div ${id?`id="${id}"`:''} style="border:2px solid ${on?'#d63a2f':'#eadfce'};background:${on?'#fff1ec':'#fff'};border-radius:14px;padding:12px;margin:0 0 10px;display:flex;flex-direction:column;gap:4px;text-align:left;${id?'cursor:pointer':''}">${h}</div>`;
@@ -303,7 +307,7 @@
       q('pzP').onclick=()=>{sel='pts';draw()};if(q('pzE'))q('pzE').onclick=()=>{sel='ext';draw()};
       q('jpNo').onclick=()=>{q('pop').hidden=true};
       q('jpOk').onclick=async()=>{if(!sel)return;const b=q('jpOk');b.disabled=true;b.textContent='處理中…';
-        try{await gcall(API,{op:'prize',choice:sel});sfx('chime');prizeCard()}catch(e){b.disabled=false;b.textContent='確定選這個';toast(e.message||'連線不穩，再按一次')}}};
+        try{if(PZD){const t=new Date(Date.now()+8*3600e3),e=new Date(t);e.setUTCMonth(e.getUTCMonth()+3);_pzDemo=sel==='pts'?{c:'pts',exp:e.toISOString().slice(0,10)}:{c:'ext',plan:'創意實踐家',from:'2027-03-01',to:'2027-08-01'};toast('這是測試畫面，沒有真的入帳')}else await gcall(API,{op:'prize',choice:sel});sfx('chime');prizeCard()}catch(e){b.disabled=false;b.textContent='確定選這個';toast(e.message||'連線不穩，再按一次')}}};
     draw()}
 
   window.Jump12={intro,on:jpOn};
