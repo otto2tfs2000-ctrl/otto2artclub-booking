@@ -127,8 +127,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 /* 拍合照（臉洞看板） */
 #btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
 #scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
-.bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:20px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
-#bWrap{width:min(100%,400px,50vh);flex:none}
+.bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:18px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
+#bWrap{width:min(100%,460px,58vh);flex:none}
 .bErr{margin:0;min-height:0;font-size:14px;font-weight:700;color:#ffb38a;text-align:center}
 #bCv{display:block;width:100%;aspect-ratio:4/5;border-radius:6px;border:3px solid #6b5432;box-sizing:border-box;touch-action:none;background:#111}
 .bZoom{display:flex;align-items:center;gap:10px;width:100%;max-width:400px;font-size:13px;color:#c9b38a}.bZoom input{flex:1}
@@ -517,8 +517,8 @@ function sceneTo(ex,w,h,N){ex.drawImage(peImg,0,0,w,h);
 const TIMG=[1,2,3,4,5,6].map(k=>{const m=new Image();m.src='catch-video/t'+k+'.png';return m});
 
 /* ===== 拍合照：名畫裡左邊戴白帽的女生挖一個臉洞，自拍的臉從後面透出來 ===== */
-const BCROP=[.164,.177,.357,.631];          // 合照取景（名畫的哪一塊，x,y,寬,高）
-const BHOLE={x:.5,y:.464,rx:.095,ry:.105};  // 臉洞在取景裡的位置與大小
+const BCROP=[.214,.258,.257,.4545];         // 合照取景（名畫的哪一塊，x,y,寬,高）；11/13 大熊嫌太小 → 拉近，臉洞變大
+const BHOLE={x:.5,y:.467,rx:.13,ry:.144};   // 臉洞在取景裡的位置與大小
 const bCv=$('#bCv'),bx=bCv.getContext('2d');let bSelf=null,bOX=0,bOY=0,bZ=1,bScene=null,bPtr=new Map(),bPinch=null;
 function bMakeScene(){const c=document.createElement('canvas');c.width=1400;c.height=990;sceneTo(c.getContext('2d'),1400,990,outN);bScene=c}
 /* 2026-11-13 大熊：加一點油畫筆觸。拍下來的照片：先做「油畫平塗」（Kuwahara），再順著明暗方向一筆一筆刷上短筆觸 */
@@ -553,10 +553,10 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   else if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
   if(live||bSelf){   /* 2026-11-13 大熊：臉太亮 → 調成名畫的暗綠褐色調 */
     ctx.save();ctx.globalCompositeOperation='overlay';ctx.globalAlpha=live?.45:.25;ctx.fillStyle=ctx.createPattern(strokeTex(),'repeat');ctx.fillRect(0,0,W,H);ctx.restore();   // 筆觸紋理
-    ctx.save();ctx.globalCompositeOperation='saturation';ctx.fillStyle='rgba(128,128,128,.55)';ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='multiply';ctx.fillStyle='#837f5e';ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.globalCompositeOperation='saturation';ctx.fillStyle='rgba(128,128,128,.4)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='multiply';ctx.fillStyle='#b3ad8a';   /* 11/13 大熊嫌太暗 → 調亮 */ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';ctx.translate(hx,hy);ctx.scale(rx,ry);
-    const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.55)');
+    const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.38)');
     ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,1.1,0,7);ctx.fill();ctx.restore()}
   else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
