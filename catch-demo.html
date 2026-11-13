@@ -630,7 +630,7 @@ function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=tru
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
   b.onclick=()=>{bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
     $('#bTitle').textContent='你是「'+c.n+'」';$('#bPickBox').hidden=true;$('#bShoot').hidden=false;$('#bDone').hidden=false;$('#scrBooth').scrollTop=0;
-    const go=()=>requestAnimationFrame(boothRender);(c.img&&!c.img.complete)?c.img.addEventListener('load',go,{once:true}):go()};
+    const go=()=>requestAnimationFrame(boothRender);go();[c.img,c.mask].forEach(m=>{if(m&&!m.complete)m.addEventListener('load',go,{once:true})})};   // 圖或臉型遮罩晚到也會重畫
   box.appendChild(b)})})();
 $('#bRepick').onclick=bShowPick;
 $('#btnBooth').onclick=openBooth;
