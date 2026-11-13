@@ -580,7 +580,7 @@ const FOLK=[{n:'名畫裡的女兒',src:null},
   {n:'端咖啡的農夫',f:[.536,.278,.385,.257]},{n:'拿叉子的婦人',f:[.511,.285,.409,.269]},{n:'抽菸斗的爺爺',f:[.503,.287,.388,.253]},{n:'端馬鈴薯的姑娘',f:[.497,.285,.416,.274]},{n:'大鬍子大叔',f:[.52,.30,.36,.25]},
   {n:'抱麵包的師傅',f:[.489,.225,.275,.19]},{n:'抱火雞的大嬸',f:[.577,.203,.337,.216]},{n:'吃馬鈴薯的大叔',f:[.47,.25,.34,.24]},{n:'織毛線的奶奶',f:[.504,.281,.331,.223]},{n:'等開飯的紳士',f:[.461,.21,.32,.212]},
   {n:'拿畫筆的畫家',f:[.561,.294,.395,.26]},{n:'拿調色盤的畫家',f:[.494,.309,.401,.264]},{n:'抱向日葵的女孩',f:[.51,.256,.387,.255]},{n:'提燈的少年',f:[.525,.279,.391,.26]},{n:'舉杯的工人',f:[.553,.261,.369,.244]}];
-FOLK.forEach((c,i)=>{if(i){c.img=new Image();c.img.src='catch-video/folk/f'+String(i).padStart(2,'0')+'.png'}});
+FOLK.forEach((c,i)=>{if(i){const k=String(i).padStart(2,'0');c.img=new Image();c.img.src='catch-video/folk/f'+k+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+k+'.png'}});   // m＝照臉型做的洞（11/14 大熊：不要圓圈，要貼合臉的輪廓；有鬍子的留鬍子）
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
   const im=bChar.img,ch=H*.97,cw=ch*(im.naturalWidth||370)/(im.naturalHeight||560),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
@@ -603,8 +603,8 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
   if(bChar.img){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
-  lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
-  const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();
+  if(bChar.mask&&bChar.mask.complete&&bChar.mask.naturalWidth){lx.globalCompositeOperation='destination-out';lx.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch)}else{lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
+  const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();}
   ctx.drawImage(L,0,0)}
 function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),W=Math.round(r.width*dp),H=Math.round(r.height*dp);if(!W||!H||!bScene)return;
   if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
