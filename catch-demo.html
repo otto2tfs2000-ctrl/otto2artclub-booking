@@ -378,7 +378,7 @@ let W=375,H=700,DP=1,G=null,raf=0,last=0;
 const TH=20;                       // 疊起來每隻的高度
 function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700;DP=Math.min(2,window.devicePixelRatio||1);
   cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0);
-  if(G){G.gy=H*.76;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（後來嫌太大，砍 1/3） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8}}
+  if(G){G.gy=H*.72;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（.64 太大 → .76 → 再高一點 .72） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8}}
 window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
@@ -389,7 +389,8 @@ function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false
 function loop(ts){if(!G||G.over)return;const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;update(dt);draw();raf=requestAnimationFrame(loop)}
 
 let PT=null;
-function jump(){if(!G||G.over||G.cd>0||G.jy>0)return;G.jv=640;G.jy=.01;if(G.n)G.lv+=rnd(-.6,.6);beep(420,.1,'triangle')}
+function jump(){return;   /* 2026-11-13 大熊：跳沒幫助，拿掉 */
+  if(!G||G.over||G.cd>0||G.jy>0)return;G.jv=640;G.jy=.01;if(G.n)G.lv+=rnd(-.6,.6);beep(420,.1,'triangle')}
 cv.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 cv.addEventListener('pointerdown',e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}
   PT={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:performance.now(),mv:0,j:false}});
@@ -449,7 +450,7 @@ function update(dt){
       G.total+=3;for(let j=0;j<3;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-1)*50,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
     if(c.x<-80)G.cages.splice(i,1)}
 
-  // 馬鈴薯一家的小屋：靠過去就把盤上的火雞全部帶進去；跳起來經過就不送，可以繼續疊
+  // 馬鈴薯一家的小屋：靠過去就把盤上的火雞全部帶進去（跳已拿掉）
   if(G.dist>G.nextTable){G.nextTable=G.dist+rnd(1700,2200);G.tables.push({x:W+90,got:0,pop:0})}
   for(let i=G.tables.length-1;i>=0;i--){const t=G.tables[i];t.x-=G.speed*dt;t.pop=Math.max(0,t.pop-dt);
     if(G.n&&G.jy<14&&Math.abs(t.x-G.cx)<50){const k=G.n;
@@ -695,7 +696,7 @@ function bg(){const gy=G.gy,d=G.dist;
   // 下方手指區：深一點的泥土＋提示
   const ty=gy+70;x.fillStyle='rgba(90,60,25,.28)';x.fillRect(0,ty,W,H-ty);
   x.fillStyle='rgba(255,243,210,.55)';x.font='700 15px '+FONT;x.textAlign='center';x.textBaseline='middle';
-  x.fillText('◀　手指在這裡左右滑　▶',W/2,ty+(H-ty)*.45);x.font='600 12px '+FONT;x.fillStyle='rgba(255,243,210,.4)';x.fillText('點一下＝跳',W/2,ty+(H-ty)*.45+24)}
+  x.fillText('◀　手指在這裡左右滑　▶',W/2,ty+(H-ty)*.45)}
 
 function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.translate(rnd(-6,6),rnd(-6,6));bg();
   for(const l of G.leaves){x.save();x.translate(l.x,l.y);x.rotate(Math.sin(l.p));ell(0,0,5*l.s,2.5*l.s,'#c8521f');x.restore()}
@@ -736,11 +737,10 @@ function hud(){
   if(G.cd>0){x.fillStyle='rgba(59,36,22,.5)';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
     x.font='800 96px '+FONT;x.fillText(Math.ceil(G.cd),W/2,H*.3);
     x.font='700 18px '+FONT;x.fillText('手指左右滑，用盤子接火雞，送回小屋',W/2,H*.46);
-    x.font='700 16px '+FONT;x.fillStyle='#ffe14d';x.fillText('點一下螢幕（或往上滑）＝跳',W/2,H*.46+32);
     x.fillStyle='#fff';x.font='600 14px '+FONT;
-    x.fillText('經過小屋會自動送進去；跳起來就不送，繼續疊',W/2,H*.46+62);
-    x.fillText('老公雞的爆炸蛋不要接，幽浮綠光和烏鴉要閃開',W/2,H*.46+86);
-    x.fillText('沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+110)}}
+    x.fillText('經過小屋會自動把盤子上的火雞送進去',W/2,H*.46+38);
+    x.fillText('老公雞的爆炸蛋不要接，幽浮綠光和烏鴉要閃開',W/2,H*.46+62);
+    x.fillText('沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+86)}}
 
 /* 測試用：手動推進時間 */
 window.__catch={get G(){return G},step(dt){update(dt)},draw,pos,pad,px,jump};
