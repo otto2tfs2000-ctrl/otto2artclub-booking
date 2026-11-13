@@ -31,7 +31,10 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .plate span{position:absolute;left:50%;top:18px;transform:translateX(-50%);white-space:nowrap;font-size:11px;color:var(--soft)}
 #pad{display:block;width:100%;height:100%;box-sizing:border-box;background:var(--paper);border:2px solid var(--ink);border-radius:14px;touch-action:none}
 .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;width:min(100%,420px)}
-.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);padding:0}
+.sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);padding:0;box-sizing:border-box}
+.sw.more{position:relative;background:conic-gradient(#e74c3c,#f1c40f,#2ecc71,#1abc9c,#3498db,#9b59b6,#e74c3c);display:inline-block;cursor:pointer}
+.sw.more::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--pick,#fff);border:2px solid #fff}
+.sw.more input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .sw.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--ink)}
 .tool{min-width:40px;height:36px;padding:0 8px;border-radius:10px;border:2px solid var(--line);background:var(--paper);font-size:14px}
 .tool.on{border-color:var(--ink);background:#ffe9b8}
@@ -293,12 +296,17 @@ window.addEventListener('resize',sizePad);
 /* 手指畫圖、玩遊戲時不讓整個頁面被拉動 */
 document.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 pad.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-const COLORS=['#3b2416','#c0392b','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#f2c9a0'];
+/* 2026-11-13 大熊：顏色要多一點（白色等）＋可以自己挑的色票盤 */
+const COLORS=['#3b2416','#111111','#ffffff','#8a8a8a','#c0392b','#f28aa8','#e67e22','#f1c40f','#a3c94a','#27ae60','#1f5f4a','#8ecae6','#2980b9','#8e44ad','#f2c9a0','#8b5a2b'];
 const SIZES=[4*PS,9*PS,18*PS];
 let col=COLORS[0],bw=SIZES[1],er=false,undo=[],down=null,sprite=null;sizePad();
 const cols=$('#cols');
 COLORS.forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i?'':' on');b.style.background=c;b.setAttribute('aria-label','顏色 '+(i+1));
   b.onclick=()=>{col=c;er=false;$('#btnEr').classList.remove('on');cols.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===b))};cols.appendChild(b)});
+{const lab=document.createElement('label');lab.className='sw more';lab.setAttribute('aria-label','自己挑顏色');lab.title='自己挑顏色';
+  const inp=document.createElement('input');inp.type='color';inp.id='colPick';inp.value='#4a90e2';lab.appendChild(inp);cols.appendChild(lab);
+  const pick=()=>{col=inp.value;er=false;$('#btnEr').classList.remove('on');lab.style.setProperty('--pick',inp.value);cols.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===lab))};
+  inp.addEventListener('input',pick);inp.addEventListener('change',pick)}
 SIZES.forEach((s,i)=>{$('#sz'+i).onclick=()=>{bw=s;SIZES.forEach((_,j)=>$('#sz'+j).classList.toggle('on',j===i))}});
 $('#btnEr').onclick=()=>{er=!er;$('#btnEr').classList.toggle('on',er)};
 $('#btnUn').onclick=()=>{const d=undo.pop();if(d)px.putImageData(d,0,0);else say('沒有上一步了')};
