@@ -145,6 +145,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .bCam.shoot{background:#e5383b;box-shadow:0 4px 0 #8f1f22}
 .bZoom input[type=range]{touch-action:pan-x;height:28px}
 #scrEnd,#scrBooth,#scrShot{touch-action:pan-y}
+#outBox{touch-action:none}
+#outPan{position:absolute;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(20,15,8,.7);color:#f3e6c8;font-size:13px;font-weight:700;padding:6px 14px;border-radius:16px;white-space:nowrap;pointer-events:none}
 </style>
 
 <div id="app">
@@ -189,6 +191,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 
   <section class="scr" id="scrOutro" hidden>
     <div id="outBox"></div>
+    <div id="outPan" hidden>◀ 手指左右拖，看看整個畫面 ▶</div>
     <button id="outSkip">略過 ▶</button>
   </section>
 
@@ -492,14 +495,25 @@ function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
 let outN=0;
 function playOutro(N){outN=N;if(!N||!vidOK){showPhoto();return}
   $('#outBox').appendChild(stVid);stVid.hidden=false;stVid.style.transform='';stVid.style.filter='none';stVid.loop=false;stVid.removeAttribute('poster');
-  stVid.onended=showPhoto;stVid.onerror=showPhoto;stVid.src='catch-video/ending.mp4?v=voice3';stVid.muted=false;$('#scrOutro').hidden=false;
+  stVid.onended=showPhoto;stVid.onerror=showPhoto;stVid.style.objectPosition='50% 50%';panOn=false;
+  stVid.onloadedmetadata=()=>{const b=$('#outBox').getBoundingClientRect();panOn=stVid.videoWidth/stVid.videoHeight>b.width/b.height*1.15;$('#outPan').hidden=!panOn;if(panOn){panT0=performance.now();panRaf=panRaf||requestAnimationFrame(panLoop)}};stVid.src='catch-video/ending.mp4?v=voice3';stVid.muted=false;$('#scrOutro').hidden=false;
   const pr=stVid.play();if(pr&&pr.catch)pr.catch(()=>{stVid.muted=true;stVid.play().catch(()=>showPhoto())})}
-function showPhoto(){if(!scrEnd.hidden)return;stVid.onended=null;stVid.onerror=null;try{stVid.pause()}catch(_){}$('#scrOutro').hidden=true;
+function showPhoto(){if(!scrEnd.hidden)return;panOn=false;$('#outPan').hidden=true;stVid.onended=null;stVid.onerror=null;try{stVid.pause()}catch(_){}$('#scrOutro').hidden=true;
   scrEnd.hidden=false;scrEnd.scrollTop=0;
   $('#photoCap').textContent=outN?('2026 感恩節・馬鈴薯一家＋'+outN+' 位火雞客人'):'2026 感恩節・馬鈴薯一家（今晚還是只有馬鈴薯）';
   const ph=$('#photo');ph.style.animation='none';void ph.offsetWidth;ph.style.animation='';drawEnding(outN);
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)}
 $('#outSkip').onclick=showPhoto;
+/* 2026-11-13 大熊：橫的影片在直的手機上左右會被切掉 → 自動慢慢左右移動，也可以用手指拖著看 */
+let panOn=false,panRaf=0,panT0=0,panX=50,panHold=0,panDrag=null;
+function panLoop(t){if(!panOn||$('#scrOutro').hidden){panRaf=0;return}
+  if(!panDrag&&t>panHold){const k=(t-panT0)/1000;panX=50+46*Math.sin(k*2*Math.PI/9-Math.PI/2)}
+  stVid.style.objectPosition=panX.toFixed(1)+'% 50%';panRaf=requestAnimationFrame(panLoop)}
+$('#outBox').addEventListener('pointerdown',e=>{if(!panOn)return;panDrag={x:e.clientX,p:panX};try{$('#outBox').setPointerCapture(e.pointerId)}catch(_){}});
+$('#outBox').addEventListener('pointermove',e=>{if(!panDrag)return;const b=$('#outBox').getBoundingClientRect(),over=b.height*stVid.videoWidth/stVid.videoHeight-b.width;
+  if(over>0)panX=clamp(panDrag.p-(e.clientX-panDrag.x)/over*100,0,100)});
+const panUp=()=>{if(panDrag){panDrag=null;panHold=performance.now()+3500;panT0=performance.now()-((Math.asin(clamp((panX-50)/46,-1,1))+Math.PI/2)/(2*Math.PI)*9000)+3500}};
+$('#outBox').addEventListener('pointerup',panUp);$('#outBox').addEventListener('pointercancel',panUp);
 /* 你的版本的名畫：把帶回來的火雞（和你畫的角色）擠進《吃馬鈴薯的人》 */
 function drawEnding(N){const ec=$('#endCv'),r=ec.getBoundingClientRect(),w=Math.max(200,r.width||340),h=w*537/760,dp=Math.min(2,window.devicePixelRatio||1);
   ec.width=w*dp;ec.height=h*dp;ec.style.height=h+'px';const ex=ec.getContext('2d');ex.setTransform(dp,0,0,dp,0,0);
