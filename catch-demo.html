@@ -491,7 +491,7 @@ function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
 let outN=0;
 function playOutro(N){outN=N;if(!N||!vidOK){showPhoto();return}
   $('#outBox').appendChild(stVid);stVid.hidden=false;stVid.style.transform='';stVid.style.filter='none';stVid.loop=false;stVid.removeAttribute('poster');
-  stVid.onended=showPhoto;stVid.onerror=showPhoto;stVid.src='catch-video/ending.mp4';stVid.muted=false;$('#scrOutro').hidden=false;
+  stVid.onended=showPhoto;stVid.onerror=showPhoto;stVid.src='catch-video/ending.mp4?v=gemini2';stVid.muted=false;$('#scrOutro').hidden=false;
   const pr=stVid.play();if(pr&&pr.catch)pr.catch(()=>{stVid.muted=true;stVid.play().catch(()=>showPhoto())})}
 function showPhoto(){if(!scrEnd.hidden)return;stVid.onended=null;stVid.onerror=null;try{stVid.pause()}catch(_){}$('#scrOutro').hidden=true;
   scrEnd.hidden=false;scrEnd.scrollTop=0;
