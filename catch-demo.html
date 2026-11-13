@@ -19,7 +19,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
   padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
-#app{position:relative;height:100%;overflow:hidden;touch-action:none}
+#app{position:relative;height:100%;overflow:hidden}
 
 /* 畫角色 */
 #scrDraw{gap:8px;justify-content:flex-start;background:linear-gradient(var(--sky),#fbe6c0)}
@@ -138,6 +138,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #shotImg{width:100%;max-width:420px;border-radius:4px;box-shadow:0 12px 28px rgba(0,0,0,.6);flex:none}
 .bWide{width:100%;max-width:400px;height:46px;border-radius:23px;border:2px solid #c9a35a;background:#2b4a4d;color:#f3e6c8;font-size:15px;font-weight:700;flex:none}
 .bWide:disabled{opacity:.5}
+#bVid{position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0}
+.bAlt{position:relative;font-size:13px;color:#c9b38a;text-decoration:underline;cursor:pointer;flex:none}
+.bAlt input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.bCam.shoot{background:#e5383b;box-shadow:0 4px 0 #8f1f22}
+.bZoom input[type=range]{touch-action:pan-x;height:28px}
+#scrEnd,#scrBooth,#scrShot{touch-action:pan-y}
 </style>
 
 <div id="app">
@@ -208,7 +214,9 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <div id="bWrap"><canvas id="bCv" aria-label="合照預覽"></canvas></div>
     <div class="bZoom" id="bZoomRow" hidden><span>小</span><input type="range" id="bZoom" min="0.3" max="3" step="0.01" value="1" aria-label="照片大小"><span>大</span></div>
     <p class="bHint" id="bHint">先按下面的按鈕自拍</p>
-    <label class="bCam" id="bCamBtn"><input type="file" accept="image/*" capture="user" id="bFile">📷 開相機自拍</label>
+    <button class="bCam" id="bLiveBtn" type="button">📷 開相機，把臉對進洞裡</button>
+    <label class="bAlt" id="bCamBtn"><input type="file" accept="image/*" capture="user" id="bFile">相機打不開？改用手機相機拍／選照片</label>
+    <video id="bVid" playsinline webkit-playsinline muted autoplay></video>
     <input id="bMsg" maxlength="30" placeholder="寫一句感恩的話（最多 30 字）" autocomplete="off">
     <div class="btns"><button class="redo" id="bBack">回上一頁</button><button class="again" id="bDone">完成合照</button></div>
   </section>
@@ -327,7 +335,7 @@ let dirty=false;   // 還沒畫之前，畫布大小跟著畫面調整（轉向�
 function sizePad(){if(dirty)return;const r=pad.getBoundingClientRect();if(r.width>50&&r.height>50){PW=Math.round(r.width*PS);PH=Math.round(r.height*PS)}if(pad.width!==PW||pad.height!==PH){pad.width=PW;pad.height=PH;undo=[]}}
 window.addEventListener('resize',sizePad);
 /* 手指畫圖、玩遊戲時不讓整個頁面被拉動 */
-document.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.cancelable&&e.target.closest&&e.target.closest('#pad,#cv,#bCv,#scrStory,#scrPlay,#scrDraw')&&!e.target.closest('input'))e.preventDefault()},{passive:false});   // 2026-11-13 拉桿拉不動：只擋畫畫、遊戲的地方
 pad.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 /* 2026-11-13 大熊：顏色要多一點（白色等）＋可以自己挑的色票盤 */
 const COLORS=['#3b2416','#111111','#ffffff','#8a8a8a','#c0392b','#f28aa8','#e67e22','#f1c40f','#a3c94a','#27ae60','#1f5f4a','#8ecae6','#2980b9','#8e44ad','#f2c9a0','#8b5a2b'];
@@ -514,7 +522,10 @@ function bMakeScene(){const c=document.createElement('canvas');c.width=1400;c.he
 function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   const hx=BHOLE.x*W,hy=BHOLE.y*H,rx=BHOLE.rx*W,ry=BHOLE.ry*H;
   ctx.fillStyle='#2a2016';ctx.fillRect(0,0,W,H);
-  if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
+  const live=bStream&&bVid.videoWidth;
+  if(live){const vw=bVid.videoWidth,vh=bVid.videoHeight,dw=rx*2*2.6*bZ,dh=dw*vh/vw,x0=hx+bOX*W-dw/2,y0=hy+bOY*H-dh*.45;
+    ctx.save();ctx.translate(x0+dw,y0);ctx.scale(-1,1);ctx.drawImage(bVid,0,0,dw,dh);ctx.restore()}   // 自拍鏡像，像照鏡子
+  else if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
   else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
@@ -523,13 +534,27 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   ctx.drawImage(L,0,0)}
 function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),W=Math.round(r.width*dp),H=Math.round(r.height*dp);if(!W||!H||!bScene)return;
   if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
+const bVid=$('#bVid');let bStream=null,bRaf=0;
+function bLoop(){if(!bStream||$('#scrBooth').hidden){bRaf=0;return}boothRender();bRaf=requestAnimationFrame(bLoop)}
+function bStop(){if(bStream){bStream.getTracks().forEach(t=>t.stop());bStream=null}try{bVid.srcObject=null}catch(_){}$('#bLiveBtn').classList.remove('shoot');$('#bLiveBtn').textContent=bSelf?'📷 重新開相機':'📷 開相機，把臉對進洞裡'}
+$('#bLiveBtn').onclick=async()=>{
+  if(bStream){   // 拍下來：把現在這一格（鏡像）存起來
+    const vw=bVid.videoWidth,vh=bVid.videoHeight,c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);
+    bSelf=c;bStop();boothRender();$('#bHint').textContent='拍好了！還可以拖曳、調大小對準；不滿意就重新開相機';beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);return}
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$('#bFile').click();return}
+  $('#bHint').textContent='正在打開相機…（第一次會問你能不能用相機，請按允許）';
+  try{bStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:1280}},audio:false});
+    bVid.srcObject=bStream;await bVid.play().catch(()=>{});bOX=0;bOY=0;$('#bZoomRow').hidden=false;
+    $('#bLiveBtn').classList.add('shoot');$('#bLiveBtn').textContent='📸 拍下來';$('#bHint').textContent='手機拿遠一點、近一點，讓臉剛好在洞裡，再按「拍下來」';
+    if(!bRaf)bRaf=requestAnimationFrame(bLoop)}
+  catch(e){bStream=null;$('#bHint').textContent='相機打不開（可能沒有允許，或在 LINE 裡面被擋）。請按下面「改用手機相機拍／選照片」'}};
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();requestAnimationFrame(boothRender)}
 $('#btnBooth').onclick=openBooth;
-$('#bBack').onclick=()=>{$('#scrBooth').hidden=true;scrEnd.hidden=false};
+$('#bBack').onclick=()=>{bStop();$('#scrBooth').hidden=true;scrEnd.hidden=false};
 $('#bFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
   im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bSelf=c;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
-    $('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡';$('#bCamBtn').lastChild.textContent='📷 重新自拍';boothRender()};
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bStop();bSelf=c;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
+    $('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡';boothRender()};
   im.onerror=()=>{$('#bHint').textContent='這張照片讀不出來，請再拍一次'};im.src=url;e.target.value=''});
 $('#bZoom').addEventListener('input',e=>{bZ=+e.target.value;boothRender()});
 bCv.addEventListener('pointerdown',e=>{if(!bSelf)return;e.preventDefault();try{bCv.setPointerCapture(e.pointerId)}catch(_){}bPtr.set(e.pointerId,[e.clientX,e.clientY]);
@@ -543,7 +568,7 @@ const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventL
 /* 完成：做成一張拍立得，下面寫感恩的話 */
 function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 let shotBlob=null;
-$('#bDone').onclick=()=>{if(!bSelf){$('#bHint').textContent='還沒自拍喔，先按「開相機自拍」';return}
+$('#bDone').onclick=()=>{if(bStream){$('#bHint').textContent='先按「拍下來」再完成喔';return}if(!bSelf){$('#bHint').textContent='還沒自拍喔，先按「開相機」';return}
   const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
   const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
   cx.fillStyle='#fbf6ea';cx.fillRect(0,0,CW,CH);cx.save();cx.translate(M,M);boothDraw(cx,PW,PH);cx.restore();
