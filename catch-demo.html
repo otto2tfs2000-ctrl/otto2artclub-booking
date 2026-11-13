@@ -123,6 +123,21 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:60}
 #flash.go{animation:flash .7s ease-out}
 @keyframes flash{0%{opacity:1}100%{opacity:0}}
+
+/* 拍合照（臉洞看板） */
+#btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
+#scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
+.bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:20px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
+#bWrap{width:100%;max-width:400px;flex:none}
+#bCv{display:block;width:100%;aspect-ratio:4/5;border-radius:6px;border:3px solid #6b5432;box-sizing:border-box;touch-action:none;background:#111}
+.bZoom{display:flex;align-items:center;gap:10px;width:100%;max-width:400px;font-size:13px;color:#c9b38a}.bZoom input{flex:1}
+.bHint{margin:0;font-size:13px;color:#c9b38a;text-align:center}
+.bCam{position:relative;display:flex;align-items:center;justify-content:center;width:100%;max-width:400px;height:52px;border-radius:26px;background:var(--pumpkin);color:#fff;font-size:18px;font-weight:900;box-shadow:0 4px 0 var(--leaf);flex:none;cursor:pointer}
+.bCam input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+#bMsg{width:100%;max-width:400px;height:46px;border-radius:12px;border:2px solid #6b5432;background:#2b2116;color:#f3e6c8;font-size:16px;padding:0 14px;box-sizing:border-box;font-family:inherit;flex:none}
+#shotImg{width:100%;max-width:420px;border-radius:4px;box-shadow:0 12px 28px rgba(0,0,0,.6);flex:none}
+.bWide{width:100%;max-width:400px;height:46px;border-radius:23px;border:2px solid #c9a35a;background:#2b4a4d;color:#f3e6c8;font-size:15px;font-weight:700;flex:none}
+.bWide:disabled{opacity:.5}
 </style>
 
 <div id="app">
@@ -180,12 +195,30 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <div><b id="eBest">0</b>最高疊（隻）</div>
     </div>
     <div id="endNote"></div>
+    <button id="btnBooth">📸 換你入鏡：跟馬鈴薯一家拍合照</button>
     <div class="btns">
       <button class="redo" id="btnRedo">重畫角色</button>
       <button class="again" id="btnAgain">再玩一次</button>
     </div>
     <button id="btnEp">🎧 聽這幅畫真正的故事</button>
     <div id="epNote"></div>
+  </section>
+  <section class="scr" id="scrBooth" hidden>
+    <div class="bTop"><b>跟馬鈴薯一家拍合照</b><span>自拍一張，把你的臉放進空的位置</span></div>
+    <div id="bWrap"><canvas id="bCv" aria-label="合照預覽"></canvas></div>
+    <div class="bZoom" id="bZoomRow" hidden><span>小</span><input type="range" id="bZoom" min="0.3" max="3" step="0.01" value="1" aria-label="照片大小"><span>大</span></div>
+    <p class="bHint" id="bHint">先按下面的按鈕自拍</p>
+    <label class="bCam" id="bCamBtn"><input type="file" accept="image/*" capture="user" id="bFile">📷 開相機自拍</label>
+    <input id="bMsg" maxlength="30" placeholder="寫一句感恩的話（最多 30 字）" autocomplete="off">
+    <div class="btns"><button class="redo" id="bBack">回上一頁</button><button class="again" id="bDone">完成合照</button></div>
+  </section>
+
+  <section class="scr" id="scrShot" hidden>
+    <img id="shotImg" alt="你的感恩節合照">
+    <p class="bHint">長按照片就可以存到手機</p>
+    <button class="bWide" id="shotShare" hidden>分享給朋友</button>
+    <button class="bWide" id="shotUp" disabled>上傳到作品島大樹（即將開放）</button>
+    <div class="btns"><button class="redo" id="shotRe">重拍一張</button><button class="again" id="shotBack">回到成績</button></div>
   </section>
 </div>
 
@@ -459,7 +492,10 @@ $('#outSkip').onclick=showPhoto;
 /* 你的版本的名畫：把帶回來的火雞（和你畫的角色）擠進《吃馬鈴薯的人》 */
 function drawEnding(N){const ec=$('#endCv'),r=ec.getBoundingClientRect(),w=Math.max(200,r.width||340),h=w*537/760,dp=Math.min(2,window.devicePixelRatio||1);
   ec.width=w*dp;ec.height=h*dp;ec.style.height=h+'px';const ex=ec.getContext('2d');ex.setTransform(dp,0,0,dp,0,0);
-  const go=()=>{ex.drawImage(peImg,0,0,w,h);
+  const go=()=>sceneTo(ex,w,h,N);
+  let left=TIMG.filter(m=>!m.complete).length+(peImg.complete?0:1);const one=()=>{if(--left<=0)go()};
+  if(!left)go();else{TIMG.forEach(m=>{if(!m.complete)m.addEventListener('load',one,{once:true}),m.addEventListener('error',one,{once:true})});if(!peImg.complete)peImg.addEventListener('load',one,{once:true})}}
+function sceneTo(ex,w,h,N){ex.drawImage(peImg,0,0,w,h);
     // 大熊畫的梵谷風火雞，照優先順序放進畫裡：[x, 腳的位置y, 高度(佔畫高), 第幾隻, 左右翻]
     const SL=[[.42,.735,.17,6,0],[.66,.775,.15,2,1],[.31,.80,.10,5,0],[.13,1.03,.36,1,0],[.90,1.03,.34,3,1],[.345,.40,.10,4,0],[.60,.31,.09,1,1],[.445,.165,.09,6,0],[.05,.66,.18,3,0],[.975,.64,.16,2,1]];
     const use=SL.slice(0,Math.min(N,SL.length)).sort((a,b)=>a[1]-b[1]);
@@ -467,11 +503,61 @@ function drawEnding(N){const ec=$('#endCv'),r=ec.getBoundingClientRect(),w=Math.
       const th=h*hf,tw=im.naturalWidth*th/im.naturalHeight,cx=nx*w,cy=ny*h;
       {const r=tw*.42;ex.save();ex.translate(cx,cy);ex.scale(1,.18);const g=ex.createRadialGradient(0,0,1,0,0,r);g.addColorStop(0,'rgba(10,8,4,.5)');g.addColorStop(1,'rgba(10,8,4,0)');ex.fillStyle=g;ex.fillRect(-r,-r,2*r,2*r);ex.restore()}   // 腳下的影子
       ex.save();ex.translate(cx,cy-th);if(flip){ex.scale(-1,1)}ex.drawImage(im,-tw/2,0,tw,th);ex.restore()}
-    };
-  let left=TIMG.filter(m=>!m.complete).length+(peImg.complete?0:1);const one=()=>{if(--left<=0)go()};
-  if(!left)go();else{TIMG.forEach(m=>{if(!m.complete)m.addEventListener('load',one,{once:true}),m.addEventListener('error',one,{once:true})});if(!peImg.complete)peImg.addEventListener('load',one,{once:true})}}
+}
 const TIMG=[1,2,3,4,5,6].map(k=>{const m=new Image();m.src='catch-video/t'+k+'.png';return m});
 
+/* ===== 拍合照：名畫裡左邊戴白帽的女生挖一個臉洞，自拍的臉從後面透出來 ===== */
+const BCROP=[.164,.177,.357,.631];          // 合照取景（名畫的哪一塊，x,y,寬,高）
+const BHOLE={x:.5,y:.464,rx:.095,ry:.105};  // 臉洞在取景裡的位置與大小
+const bCv=$('#bCv'),bx=bCv.getContext('2d');let bSelf=null,bOX=0,bOY=0,bZ=1,bScene=null,bPtr=new Map(),bPinch=null;
+function bMakeScene(){const c=document.createElement('canvas');c.width=1400;c.height=990;sceneTo(c.getContext('2d'),1400,990,outN);bScene=c}
+function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
+  const hx=BHOLE.x*W,hy=BHOLE.y*H,rx=BHOLE.rx*W,ry=BHOLE.ry*H;
+  ctx.fillStyle='#2a2016';ctx.fillRect(0,0,W,H);
+  if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
+  else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
+  const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
+  lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
+  lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
+  const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();
+  ctx.drawImage(L,0,0)}
+function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),W=Math.round(r.width*dp),H=Math.round(r.height*dp);if(!W||!H||!bScene)return;
+  if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
+function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();requestAnimationFrame(boothRender)}
+$('#btnBooth').onclick=openBooth;
+$('#bBack').onclick=()=>{$('#scrBooth').hidden=true;scrEnd.hidden=false};
+$('#bFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bSelf=c;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
+    $('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡';$('#bCamBtn').lastChild.textContent='📷 重新自拍';boothRender()};
+  im.onerror=()=>{$('#bHint').textContent='這張照片讀不出來，請再拍一次'};im.src=url;e.target.value=''});
+$('#bZoom').addEventListener('input',e=>{bZ=+e.target.value;boothRender()});
+bCv.addEventListener('pointerdown',e=>{if(!bSelf)return;e.preventDefault();try{bCv.setPointerCapture(e.pointerId)}catch(_){}bPtr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(bPtr.size===2){const[a,b]=[...bPtr.values()];bPinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:bZ}}});
+bCv.addEventListener('pointermove',e=>{if(!bPtr.has(e.pointerId))return;e.preventDefault();const r=bCv.getBoundingClientRect(),o=bPtr.get(e.pointerId);
+  if(bPtr.size===1){bOX+=(e.clientX-o[0])/r.width;bOY+=(e.clientY-o[1])/r.height}
+  bPtr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(bPtr.size===2&&bPinch){const[a,b]=[...bPtr.values()];bZ=clamp(bPinch.z*Math.hypot(a[0]-b[0],a[1]-b[1])/bPinch.d,.3,3);$('#bZoom').value=bZ}
+  boothRender()});
+const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventListener('pointerup',bUp);bCv.addEventListener('pointercancel',bUp);
+/* 完成：做成一張拍立得，下面寫感恩的話 */
+function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
+let shotBlob=null;
+$('#bDone').onclick=()=>{if(!bSelf){$('#bHint').textContent='還沒自拍喔，先按「開相機自拍」';return}
+  const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
+  const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
+  cx.fillStyle='#fbf6ea';cx.fillRect(0,0,CW,CH);cx.save();cx.translate(M,M);boothDraw(cx,PW,PH);cx.restore();
+  cx.fillStyle='#3b2416';cx.font='900 54px '+FONT;cx.textAlign='center';cx.textBaseline='middle';
+  const lines=wrapText(cx,'「'+msg+'」',PW-40).slice(0,2);lines.forEach((l,i)=>cx.fillText(l,CW/2,PH+M+80+i*70-(lines.length-1)*35));
+  cx.fillStyle='#8a6a4a';cx.font='700 28px '+FONT;cx.fillText('2026 感恩節・和梵谷《吃馬鈴薯的人》一家吃晚餐'+(outN?'（還有 '+outN+' 位火雞客人）':''),CW/2,CH-90);
+  cx.font='800 26px '+FONT;cx.fillText('OTTO2 ARTCLUB',CW/2,CH-48);
+  const url=c.toDataURL('image/jpeg',.9);$('#shotImg').src=url;
+  try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
+  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
+$('#shotShare').onclick=async()=>{try{await navigator.share({files:[new File([shotBlob],'otto2-thanksgiving.jpg',{type:'image/jpeg'})],text:'我和梵谷《吃馬鈴薯的人》一家過感恩節！'})}catch(_){}};
+$('#shotRe').onclick=()=>{$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
+$('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false};
+window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
 $('#btnEp').onclick=()=>{$('#epNote').textContent='正式版會直接打開「畫框背後」梵谷 EP01《吃馬鈴薯的人》'};
 $('#btnAgain').onclick=()=>{beep(660,.12);startGame()};
 $('#btnRedo').onclick=()=>{G=null;scrEnd.hidden=true;scrPlay.hidden=true;scrDraw.hidden=false;sizePad()};
