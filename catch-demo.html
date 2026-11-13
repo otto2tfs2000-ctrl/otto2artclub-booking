@@ -553,6 +553,25 @@ const BHOLE={x:.5,y:.467,rx:.13,ry:.144};   // 臉洞在取景裡的位置與大
 const bCv=$('#bCv'),bx=bCv.getContext('2d');let bSelf=null,bOX=0,bOY=0,bZ=1,bScene=null,bPtr=new Map(),bPinch=null;
 function bMakeScene(){const c=document.createElement('canvas');c.width=1400;c.height=990;sceneTo(c.getContext('2d'),1400,990,outN);bScene=c}
 /* 2026-11-13 大熊：加一點油畫筆觸。拍下來的照片：先做「油畫平塗」（Kuwahara），再順著明暗方向一筆一筆刷上短筆觸 */
+/* 2026-11-14 大熊：臉的邊緣看得出線 → 自拍的臉色自動調成這位角色的膚色（量角色臉洞那塊的平均色，和自拍臉中間的平均色，逐色調整） */
+function skinOf(c){if(c.skin)return c.skin;try{let src,mk,w,h;
+  if(c.img&&c.mask&&c.mask.naturalWidth){w=c.img.naturalWidth;h=c.img.naturalHeight;src=c.img;mk=c.mask}
+  else{const cv=document.createElement('canvas');w=200;h=250;cv.width=w;cv.height=h;cv.getContext('2d').drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,w,h);src=cv}
+  const a=document.createElement('canvas');a.width=w;a.height=h;const ax=a.getContext('2d');ax.drawImage(src,0,0,w,h);const d=ax.getImageData(0,0,w,h).data;let md=null;
+  if(mk){const b=document.createElement('canvas');b.width=w;b.height=h;const bx2=b.getContext('2d');bx2.drawImage(mk,0,0,w,h);md=bx2.getImageData(0,0,w,h).data}
+  let r=0,g=0,bl=0,n=0;for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){const i=(y*w+x)*4;
+    const inside=md?md[i+3]>200:((x/w-BHOLE.x)**2/(BHOLE.rx*.7)**2+(y/h-BHOLE.y)**2/(BHOLE.ry*.7)**2<1);
+    if(inside&&d[i+3]>200){r+=d[i];g+=d[i+1];bl+=d[i+2];n++}}
+  return c.skin=n?[r/n,g/n,bl/n]:[150,115,80]}catch(e){return[150,115,80]}}
+function matchSkin(c){try{const rc=bCv.getBoundingClientRect(),W=rc.width||300,H=rc.height||375,GM=bGeom(W,H);
+  const dw=GM.rx*2*2.6*bZ,sc=c.width/dw,dh=dw*c.height/c.width,x0=GM.hx+bOX*W-dw/2,y0=GM.hy+bOY*H-dh*.45;
+  const fx=(GM.hx-x0)*sc,fy=(GM.hy-y0)*sc,fr=GM.rx*.55*sc;   // 自拍裡對到臉洞中間的那一塊
+  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height),p=d.data;let r=0,g=0,b=0,n=0;
+  for(let y=Math.max(0,fy-fr|0);y<Math.min(c.height,fy+fr);y+=2)for(let xx=Math.max(0,fx-fr|0);xx<Math.min(c.width,fx+fr);xx+=2){const i=((y|0)*c.width+(xx|0))*4;r+=p[i];g+=p[i+1];b+=p[i+2];n++}
+  if(!n)return c;const t=skinOf(bChar),k=[t[0]/(r/n),t[1]/(g/n),t[2]/(b/n)].map(v=>clamp(v,.35,1.5));
+  for(let i=0;i<p.length;i+=4){const l=(p[i]+p[i+1]+p[i+2])/3;   // 先去掉一點鮮豔，再乘上配色係數
+    p[i]=clamp((p[i]*.75+l*.25)*k[0],0,255);p[i+1]=clamp((p[i+1]*.75+l*.25)*k[1],0,255);p[i+2]=clamp((p[i+2]*.75+l*.25)*k[2],0,255)}
+  x.putImageData(d,0,0);c.matched=true;return c}catch(e){return c}}
 function paintify(src){try{
   const k=Math.min(1,420/Math.max(src.width,src.height)),w=Math.max(8,Math.round(src.width*k)),h=Math.max(8,Math.round(src.height*k));
   const a=document.createElement('canvas');a.width=w;a.height=h;const ax=a.getContext('2d');ax.drawImage(src,0,0,w,h);
@@ -569,7 +588,7 @@ function paintify(src){try{
     const gx=L[j+1]-L[j-1],gy=L[j+w]-L[j-w],ang=Math.atan2(gy,gx)+Math.PI/2+(Math.random()-.5)*.5,len=3+Math.random()*5;
     const p=j*4;ax.strokeStyle='rgba('+o[p]+','+o[p+1]+','+o[p+2]+',.7)';ax.lineWidth=1.6+Math.random()*1.6;
     ax.beginPath();ax.moveTo(x-Math.cos(ang)*len/2,y-Math.sin(ang)*len/2);ax.lineTo(x+Math.cos(ang)*len/2,y+Math.sin(ang)*len/2);ax.stroke()}
-  return a}catch(e){return src}}
+  a.matched=src.matched;return a}catch(e){return src}}
 let _tex=null;
 function strokeTex(){if(_tex)return _tex;const c=document.createElement('canvas');c.width=c.height=160;const t=c.getContext('2d');t.fillStyle='#808080';t.fillRect(0,0,160,160);t.lineCap='round';
   for(let i=0;i<700;i++){const x=Math.random()*160,y=Math.random()*160,a=Math.random()*Math.PI,l=4+Math.random()*9,g=90+Math.random()*80|0;
@@ -594,11 +613,13 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   else if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
   if(live||bSelf){   /* 2026-11-13 大熊：臉太亮 → 調成名畫的暗綠褐色調 */
     ctx.save();ctx.globalCompositeOperation='overlay';ctx.globalAlpha=live?.45:.25;ctx.fillStyle=ctx.createPattern(strokeTex(),'repeat');ctx.fillRect(0,0,W,H);ctx.restore();   // 筆觸紋理
-    ctx.save();ctx.globalCompositeOperation='saturation';ctx.fillStyle='rgba(128,128,128,.4)';ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='multiply';ctx.fillStyle='#b3ad8a';   /* 11/13 大熊嫌太暗 → 調亮 */ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='source-over';ctx.translate(hx,hy);ctx.scale(rx,ry);
-    const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.38)');
-    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,1.1,0,7);ctx.fill();ctx.restore()}
+    ctx.save();
+    if(live||!bSelf.matched){ctx.globalCompositeOperation='saturation';ctx.fillStyle='rgba(128,128,128,.4)';ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation='multiply';ctx.fillStyle='#b3ad8a';   /* 11/13 大熊嫌太暗 → 調亮；拍好的照片改用自動配膚色 */ctx.fillRect(0,0,W,H)}
+    if(!bChar.mask){ctx.globalCompositeOperation='source-over';ctx.translate(hx,hy);ctx.scale(rx,ry);
+      const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.38)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,1.1,0,7);ctx.fill()}
+    ctx.restore()}
   else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
@@ -614,7 +635,7 @@ function bStop(){if(bStream){bStream.getTracks().forEach(t=>t.stop());bStream=nu
 $('#bLiveBtn').onclick=async()=>{
   if(bStream){   // 拍下來：把現在這一格（鏡像）存起來
     const vw=bVid.videoWidth,vh=bVid.videoHeight,c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);
-    bSelf=paintify(c);bStop();boothRender();$('#bHint').textContent='拍好了！還可以拖曳、調大小對準；不滿意就重新開相機';beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);return}
+    bSelf=paintify(matchSkin(c));bStop();boothRender();$('#bHint').textContent='拍好了！還可以拖曳、調大小對準；不滿意就重新開相機';beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);return}
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$('#bFile').click();return}
   $('#bHint').textContent='正在打開相機…（第一次會問你能不能用相機，請按允許）';
   try{bStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:1280}},audio:false});
@@ -637,7 +658,7 @@ $('#btnBooth').onclick=openBooth;
 $('#bBack').onclick=()=>{bStop();$('#scrBooth').hidden=true;scrEnd.hidden=false};
 $('#bFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
   im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bStop();bSelf=paintify(c);bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bStop();bSelf=paintify(matchSkin(c));bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
     $('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡';boothRender()};
   im.onerror=()=>{$('#bHint').textContent='這張照片讀不出來，請再拍一次'};im.src=url;e.target.value=''});
 $('#bZoom').addEventListener('input',e=>{bZ=+e.target.value;boothRender()});
@@ -652,7 +673,7 @@ const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventL
 /* 完成：做成一張拍立得，下面寫感恩的話 */
 function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 let shotBlob=null;
-function bSnap(){const vw=bVid.videoWidth,vh=bVid.videoHeight;if(!vw)return;const c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);bSelf=paintify(c);bStop()}
+function bSnap(){const vw=bVid.videoWidth,vh=bVid.videoHeight;if(!vw)return;const c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);bSelf=paintify(matchSkin(c));bStop()}
 $('#bDone').onclick=()=>{if(bStream)bSnap();if(!bSelf){$('#bErr').textContent='還沒拍照喔，先按上面的「開相機」';return}$('#bErr').textContent='';
   const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
   const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
