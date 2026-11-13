@@ -128,7 +128,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
 #scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
 .bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:20px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
-#bWrap{width:100%;max-width:400px;flex:none}
+#bWrap{width:min(100%,400px,50vh);flex:none}
+.bErr{margin:0;min-height:0;font-size:14px;font-weight:700;color:#ffb38a;text-align:center}
 #bCv{display:block;width:100%;aspect-ratio:4/5;border-radius:6px;border:3px solid #6b5432;box-sizing:border-box;touch-action:none;background:#111}
 .bZoom{display:flex;align-items:center;gap:10px;width:100%;max-width:400px;font-size:13px;color:#c9b38a}.bZoom input{flex:1}
 .bHint{margin:0;font-size:13px;color:#c9b38a;text-align:center}
@@ -218,6 +219,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <label class="bAlt" id="bCamBtn"><input type="file" accept="image/*" capture="user" id="bFile">相機打不開？改用手機相機拍／選照片</label>
     <video id="bVid" playsinline webkit-playsinline muted autoplay></video>
     <input id="bMsg" maxlength="30" placeholder="寫一句感恩的話（最多 30 字）" autocomplete="off">
+    <p class="bErr" id="bErr" role="status"></p>
     <div class="btns"><button class="redo" id="bBack">回上一頁</button><button class="again" id="bDone">完成合照</button></div>
   </section>
 
@@ -526,6 +528,12 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   if(live){const vw=bVid.videoWidth,vh=bVid.videoHeight,dw=rx*2*2.6*bZ,dh=dw*vh/vw,x0=hx+bOX*W-dw/2,y0=hy+bOY*H-dh*.45;
     ctx.save();ctx.translate(x0+dw,y0);ctx.scale(-1,1);ctx.drawImage(bVid,0,0,dw,dh);ctx.restore()}   // 自拍鏡像，像照鏡子
   else if(bSelf){const dw=rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;ctx.drawImage(bSelf,hx+bOX*W-dw/2,hy+bOY*H-dh*.45,dw,dh)}
+  if(live||bSelf){   /* 2026-11-13 大熊：臉太亮 → 調成名畫的暗綠褐色調 */
+    ctx.save();ctx.globalCompositeOperation='saturation';ctx.fillStyle='rgba(128,128,128,.55)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='multiply';ctx.fillStyle='#837f5e';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';ctx.translate(hx,hy);ctx.scale(rx,ry);
+    const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.55)');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,1.1,0,7);ctx.fill();ctx.restore()}
   else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
@@ -568,7 +576,8 @@ const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventL
 /* 完成：做成一張拍立得，下面寫感恩的話 */
 function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 let shotBlob=null;
-$('#bDone').onclick=()=>{if(bStream){$('#bHint').textContent='先按「拍下來」再完成喔';return}if(!bSelf){$('#bHint').textContent='還沒自拍喔，先按「開相機」';return}
+function bSnap(){const vw=bVid.videoWidth,vh=bVid.videoHeight;if(!vw)return;const c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);bSelf=c;bStop()}
+$('#bDone').onclick=()=>{if(bStream)bSnap();if(!bSelf){$('#bErr').textContent='還沒拍照喔，先按上面的「開相機」';return}$('#bErr').textContent='';
   const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
   const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
   cx.fillStyle='#fbf6ea';cx.fillRect(0,0,CW,CH);cx.save();cx.translate(M,M);boothDraw(cx,PW,PH);cx.restore();
