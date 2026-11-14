@@ -261,7 +261,6 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <div class="upTitle">要坐上長桌的就是他</div>
       <img id="upCut" alt="要坐上長桌的村民">
       <div id="upMsg" class="upQuote"></div>
-      <label class="upChk"><input type="checkbox" id="upOk"> 我同意把這張照片放在作品島，讓其他學員看到</label>
       <div class="btns"><button class="redo" id="upNo">先不要</button><button class="again" id="upGo">送出，坐上長桌</button></div>
       <p class="bErr" id="upErr" role="status"></p>
     </div>
@@ -720,7 +719,22 @@ $('#shotShare').onclick=async()=>{try{await navigator.share({files:[new File([sh
 /* ===== 2026-11-14 坐上長桌：把「村民＋你的臉」去背剪下來，傳到伺服器，自動放上作品島大樹旁的長桌（老師後台可以撤下） ===== */
 const NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
 let upTok='';try{upTok=sessionStorage.getItem('otto2-liff-tk')||''}catch(_){}
-(async()=>{try{if(!upTok&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),new Promise(r=>setTimeout(r,4000))]);if(liff.isLoggedIn&&liff.isLoggedIn())upTok=liff.getAccessToken()||''}}catch(_){}})();
+/* 2026-11-14 晚：大熊要「不用同意、誰都能坐」→ 沒有 LINE 身分就當場請他登入 LINE；登入會整頁跳走，
+   所以先把要送的照片存在手機裡，回來後自動送出，再跳一張小卡告訴他坐好了 */
+const DN_PEND='otto2-dn-pending';let liffReady=null;
+function liffInit(){if(!liffReady)liffReady=(async()=>{try{if(!window.liff)return false;await Promise.race([liff.init({liffId:LIFF_ID}),new Promise((_,no)=>setTimeout(()=>no(),6000))]);return true}catch(_){return false}})();return liffReady}
+async function getTok(){if(upTok)return upTok;if(await liffInit()&&liff.isLoggedIn())upTok=liff.getAccessToken()||'';return upTok}
+async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
+  const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
+function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
+  d.innerHTML='<div style="font-size:18px;margin-bottom:8px">'+t+'</div>'+(ok?'<a href="dinner.html" style="display:block;background:#e2711d;color:#fff;border-radius:22px;padding:10px;text-decoration:none;margin-bottom:8px">去看大家的長桌</a>':'')+'<button type="button" style="border:2px solid #c9a46a;background:none;border-radius:22px;padding:8px 18px;font:inherit;color:#3b2416">關閉</button>';
+  d.querySelector('button').onclick=()=>d.remove()}
+(async()=>{let p=null;try{p=JSON.parse(localStorage.getItem(DN_PEND)||'null')}catch(_){}
+  if(!upTok&&!p){liffInit().then(ok=>{try{if(ok&&liff.isLoggedIn())upTok=liff.getAccessToken()||''}catch(_){}});return}
+  if(!p)return;if(!(await getTok()))return;   // 登入回來了：把剛剛那張自動送出去
+  try{localStorage.removeItem(DN_PEND)}catch(_){}
+  try{const j=await dnSend(p);dnCard('坐好了！🍽<br><span style="font-size:14px;font-weight:600">你已經坐上作品島大樹旁的長桌'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'')+'</span>',true)}
+  catch(err){dnCard('沒坐上長桌<br><span style="font-size:14px;font-weight:600">'+err.message+'</span>',false)}})();
 function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
   const W=480,H=600,GM=bGeom(W,H),S=document.createElement('canvas');S.width=W;S.height=H;const c2=S.getContext('2d');
   const dw=GM.rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;c2.drawImage(bSelf,GM.hx+bOX*W-dw/2,GM.hy+bOY*H-dh*.45,dw,dh);
@@ -733,16 +747,17 @@ $('#shotUp').onclick=()=>{$('#upErr').textContent='';$('#upDone').hidden=true;
   if(!bChar.img){$('#upErr').textContent='';$('#upBox').hidden=false;$('#upCut').hidden=true;$('#upMsg').textContent='「名畫裡的女兒」不能坐上長桌，請回上一步換一位村民再拍一次';$('#upGo').hidden=true;return}
   const c=makeCutout();if(!c){$('#upBox').hidden=false;$('#upMsg').textContent='還沒拍照喔';$('#upGo').hidden=true;return}
   upData=c.toDataURL('image/png');$('#upCut').src=upData;$('#upCut').hidden=false;$('#upGo').hidden=false;
-  $('#upMsg').textContent='「'+(($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！')+'」';$('#upOk').checked=false;$('#upBox').hidden=false;
-  if(!upTok)$('#upErr').textContent='要從 LINE 打開遊戲才能坐上長桌（網頁直接打開只能把照片存到手機）';
+  $('#upMsg').textContent='「'+(($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！')+'」';$('#upBox').hidden=false;
   setTimeout(()=>$('#upBox').scrollIntoView({behavior:'smooth',block:'center'}),50)};
 $('#upNo').onclick=()=>{$('#upBox').hidden=true};
 $('#upGo').onclick=async()=>{const e=$('#upErr');
-  if(!$('#upOk').checked){e.textContent='要先勾「我同意」才能送出喔';return}
-  if(!upTok){e.textContent='要從 LINE 打開遊戲才能坐上長桌';return}
   const btn=$('#upGo');btn.disabled=true;btn.textContent='送出中…';e.textContent='';
-  try{const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:upData,ch:bChar.n,msg:($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！'})});
-    const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');
+  const p={cut:upData,ch:bChar.n,msg:($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！'};
+  try{if(!(await getTok())){   // 沒有 LINE 身分：先存起來，去登入 LINE，回來自動送
+      if(!(await liffInit()))throw new Error('LINE 登入暫時打不開，請稍後再試');
+      try{localStorage.setItem(DN_PEND,JSON.stringify(p))}catch(_){throw new Error('手機空間不夠，存不了照片，請用 LINE 打開遊戲再試')}
+      btn.textContent='先登入 LINE…';liff.login({redirectUri:location.href.split('#')[0]});return}
+    const j=await dnSend(p);
     $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
     beep(660,.1);setTimeout(()=>beep(880,.16),90)}
   catch(err){e.textContent=err.message}
