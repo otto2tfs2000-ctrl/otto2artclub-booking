@@ -2306,6 +2306,10 @@ function boot(){
     /* 2026-11-12 小熊雪地跳跳預覽：https://liff.line.me/2010906803-FMDYktUN?go=jump；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;
     liffReady.then(()=>{ parkToken(); location.replace("park.html?v="+Date.now()+"&jump=1"+(/jpprize(=|%3D)1/i.test(q)?"&jpprize=1"+(/[?&]demo(=|%3D)1/i.test(q)?"&demo=1":"")+((q.match(/[?&]c(?:=|%3D)(pts|ext)/i)||[])[1]?"&c="+q.match(/[?&]c(?:=|%3D)(pts|ext)/i)[1]:""):""))   /* 每次網址都不一樣，LINE 不會拿到舊的快取 */ });
+  } else if(!boot._gc && /go(=|%3D)catch/i.test(q)){
+    /* 2026-11-14 感恩節接火雞＋大家的晚餐長桌（試玩，還沒對會員公開）：https://liff.line.me/2010906803-FMDYktUN?go=catch；帶登入身分才能坐上長桌 */
+    boot._gc=true;
+    liffReady.then(()=>{ parkToken(); location.replace("catch-demo.html?v="+Date.now()) });
   } else if(!boot._gc && /go(=|%3D)sled/i.test(q)){
     /* 2026-11-11 雙 11 雪橇丟禮物預覽：https://liff.line.me/2010906803-FMDYktUN?go=sled；員工帳號是示範模式，不入帳、排行榜另外放 */
     boot._gc=true;

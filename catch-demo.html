@@ -156,7 +156,17 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #bShoot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 #bShoot[hidden]{display:none!important}
 #bRepick{border:0;background:none;color:#ffcf6b;text-decoration:underline;font-size:13px;padding:0}
+
+#upBox,#upDone{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#2b2116;border-radius:14px;padding:14px;box-sizing:border-box;flex:none}
+#upBox[hidden],#upDone[hidden]{display:none!important}
+.upTitle{font-size:17px;font-weight:900;color:#ffcf6b}
+#upCut{height:220px;max-width:100%;object-fit:contain;background:radial-gradient(#3a2e20,#1d1710);border-radius:10px}
+.upQuote{font-size:14px;font-weight:700;text-align:center}
+.upChk{font-size:13px;color:#e6d3ac;display:flex;gap:8px;align-items:flex-start;line-height:1.5;text-align:left}
+.upChk input{width:20px;height:20px;flex:none;margin-top:1px}
+.upLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
 </style>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
 
 <div id="app">
   <div id="flash"></div>
@@ -246,7 +256,20 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <img id="shotImg" alt="你的感恩節合照">
     <p class="bHint">長按照片就可以存到手機</p>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
-    <button class="bWide" id="shotUp" disabled>上傳到作品島大樹（即將開放）</button>
+    <button class="bWide" id="shotUp">🍽 坐上作品島大樹旁的長桌</button>
+    <div id="upBox" hidden>
+      <div class="upTitle">要坐上長桌的就是他</div>
+      <img id="upCut" alt="要坐上長桌的村民">
+      <div id="upMsg" class="upQuote"></div>
+      <label class="upChk"><input type="checkbox" id="upOk"> 我同意把這張照片放在作品島，讓其他學員看到</label>
+      <div class="btns"><button class="redo" id="upNo">先不要</button><button class="again" id="upGo">送出，坐上長桌</button></div>
+      <p class="bErr" id="upErr" role="status"></p>
+    </div>
+    <div id="upDone" hidden>
+      <div class="upTitle">坐好了！🍽</div>
+      <p class="bHint" id="upLeft"></p>
+      <a class="bWide upLink" href="dinner.html" id="upSee">去看大家的長桌</a>
+    </div>
     <div class="btns"><button class="redo" id="shotRe">重拍一張</button><button class="again" id="shotBack">回到成績</button></div>
   </section>
 </div>
@@ -692,9 +715,39 @@ $('#bDone').onclick=()=>{if(bStream)bSnap();if(!bSelf){$('#bErr').textContent='�
   cx.font='800 26px '+FONT;cx.fillText('OTTO2 ARTCLUB',CW/2,CH-48);
   const url=c.toDataURL('image/jpeg',.9);$('#shotImg').src=url;
   try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
-  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
+  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
 $('#shotShare').onclick=async()=>{try{await navigator.share({files:[new File([shotBlob],'otto2-thanksgiving.jpg',{type:'image/jpeg'})],text:'我和梵谷《吃馬鈴薯的人》一家過感恩節！'})}catch(_){}};
-$('#shotRe').onclick=()=>{$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
+/* ===== 2026-11-14 坐上長桌：把「村民＋你的臉」去背剪下來，傳到伺服器，自動放上作品島大樹旁的長桌（老師後台可以撤下） ===== */
+const NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
+let upTok='';try{upTok=sessionStorage.getItem('otto2-liff-tk')||''}catch(_){}
+(async()=>{try{if(!upTok&&window.liff){await Promise.race([liff.init({liffId:LIFF_ID}),new Promise(r=>setTimeout(r,4000))]);if(liff.isLoggedIn&&liff.isLoggedIn())upTok=liff.getAccessToken()||''}}catch(_){}})();
+function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
+  const W=480,H=600,GM=bGeom(W,H),S=document.createElement('canvas');S.width=W;S.height=H;const c2=S.getContext('2d');
+  const dw=GM.rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;c2.drawImage(bSelf,GM.hx+bOX*W-dw/2,GM.hy+bOY*H-dh*.45,dw,dh);
+  c2.save();c2.globalCompositeOperation='overlay';c2.globalAlpha=.25;c2.fillStyle=c2.createPattern(strokeTex(),'repeat');c2.fillRect(0,0,W,H);c2.restore();
+  c2.globalCompositeOperation='destination-in';c2.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch);   // 自拍只留臉洞那塊
+  c2.globalCompositeOperation='source-over';c2.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch);        // 村民蓋在上面
+  const oh=420,ow=Math.round(GM.cw*oh/GM.ch),o=document.createElement('canvas');o.width=ow;o.height=oh;o.getContext('2d').drawImage(S,GM.x0,GM.y0,GM.cw,GM.ch,0,0,ow,oh);return o}
+let upData='';
+$('#shotUp').onclick=()=>{$('#upErr').textContent='';$('#upDone').hidden=true;
+  if(!bChar.img){$('#upErr').textContent='';$('#upBox').hidden=false;$('#upCut').hidden=true;$('#upMsg').textContent='「名畫裡的女兒」不能坐上長桌，請回上一步換一位村民再拍一次';$('#upGo').hidden=true;return}
+  const c=makeCutout();if(!c){$('#upBox').hidden=false;$('#upMsg').textContent='還沒拍照喔';$('#upGo').hidden=true;return}
+  upData=c.toDataURL('image/png');$('#upCut').src=upData;$('#upCut').hidden=false;$('#upGo').hidden=false;
+  $('#upMsg').textContent='「'+(($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！')+'」';$('#upOk').checked=false;$('#upBox').hidden=false;
+  if(!upTok)$('#upErr').textContent='要從 LINE 打開遊戲才能坐上長桌（網頁直接打開只能把照片存到手機）';
+  setTimeout(()=>$('#upBox').scrollIntoView({behavior:'smooth',block:'center'}),50)};
+$('#upNo').onclick=()=>{$('#upBox').hidden=true};
+$('#upGo').onclick=async()=>{const e=$('#upErr');
+  if(!$('#upOk').checked){e.textContent='要先勾「我同意」才能送出喔';return}
+  if(!upTok){e.textContent='要從 LINE 打開遊戲才能坐上長桌';return}
+  const btn=$('#upGo');btn.disabled=true;btn.textContent='送出中…';e.textContent='';
+  try{const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:upData,ch:bChar.n,msg:($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！'})});
+    const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');
+    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
+    beep(660,.1);setTimeout(()=>beep(880,.16),90)}
+  catch(err){e.textContent=err.message}
+  btn.disabled=false;btn.textContent='送出，坐上長桌'};
+$('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
 $('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false};
 window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
 $('#btnEp').onclick=()=>{$('#epNote').textContent='正式版會直接打開「畫框背後」梵谷 EP01《吃馬鈴薯的人》'};

@@ -313,7 +313,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261105c"></script>
 <script>
-const ART_VER='20261108b';
+const ART_VER='20261114a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -565,6 +565,34 @@ function buildBigTree(){
   bigTree.traverse(o=>{if(o.isMesh){o.userData.album=true;picks.push(o)}});
   const glow=new THREE.PointLight('#ffd9a0',.6,12,2);glow.position.set(0,5,0);bigTree.add(glow);
   if(XDECO)xmasTree(spots,ends[ends.length-1]);
+}
+/* 2026-11-14 感恩節「大家的晚餐」：大樹旁立一面掛長桌畫的木牆，玩接火雞拍了合照的人會坐在畫裡的桌子後面。
+   點了打開 dinner.html 看大圖。11/26 才出現（大熊：活動還沒開始先不要給會員看）；網址加 ?dinner=1 可以先看。 */
+const DINNER_POS=[6.3,0,4.6];
+function dinnerOn(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return d>='2026-11-26'||/[?&]dinner=1/.test(location.search)}
+function buildDinnerWall(){if(!dinnerOn())return;
+  const g=new THREE.Group(),W=6.6,H=W/3;g.position.set(DINNER_POS[0],1.38+DINNER_POS[1],DINNER_POS[2]);g.rotation.y=Math.atan2(DINNER_POS[0],DINNER_POS[2])+.1;scene.add(g);
+  const wood=toon('#7a5434'),wd=toon('#5e3f25');
+  const back=new THREE.Mesh(new THREE.BoxGeometry(W+.5,H+.5,.18),wood);back.position.y=1.15+H/2;back.castShadow=true;g.add(back);
+  [-1,1].forEach(k=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.22,1.3+H,.22),wd);p.position.set(k*(W/2+.1),(1.3+H)/2,-.05);p.castShadow=true;g.add(p)});
+  const cv=document.createElement('canvas');cv.width=1200;cv.height=400;const cx=cv.getContext('2d');cx.fillStyle='#d9b98a';cx.fillRect(0,0,1200,400);
+  const tex=new THREE.CanvasTexture(cv);if(THREE.SRGBColorSpace)tex.colorSpace=THREE.SRGBColorSpace;
+  const pic=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex}));pic.position.set(0,1.15+H/2,.1);g.add(pic);
+  // 畫上面的小招牌
+  const sc=document.createElement('canvas');sc.width=512;sc.height=96;const sx=sc.getContext('2d');sx.fillStyle='#fbf1dc';sx.fillRect(0,0,512,96);sx.fillStyle='#3b2416';sx.font='800 50px "PingFang TC","Noto Sans TC",sans-serif';sx.textAlign='center';sx.textBaseline='middle';sx.fillText('🍽 大家的晚餐',256,50);
+  const st=new THREE.CanvasTexture(sc);if(THREE.SRGBColorSpace)st.colorSpace=THREE.SRGBColorSpace;
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.36),new THREE.MeshBasicMaterial({map:st}));sign.position.set(0,1.15+H+.45,.1);g.add(sign);
+  g.traverse(o=>{if(o.isMesh){o.userData.dinner=true;picks.push(o)}});
+  // 畫：背景＋從伺服器拿名單把大家排上去＋桌上的食物蓋在前面（跟 dinner.html 同一套位子）
+  const ld=(src,cors)=>new Promise(ok=>{const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src});
+  (async()=>{const [bg,fore]=await Promise.all([ld('catch-video/dinner/table.jpg'),ld('catch-video/dinner/fore.webp')]);if(!bg)return;
+    const k=1200/2000;cx.drawImage(bg,0,0,1200,400);tex.needsUpdate=true;
+    let list=[];try{const j=await (await fetch(NOTIFY_URL+'/dinner/list')).json();if(j.ok)list=j.list||[]}catch(e){}
+    const SEATS=[175,350,525,690,1075,1240,1405,1570,1740,1895],ims=await Promise.all(list.slice(-10).map(x=>ld(x.cut,true)));
+    ims.forEach((im,i)=>{if(!im)return;const h=232*k,w=h*im.naturalWidth/im.naturalHeight,x=SEATS[i]*k;cx.drawImage(im,x-w/2,462*k-h,w,h)});
+    if(fore)cx.drawImage(fore,0,207*k,1200,(667-207)*k);
+    cx.fillStyle='rgba(42,29,18,.78)';cx.fillRect(0,360,1200,40);cx.fillStyle='#ffcf6b';cx.font='700 22px "PingFang TC","Noto Sans TC",sans-serif';cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillText(list.length?'目前 '+list.length+' 位客人入座・點畫看全部':'玩感恩節接火雞，拍合照坐上長桌！・點畫看看',600,381);tex.needsUpdate=true})();
 }
 /* 聖誕：大樹掛彩燈、樹冠頂端積雪、最上面一顆星星（燈和雪都用 InstancedMesh，一種只畫一次） */
 function xmasTree(spots,topEnd){const r=rng(123),mt=new THREE.Matrix4(),q=new THREE.Quaternion(),s=new THREE.Vector3(),p=new THREE.Vector3();
@@ -1878,7 +1906,7 @@ function build(){
   scene.add(ANIGHT?new THREE.HemisphereLight('#e3eaff','#8a9bb8',.88):new THREE.HemisphereLight('#ffffff','#9db27f',.95));
   const sun=new THREE.DirectionalLight(ANIGHT?'#eef2ff':'#fff0d4',ANIGHT?.78:.9);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(LOWMEM?1536:3072,LOWMEM?1536:3072);
   const sc=sun.shadow.camera;sc.left=-19*K;sc.right=19*K;sc.top=19*K;sc.bottom=-19*K;sc.near=1;sc.far=90;sun.shadow.bias=-.0006;sun.shadow.radius=4;scene.add(sun);
-  buildSky();buildBalloons();buildIsland();buildBigTree();buildArtists();buildAnimals();buildHall();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
+  buildSky();buildBalloons();buildIsland();buildBigTree();buildDinnerWall();buildArtists();buildAnimals();buildHall();if(XDECO){xmasSnowman();xmasSnow();xmasPondFolk()}
   addEventListener('resize',resize);resize();
 }
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();if(camera.view&&camera.view.enabled)camera.setViewOffset(innerWidth,innerHeight,0,-VSH,innerWidth,innerHeight)}
@@ -2013,6 +2041,7 @@ function onUp(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch0=null;if(
   if(u.trip)return tripFound();
   if(u.gp)return gpTap(u.gp,u.kind);if(u.gpBowl)return gpFeed(u.gpBowl,u.kind);
   if(u.airship)return openAirship();if(u.hall)return openHall();
+  if(u.dinner){location.href='dinner.html?v='+Date.now();return}
   if(u.xsd)return xsdTap(u.xsd);
   if(u.santa){if(sledGo())return;return toast('聖誕老公公：Ho Ho Ho～聖誕快樂！🎅')}
   if(u.artist)return openArtist(u.artist);if(u.house)return openHouseSheet(u.house);if(u.album)return openAlbum()}
