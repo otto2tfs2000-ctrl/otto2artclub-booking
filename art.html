@@ -585,7 +585,7 @@ function buildDinnerWall(){if(!dinnerOn())return;
   g.traverse(o=>{if(o.isMesh){o.userData.dinner=true;picks.push(o)}});
   // 畫：背景＋從伺服器拿名單把大家排上去＋桌上的食物蓋在前面（跟 dinner.html 同一套位子）
   const ld=(src,cors)=>new Promise(ok=>{const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src});
-  (async()=>{const [bg,fore]=await Promise.all([ld('catch-video/dinner/table.jpg'),ld('catch-video/dinner/fore.webp')]);if(!bg)return;
+  (async()=>{const [bg,fore]=await Promise.all([ld('catch-video/dinner/table.jpg'),ld('catch-video/dinner/fore.webp?v=2')]);if(!bg)return;
     const k=1200/2000;cx.drawImage(bg,0,0,1200,400);tex.needsUpdate=true;
     let list=[];try{const j=await (await fetch(NOTIFY_URL+'/dinner/list')).json();if(j.ok)list=j.list||[]}catch(e){}
     const SEATS=[175,350,525,690,1075,1240,1405,1570,1740,1895],ims=await Promise.all(list.slice(-10).map(x=>ld(x.cut,true)));

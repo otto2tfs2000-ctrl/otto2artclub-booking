@@ -53,7 +53,7 @@ async function main(){
   let list=[];
   if(DEMO){list=Array.from({length:13},(_,i)=>({id:'demo'+i,n:['林○○','陳○○','王○○','張○○','李○○'][i%5],ch:'村民',msg:['感恩有你們一起吃飯！','謝謝老師陪我畫完第一幅畫','今年最開心的一天','謝謝家人一直支持我','感恩每一堂課'][i%5],cut:'catch-video/dinner/demo/p'+String(i%15+1).padStart(2,'0')+'.webp'}))}
   else{try{const r=await fetch(NOTIFY_URL+'/dinner/list');const j=await r.json();if(j.ok)list=j.list||[]}catch(e){$('#cnt').textContent='讀不到名單，請稍後再試'}}
-  const [bg,fore]=await Promise.all([load('catch-video/dinner/table.jpg'),load('catch-video/dinner/fore.webp')]);
+  const [bg,fore]=await Promise.all([load('catch-video/dinner/table.jpg'),load('catch-video/dinner/fore.webp?v=2')]);
   const imgs=await Promise.all(list.map(x=>load(x.cut,!DEMO)));
   people=list.map((x,i)=>({...x,img:imgs[i]})).filter(x=>x.img);
   const segs=Math.max(1,Math.ceil(people.length/SEATS.length));
