@@ -606,6 +606,10 @@ let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
   const im=bChar.img,ch=H*.97,cw=ch*(im.naturalWidth||370)/(im.naturalHeight||560),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
   return{hx:x0+f[0]*cw,hy:y0+f[1]*ch,rx:f[2]*.44*cw,ry:f[3]*.56*ch,x0,y0,cw,ch}}
+function holeCenter(c){if(!c.mask)return null;if(c.hc)return c.hc;if(!c.mask.complete||!c.mask.naturalWidth)return null;try{
+  const w=60,h=90,t=document.createElement('canvas');t.width=w;t.height=h;const tx=t.getContext('2d');tx.drawImage(c.mask,0,0,w,h);const d=tx.getImageData(0,0,w,h).data;
+  let sx=0,sy=0,n=0,y0=h,y1=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>128){sx+=x;sy+=y;n++;y0=Math.min(y0,y);y1=Math.max(y1,y)}
+  return c.hc=n?[sx/n/w,sy/n/h,(y1-y0)/h<.12&&sy/n/h>c.f[1]]:null}catch(e){return null}}   // 第三個值＝只挖嘴巴
 function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   const GM=bGeom(W,H),hx=GM.hx,hy=GM.hy,rx=GM.rx,ry=GM.ry;
   ctx.fillStyle='#2a2016';ctx.fillRect(0,0,W,H);
@@ -622,7 +626,9 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
       const sg=ctx.createRadialGradient(-.25,-.3,0,0,0,1.05);sg.addColorStop(0,'rgba(255,214,140,.10)');sg.addColorStop(.62,'rgba(20,15,8,0)');sg.addColorStop(1,'rgba(20,15,8,.38)');
       ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,1.1,0,7);ctx.fill()}
     ctx.restore()}
-  else{ctx.fillStyle='#e9dcc0';ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill();ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.045)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',hx,hy)}
+  else{ctx.fillStyle='#e9dcc0';if(bChar.mask)ctx.fillRect(0,0,W,H);else{ctx.beginPath();ctx.ellipse(hx,hy,rx,ry,0,0,7);ctx.fill()}   // 臉洞形狀不一定（只挖嘴、眼鏡），整片鋪滿才不會露黑
+    const hc=holeCenter(bChar),tx=hc?GM.x0+hc[0]*GM.cw:hx,ty=hc?GM.y0+hc[1]*GM.ch:hy;
+    if(!bChar.mask){ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.04)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',tx,ty)}}   // 臉型洞形狀各不同，不放字，米色就是要放臉的地方
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
   if(bChar.img){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
