@@ -568,9 +568,9 @@ function matchSkin(c){try{const rc=bCv.getBoundingClientRect(),W=rc.width||300,H
   const fx=(GM.hx-x0)*sc,fy=(GM.hy-y0)*sc,fr=GM.rx*.55*sc;   // 自拍裡對到臉洞中間的那一塊
   const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height),p=d.data;let r=0,g=0,b=0,n=0;
   for(let y=Math.max(0,fy-fr|0);y<Math.min(c.height,fy+fr);y+=2)for(let xx=Math.max(0,fx-fr|0);xx<Math.min(c.width,fx+fr);xx+=2){const i=((y|0)*c.width+(xx|0))*4;r+=p[i];g+=p[i+1];b+=p[i+2];n++}
-  if(!n)return c;const t=skinOf(bChar),k=[t[0]/(r/n),t[1]/(g/n),t[2]/(b/n)].map(v=>clamp(v,.35,1.5));
+  if(!n)return c;const t=skinOf(bChar),k=[t[0]/(r/n),t[1]/(g/n),t[2]/(b/n)].map(v=>clamp(v,.12,1.6));   // 下限放寬，藍色才壓得下來（畫裡的膚色藍很少）
   for(let i=0;i<p.length;i+=4){const l=(p[i]+p[i+1]+p[i+2])/3;   // 先去掉一點鮮豔，再乘上配色係數
-    p[i]=clamp((p[i]*.75+l*.25)*k[0],0,255);p[i+1]=clamp((p[i+1]*.75+l*.25)*k[1],0,255);p[i+2]=clamp((p[i+2]*.75+l*.25)*k[2],0,255)}
+    p[i]=clamp((p[i]*.9+l*.1)*k[0],0,255);p[i+1]=clamp((p[i+1]*.9+l*.1)*k[1],0,255);p[i+2]=clamp((p[i+2]*.9+l*.1)*k[2],0,255)}
   x.putImageData(d,0,0);c.matched=true;return c}catch(e){return c}}
 function paintify(src){try{
   const k=Math.min(1,420/Math.max(src.width,src.height)),w=Math.max(8,Math.round(src.width*k)),h=Math.max(8,Math.round(src.height*k));
@@ -599,7 +599,9 @@ const FOLK=[{n:'名畫裡的女兒',src:null},
   {n:'端咖啡的農夫',f:[.536,.278,.385,.257]},{n:'拿叉子的婦人',f:[.511,.285,.409,.269]},{n:'抽菸斗的爺爺',f:[.503,.287,.388,.253]},{n:'端馬鈴薯的姑娘',f:[.497,.285,.416,.274]},{n:'大鬍子大叔',f:[.52,.30,.36,.25]},
   {n:'抱麵包的師傅',f:[.489,.225,.275,.19]},{n:'抱火雞的大嬸',f:[.577,.203,.337,.216]},{n:'吃馬鈴薯的大叔',f:[.47,.25,.34,.24]},{n:'織毛線的奶奶',f:[.504,.281,.331,.223]},{n:'等開飯的紳士',f:[.461,.21,.32,.212]},
   {n:'拿畫筆的畫家',f:[.561,.294,.395,.26]},{n:'拿調色盤的畫家',f:[.494,.309,.401,.264]},{n:'抱向日葵的女孩',f:[.51,.256,.387,.255]},{n:'提燈的少年',f:[.525,.279,.391,.26]},{n:'舉杯的工人',f:[.553,.261,.369,.244]}];
-FOLK.forEach((c,i)=>{if(i){const k=String(i).padStart(2,'0');c.img=new Image();c.img.src='catch-video/folk/f'+k+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+k+'.png'}});   // m＝照臉型做的洞（11/14 大熊：不要圓圈，要貼合臉的輪廓；有鬍子的留鬍子）
+/* 每位角色的膚色（從舊版完整臉的圖量的，新版的臉已經挖空量不到） */
+const FOLK_SKIN=[[105,76,29],[126,90,37],[112,79,31],[126,92,38],[109,77,30],[160,112,44],[174,125,42],[151,106,36],[152,107,31],[147,104,40],[154,113,38],[156,116,37],[173,130,52],[171,126,37],[161,115,41]];
+FOLK.forEach((c,i)=>{if(i){c.skin=FOLK_SKIN[i-1];const k=String(i).padStart(2,'0');c.img=new Image();c.img.src='catch-video/folk/f'+k+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+k+'.png'}});   // m＝照臉型做的洞（11/14 大熊：不要圓圈，要貼合臉的輪廓；有鬍子的留鬍子）
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
   const im=bChar.img,ch=H*.97,cw=ch*(im.naturalWidth||370)/(im.naturalHeight||560),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
