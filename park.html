@@ -953,7 +953,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261114b';
+const PARK_VER='20261114c';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2518,11 +2518,12 @@ async function xGachaShow(req){
   return out}
 /* 2026-10-08 試做過「每天的扭蛋也全螢幕跳出」，大熊不要，停用（程式留著，沒有地方呼叫） */
 /* 2026-11-08 大熊：打開遊戲有黃金扭蛋金幣就直接跳黃金扭蛋機，沒有金幣但今天還有次數就跳一般扭蛋機，都轉過了就直接玩走格子（畫框背後是另一頁，不會跳） */
-function gachaFirst(){if(window.KIOSK||/[?&]nogf=1/.test(location.search))return; /* nogf=1：測試用，不跳 */const t0=Date.now();
+function gachaFirst(goldOnly){if(window.KIOSK||/[?&]nogf=1/.test(location.search))return; /* nogf=1：測試用，不跳 */const t0=Date.now();
   const go=()=>{if(!G||!window.__parkReady||busy||window.HW_ON||!$('pop').hidden||document.body.classList.contains('touring')||(typeof shopOpenNow==='function'&&shopOpenNow()))return setTimeout(go,600);
     if(!ST&&!gErrMsg&&Date.now()-t0<6000)return setTimeout(go,400);if(Date.now()-t0<2500)return setTimeout(go,300); /* 等次數、金幣都載好 */
     if(ST&&ST.sim){const k='otto2-gf-sim-'+new Date(Date.now()+8*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}} /* 2026-11-09 示範模式（工作人員）次數無限，一天只自動跳一次，之後自己按 */
     if(goldHas()){goldGachaOpen(GOLD.coins,false);return}
+    if(goldOnly)return; /* 2026-11-14 只有手上有金幣的人才自動跳（金色扭蛋） */
     if(gLeft()>0){ggLoadImgs();Promise.race([Promise.all(GGN.map(n=>GGI[n].complete&&GGI[n].naturalWidth?0:new Promise(r=>{GGI[n].addEventListener('load',r,{once:true});GGI[n].addEventListener('error',r,{once:true})}))),sleep(4000)]).then(spinFullscreen)}};
   setTimeout(go,1200)}
 async function spinFullscreen(){
@@ -5297,7 +5298,7 @@ setTimeout(maybeTour,1800);
    角色每天輪一位；聖誕期間五位聖誕角色，之後只剩彩繪精靈 */
 if(NP){const t=$('plParkT');if(t)t.textContent='選品館'} /* 新版：扭蛋島改叫選品館 */
 (function dailyHi(){
-  if(NP)return; /* 2026-11-14 大熊：打開不要先跳扭蛋機，讓他們自己選要按「轉一下」還是直接走格子（原本是 gachaFirst() 自動跳） */
+  if(NP){gachaFirst(true);return} /* 2026-11-14 大熊：一般扭蛋不自動跳，讓他們自己選；只有手上有金幣的人才自動跳金色扭蛋機 */
   const q=location.search;if(window.KIOSK||/[?&](isl=(oct|mascot)|shop=1)/.test(q))return;
   const day=new Date(Date.now()+8*3600e3).toISOString().slice(0,10),key='otto2-dailyhi-'+day;
   try{if(localStorage.getItem(key))return}catch(e){return}
