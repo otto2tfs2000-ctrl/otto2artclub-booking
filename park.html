@@ -953,7 +953,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261112p';
+const PARK_VER='20261114a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -4426,9 +4426,11 @@ async function gameRoom(){
   const left=Math.max(0,ROOM_DAILY-G.arc.n);
   const html=`<div class="room">${Object.entries(MG).map(([k,m])=>`<button type="button" class="rg" data-k="${k}"><img alt="" src="${iconSrc(m.ic)}"><span>${m.t}</span><small>${G.arc.best[k]?'最高 '+esc(G.arc.best[k].lbl):'還沒玩過'}</small></button>`).join('')}</div>`;
   const pick=new Promise(res=>{
-    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p>${html}<div class="acts">${XS&&!window.GUEST?'<button type="button" class="btn" id="roomRank">🏆 本週排行榜</button>':''}<button type="button" class="btn ghost" id="roomX">離開</button></div>`;
+    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p><button type="button" class="btn" id="roomCatch" style="width:100%;margin:2px 0 12px;background:#e2711d;border-color:#b5541a;color:#fff">🦃 感恩節：接火雞・坐上長桌</button>${html}<div class="acts">${XS&&!window.GUEST?'<button type="button" class="btn" id="roomRank">🏆 本週排行榜</button>':''}<button type="button" class="btn ghost" id="roomX">離開</button></div>`;
     $('pop').hidden=false;$('roomX').focus();
     $('roomX').onclick=()=>{$('pop').hidden=true;res(null)};
+    /* 2026-11-14 大熊：感恩節接火雞放遊樂島遊戲室；同一個分頁跳過去，LINE 身分（sessionStorage otto2-liff-tk）跟著帶，玩完能直接坐上長桌 */
+    $('roomCatch').onclick=()=>{$('pop').hidden=true;try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href='catch-demo.html?v='+PARK_VER};
     if($('roomRank'))$('roomRank').onclick=()=>{$('pop').hidden=true;res('__rank')};
     $('card').querySelectorAll('.rg').forEach(b=>b.onclick=()=>{$('pop').hidden=true;res(b.dataset.k)});
   });
