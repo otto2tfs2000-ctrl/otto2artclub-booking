@@ -424,7 +424,7 @@ window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
   G={t:0,cd:4,hp:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
-     served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextRain:14,rain:0,rainCd:0,rainWarn:0,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
+     served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
   fit();G.cx=G.tx=W/2;for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
   cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop)}
 function loop(ts){if(!G||G.over)return;const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;update(dt);draw();raf=requestAnimationFrame(loop)}
@@ -471,7 +471,7 @@ function update(dt){
   if(G.hp<=0){endGame();return}
 
   // 天上掉火雞
-  G.nextDrop-=dt;if(G.nextDrop<=0){G.nextDrop=rnd(.75,1.15)-.4*p;const bm=G.t>3&&Math.random()<.16+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
+  G.nextDrop-=dt;if(G.nextDrop<=0){G.nextDrop=rnd(.75,1.15)-.4*p;const bm=G.t>8&&Math.random()<.1+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
   for(let i=G.items.length-1;i>=0;i--){const it=G.items[i],py=it.y;it.vy+=it.g*dt;it.x+=it.vx*dt;it.y+=it.vy*dt;it.w+=dt*9;
     it.x=clamp(it.x,16,W-16);
     const top=pos(G.n);
@@ -483,14 +483,6 @@ function update(dt){
       if(G.n)G.lv+=(it.x-top.x)/34*1.4;G.n++;if(G.n>G.best)G.best=G.n;G.items.splice(i,1);
       txt(G.n>=3?G.n+' 隻！':'接到',top.x,top.y-24,'#fff');beep(520+G.n*40,.09);continue}
     if(it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'run',x:it.x,y:G.gy-12,r:0})}}
-
-  // 2026-11-14 大熊嫌等炸彈太久：每 13～18 秒來一陣「炸彈雨」，先警告，接著 2.6 秒炸彈和火雞一起狂掉（一半朝你現在的位置丟）
-  G.nextRain-=dt;if(G.nextRain<=0&&!G.rain&&!G.rainWarn){G.nextRain=rnd(13,18)-3*Math.min(1,p);G.rainWarn=1;
-    txt('⚠ 炸彈雨來了！',W/2,G.gy*.38,'#ff8a5c',true);beep(440,.12,'square',.05);setTimeout(()=>beep(440,.12,'square',.05),180);setTimeout(()=>beep(660,.2,'square',.05),360)}
-  if(G.rainWarn>0){G.rainWarn-=dt;if(G.rainWarn<=0){G.rainWarn=0;G.rain=2.6;G.rainCd=0;G.shake=Math.max(G.shake||0,.25)}}
-  if(G.rain>0){G.rain-=dt;G.rainCd-=dt;if(G.rain<=0)G.rain=0;
-    if(G.rainCd<=0){G.rainCd=rnd(.2,.32)-.06*p;const aim=Math.random()<.5,bm=Math.random()<.62;if(!bm)G.total++;
-      G.items.push({x:aim?clamp(G.cx+rnd(-110,110),30,W-30):rnd(30,W-30),y:-20,vx:0,vy:(bm?230:190)+130*p,g:0,w:rnd(0,6),bomb:bm})}}
 
   // 籠子：靠過去就打開，火雞往上噴
   if(G.dist>G.nextCage){G.nextCage=G.dist+rnd(2300,3100);G.cages.push({x:W+60,open:false})}
