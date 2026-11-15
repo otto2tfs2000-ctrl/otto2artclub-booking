@@ -176,6 +176,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.ctNews span{animation:none;padding-left:10px;white-space:normal}}
 #ctBox{width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;align-items:center}
 .vgGot{margin:0;width:100%;max-width:400px;box-sizing:border-box;padding:10px 14px;border-radius:12px;background:#3a2c14;border:2px solid #e8b84b;color:#ffe3a3;font-size:15px;text-align:center}.vgGot b{color:#ffcf6b}
+.ctLogin{background:#fff3df;border:2px solid #e2711d;border-radius:14px;padding:12px 14px;margin:8px 0;font-size:14px;line-height:1.6;color:#3b2416;text-align:center}.ctLogin b{font-size:16px;color:#c0501a}.ctLogin button{display:block;width:100%;margin-top:10px;background:#06c755;color:#fff;border:0;border-radius:22px;padding:11px;font-size:15px;font-weight:700}
 .ctNote{font-size:13px;color:#b9a27a;text-align:center;margin:0}.ctNew{font-size:16px;color:#e8b84b;font-weight:700;margin:0}
 .ctTabs{display:flex;gap:6px}.ctTabs button{border:0;border-radius:99px;padding:3px 12px;font-size:13px;background:#3d3222;color:#b9a27a}.ctTabs button.on{background:#e8b84b;color:#2b2418;font-weight:700}
 .ctList{width:100%;display:flex;flex-direction:column;gap:5px;margin:0;padding:0;list-style:none}
@@ -801,7 +802,7 @@ function ctList(st){const L=st[ctTab]||{top:[],me:0};if(!L.top.length)return '<p
   return '<ol class="ctList">'+L.top.map((x,i)=>'<li'+(x.me?' class="me"':'')+'><span class="no">'+(i+1)+'</span><span class="av">'+(x.ch?'<img src="'+ctEsc(x.ch)+'" alt="">':'🦃')+'</span><span>'+ctEsc(x.n)+(x.me?'（你）':'')+'</span><em>'+ctNum(x.s)+' 隻</em></li>').join('')+'</ol>'+(L.me>10?'<p class="ctNote">你目前第 '+L.me+' 名</p>':'')}
 function ctRender(j){const box=$('#ctBox');const m=j.mine;
   box.innerHTML=(j.newBest?'<p class="ctNew">🎉 刷新你的紀錄！</p>':'')+ctBar(j)+
-   (m?'<p class="ctNote">你玩了 '+m.plays+' 局・累積帶回 '+ctNum(m.sum)+' 隻・單局最多 '+m.best+' 隻'+(j.staff?'（工作人員不算進全店總數）':'')+'</p>':'')+
+   (m?'<p class="ctNote">你玩了 '+m.plays+' 局・累積帶回 '+ctNum(m.sum)+' 隻・單局最多 '+m.best+' 隻'+'</p>':'')+
    (j.bad?'<p class="ctNote">這局成績怪怪的，沒有算進去</p>':'')+
    '<div class="ctTabs"><button data-t="best"'+(ctTab==='best'?' class="on"':'')+'>單局最多</button><button data-t="sum"'+(ctTab==='sum'?' class="on"':'')+'>累積最多</button></div><div id="ctL">'+ctList(j)+'</div>';
   box.querySelectorAll('.ctTabs button').forEach(b=>b.onclick=()=>{ctTab=b.dataset.t;box.querySelectorAll('.ctTabs button').forEach(x=>x.classList.toggle('on',x===b));$('#ctL').innerHTML=ctList(j)})}
@@ -813,10 +814,25 @@ function helpLoad(a){if(!Array.isArray(a)||!a.length)return;const nx=[];let left
 async function ctLoad(){try{const j=await (await fetch(NOTIFY_URL+'/catch/state')).json();if(j&&j.ok){ctLast=j;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j)}}catch(_){}}
 async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p class="ctNote">成績記錄中…</p>';
   let tok='';try{tok=await getTok()}catch(_){}
-  if(!tok){box.innerHTML='<p class="ctNote">從 LINE 打開遊戲，才會記錄成績、上排行榜。</p>'+(ctLast?ctBar(ctLast):'');return}
+  if(!tok){   /* 11/15 大熊：不是從 LINE 打開的人要提醒，按登入回來這局也補記 */
+    box.innerHTML='<div class="ctLogin"><b>這局還沒記錄</b><br>你不是從 LINE 打開遊戲，火雞不會算進全店總數、也上不了排行榜。<button type="button" id="ctLoginBtn">用 LINE 登入，這局也算進去</button></div>'+(ctLast?ctBar(ctLast):'');
+    $('#ctLoginBtn').onclick=async()=>{const b=$('#ctLoginBtn');b.disabled=true;b.textContent='打開 LINE 登入…';
+      if(!(await liffInit())){b.disabled=false;b.textContent='LINE 登入暫時打不開，請稍後再試';return}
+      try{localStorage.setItem(CT_PEND,JSON.stringify({served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():'',at:Date.now()}))}catch(_){}
+      liff.login({redirectUri:location.href.split('#')[0]})};
+    return}
   try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():''})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
+/* 登入回來：把登入前那局補送出去（30 分鐘內有效） */
+const CT_PEND='otto2-ct-pending';
+(async()=>{let p=null;try{p=JSON.parse(localStorage.getItem(CT_PEND)||'null')}catch(_){}
+  if(!p)return;if(Date.now()-(+p.at||0)>30*60e3){try{localStorage.removeItem(CT_PEND)}catch(_){}return}
+  if(!(await getTok()))return;try{localStorage.removeItem(CT_PEND)}catch(_){}
+  try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:upTok,served:p.served,total:p.total,hi:p.hi,sec:p.sec,char:p.char})});
+    const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j);
+    dnCard('登入好了！🦃<br><span style="font-size:14px;font-weight:600">剛剛那局帶回 '+ctNum(j.served)+' 隻，已經算進全店總數（現在 '+ctNum(j.total)+' 隻）。<br>接下來每一局都會記錄。</span>',false)}
+  catch(e){dnCard('剛剛那局沒記錄到<br><span style="font-size:14px;font-weight:600">'+ctEsc(e.message||'網路不穩')+'，下一局會照常記錄。</span>',false)}})();
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
 function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
