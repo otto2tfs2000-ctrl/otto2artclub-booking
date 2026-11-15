@@ -298,6 +298,47 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .hm-card.hall{background:linear-gradient(135deg,#2f5658,#1f3d40);border-color:#c9a85a;box-shadow:0 6px 16px rgba(31,61,64,.22);padding:14px 16px}
 .hm-card.hall:hover{background:linear-gradient(135deg,#36615f,#244649);border-color:#c9a85a}
 .hm-card.hall .hm-ic{background:rgba(233,207,140,.16);width:40px;height:40px;font-size:20px}
+/* ══ 2026-11-16 大熊：首頁要一頁看完（手機不用往下滑就看到「我要預約課程」）══
+   頂部藍色縮小、問候縮一行；畫框背後／查詢／預約三張一樣高；感恩節卡跟聖誕卡一樣高 */
+.hero.home{padding:9px 16px}
+.hero.home .steps,.hero.home .stepname{display:none}
+.hero.home h1{font-size:16px}
+.hm{padding-top:12px!important}
+.hm-hi{font-size:18px!important;margin:0 0 10px!important}
+.hm-tagline{display:none}
+.hm>.hm-card{min-height:62px;box-sizing:border-box;padding:9px 14px!important;margin-bottom:10px;gap:12px}
+.hm>.hm-card .hm-ic{width:38px!important;height:38px!important;font-size:19px}
+.hm>.hm-card .hm-tx{gap:1px}
+.hm>.hm-card .hm-tx b{font-size:15.5px!important}
+.hm>.hm-card .hm-tx small{font-size:12px!important;line-height:1.4}
+.gcbox{margin-bottom:8px!important;padding-bottom:9px!important}
+.gcbox .hm-card.gc{padding:9px 14px 7px!important}
+.gcbox .hm-card.gc .hm-ic{width:34px!important;height:34px!important}
+.gcbox .gc-bonus{padding:5px 12px!important;margin-bottom:7px!important}
+.gcbox .gc-bonus small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 紅利說明壓成一行，框留著 */
+.gcbox .hm-card.gc{padding:7px 14px 5px!important}
+.gcbox .gc-bonus{padding:4px 12px!important;margin-bottom:6px!important;line-height:1.3!important}
+.gcbox .gc-bonus b{font-size:15px!important}
+.gcbox .gc-bar{height:5px!important;margin:3px 0 2px!important}
+.gcbox{padding-bottom:8px!important}
+.gcbox .gc-go button{padding:7px 0!important}
+.hm>.hm-card{margin-bottom:8px!important}
+.tgc{margin-bottom:8px!important}
+.hm-hi{font-size:17px!important;margin:0 0 8px!important}
+/* 感恩節接火雞卡：左邊字、右邊梵谷，高度跟聖誕卡一樣 */
+.tgc{position:relative;display:flex;align-items:center;width:100%;overflow:hidden;border-radius:18px;margin-bottom:8px;background:#2a1d14;border:1.5px solid #e2a54a;box-shadow:0 6px 16px rgba(60,30,10,.22);color:#f3e6c8;text-align:left;font:inherit;padding:0;box-sizing:border-box;cursor:pointer}
+.tgc .bg{position:absolute;inset:0;background:url(catch-video/vg/potato_bg.jpg) 30% 40%/cover;opacity:.45}
+.tgc .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,29,20,.97) 0%,rgba(42,29,20,.86) 58%,rgba(42,29,20,.2) 100%)}
+.tgc .vg{position:absolute;right:-2px;bottom:0;height:92%;max-height:138px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));pointer-events:none}
+.tgc .in{position:relative;flex:1;padding:8px 96px 8px 14px}
+.tgc .k{font-size:11px;letter-spacing:1px;color:#ffcf6b;font-weight:800}
+.tgc .tt{display:block;margin:1px 0 0;font-size:16.5px;color:#fff;font-weight:900}
+.tgc .tag{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:900;background:#ffcf6b;color:#3a2410;padding:1px 7px;border-radius:9px;vertical-align:2px}
+.tgc .tgbar{display:block;height:5px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin:5px 0 3px}.tgc .tgbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffcf6b,#e2711d);transition:width .6s}
+.tgc small{display:block;font-size:12px}.tgc small b{color:#ffcf6b;font-size:13px}
+.tgc .row{display:flex;gap:6px;margin-top:6px}
+.tgc .row span{border-radius:99px;font-weight:800;font-size:13px;padding:6px 12px;white-space:nowrap}
+.tgc .go{background:#e2711d;color:#fff;box-shadow:0 3px 0 #9c4510}.tgc .bk{border:1.5px solid #ffcf6b;color:#ffcf6b;padding:4.5px 12px!important}.tgc .bk em{font-style:normal;margin-left:4px;color:#fff}
 .hm-card.hall .hm-tx b{color:#fff}
 .hm-card.hall .hm-tx small{color:#cfe0dc}
 .hm-card.hall .hm-ar{color:#e9cf8c;font-weight:700}
@@ -395,7 +436,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.83</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.84</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1311,6 +1352,7 @@ function syncChrome(n){
   const flow=(n>=1&&n<=4);                       /* 只有預約流程才顯示步驟條 */
   for(let i=1;i<=4;i++)document.getElementById("st"+i).className=(flow&&i<=n)?"on":"";
   document.getElementById("steps").style.visibility=flow?"visible":"hidden";
+  try{ document.querySelector(".hero").classList.toggle("home", n===0) }catch(e){}   /* 2026-11-16 首頁頂部縮小 */
   document.getElementById("stepname").textContent=
     n===0?"想做什麼？":n===8?"AI 小幫手":n===9?"我的點數":
     ["","步驟 1／4：上課人數","步驟 2／4：選擇課程","步驟 3／4：選擇日期時段","步驟 4／4：確認與聯絡資料"][n];
@@ -1476,6 +1518,17 @@ function hmGameCard(){
   if(d<="2026-12-31")return{t:"聖誕遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"聖誕限定"};
   return{t:"Otto2 遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"小遊戲"};
 }
+/* 2026-11-16 感恩節接火雞首頁卡（11/30 前）：全店進度讀 /catch/state，自己的梵谷收藏讀 /catch/book */
+function tgOn(){ return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)<="2026-11-30" }
+function tgSameHeight(){ const t=document.getElementById("hmTg"),g=document.querySelector(".gcbox"); if(!t||!g)return; t.style.minHeight=""; g.style.minHeight="";
+  const h=Math.max(t.offsetHeight,g.offsetHeight); t.style.minHeight=h+"px"; g.style.minHeight=h+"px" }
+async function tgFill(){
+  try{ const j=await (await fetch(NOTIFY_URL+"/catch/state")).json(); if(j&&j.ok){ const n=document.getElementById("tgNum"),b=document.getElementById("tgBar");
+    if(n)n.innerHTML="11/30 前・全店已帶回 <b>"+Number(j.total||0).toLocaleString()+"</b> / "+Number(j.goal||3000).toLocaleString()+" 隻"; if(b)b.style.width=Math.min(100,(j.total||0)/(j.goal||3000)*100)+"%" } }catch(e){}
+  try{ let tk=""; try{ tk=window.liff&&liff.isLoggedIn&&liff.isLoggedIn()?liff.getAccessToken():"" }catch(e){} if(!tk)return;
+    const j=await (await fetch(NOTIFY_URL+"/catch/book",{method:"POST",body:JSON.stringify({accessToken:tk})})).json(); const m=document.getElementById("tgMe");
+    if(j&&j.ok&&m)m.innerHTML="我的梵谷收藏 <b>"+j.n+"</b> / 4 款" }catch(e){}
+  tgSameHeight() }
 function renderHome(){
   const hmGame=hmGameCard();
   const hi = myMember&&myMember.name ? myMember.name+"，你好" :
@@ -1486,6 +1539,10 @@ function renderHome(){
       <div class="hm-tagline">選人數、選課程、挑喜歡的時段，線上就能完成預約。</div>
       ${goldBanner("hmGold")}
       ${myHold?`<button class="hm-hold" id="hmHold">💰 你有一筆 <b>NT$${myHold.amount.toLocaleString()}</b> 訂金還沒排課（${esc(myHold.date)} 付款）<br><b>點這裡選時間 ›</b> 約好後訂金自動扣抵，不用再付。</button>`:''}
+      ${tgOn()?`<div class="tgc" id="hmTg"><div class="bg"></div><img class="vg" src="catch-video/vg/v4.webp?v=20261115b" alt="">
+        <div class="in"><b class="tt">幫梵谷接火雞<span class="tag">前 5 名有禮</span></b>
+        <span class="tgbar"><i id="tgBar"></i></span><small id="tgNum">11/30 前・全店一起帶回 3,000 隻</small><small id="tgMe">我的梵谷收藏 0 / 4 款</small>
+        <div class="row"><span class="go" id="tgGo">🦃 去接火雞</span><span class="bk" id="tgBook">📖 圖鑑收集冊</span></div></div></div>`:''}
       <div class="gcbox${hmGame.hw?' hw':hmGame.jp?' jp':''}">
       <button class="hm-card gc" id="hmGacha">
         ${hmGame.hw?'<span class="hm-ic hwic">🎃</span>':hmGame.jp?'<span class="hm-ic hwic">🐻</span>':''}<span class="hm-ic"${hmGame.hw||hmGame.jp?' style="display:none"':''}><svg viewBox="0 0 40 40" aria-hidden="true">
@@ -1497,7 +1554,7 @@ function renderHome(){
         <span class="hm-ar">›</span>
       </button>
       ${hmGame.jp?'<span class="jp-spk" style="left:8px;top:6px;font-size:22px">✦</span><span class="jp-spk" style="right:62px;top:6px;font-size:16px;animation-delay:.5s">✦</span><span class="jp-spk" style="right:8px;bottom:62px;font-size:20px;animation-delay:1s">✦</span><span class="jp-spk" style="left:12px;bottom:66px;font-size:14px;animation-delay:.8s">✦</span><div class="jp-prize">💰 一局 <b>888</b> 個禮物送現金點數 <b>1111</b><br>🏆 前三名還有現金點數、繪本、聖誕娃娃</div>':hmBonusHtml()}
-      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 南瓜':hmGame.jp?'🐻 跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 金×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 扭蛋</button>`}<button type="button" id="hmGoShop">🎁 好禮</button><button type="button" id="hmGoBook">📖 公仔</button></div>
+      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 南瓜':hmGame.jp?'🐻 跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 金蛋×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 轉扭蛋</button>`}<button type="button" id="hmGoShop">🎁 換好禮</button><button type="button" id="hmGoBook">📖 集公仔</button></div>
       </div>
       <button class="hm-card hall" id="hmHall">
         <span class="hm-ic">🏛</span>
@@ -1518,12 +1575,17 @@ function renderHome(){
     </div>`;
   const goJump=()=>{ parkToken(); location.href="park.html?v="+Date.now()+"&jump=1&nogf=1" };   /* 雪地跳跳那天：直接開遊戲，不先跳扭蛋機 */
   document.getElementById("hmGacha").onclick=()=>hmGame.jp?goJump():openGacha();
+  if(document.getElementById("hmTg")){
+    const go=u=>{ parkToken(); location.href=u+(u.includes("?")?"&":"?")+"v="+Date.now() };
+    document.getElementById("hmTg").onclick=e=>go(e.target&&e.target.id==="tgBook"?"catch-demo.html?book=1":"catch-demo.html");
+    tgFill(); tgSameHeight(); setTimeout(tgSameHeight,600);
+  }
   document.getElementById("hmHall").onclick=()=>{ parkToken(); location.href="art.html?v=20261101c&hall=1" };
   document.getElementById("hmGoWalk").onclick=()=>hmGame.jp?goJump():openGacha();
   document.getElementById("hmGoOct").onclick=()=>goldCoins>0?openGold():openGacha("oct");
   const hg=document.getElementById("hmGold"); if(hg)hg.onclick=openGold;
   document.getElementById("hmGoShop").onclick=()=>openGacha("oct&shop=1");
-  /* 2026-11-16 大熊：首頁四顆一排（走格子・扭蛋・好禮・公仔），公仔＝梵谷公仔收集冊 */
+  /* 2026-11-16 大熊：首頁四顆一排（走格子・扭蛋・好禮・公仔），公仔＝梵谷圖鑑收集冊 */
   document.getElementById("hmGoBook").onclick=()=>{ parkToken(); location.href="catch-demo.html?book=1&v="+Date.now() };
   const hb=document.getElementById("hmBonus"); if(hb)hb.onclick=()=>openGacha("oct&shop=1");
   if(myMember&&myMember.bonus>0)loadHmShop();

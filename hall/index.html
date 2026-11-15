@@ -362,7 +362,7 @@ function openRoom(id){const tier=hallTier();if(id!=='vangogh'&&tier!=='staff')id
   const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
   $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${free!=null?'開放 ':''}${eps.length+gs.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
       ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${free!=null?'帶你先認識他':'帶你走一遍'}</span><u>▶</u></button>`:''}
-      ${id==='vangogh'&&tgOn()?`<div class="tgc"><div class="tgt"><b>🦃 感恩節・接火雞</b><small>聽完 3 集，自拍時<em>大理石雕像梵谷</em>有機會亂入</small></div><div class="tgb"><button type="button" data-tg="catch-demo.html">去玩</button><button type="button" data-tg="catch-demo.html?book=1">收集冊</button></div></div>`:''}
+      ${id==='vangogh'&&tgOn()?`<div class="tgc"><div class="tgt"><b>🦃 感恩節・接火雞</b><small>聽完 3 集，自拍時<em>大理石雕像梵谷</em>有機會亂入</small></div><div class="tgb"><button type="button" data-tg="catch-demo.html">去玩</button><button type="button" data-tg="catch-demo.html?book=1">圖鑑收集冊</button></div></div>`:''}
       <div class="cards">${main.map(([s,k])=>card(s,k)).join('')}</div>
       ${sp.length?`<div class="sph">＋ 特別篇</div><div class="cards sp">${sp.map(([s,k])=>card(s,k)).join('')}</div>`:''}
       <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>

@@ -125,7 +125,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 @keyframes flash{0%{opacity:1}100%{opacity:0}}
 
 /* 拍合照（臉洞看板） */
-/* 11/15 梵谷公仔收集冊 */
+/* 11/15 梵谷圖鑑收集冊 */
 #btnBook{width:100%;max-width:400px;height:46px;border-radius:23px;border:2px solid #ffcf6b;background:transparent;color:#ffcf6b;font-size:16px;font-weight:800;flex:none}
 #vgBk{position:fixed;inset:0;z-index:90;background:#2a1d14;overflow-y:auto;-webkit-overflow-scrolling:touch;color:#3b2416}
 #vgBk .in{max-width:440px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 24px)}
@@ -207,6 +207,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #ctBox{width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;align-items:center}
 .vgGot{margin:0;width:100%;max-width:400px;box-sizing:border-box;padding:10px 14px;border-radius:12px;background:#3a2c14;border:2px solid #e8b84b;color:#ffe3a3;font-size:15px;text-align:center}.vgGot b{color:#ffcf6b}
 .ctLogin{background:#fff3df;border:2px solid #e2711d;border-radius:14px;padding:12px 14px;margin:8px 0;font-size:14px;line-height:1.6;color:#3b2416;text-align:center}.ctLogin b{font-size:16px;color:#c0501a}.ctLogin button{display:block;width:100%;margin-top:10px;background:#06c755;color:#fff;border:0;border-radius:22px;padding:11px;font-size:15px;font-weight:700}
+.ctPrize{margin:6px 0 2px;text-align:center;font-size:13px;color:#ffcf6b;font-weight:700}.ctPrize b{color:#fff}
 .ctNote{font-size:13px;color:#b9a27a;text-align:center;margin:0}.ctNew{font-size:16px;color:#e8b84b;font-weight:700;margin:0}
 .ctTabs{display:flex;gap:6px}.ctTabs button{border:0;border-radius:99px;padding:3px 12px;font-size:13px;background:#3d3222;color:#b9a27a}.ctTabs button.on{background:#e8b84b;color:#2b2418;font-weight:700}
 .ctList{width:100%;display:flex;flex-direction:column;gap:5px;margin:0;padding:0;list-style:none}
@@ -281,7 +282,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <button class="redo" id="btnRedo">重畫角色</button>
       <button class="again" id="btnAgain">再玩一次</button>
     </div>
-    <button id="btnBook">📖 我的梵谷公仔收集冊</button>
+    <button id="btnBook">📖 我的梵谷圖鑑收集冊</button>
     <button id="btnEp">🎧 聽這幅畫真正的故事</button>
     <div id="epNote"></div>
   </section>
@@ -798,7 +799,7 @@ $('#bDone').onclick=()=>{if(bStream){bSnap();if(bSelf&&bVG){boothRender();return
   try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
   if(bVG)vgClaim(c);else $('#vgGot').hidden=true;
   $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=$('#upInv').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
-/* 11/15 大熊：先坐上長桌，坐好之後才告訴他「梵谷跟你回家了，收進公仔收集冊」；沒坐長桌就在離開合照頁時告訴他 */
+/* 11/15 大熊：先坐上長桌，坐好之後才告訴他「梵谷跟你回家了，收進圖鑑收集冊」；沒坐長桌就在離開合照頁時告訴他 */
 let VGR=null,VGB=null;
 const VG_NM={v3:'大理石雕像梵谷',v4:'吃馬鈴薯的梵谷',v5:'頂著空盤想抓火雞的梵谷',v6:'感恩節慶祝梵谷'};
 const VG_ORDER=['v4','v5','v3','v6'];
@@ -809,10 +810,10 @@ function vgNext(bk,gotNow){if(!bk)return'';const has=k=>(bk[k]&&bk[k].got)||k===
   return'四款都收齊了！';}
 function vgCount(bk,gotNow){if(!bk)return 0;return VG_ORDER.filter(k=>(bk[k]&&bk[k].got)||k===gotNow).length}
 function vgReveal(){if(!VGR||VGR.shown)return;VGR.shown=true;const j=VGR;
-  const t=j.isNew?'🎁 還有一個小驚喜！<br><span style="font-size:15px;font-weight:600">剛剛亂入的「'+(VG_NM[j.id]||'梵谷')+'」偷偷跟你回家了，收進你的<b>梵谷公仔收集冊</b>（'+vgCount(VGB,j.id)+'/4）<br><span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>'
-    :'梵谷又來陪你拍照了<br><span style="font-size:15px;font-weight:600">收集冊 '+vgCount(VGB,j.id)+'/4　<span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>';
+  const t=j.isNew?'🎁 還有一個小驚喜！<br><span style="font-size:15px;font-weight:600">剛剛亂入的「'+(VG_NM[j.id]||'梵谷')+'」偷偷跟你回家了，收進你的<b>梵谷圖鑑收集冊</b>（'+vgCount(VGB,j.id)+'/4）<br><span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>'
+    :'梵谷又來陪你拍照了<br><span style="font-size:15px;font-weight:600">圖鑑收集冊 '+vgCount(VGB,j.id)+'/4　<span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>';
   dnCard(t,false);if(j.isNew){beep(880,.08);setTimeout(()=>beep(1320,.14),90)}
-  const d=document.getElementById('dnCard'),cl=d&&d.querySelector('button');if(cl){const b=document.createElement('button');b.type='button';b.textContent='📖 打開收集冊看看';
+  const d=document.getElementById('dnCard'),cl=d&&d.querySelector('button');if(cl){const b=document.createElement('button');b.type='button';b.textContent='📖 打開圖鑑收集冊看看';
     b.style.cssText='display:block;width:100%;background:#e2711d;color:#fff;border:0;border-radius:22px;padding:10px;font:inherit;font-weight:800;margin-bottom:8px';b.onclick=()=>{d.remove();vgBookOpen()};cl.parentNode.insertBefore(b,cl)}}
 async function vgClaim(shot){const b=$('#vgGot');b.hidden=true;VGR=null;try{const tok=await getTok();if(!tok)return;
   let photo='';try{const k=360/shot.width,t=document.createElement('canvas');t.width=360;t.height=Math.round(shot.height*k);t.getContext('2d').drawImage(shot,0,0,t.width,t.height);photo=t.toDataURL('image/jpeg',.8)}catch(_){}   // 11/15 大熊選 C：這張合照之後放在圖鑑卡背面
@@ -841,6 +842,7 @@ function ctRender(j){const box=$('#ctBox');const m=j.mine;
   box.innerHTML=(j.newBest?'<p class="ctNew">🎉 刷新你的紀錄！</p>':'')+ctBar(j)+
    (m?'<p class="ctNote">你玩了 '+m.plays+' 局・累積帶回 '+ctNum(m.sum)+' 隻・單局最多 '+m.best+' 隻'+'</p>':'')+
    (j.bad?'<p class="ctNote">這局成績怪怪的，沒有算進去</p>':'')+
+   '<p class="ctPrize">🏆 11/30 結算：<b>單局最多</b>前 5 名送小禮物</p>'+   /* 2026-11-16 大熊：前五名送小禮物 */
    '<div class="ctTabs"><button data-t="best"'+(ctTab==='best'?' class="on"':'')+'>單局最多</button><button data-t="sum"'+(ctTab==='sum'?' class="on"':'')+'>累積最多</button></div><div id="ctL">'+ctList(j)+'</div>';
   box.querySelectorAll('.ctTabs button').forEach(b=>b.onclick=()=>{ctTab=b.dataset.t;box.querySelectorAll('.ctTabs button').forEach(x=>x.classList.toggle('on',x===b));$('#ctL').innerHTML=ctList(j)})}
 /* 11/15 別人畫的角色（伺服器每次隨機給最多 4 位），先載好圖，下一局拿來用 */
@@ -862,12 +864,12 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
 
-/* ══ 11/15 梵谷公仔收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
+/* ══ 11/15 梵谷圖鑑收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
 const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 3 集',v6:'全店一起帶回 3,000 隻火雞，玩過的人都拿得到'};
 const BOOK_LINK='https://liff.line.me/2010906803-FMDYktUN?go=book';
 async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=document.createElement('div');d.id='vgBk';document.body.appendChild(d)}
-  d.hidden=false;d.innerHTML='<div class="in"><div class="top"><h2>梵谷公仔收集冊</h2><button class="x" type="button">關閉</button></div><p class="sub">讀取中…</p></div>';d.querySelector('.x').onclick=()=>d.hidden=true;
-  let j=null,err='';try{const tok=await getTok();if(tok){const r=await fetch(NOTIFY_URL+'/catch/book',{method:'POST',body:JSON.stringify({accessToken:tok})});j=await r.json();if(!j.ok){err=j.error||'讀不到';j=null}}else err='從 LINE 打開遊戲，才看得到你自己的收集冊'}catch(e){err='網路不穩，等一下再打開看看'}
+  d.hidden=false;d.innerHTML='<div class="in"><div class="top"><h2>梵谷圖鑑收集冊</h2><button class="x" type="button">關閉</button></div><p class="sub">讀取中…</p></div>';d.querySelector('.x').onclick=()=>d.hidden=true;
+  let j=null,err='';try{const tok=await getTok();if(tok){const r=await fetch(NOTIFY_URL+'/catch/book',{method:'POST',body:JSON.stringify({accessToken:tok})});j=await r.json();if(!j.ok){err=j.error||'讀不到';j=null}}else err='從 LINE 打開遊戲，才看得到你自己的圖鑑收集冊'}catch(e){err='網路不穩，等一下再打開看看'}
   const bk=(j&&j.book)||{},n=j?j.n:0,day=t=>{const x=new Date(+t);return (x.getMonth()+1)+'/'+x.getDate()};
   const pct=(a,b)=>Math.max(0,Math.min(100,Math.round((+a||0)/(+b||1)*100)));
   const cards=VG_ORDER.map((id,i)=>{const b=bk[id]||{},got=!!b.got;let prog='';
@@ -876,19 +878,19 @@ async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=docum
       if(id==='v6')prog='<div class="vgbar"><i style="width:'+pct(b.total,b.goal)+'%"></i></div><div class="how">全店 '+ctNum(b.total)+' / '+ctNum(b.goal)+' 隻</div>'}
     return '<div class="vgc'+(got?'':' no')+'"><span class="lv">第 '+(i+1)+' 關</span><div class="pic"><img src="catch-video/vg/'+id+'.webp?v=20261115b" alt=""></div><div class="nm">'+(got?VG_NM[id]:'？？？')+'</div>'+
       (got?'<div class="ok">✓ '+(b.at?day(b.at)+' ':'')+'收進來了</div>'+(b.ph?'<button class="sm" type="button" data-ph="'+ctEsc(b.ph)+'">看那天的合照</button>':''):'<div class="how">'+VG_HOW[id]+'</div>'+prog)+'</div>'}).join('');
-  d.innerHTML='<div class="in"><div class="top"><h2>梵谷公仔收集冊 <b>'+n+'/4</b></h2><button class="x" type="button">關閉</button></div>'+
+  d.innerHTML='<div class="in"><div class="top"><h2>梵谷圖鑑收集冊 <b>'+n+'/4</b></h2><button class="x" type="button">關閉</button></div>'+
     '<p class="sub">'+(err?ctEsc(err):n>=4?'四款都收齊了！🎉':'每過一關，自拍時就會有一隻新的梵谷跑進來亂入。')+'</p><div class="grid">'+cards+'</div>'+
     '<div class="acts"><button class="share" type="button">分享給朋友一起接火雞</button><button class="book" type="button">想自己畫一張？預約來畫室上課</button></div>'+'</div>';
   d.querySelector('.x').onclick=()=>d.hidden=true;
   d.querySelectorAll('[data-ph]').forEach(b=>b.onclick=()=>{const v=document.createElement('div');v.id='vgPh';v.innerHTML='<img alt="">';v.querySelector('img').src=b.dataset.ph;v.onclick=()=>v.remove();document.body.appendChild(v)});
   d.querySelectorAll('[data-ep]').forEach(b=>b.onclick=()=>{location.href='art.html?hall=1&hroom=vangogh'});
-  d.querySelector('.share').onclick=async()=>{const url=location.origin+location.pathname,text='我在玩「接火雞」，幫梵谷筆下的馬鈴薯一家把火雞接回家！我的梵谷公仔收集冊 '+n+'/4，你也來玩：';
+  d.querySelector('.share').onclick=async()=>{const url=location.origin+location.pathname,text='我在玩「接火雞」，幫梵谷筆下的馬鈴薯一家把火雞接回家！我的梵谷圖鑑收集冊 '+n+'/4，你也來玩：';
     try{if(window.liff&&liff.isApiAvailable&&liff.isApiAvailable('shareTargetPicker')){await liff.shareTargetPicker([{type:'text',text:text+'\n'+url}]);return}}catch(_){}
     try{if(navigator.share){await navigator.share({title:'感恩節接火雞',text,url});return}}catch(_){return}
     try{await navigator.clipboard.writeText(text+'\n'+url);dnCard('連結複製好了，貼給朋友就可以一起玩',false)}catch(_){dnCard(ctEsc(url),false)}};
   d.querySelector('.book').onclick=()=>{location.href=BOOK_LINK}}
 $('#btnBook').onclick=vgBookOpen;
-/* 11/16 大熊：開場不放收集冊；首頁「集公仔」、我的資產用 catch-demo.html?book=1 直接打開收集冊 */
+/* 11/16 大熊：開場不放圖鑑收集冊；首頁「集公仔」、我的資產用 catch-demo.html?book=1 直接打開圖鑑收集冊 */
 if(/[?&]book=1/.test(location.search))setTimeout(vgBookOpen,300);
 /* 登入回來：把登入前那局補送出去（30 分鐘內有效） */
 const CT_PEND='otto2-ct-pending';

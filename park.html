@@ -2138,7 +2138,7 @@ function evBloom(e){let b=+e.bloomDays||0;if(e.bloomFrom)b=Math.max(1,Math.round
 const CUR_EVS=[
   {id:'catch',from:'2026-11-14',to:'2026-11-30',ic:'🦃',tag:'接火雞',t:'感恩節・梵谷村的長桌晚餐',d:'11/16～11/30',
    body:'幫梵谷《吃馬鈴薯的人》一家把火雞接回家，畫自己的角色、自拍坐上作品小屋大樹下的長桌，還能收集 4 款梵谷公仔。',
-   acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷公仔收集冊',u:'catch-demo.html?book=1'},{t:'🍽 看大家的長桌',u:'dinner.html'},{t:'🎧 梵谷講座・聽 3 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
+   acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷圖鑑收集冊',u:'catch-demo.html?book=1'},{t:'🍽 看大家的長桌',u:'dinner.html'},{t:'🎧 梵谷講座・聽 3 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
 function curEvNow(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return CUR_EVS.find(e=>d>=e.from&&d<=e.to)||null}
 function curEvGo(u){try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href=u+(u.includes('?')?'&':'?')+'v='+PARK_VER}
 function curEvRender(){const e=curEvNow(),el=$('curEv');if(!el)return;if(!e){el.hidden=true;return}$('ceIc').textContent=e.ic;$('ceT').textContent=e.tag;el.hidden=false}
@@ -5884,12 +5884,12 @@ function bindBoard(){
   document.querySelectorAll('.gc-bd[data-ce]').forEach(function(b){ b.onclick = function(){ close(); setTimeout(curEvOpen, 320) } });
   document.querySelectorAll('.gc-bd[data-ev]').forEach(function(b){ b.onclick = function(){ var e = (EV.list || [])[+b.dataset.ev]; if (!e) return; close(); EV.sel = e; setTimeout(evOpen, 320) } });
 }
-/* 公仔收集冊：梵谷四款（讀 /catch/book），畢卡索是十月的收藏 */
+/* 圖鑑收集冊：梵谷四款（讀 /catch/book），畢卡索是十月的收藏 */
 var VGB_IDS = ["v4","v5","v3","v6"];
 function vgBookHtml(){
-  return '<div class="gc-sec"><div class="gc-sh"><h2>📖 梵谷公仔收集冊</h2><small id="gcVgN">讀取中…</small></div><div class="gc-card"><div class="gc-vg" id="gcVg">' +
+  return '<div class="gc-sec"><div class="gc-sh"><h2>📖 梵谷圖鑑收集冊</h2><small id="gcVgN">讀取中…</small></div><div class="gc-card"><div class="gc-vg" id="gcVg">' +
     VGB_IDS.map(function(id){ return '<div class="gc-vgi no" data-v="' + id + '"><img alt="" src="catch-video/vg/' + id + '.webp?v=20261115b"></div>' }).join("") +
-    '</div><button class="gc-btn sec" id="gcVgOpen" style="margin-top:10px">打開收集冊・看怎麼拿</button></div></div>';
+    '</div><button class="gc-btn sec" id="gcVgOpen" style="margin-top:10px">打開圖鑑收集冊・看怎麼拿</button></div></div>';
 }
 async function vgBookFill(){
   var el = $("gcVgN"); if (!el) return;
