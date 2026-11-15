@@ -874,7 +874,7 @@ $('#upGo').onclick=async()=>{const e=$('#upErr');
 $('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
 $('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false;vgReveal()};
 window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
-$('#btnEp').onclick=()=>{$('#epNote').textContent='正式版會直接打開「畫框背後」梵谷 EP01《吃馬鈴薯的人》'};
+$('#btnEp').onclick=()=>{location.href='art.html?hall=1&hroom=vangogh'};   /* 2026-11-15 接上真的「畫框背後」：走進大廳 → 直接打開梵谷展間（聽完的集數會算進雕像梵谷） */
 $('#btnAgain').onclick=()=>{beep(660,.12);startGame()};
 ctLoad();
 $('#btnRedo').onclick=()=>{G=null;scrEnd.hidden=true;scrPlay.hidden=true;scrDraw.hidden=false;sizePad()};

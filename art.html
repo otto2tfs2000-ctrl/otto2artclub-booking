@@ -316,9 +316,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261105c"></script>
+<script src="hall3d.js?v=20261115a"></script>
 <script>
-const ART_VER='20261115a';
+const ART_VER='20261115b';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2241,9 +2241,11 @@ function climbHall(arrive,done,gate){hallG.updateMatrixWorld(true);const at=hall
       if(!gone&&p>.8)finish(false)},                                                     // 還在走就開始淡出
       r:()=>{if(focus&&focus.fix===fx)delete focus.fix}};tweens.push(tw)};
   setTimeout(()=>{fx.soft=false;walk()},arrive?500:1300)}   // 從作品小屋按的：先飛到階梯下面（約 1.3 秒）再開始爬
+/* art.html?hall=1&hroom=vangogh：走進大廳後直接打開那個展間（2026-11-15 接火雞結束畫面的「聽這幅畫真正的故事」用） */
+const HROOM=(m=>m&&/^[a-z]+$/.test(m[1])&&m[1]==='vangogh'?m[1]:'')(/[?&]hroom=([a-z]+)/.exec(location.search));
 function walkIntoHall(arrive){closeSheet();$('hud').hidden=true;
   focus={pos:new THREE.Vector3(),d:1.2,yaw:hallFront(),pitch:.06,obj:hallG,loc:HALL_DOOR.clone()};   // 走完停在門裡（跟 fix 最後一格一樣，放掉 fix 時鏡頭不會跳）
-  const need=hallNeedTicket();climbHall(arrive,skip=>{hallGuardGone();const w=whoP?Promise.race([whoP,sleep(4500)]):Promise.resolve();w.catch(()=>{}).then(()=>Hall3D.walkIn(skip))},need?{show:ticketGate}:null)}   /* 大廳要等認出身分才蓋（誰開放看身分） */
+  const need=hallNeedTicket();climbHall(arrive,skip=>{hallGuardGone();const w=whoP?Promise.race([whoP,sleep(4500)]):Promise.resolve();w.catch(()=>{}).then(()=>Hall3D.walkIn(skip,HROOM?()=>Hall3D.openRoom(HROOM):null))},need?{show:ticketGate}:null)}   /* 大廳要等認出身分才蓋（誰開放看身分） */
 /* 2026-11-05 大門驗票：沒登入 LINE 的人走到大門，驗票員跳出來要入場券（輸入電話）。會員記到電話底下；不是會員一樣放行，記成非會員。
    從 LINE 預約頁進來（有 token）、店內平板、體驗版、示範版都不驗。?ticket=1 強制出現（測試用） */
 const HT_KEY='otto2-hall-ticket',HT_NM_DAYS=30;let whoP=null,htGuard=null;

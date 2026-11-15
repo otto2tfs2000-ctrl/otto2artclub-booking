@@ -291,9 +291,9 @@ let fadeEl=null;
 function fade(on){if(!fadeEl){fadeEl=document.createElement('div');fadeEl.style.cssText='position:fixed;inset:0;z-index:60;background:#f4eedf;opacity:0;pointer-events:none;transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;color:#8a7a5c;font-size:15px;letter-spacing:.1em';document.body.appendChild(fadeEl)}
   fadeEl.style.pointerEvents=on?'auto':'none';fadeEl.style.opacity=on?1:0}
 /* 作品小屋那邊鏡頭飛到大門口之後呼叫：淡出 → 換成大廳、從門口走進來 → 淡回來 */
-function walkIn(skip){fade(true);setTimeout(()=>{if(!sc)build();const say=setTimeout(()=>{fadeEl.textContent='展廳準備中…'},800);
-  whenTex(()=>{clearTimeout(say);fadeEl.textContent='';enter(!skip);requestAnimationFrame(()=>fade(false))})},480)}
+function walkIn(skip,after){fade(true);setTimeout(()=>{if(!sc)build();const say=setTimeout(()=>{fadeEl.textContent='展廳準備中…'},800);
+  whenTex(()=>{clearTimeout(say);fadeEl.textContent='';enter(!skip);requestAnimationFrame(()=>fade(false));if(after)setTimeout(after,700)})},480)}   /* after：2026-11-15 從接火雞「聽這幅畫的故事」進來，進大廳後直接打開梵谷展間 */
 /* 回作品小屋：淡出 → 換回島（art.html onHallExit 把鏡頭放在殿堂門口再慢慢拉遠）→ 淡回來 */
 function leave(){fade(true);setTimeout(()=>{exit();try{window.onHallExit&&window.onHallExit()}catch(e){}requestAnimationFrame(()=>fade(false))},480)}
-window.Hall3D={enter,exit,leave,walkIn,back,frame,get active(){return act}};
+window.Hall3D={enter,exit,leave,walkIn,back,frame,openRoom,get active(){return act}};
 })();
