@@ -76,6 +76,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .stBtns{display:flex;gap:10px;width:100%;max-width:360px}
 .stBtns button{flex:1;height:48px;border-radius:24px;font-size:16px;font-weight:700}
 #stSkip{background:transparent;border:2px solid #6b5432;color:#d9b77a}
+#stBook{background:transparent;border:2px solid #c9a35a;color:#ffcf6b;flex:0 0 auto!important;padding:0 16px}
 #stNext{border:0;background:var(--pumpkin);color:#fff;box-shadow:0 4px 0 var(--leaf)}
 .voice{font-size:12px;color:#9c8460}
 /* 結局 */
@@ -125,6 +126,33 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 @keyframes flash{0%{opacity:1}100%{opacity:0}}
 
 /* 拍合照（臉洞看板） */
+/* 11/15 梵谷公仔收集冊 */
+#btnBook{width:100%;max-width:400px;height:46px;border-radius:23px;border:2px solid #ffcf6b;background:transparent;color:#ffcf6b;font-size:16px;font-weight:800;flex:none}
+#vgBk{position:fixed;inset:0;z-index:90;background:#2a1d14;overflow-y:auto;-webkit-overflow-scrolling:touch;color:#3b2416}
+#vgBk .in{max-width:440px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 24px)}
+#vgBk .top{display:flex;align-items:center;justify-content:space-between;color:#f3e6c8;margin-bottom:10px}
+#vgBk .top h2{margin:0;font-size:20px}#vgBk .top b{color:#ffcf6b}
+#vgBk .x{border:0;background:rgba(255,255,255,.12);color:#f3e6c8;border-radius:18px;height:36px;padding:0 14px;font-size:15px;font-weight:700}
+#vgBk .sub{color:#c9b38a;font-size:13px;margin:0 0 12px;line-height:1.6}
+#vgBk .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#vgBk .vgc{background:#fbf6ea;border-radius:14px;padding:10px 10px 12px;text-align:center;position:relative;box-shadow:0 3px 0 #c9a35a}
+#vgBk .vgc.no{background:#e9dfcc;box-shadow:none}
+#vgBk .lv{position:absolute;left:8px;top:8px;background:#e2711d;color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:2px 8px}
+#vgBk .vgc.no .lv{background:#8a6a4a}
+#vgBk .pic{height:150px;display:flex;align-items:flex-end;justify-content:center;margin:6px 0 4px;position:relative}
+#vgBk .pic img{max-height:150px;max-width:100%}
+#vgBk .vgc.no .pic img{filter:brightness(0);opacity:.22}
+#vgBk .vgc.no .pic:after{content:'?';position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#8a6a4a}
+#vgBk .nm{font-weight:900;font-size:14px;line-height:1.35;min-height:38px;display:flex;align-items:center;justify-content:center}
+#vgBk .how{font-size:12px;color:#6b5238;line-height:1.5;margin-top:4px}
+#vgBk .vgbar{width:auto;height:7px;background:#d6c7ab;border-radius:4px;margin:6px 4px 2px;overflow:hidden}#vgBk .vgbar i{display:block;height:100%;background:#e2711d}
+#vgBk .ok{font-size:12px;color:#2f7a3a;font-weight:800;margin-top:4px}
+#vgBk .sm{display:inline-block;margin-top:6px;border:0;border-radius:14px;padding:6px 12px;font-size:12px;font-weight:800;background:#2b4a4d;color:#f3e6c8}
+#vgBk .acts{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+#vgBk .acts button{height:48px;border-radius:24px;border:0;font-size:16px;font-weight:900}
+#vgBk .share{background:#06c755;color:#fff}#vgBk .book{background:#ffcf6b;color:#211a12;box-shadow:0 4px 0 #a8742a}
+#vgBk .note{color:#c9b38a;font-size:12px;text-align:center;margin-top:10px;line-height:1.6}
+#vgPh{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px}#vgPh img{max-width:100%;max-height:86vh;border-radius:8px}
 #btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
 #scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
 .bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:18px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
@@ -159,6 +187,9 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 
 #upBox,#upDone{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#2b2116;border-radius:14px;padding:14px;box-sizing:border-box;flex:none}
 #upBox[hidden],#upDone[hidden]{display:none!important}
+.upInvite{width:100%;max-width:400px;box-sizing:border-box;background:#3a2a1b;border:2px dashed #ffcf6b;border-radius:16px;padding:12px 14px;color:#f3e6c8;font-size:14px;line-height:1.6;text-align:left;flex:none}
+.upInvite b{display:block;color:#ffcf6b;font-size:16px;margin-bottom:4px}
+#shotUp{background:#ffcf6b;color:#211a12;border:0;height:52px;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a}
 .upTitle{font-size:17px;font-weight:900;color:#ffcf6b}
 #upCut{height:220px;max-width:100%;object-fit:contain;background:radial-gradient(#3a2e20,#1d1710);border-radius:10px}
 .upQuote{font-size:14px;font-weight:700;text-align:center}
@@ -201,7 +232,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <div id="stTxt"></div>
     </div>
     <div id="stDots"></div>
-    <div class="stBtns"><button id="stSkip">略過，直接玩</button></div>
+    <div class="stBtns"><button id="stSkip">略過，直接玩</button><button id="stBook" type="button">📖 收集冊</button></div>
   </section>
 
   <section class="scr" id="scrDraw" hidden>
@@ -251,6 +282,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <button class="redo" id="btnRedo">重畫角色</button>
       <button class="again" id="btnAgain">再玩一次</button>
     </div>
+    <button id="btnBook">📖 我的梵谷公仔收集冊</button>
     <button id="btnEp">🎧 聽這幅畫真正的故事</button>
     <div id="epNote"></div>
   </section>
@@ -278,10 +310,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <img id="shotImg" alt="你的感恩節合照">
     <p class="vgGot" id="vgGot" role="status" hidden></p>
     <p class="bHint">長按照片就可以存到手機</p>
+    <div class="upInvite" id="upInv"><b>🍽 最後一步：坐上大家的長桌</b>
+      <span>你剛剛變成的村民，會帶著你的臉，坐進作品小屋大樹下的感恩節長桌，跟其他玩家一起吃晚餐。大家打開作品小屋都看得到你！</span></div>
+    <button class="bWide" id="shotUp">🍽 我要坐上長桌</button>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
-    <button class="bWide" id="shotUp">🍽 坐上作品島大樹旁的長桌</button>
     <div id="upBox" hidden>
-      <div class="upTitle">要坐上長桌的就是他</div>
+      <div class="upTitle">坐上長桌的會是這位（村民＋你的臉）</div>
       <img id="upCut" alt="要坐上長桌的村民">
       <div id="upMsg" class="upQuote"></div>
       <div class="btns"><button class="redo" id="upNo">先不要</button><button class="again" id="upGo">送出，坐上長桌</button></div>
@@ -693,7 +727,7 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
 /* 2026-11-15 大熊：自拍升級 → ①玩家剛剛畫的角色站在左下角一起入鏡　②梵谷亂入（每局結束伺服器抽一次，重拍不重抽；拍到按完成就收進圖鑑冊） */
 let bVG=null,bVGt=0,bFinal=false;
 function vgLoad(v){bVG=null;if(!v||!v.id)return;const im=new Image();im.onload=()=>{bVG={id:v.id,isNew:v.isNew,img:im}};
-  im.onerror=()=>{if(v.id!=='v1')vgLoad({id:'v1',isNew:v.isNew})};im.src='catch-video/vg/'+v.id+'.webp'}
+  im.onerror=()=>{if(v.id!=='v1')vgLoad({id:'v1',isNew:v.isNew})};im.src='catch-video/vg/'+v.id+'.webp?v=20261115b'}   /* 11/15 v4 燈光白邊、v5 腳中間白塊重新去背，加版本號避免手機讀舊圖 */
 function boothExtras(ctx,W,H){
   if(sprite&&sprite.width){const sh=H*.3,sw=Math.min(W*.34,sh*sprite.width/sprite.height),sh2=sw*sprite.height/sprite.width,x=W*.03,y=H-sh2-H*.02;
     ctx.save();ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+sw/2,H-H*.022,sw*.42,H*.014,0,0,7);ctx.fill();
@@ -764,7 +798,7 @@ $('#bDone').onclick=()=>{if(bStream){bSnap();if(bSelf&&bVG){boothRender();return
   const url=c.toDataURL('image/jpeg',.9);$('#shotImg').src=url;
   try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
   if(bVG)vgClaim(c);else $('#vgGot').hidden=true;
-  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
+  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=$('#upInv').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
 /* 11/15 大熊：先坐上長桌，坐好之後才告訴他「梵谷跟你回家了，收進公仔收集冊」；沒坐長桌就在離開合照頁時告訴他 */
 let VGR=null,VGB=null;
 const VG_NM={v3:'大理石雕像梵谷',v4:'吃馬鈴薯的梵谷',v5:'頂著空盤想抓火雞的梵谷',v6:'感恩節慶祝梵谷'};
@@ -778,7 +812,9 @@ function vgCount(bk,gotNow){if(!bk)return 0;return VG_ORDER.filter(k=>(bk[k]&&bk
 function vgReveal(){if(!VGR||VGR.shown)return;VGR.shown=true;const j=VGR;
   const t=j.isNew?'🎁 還有一個小驚喜！<br><span style="font-size:15px;font-weight:600">剛剛亂入的「'+(VG_NM[j.id]||'梵谷')+'」偷偷跟你回家了，收進你的<b>梵谷公仔收集冊</b>（'+vgCount(VGB,j.id)+'/4）<br><span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>'
     :'梵谷又來陪你拍照了<br><span style="font-size:15px;font-weight:600">收集冊 '+vgCount(VGB,j.id)+'/4　<span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>';
-  dnCard(t,false);if(j.isNew){beep(880,.08);setTimeout(()=>beep(1320,.14),90)}}
+  dnCard(t,false);if(j.isNew){beep(880,.08);setTimeout(()=>beep(1320,.14),90)}
+  const d=document.getElementById('dnCard'),cl=d&&d.querySelector('button');if(cl){const b=document.createElement('button');b.type='button';b.textContent='📖 打開收集冊看看';
+    b.style.cssText='display:block;width:100%;background:#e2711d;color:#fff;border:0;border-radius:22px;padding:10px;font:inherit;font-weight:800;margin-bottom:8px';b.onclick=()=>{d.remove();vgBookOpen()};cl.parentNode.insertBefore(b,cl)}}
 async function vgClaim(shot){const b=$('#vgGot');b.hidden=true;VGR=null;try{const tok=await getTok();if(!tok)return;
   let photo='';try{const k=360/shot.width,t=document.createElement('canvas');t.width=360;t.height=Math.round(shot.height*k);t.getContext('2d').drawImage(shot,0,0,t.width,t.height);photo=t.toDataURL('image/jpeg',.8)}catch(_){}   // 11/15 大熊選 C：這張合照之後放在圖鑑卡背面
   const j=await (await fetch(NOTIFY_URL+'/catch/vg',{method:'POST',body:JSON.stringify({accessToken:tok,photo})})).json();if(!j.ok||!j.id)return;
@@ -826,6 +862,33 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
   try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():''})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
+
+/* ══ 11/15 梵谷公仔收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
+const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 4 集',v6:'全店一起帶回 3,000 隻火雞，玩過的人都拿得到'};
+const BOOK_LINK='https://liff.line.me/2010906803-FMDYktUN?go=book';
+async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=document.createElement('div');d.id='vgBk';document.body.appendChild(d)}
+  d.hidden=false;d.innerHTML='<div class="in"><div class="top"><h2>梵谷公仔收集冊</h2><button class="x" type="button">關閉</button></div><p class="sub">讀取中…</p></div>';d.querySelector('.x').onclick=()=>d.hidden=true;
+  let j=null,err='';try{const tok=await getTok();if(tok){const r=await fetch(NOTIFY_URL+'/catch/book',{method:'POST',body:JSON.stringify({accessToken:tok})});j=await r.json();if(!j.ok){err=j.error||'讀不到';j=null}}else err='從 LINE 打開遊戲，才看得到你自己的收集冊'}catch(e){err='網路不穩，等一下再打開看看'}
+  const bk=(j&&j.book)||{},n=j?j.n:0,day=t=>{const x=new Date(+t);return (x.getMonth()+1)+'/'+x.getDate()};
+  const pct=(a,b)=>Math.max(0,Math.min(100,Math.round((+a||0)/(+b||1)*100)));
+  const cards=VG_ORDER.map((id,i)=>{const b=bk[id]||{},got=!!b.got;let prog='';
+    if(!got&&j){if(id==='v5')prog='<div class="vgbar"><i style="width:'+pct(b.sum,b.need)+'%"></i></div><div class="how">現在 '+(b.sum||0)+' / '+b.need+' 隻</div>';
+      if(id==='v3')prog='<div class="vgbar"><i style="width:'+pct(b.eps,b.need)+'%"></i></div><div class="how">已聽完 '+(b.eps||0)+' / '+b.need+' 集</div><button class="sm" type="button" data-ep>🎧 去聽講座</button>';
+      if(id==='v6')prog='<div class="vgbar"><i style="width:'+pct(b.total,b.goal)+'%"></i></div><div class="how">全店 '+ctNum(b.total)+' / '+ctNum(b.goal)+' 隻</div>'}
+    return '<div class="vgc'+(got?'':' no')+'"><span class="lv">第 '+(i+1)+' 關</span><div class="pic"><img src="catch-video/vg/'+id+'.webp?v=20261115b" alt=""></div><div class="nm">'+(got?VG_NM[id]:'？？？')+'</div>'+
+      (got?'<div class="ok">✓ '+(b.at?day(b.at)+' ':'')+'收進來了</div>'+(b.ph?'<button class="sm" type="button" data-ph="'+ctEsc(b.ph)+'">看那天的合照</button>':''):'<div class="how">'+VG_HOW[id]+'</div>'+prog)+'</div>'}).join('');
+  d.innerHTML='<div class="in"><div class="top"><h2>梵谷公仔收集冊 <b>'+n+'/4</b></h2><button class="x" type="button">關閉</button></div>'+
+    '<p class="sub">'+(err?ctEsc(err):n>=4?'四款都收齊了！🎉':'每過一關，自拍時就會有一隻新的梵谷跑進來亂入。')+'</p><div class="grid">'+cards+'</div>'+
+    '<div class="acts"><button class="share" type="button">分享給朋友一起接火雞</button><button class="book" type="button">想自己畫一張？預約來畫室上課</button></div>'+'</div>';
+  d.querySelector('.x').onclick=()=>d.hidden=true;
+  d.querySelectorAll('[data-ph]').forEach(b=>b.onclick=()=>{const v=document.createElement('div');v.id='vgPh';v.innerHTML='<img alt="">';v.querySelector('img').src=b.dataset.ph;v.onclick=()=>v.remove();document.body.appendChild(v)});
+  d.querySelectorAll('[data-ep]').forEach(b=>b.onclick=()=>{location.href='art.html?hall=1&hroom=vangogh'});
+  d.querySelector('.share').onclick=async()=>{const url=location.origin+location.pathname,text='我在玩「接火雞」，幫梵谷筆下的馬鈴薯一家把火雞接回家！我的梵谷公仔收集冊 '+n+'/4，你也來玩：';
+    try{if(window.liff&&liff.isApiAvailable&&liff.isApiAvailable('shareTargetPicker')){await liff.shareTargetPicker([{type:'text',text:text+'\n'+url}]);return}}catch(_){}
+    try{if(navigator.share){await navigator.share({title:'感恩節接火雞',text,url});return}}catch(_){return}
+    try{await navigator.clipboard.writeText(text+'\n'+url);dnCard('連結複製好了，貼給朋友就可以一起玩',false)}catch(_){dnCard(ctEsc(url),false)}};
+  d.querySelector('.book').onclick=()=>{location.href=BOOK_LINK}}
+$('#btnBook').onclick=vgBookOpen;$('#stBook').onclick=vgBookOpen;
 /* 登入回來：把登入前那局補送出去（30 分鐘內有效） */
 const CT_PEND='otto2-ct-pending';
 (async()=>{let p=null;try{p=JSON.parse(localStorage.getItem(CT_PEND)||'null')}catch(_){}
@@ -869,11 +932,11 @@ $('#upGo').onclick=async()=>{const e=$('#upErr');
       try{localStorage.setItem(DN_PEND,JSON.stringify(p))}catch(_){throw new Error('手機空間不夠，存不了照片，請用 LINE 打開遊戲再試')}
       btn.textContent='先登入 LINE…';liff.login({redirectUri:location.href.split('#')[0]});return}
     const j=await dnSend(p);
-    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
+    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=$('#upInv').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
     beep(660,.1);setTimeout(()=>beep(880,.16),90);setTimeout(vgReveal,1600)}
   catch(err){e.textContent=err.message}
   btn.disabled=false;btn.textContent='送出，坐上長桌'};
-$('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
+$('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=$('#upInv').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
 $('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false;vgReveal()};
 window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
 $('#btnEp').onclick=()=>{location.href='art.html?hall=1&hroom=vangogh'};   /* 2026-11-15 接上真的「畫框背後」：走進大廳 → 直接打開梵谷展間（聽完的集數會算進雕像梵谷） */
