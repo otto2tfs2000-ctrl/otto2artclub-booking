@@ -481,7 +481,7 @@ window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
   G={t:0,cd:4,hp:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
-     helps:[],nextHelp:rnd(14,20),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
+     helps:[],nextHelp:rnd(6,10),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
   fit();G.cx=G.tx=W/2;for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
   cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop)}
 function loop(ts){if(!G||G.over)return;const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;update(dt);draw();raf=requestAnimationFrame(loop)}
@@ -549,7 +549,7 @@ function update(dt){
     if(c.x<-80)G.cages.splice(i,1)}
 
   // 11/15 別人畫的角色來幫忙：從右邊走進來，走到畫面右邊三分之一就把金火雞往你這邊丟（一局最多 2 次）
-  if(HELP.length&&G.helpN<2&&G.t>=G.nextHelp){const h=HELP[(HSEQ++)%HELP.length];G.helpN++;G.nextHelp=G.t+rnd(26,36);
+  if(HELP.length&&G.helpN<Math.min(4,Math.max(2,HELP.length))&&G.t>=G.nextHelp){const h=HELP[(HSEQ++)%HELP.length];G.helpN++;G.nextHelp=G.t+rnd(12,18);   /* 11/15 大熊：每局最多 4 位、6～10 秒來第一位、之後每 12～18 秒 */
     G.helps.push({x:W+50,img:h.img,n:h.n,t:0,tossed:false,hh:Math.max(70,G.ch*.95)});beep(600,.08,'triangle',.05);setTimeout(()=>beep(800,.1,'triangle',.05),110)}
   for(let i=G.helps.length-1;i>=0;i--){const h=G.helps[i];h.t+=dt;
     if(!h.tossed){h.x-=130*dt;if(h.x<=W*.7){h.tossed=true;G.total+=3;
@@ -832,7 +832,7 @@ async function getTok(){if(upTok)return upTok;if(await liffInit()&&liff.isLogged
    沒從 LINE 打開（沒有 token）就不記錄，只顯示全店進度 */
 let ctLast=null,ctTab='best';
 const ctNum=n=>Number(n||0).toLocaleString();
-function ctThumb(){try{if(!sprite)return'';const h=96,w=Math.max(8,Math.round(sprite.width*h/sprite.height));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(sprite,0,0,w,h);return c.toDataURL('image/png')}catch(_){return''}}
+function ctThumb(){try{if(!sprite)return'';const h=160,w=Math.max(8,Math.round(sprite.width*h/sprite.height));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(sprite,0,0,w,h);return c.toDataURL('image/png')}catch(_){return''}}
 function ctNews(st){const a=(st&&st.news)||[];if(!a.length)return'';const t=a.map(x=>'🦃 '+ctEsc(x.n)+' 拍到了隱藏的「火雞裝梵谷」！').join('　　');return '<div class="ctNews"><span>'+t+'</span></div>'}
 function ctBar(st){const g=st.goal||3000,p=Math.min(100,(st.total||0)/g*100);return ctNews(st)+'<div class="ctg"><div class="ctgT">全店一起把火雞接回畫裡・目標 '+ctNum(g)+' 隻</div><div class="ctgN"><b>'+ctNum(st.total)+'</b> / '+ctNum(g)+' 隻'+(st.total>=g?'　🎉 達標了！':'')+'</div><div class="ctgBar"><i style="width:'+p+'%"></i></div></div>'}
 const ctEsc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -856,10 +856,10 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
     box.innerHTML='<div class="ctLogin"><b>這局還沒記錄</b><br>你不是從 LINE 打開遊戲，火雞不會算進全店總數、也上不了排行榜。<button type="button" id="ctLoginBtn">用 LINE 登入，這局也算進去</button></div>'+(ctLast?ctBar(ctLast):'');
     $('#ctLoginBtn').onclick=async()=>{const b=$('#ctLoginBtn');b.disabled=true;b.textContent='打開 LINE 登入…';
       if(!(await liffInit())){b.disabled=false;b.textContent='LINE 登入暫時打不開，請稍後再試';return}
-      try{localStorage.setItem(CT_PEND,JSON.stringify({served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():'',at:Date.now()}))}catch(_){}
+      try{localStorage.setItem(CT_PEND,JSON.stringify({served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:ctThumb(),at:Date.now()}))}catch(_){}
       liff.login({redirectUri:location.href.split('#')[0]})};
     return}
-  try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():''})});
+  try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:ctThumb()})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
 
