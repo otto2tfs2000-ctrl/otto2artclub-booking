@@ -699,6 +699,7 @@ function holeCenter(c){if(!c.mask)return null;if(c.hc)return c.hc;if(!c.mask.com
   let sx=0,sy=0,n=0,y0=h,y1=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>128){sx+=x;sy+=y;n++;y0=Math.min(y0,y);y1=Math.max(y1,y)}
   return c.hc=n?[sx/n/w,sy/n/h,(y1-y0)/h<.12&&sy/n/h>c.f[1]]:null}catch(e){return null}}   // 第三個值＝只挖嘴巴
 function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
+  ctx.imageSmoothingQuality='high';
   const GM=bGeom(W,H),hx=GM.hx,hy=GM.hy,rx=GM.rx,ry=GM.ry;
   ctx.fillStyle='#2a2016';ctx.fillRect(0,0,W,H);
   const live=bStream&&bVid.videoWidth;
@@ -718,6 +719,7 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
     const hc=holeCenter(bChar),tx=hc?GM.x0+hc[0]*GM.cw:hx,ty=hc?GM.y0+hc[1]*GM.ch:hy;
     if(!bChar.mask){ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.04)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',tx,ty)}}   // 臉型洞形狀各不同，不放字，米色就是要放臉的地方
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
+  lx.imageSmoothingQuality='high';
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
   if(bChar.img){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
   if(bChar.mask&&bChar.mask.complete&&bChar.mask.naturalWidth){lx.globalCompositeOperation='destination-out';lx.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch)}else{lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
@@ -816,7 +818,7 @@ function vgReveal(){if(!VGR||VGR.shown)return;VGR.shown=true;const j=VGR;
   const d=document.getElementById('dnCard'),cl=d&&d.querySelector('button');if(cl){const b=document.createElement('button');b.type='button';b.textContent='📖 打開圖鑑收集冊看看';
     b.style.cssText='display:block;width:100%;background:#e2711d;color:#fff;border:0;border-radius:22px;padding:10px;font:inherit;font-weight:800;margin-bottom:8px';b.onclick=()=>{d.remove();vgBookOpen()};cl.parentNode.insertBefore(b,cl)}}
 async function vgClaim(shot){const b=$('#vgGot');b.hidden=true;VGR=null;try{const tok=await getTok();if(!tok)return;
-  let photo='';try{const k=360/shot.width,t=document.createElement('canvas');t.width=360;t.height=Math.round(shot.height*k);t.getContext('2d').drawImage(shot,0,0,t.width,t.height);photo=t.toDataURL('image/jpeg',.8)}catch(_){}   // 11/15 大熊選 C：這張合照之後放在圖鑑卡背面
+  let photo='';try{const k=Math.min(1,1080/shot.width),t=document.createElement('canvas');t.width=Math.round(shot.width*k);t.height=Math.round(shot.height*k);const tc=t.getContext('2d');tc.imageSmoothingQuality='high';tc.drawImage(shot,0,0,t.width,t.height);for(const q of [.88,.8,.7]){photo=t.toDataURL('image/jpeg',q);if(photo.length<1.4e6)break}}catch(_){}   /* 11/16 大熊：圖鑑存下來太糊 → 原本只存 360 寬，改存整張拍立得（1080 寬） */   // 11/15 大熊選 C：這張合照之後放在圖鑑卡背面
   const j=await (await fetch(NOTIFY_URL+'/catch/vg',{method:'POST',body:JSON.stringify({accessToken:tok,photo})})).json();if(!j.ok||!j.id)return;
   VGR={id:j.id,isNew:j.isNew,shown:false}}catch(_){}}
 $('#shotShare').onclick=async()=>{try{await navigator.share({files:[new File([shotBlob],'otto2-thanksgiving.jpg',{type:'image/jpeg'})],text:'我和梵谷《吃馬鈴薯的人》一家過感恩節！'})}catch(_){}};
