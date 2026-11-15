@@ -281,7 +281,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gc-bar i{display:block;height:100%;border-radius:4px;background:#FFD86B;transition:width .5s}
 .gc-bonus small{display:block;font-size:12.5px;color:#FFE3C9}
 .gc-go{display:flex;gap:8px;padding:0 14px;position:relative;z-index:1}
-.gc-go button{flex:1;border:0;border-radius:12px;background:#fff;color:#8F1D20;font:inherit;font-size:14px;font-weight:800;padding:10px 0;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.gc-go button{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;border-radius:12px;background:#fff;color:#8F1D20;font:inherit;font-size:14px;font-weight:800;padding:10px 0;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.15)}
 .gc-go button:active{transform:translateY(1px);box-shadow:none}
 /* 2026-10-31 大熊嫌紅卡太高 → 卡頭、紅利條、三顆按鈕都縮一點 */
 .gcbox{padding-bottom:11px}
@@ -291,7 +291,8 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .gcbox .gc-bonus{padding:6px 12px;margin-bottom:9px;font-size:13px;line-height:1.4}
 .gcbox .gc-bonus b{font-size:16px}
 .gcbox .gc-bar{height:6px;margin:4px 0 3px}
-.gcbox .gc-go button{padding:8px 0;font-size:13.5px}
+.gcbox .gc-go button{padding:8px 0;font-size:13px}
+.gc-go{gap:6px!important}
 .gcbox::after{font-size:76px;top:-16px}
 /* 畫框背後・大師開講（作品小屋萬神殿），顏色跟梵谷展間一樣的深墨綠 */
 .hm-card.hall{background:linear-gradient(135deg,#2f5658,#1f3d40);border-color:#c9a85a;box-shadow:0 6px 16px rgba(31,61,64,.22);padding:14px 16px}
@@ -1496,7 +1497,7 @@ function renderHome(){
         <span class="hm-ar">›</span>
       </button>
       ${hmGame.jp?'<span class="jp-spk" style="left:8px;top:6px;font-size:22px">✦</span><span class="jp-spk" style="right:62px;top:6px;font-size:16px;animation-delay:.5s">✦</span><span class="jp-spk" style="right:8px;bottom:62px;font-size:20px;animation-delay:1s">✦</span><span class="jp-spk" style="left:12px;bottom:66px;font-size:14px;animation-delay:.8s">✦</span><div class="jp-prize">💰 一局 <b>888</b> 個禮物送現金點數 <b>1111</b><br>🏆 前三名還有現金點數、繪本、聖誕娃娃</div>':hmBonusHtml()}
-      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 點南瓜':hmGame.jp?'🐻 開始跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 黃金扭蛋 ×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 轉扭蛋</button>`}<button type="button" id="hmGoShop">🎁 換好禮</button></div>
+      <div class="gc-go"><button type="button" id="hmGoWalk">${hmGame.hw?'🎃 南瓜':hmGame.jp?'🐻 跳跳':'🎄 走格子'}</button>${goldCoins>0?`<button type="button" id="hmGoOct" class="gold">🪙 金×${goldCoins}</button>`:`<button type="button" id="hmGoOct">🎰 扭蛋</button>`}<button type="button" id="hmGoShop">🎁 好禮</button><button type="button" id="hmGoBook">📖 公仔</button></div>
       </div>
       <button class="hm-card hall" id="hmHall">
         <span class="hm-ic">🏛</span>
@@ -1522,6 +1523,8 @@ function renderHome(){
   document.getElementById("hmGoOct").onclick=()=>goldCoins>0?openGold():openGacha("oct");
   const hg=document.getElementById("hmGold"); if(hg)hg.onclick=openGold;
   document.getElementById("hmGoShop").onclick=()=>openGacha("oct&shop=1");
+  /* 2026-11-16 大熊：首頁四顆一排（走格子・扭蛋・好禮・公仔），公仔＝梵谷公仔收集冊 */
+  document.getElementById("hmGoBook").onclick=()=>{ parkToken(); location.href="catch-demo.html?book=1&v="+Date.now() };
   const hb=document.getElementById("hmBonus"); if(hb)hb.onclick=()=>openGacha("oct&shop=1");
   if(myMember&&myMember.bonus>0)loadHmShop();
   if(myHold)document.getElementById("hmHold").onclick=()=>setStep(1);

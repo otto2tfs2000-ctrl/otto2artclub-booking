@@ -121,6 +121,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .zoom .zbar button{pointer-events:auto;min-height:44px;padding:0 26px;border-radius:999px;border:1px solid #c9a24f;background:#c9a24f;color:#1a1612;font:600 16px/1 inherit;font-family:inherit;cursor:pointer}
 .credit{margin:30px 0 10px;font-size:11.5px;color:var(--ink2);text-align:center;line-height:1.7}
 [hidden]{display:none!important}
+.tgc{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:8px 10px 8px 12px;border-radius:12px;background:#3a2a1b;border:1.5px dashed #ffcf6b;color:#f3e6c8}.tgt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}.tgt b{color:#ffcf6b;font-size:14px}.tgt small{font-size:12px;opacity:.9}.tgt em{font-style:normal;color:#ffcf6b}.tgb{display:flex;gap:6px;flex:none}.tgb button{border:0;border-radius:99px;padding:6px 11px;font:inherit;font-size:13px;font-weight:800;background:#ffcf6b;color:#211a12}.tgb button+button{background:transparent;border:1.5px solid #ffcf6b;color:#ffcf6b;padding:4.5px 10px}
 </style></head><body>
 <div class="bar"><button type="button" id="back">← 回作品小屋</button><b id="barT">畫框背後</b><i id="barR"></i><button type="button" class="ovb" id="ovB" hidden>☰ 總覽</button></div>
 <button type="button" class="goon" id="goon" hidden></button>
@@ -361,17 +362,21 @@ function openRoom(id){const tier=hallTier();if(id!=='vangogh'&&tier!=='staff')id
   const G=R.guide,main=stops.map((s,k)=>[s,k]).filter(([s])=>s.w.img),sp=stops.map((s,k)=>[s,k]).filter(([s])=>!s.w.img);
   $('room').innerHTML=`<section id="ov"><div class="ovh"><small>${esc(R.head.k)}</small><h1>${R.head.h}</h1><p>${esc(R.n)}・${free!=null?'開放 ':''}${eps.length+gs.length} 集・約 ${Math.floor(secs/3600)?Math.floor(secs/3600)+' 小時 ':''}${Math.round(secs%3600/60)} 分</p></div>
       ${G?`<button type="button" class="card gcard" id="gCard" style="background-image:url('${esc(G.bg)}')"><em>大熊開場・先聽這個</em><b>${esc(G.ct)}</b><span>🎧 ${esc(G.dur)}・${free!=null?'帶你先認識他':'帶你走一遍'}</span><u>▶</u></button>`:''}
+      ${id==='vangogh'&&tgOn()?`<div class="tgc"><div class="tgt"><b>🦃 感恩節・接火雞</b><small>聽完 4 集，自拍時<em>大理石雕像梵谷</em>有機會亂入</small></div><div class="tgb"><button type="button" data-tg="catch-demo.html">去玩</button><button type="button" data-tg="catch-demo.html?book=1">收集冊</button></div></div>`:''}
       <div class="cards">${main.map(([s,k])=>card(s,k)).join('')}</div>
       ${sp.length?`<div class="sph">＋ 特別篇</div><div class="cards sp">${sp.map(([s,k])=>card(s,k)).join('')}</div>`:''}
       <p class="credit">${esc(R.credit)}<br>語音由 OTTO2 以 Google Gemini Notebook 製作</p></section>
     <section id="st" hidden></section>`;
   ROOM=R;$('room').hidden=false;scrollTo(0,0);showOv();
+  $('room').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{stopAudio();try{(top||window).location.href='../'+b.dataset.tg+(b.dataset.tg.includes('?')?'&':'?')+'v='+Date.now()}catch(e){location.href='../'+b.dataset.tg}});
   if($('gCard'))$('gCard').onclick=()=>{if(cur===0&&!au.paused)au.pause();else if(cur===0&&au.dataset.src)au.play();else playIdx(0)};
   $('ov').querySelectorAll('.card[data-k]').forEach(b=>b.onclick=()=>stops[+b.dataset.k].lock?lockToast():showStop(+b.dataset.k,1));
   /* 左右滑換站（橫向位移夠大、而且比上下多才算） */
   let sx=0,sy=0;$('st').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
   $('st').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){if(dx<0&&curStop<openN-1)showStop(curStop+1,1);else if(dx>0&&curStop>0)showStop(curStop-1,-1)}},{passive:true});
   ROOM.wall=wall}
+/* 2026-11-16 大熊：接火雞跟梵谷講座串聯（11/30 前梵谷展間總覽放一張卡） */
+function tgOn(){return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)<='2026-11-30'}
 let ROOM=null;
 const cardImg=src=>src.replace(/^(\w+)\//,'$1/card/');   // 總覽卡片和下一站用小張：vangogh/x.jpg → vangogh/card/x.jpg
 function showOv(){if(!$('ov'))return;$('st').hidden=true;$('ov').hidden=false;$('ovB').hidden=true;$('barR').hidden=false;

@@ -76,7 +76,6 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .stBtns{display:flex;gap:10px;width:100%;max-width:360px}
 .stBtns button{flex:1;height:48px;border-radius:24px;font-size:16px;font-weight:700}
 #stSkip{background:transparent;border:2px solid #6b5432;color:#d9b77a}
-#stBook{background:transparent;border:2px solid #c9a35a;color:#ffcf6b;flex:0 0 auto!important;padding:0 16px}
 #stNext{border:0;background:var(--pumpkin);color:#fff;box-shadow:0 4px 0 var(--leaf)}
 .voice{font-size:12px;color:#9c8460}
 /* 結局 */
@@ -232,7 +231,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <div id="stTxt"></div>
     </div>
     <div id="stDots"></div>
-    <div class="stBtns"><button id="stSkip">略過，直接玩</button><button id="stBook" type="button">📖 收集冊</button></div>
+    <div class="stBtns"><button id="stSkip">略過，直接玩</button></div>
   </section>
 
   <section class="scr" id="scrDraw" hidden>
@@ -888,7 +887,9 @@ async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=docum
     try{if(navigator.share){await navigator.share({title:'感恩節接火雞',text,url});return}}catch(_){return}
     try{await navigator.clipboard.writeText(text+'\n'+url);dnCard('連結複製好了，貼給朋友就可以一起玩',false)}catch(_){dnCard(ctEsc(url),false)}};
   d.querySelector('.book').onclick=()=>{location.href=BOOK_LINK}}
-$('#btnBook').onclick=vgBookOpen;$('#stBook').onclick=vgBookOpen;
+$('#btnBook').onclick=vgBookOpen;
+/* 11/16 大熊：開場不放收集冊；首頁「集公仔」、我的資產用 catch-demo.html?book=1 直接打開收集冊 */
+if(/[?&]book=1/.test(location.search))setTimeout(vgBookOpen,300);
 /* 登入回來：把登入前那局補送出去（30 分鐘內有效） */
 const CT_PEND='otto2-ct-pending';
 (async()=>{let p=null;try{p=JSON.parse(localStorage.getItem(CT_PEND)||'null')}catch(_){}

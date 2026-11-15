@@ -12,6 +12,9 @@
 .oh-r{display:flex; gap:12px; flex:none}
 .ohb{font:inherit; font-size:12px; color:var(--navy); background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; text-shadow:0 0 6px rgba(255,250,242,.9)}
 .ohb i{width:46px; height:46px; border-radius:50%; background:rgba(255,253,248,.92); border:1.5px solid rgba(29,42,68,.22); box-shadow:0 2px 8px rgba(60,40,10,.10); display:grid; place-items:center}
+/* 2026-11-16 大熊：「我的資產」固定在每個島右上角第一顆（走格子島、選品館、吉祥物島、作品小屋都同一個位置） */
+.oh-r{gap:6px!important}.oh-r .ohb{font-size:11px}
+.ohb i.assi{background:linear-gradient(180deg,#ffe08a,#f2b43c)!important;color:#5a3a00!important;border-color:#fff!important}
 .ohb svg{width:22px; height:22px}
 .ohb:active i{transform:scale(.94)}
 @media (max-height:800px){.oh-logo{font-size:25px} .oh-bar{margin:6px 0 7px; height:3.5px} .oh-k{font-size:14px} .oh-t{font-size:32px; margin:1px 0 3px} .oh-s{font-size:13px} .ohb i{width:42px; height:42px}}
@@ -279,7 +282,7 @@ body.tour .pcTag{display:none!important}
   <!-- 2026-10-05 大熊要跟遊樂島（扭蛋/走格子）介面一致：左上大標題、右上圓形小按鈕、下方三島切換＋一排主按鈕 -->
   <div class="top ohead">
     <div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">15 週年・大家的作品</div><h1 class="oh-t">作品小屋</h1><p class="oh-s"><span id="nHouses">0</span> 間小屋・<span id="nWorks">0</span> 件作品</p></div>
-    <div class="oh-r"><button class="ohb" id="findBtn" type="button" aria-label="找小屋"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></i>找小屋</button><button class="ohb" id="tourBtn" type="button" aria-label="導覽"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg></i>導覽</button><button class="ohb" id="bgmBtn" type="button" aria-label="音樂"></button></div>
+    <div class="oh-r"><button class="ohb" id="assetBtn" type="button" aria-label="我的資產"><i class="assi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8" fill="currentColor" fill-opacity=".15"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.6-3.8-6.2-4.2-6.2-1.6C5.8 9 9 9 12 9zM12 9c1.6-3.8 6.2-4.2 6.2-1.6C18.2 9 15 9 12 9z"/></svg></i>我的資產</button><button class="ohb" id="findBtn" type="button" aria-label="找小屋"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></i>找小屋</button><button class="ohb" id="tourBtn" type="button" aria-label="導覽"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg></i>導覽</button><button class="ohb" id="bgmBtn" type="button" aria-label="音樂"></button></div>
   </div>
   <div class="bottom">
     <div class="hint" id="hint" hidden></div>
@@ -316,9 +319,9 @@ body.tour .pcTag{display:none!important}
 <script>Ferry.holdUntil(function(){return !!window.__islandReady})</script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="hall3d.js?v=20261115a"></script>
+<script src="hall3d.js?v=20261116a"></script>
 <script>
-const ART_VER='20261115b';
+const ART_VER='20261116a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2846,6 +2849,7 @@ $('lbDel').onclick=async()=>{if(!lb||!lb.del)return;const w=lb.list[lb.i];if(!co
   const b=document.getElementById('bgmBtn'),look=()=>{if(b){b.innerHTML=on?ON:OFF;b.setAttribute('aria-label',on?'關掉音樂':'打開音樂')}};
   if(b)b.onclick=()=>{on=!on;try{localStorage.setItem('otto2-park-mute',on?'0':'1')}catch(e){}look()};look();
   setInterval(()=>OttoBGM.update(window.Hall3D&&Hall3D.active?'hall':'art',on&&!!ctx&&!window.storyOn,false),250) /* 2026-11-03 走進殿堂換古典鋼琴，出來換回畫室午後 */})();
+$('assetBtn').addEventListener('click',()=>{try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href='park.html?assets=1&v='+ART_VER});   /* 2026-11-16 我的資產在遊樂島，跳過去直接打開 */
 $('findBtn').onclick=findHouse;$('plHall').onclick=()=>{if(hallG)walkIntoHall()};$('upBtn').onclick=window.GUEST?()=>GuestCTA('house'):upPanel;$('albumBtn').onclick=openAlbum;$('tourBtn').onclick=tour;$('homeBtn').onclick=()=>{const u='park.html?v=20261013c';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};$('plPark').onclick=()=>{const u='park.html?v=20261013c&isl=oct';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 2026-10-07 四個分頁：扭蛋島／走格子島／吉祥物島／作品小屋 */$('plWalk').onclick=()=>{const u='park.html?v=20261013c&isl=walk';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u};
 $('plMascot').onclick=()=>{const u='park.html?v=20261013c&isl=mascot';window.Ferry?Ferry.go({to:u,place:'park',from:'art'}):location.href=u}; /* 吉祥物島在遊樂島裡面，回去後自動開 */$('tourStop').onclick=stopTour;$('sX').onclick=closeSheet;
 $('lbX').onclick=()=>$('lb').hidden=true;

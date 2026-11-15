@@ -356,6 +356,8 @@ body.oct .ohead > *{pointer-events:auto}
 .oh-r{display:flex; gap:12px; flex:none}
 .ohb{font:inherit; font-size:12px; color:var(--navy); background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer}
 .ohb i{width:46px; height:46px; border-radius:50%; background:rgba(255,253,248,.92); border:1.5px solid rgba(29,42,68,.22); box-shadow:0 2px 8px rgba(60,40,10,.10); display:grid; place-items:center}
+/* 2026-11-16 大熊：「我的資產」固定在每個島右上角第一顆（走格子島、選品館、吉祥物島、作品小屋都同一個位置） */
+.ohb i.assi{background:linear-gradient(180deg,#ffe08a,#f2b43c)!important;color:#5a3a00!important;border-color:#fff!important}
 .ohb svg{width:22px; height:22px}
 .ohb:active i{transform:scale(.94)}
 .ohb:disabled{opacity:.5}
@@ -670,6 +672,13 @@ body:not(.oct) .evboard b{font-size:12.5px; letter-spacing:0}
 body:not(.oct) .evboard .eb-ic{font-size:14px; width:16px}
 body:not(.oct) .evboard em{font-size:11px; padding:2px 7px}
 body:not(.oct) .evboard .eb-dots{bottom:-7px}
+/* 2026-11-16 大熊：週期性活動（接火雞）要有獨立位置 → 「本期活動」放在倒數看板（右邊）的左邊，同一個高度 */
+.curev{display:none}
+body:not(.oct) .curev:not([hidden]){display:block; position:absolute; left:16px; bottom:calc(100% - 6px); z-index:3; filter:drop-shadow(0 3px 6px rgba(60,30,10,.3))}
+body:not(.oct) .curev .ce-in{display:flex; align-items:center; height:30px; padding:0 4px 0 9px; gap:5px; border-radius:99px; background:linear-gradient(180deg,#f5a04a,#d9701f); border:2px solid #fff; color:#fff; font:inherit; box-sizing:border-box; cursor:pointer}
+body:not(.oct) .curev .ce-ic{font-size:14px}
+body:not(.oct) .curev b{font-size:12.5px; text-shadow:0 1px 0 rgba(120,50,0,.35)}
+body:not(.oct) .curev em{font-style:normal; background:#fff3d6; color:#8a3a10; font-size:11px; font-weight:800; padding:2px 7px; border-radius:99px}
 body:not(.oct) .evboard .eb-dots i{background:rgba(255,255,255,.5)}body:not(.oct) .evboard .eb-dots i.on{background:#fff}
 body:not(.oct) .levels{margin:8px 0 0; width:fit-content!important; max-width:62%; align-self:flex-start} /* 2026-11-01 大熊：第一層／第二層縮短、靠左（右邊留給南瓜等漂浮按鈕），再小一點、扁一點 */
 body:not(.oct) .levels button{flex:none!important; white-space:nowrap; padding:2px 12px!important; font-size:12.5px; line-height:1.4}
@@ -844,7 +853,7 @@ body:not(.oct) #evPill{display:none}
 <div class="loading" id="loading">遊樂島準備中…</div>
 <div class="hud" id="hud" hidden>
   <div>
-    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k" id="ohK">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t"><span id="ohT">畢卡索扭扭樂</span><span class="oh-demo" id="ohDemo2" hidden>示範</span></h1><p class="oh-s" id="ohS">點一下，轉出你的藝術驚喜。</p><button type="button" id="evPill" hidden></button></div><div class="oh-r"><button class="ohb advb" id="advBtn" type="button" aria-label="聖誕倒數月曆" hidden><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="12" cy="14.8" r="1.6" fill="currentColor" stroke="none"/></svg></i>月曆</button><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
+    <div class="ohead" id="ohead"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k" id="ohK">世界藝術日<span class="oh-demo" id="ohDemo" hidden>示範</span></div><h1 class="oh-t"><span id="ohT">畢卡索扭扭樂</span><span class="oh-demo" id="ohDemo2" hidden>示範</span></h1><p class="oh-s" id="ohS">點一下，轉出你的藝術驚喜。</p><button type="button" id="evPill" hidden></button></div><div class="oh-r"><button class="ohb" id="assetBtn" type="button" aria-label="我的資產"><i class="assi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8" fill="currentColor" fill-opacity=".15"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.6-3.8-6.2-4.2-6.2-1.6C5.8 9 9 9 12 9zM12 9c1.6-3.8 6.2-4.2 6.2-1.6C18.2 9 15 9 12 9z"/></svg></i>我的資產</button><button class="ohb advb" id="advBtn" type="button" aria-label="聖誕倒數月曆" hidden><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="12" cy="14.8" r="1.6" fill="currentColor" stroke="none"/></svg></i>月曆</button><button class="ohb" id="muteBtn" type="button" aria-label="音效開關"></button><button class="ohb" id="ohMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
     <div class="top">
       <div class="colL">
         <div class="chip brand"><span id="brandT">OTTO2 遊樂島</span><small id="brandS">示範版</small></div>
@@ -867,6 +876,7 @@ body:not(.oct) #evPill{display:none}
   </div>
   <div class="bottom">
     <div class="evboard" id="evBoard" hidden><button type="button" class="eb-in" id="evBoardBtn"><span class="eb-ic" id="ebIc"></span><span class="eb-tx"><b id="ebT"></b><small id="ebS"></small></span><em id="ebN"></em></button><div class="eb-dots" id="ebDots"></div></div>
+    <div class="curev" id="curEv" hidden><button type="button" class="ce-in" id="curEvBtn"><span class="ce-ic" id="ceIc"></span><b>本期活動</b><em id="ceT"></em></button></div>
     <div class="oxtra" id="oxtra" hidden></div>
     <div class="octinfo"><b>OTTO2 遊樂島・畢卡索月</b><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" fill-opacity=".15"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>聖誕走格子｜11/1 開放</span></div>
         <div class="left" id="left"></div>
@@ -878,7 +888,7 @@ body:not(.oct) #evPill{display:none}
 <!-- 2026-10-05 吉祥物島介面跟扭蛋島、作品小屋一致：左上大標題、右上圓鈕（認識牠們／音效／選單）、下方三島切換＋餵食／拍張照 -->
 <div id="miUI" hidden>
   <div class="ohead mitop"><div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">教室的小動物</div><h1 class="oh-t">吉祥物島</h1><p class="oh-s">五隻小動物的家</p></div>
-    <div class="oh-r"><button class="ohb" id="miKnow" type="button" aria-label="認識牠們"><i><svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="10" rx="2.1" ry="2.6"/><ellipse cx="10" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="14.5" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="18.3" cy="10" rx="2.1" ry="2.6"/><path d="M12.2 11.5c3 0 5.6 3.4 5.6 5.6 0 2-1.6 2.6-3 2.2-1-.3-1.7-.6-2.6-.6s-1.6.3-2.6.6c-1.4.4-3-.2-3-2.2 0-2.2 2.6-5.6 5.6-5.6z"/></svg></i>認識牠們</button><button class="ohb" id="miMute" type="button" aria-label="音效開關"></button><button class="ohb" id="miMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
+    <div class="oh-r"><button class="ohb" id="miAsset" type="button" aria-label="我的資產"><i class="assi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8" fill="currentColor" fill-opacity=".15"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.6-3.8-6.2-4.2-6.2-1.6C5.8 9 9 9 12 9zM12 9c1.6-3.8 6.2-4.2 6.2-1.6C18.2 9 15 9 12 9z"/></svg></i>我的資產</button><button class="ohb" id="miKnow" type="button" aria-label="認識牠們"><i><svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="10" rx="2.1" ry="2.6"/><ellipse cx="10" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="14.5" cy="6.5" rx="2.1" ry="2.6"/><ellipse cx="18.3" cy="10" rx="2.1" ry="2.6"/><path d="M12.2 11.5c3 0 5.6 3.4 5.6 5.6 0 2-1.6 2.6-3 2.2-1-.3-1.7-.6-2.6-.6s-1.6.3-2.6.6c-1.4.4-3-.2-3-2.2 0-2.2 2.6-5.6 5.6-5.6z"/></svg></i>認識牠們</button><button class="ohb" id="miMute" type="button" aria-label="音效開關"></button><button class="ohb" id="miMenu" type="button" aria-label="選單"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></i>選單</button></div></div>
   <div class="mimid"><div class="mich" id="miTip" hidden>一根手指轉島・兩根手指放大移動・點動物跟著看</div><button type="button" id="miReset" class="mich" hidden>⟲ 回到原位</button><div class="mich" id="miHint" hidden>👆 按住食物拖著走，牠們會追過來</div><div id="miFood" hidden></div></div>
   <div class="mibot"><div class="places"><button type="button" id="miPlW"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="miPl0"><svg class="pi" viewBox="0 0 32 32"><rect x="6" y="13" width="20" height="15" rx="1.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><rect x="13" y="18.5" width="6" height="9.5" fill="#2f5d9a" stroke="#1d2a44" stroke-width="1.4"/><path d="M4 8.5h24l-1.6 5.5H5.6z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M10.3 8.5l-.9 5.5M16 8.5v5.5M21.7 8.5l.9 5.5" stroke="#fffaf2" stroke-width="2"/><rect x="8.5" y="3.5" width="15" height="5" rx="1.2" fill="#1e2b4f" stroke="#1d2a44" stroke-width="1.2"/></svg>選品館</button><button type="button" id="miPl1" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="miPl2"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button><button type="button" id="miPlH"><svg class="pi" viewBox="0 0 32 32"><path d="M16 4l12 7H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.4" stroke-linejoin="round"/><path d="M5 12h22" stroke="#f4e4b8" stroke-width="1.4"/><path d="M8 13v10M13 13v10M19 13v10M24 13v10" stroke="#f4e4b8" stroke-width="2.4"/><path d="M4 25h24v3H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="hn">畫框背後<small>大師開講</small></span></button></div>
     <div class="mirow"><button type="button" id="miFeed" class="red">餵食</button><button type="button" id="miShot">拍張照</button></div><button type="button" id="miBack" hidden></button></div>
@@ -958,7 +968,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261115w';
+const PARK_VER='20261116b';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2123,6 +2133,22 @@ const evHasBloom=e=>!!e.bloomFrom||+e.bloomDays>0;
 /* 後台填了「開花開始日」就以日期為準（那天花苞、活動當天全開）；沒填才用「開花天數」 */
 function evBloom(e){let b=+e.bloomDays||0;if(e.bloomFrom)b=Math.max(1,Math.round((Date.parse(e.date+'T00:00:00+08:00')-Date.parse(e.bloomFrom+'T00:00:00+08:00'))/864e5));
   if(!b)return 1;return Math.max(0,Math.min(1,(b-evDays(e))/b))}
+/* ══ 本期活動（2026-11-16 大熊）：週期性的活動（接火雞…）不塞在遊戲室，活動期間放「本期活動」；結束後自動回遊戲室 ══
+   要換下一檔就在 CUR_EVS 加一筆（from／to 是台灣日期，含當天） */
+const CUR_EVS=[
+  {id:'catch',from:'2026-11-14',to:'2026-11-30',ic:'🦃',tag:'接火雞',t:'感恩節・梵谷村的長桌晚餐',d:'11/16～11/30',
+   body:'幫梵谷《吃馬鈴薯的人》一家把火雞接回家，畫自己的角色、自拍坐上作品小屋大樹下的長桌，還能收集 4 款梵谷公仔。',
+   acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷公仔收集冊',u:'catch-demo.html?book=1'},{t:'🍽 看大家的長桌',u:'dinner.html'},{t:'🎧 梵谷講座・聽 4 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
+function curEvNow(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return CUR_EVS.find(e=>d>=e.from&&d<=e.to)||null}
+function curEvGo(u){try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href=u+(u.includes('?')?'&':'?')+'v='+PARK_VER}
+function curEvRender(){const e=curEvNow(),el=$('curEv');if(!el)return;if(!e){el.hidden=true;return}$('ceIc').textContent=e.ic;$('ceT').textContent=e.tag;el.hidden=false}
+function curEvOpen(){const e=curEvNow();if(!e||busy)return;
+  $('card').innerHTML=`<h2>${e.ic} 本期活動</h2><p style="margin:0 0 4px"><b>${esc(e.t)}</b>　<span style="color:#8a6a4a">${esc(e.d)}</span></p><p>${esc(e.body)}</p>`+
+    e.acts.map((a,i)=>`<button type="button" class="btn${a.main?'':' ghost'}" data-i="${i}" style="width:100%;margin:0 0 8px${a.main?';background:#e2711d;border-color:#b5541a;color:#fff':''}">${esc(a.t)}</button>`).join('')+
+    `<div class="acts"><button type="button" class="btn ghost" id="ceX">關閉</button></div>`;
+  $('pop').hidden=false;$('ceX').onclick=()=>{$('pop').hidden=true};
+  $('card').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{$('pop').hidden=true;curEvGo(e.acts[+b.dataset.i].u)})}
+$('curEvBtn').addEventListener('click',curEvOpen);curEvRender();
 async function evFetch(){try{const r=await fetch(NOTIFY_URL+'/event/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:window.KIOSK?'kiosk':token()})});
   const j=await r.json();if(!j||!j.ok)return;EV.today=j.today;EV.list=j.events||[];EV.cur=EV.list[0]||null;EV.bals=j.balloons||[];evApply(true)}catch(e){}}
 function evApply(first){const e=EV.cur,pill=$('evPill');if(pill)pill.hidden=true; /* 左上小卡改成下面的倒數看板 */
@@ -4457,11 +4483,11 @@ async function gameRoom(){
   const left=Math.max(0,ROOM_DAILY-G.arc.n);
   const html=`<div class="room">${Object.entries(MG).map(([k,m])=>`<button type="button" class="rg" data-k="${k}"><img alt="" src="${iconSrc(m.ic)}"><span>${m.t}</span><small>${G.arc.best[k]?'最高 '+esc(G.arc.best[k].lbl):'還沒玩過'}</small></button>`).join('')}</div>`;
   const pick=new Promise(res=>{
-    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p><button type="button" class="btn" id="roomCatch" style="width:100%;margin:2px 0 12px;background:#e2711d;border-color:#b5541a;color:#fff">🦃 感恩節：接火雞・坐上長桌</button>${html}<div class="acts">${XS&&!window.GUEST?'<button type="button" class="btn" id="roomRank">🏆 本週排行榜</button>':''}<button type="button" class="btn ghost" id="roomX">離開</button></div>`;
+    $('card').innerHTML=`<h2>遊戲室</h2><p>小遊戲可以一直玩！每天前 ${ROOM_DAILY} 次會拿禮物（今天還剩 <b style="color:var(--red);font-weight:400">${left}</b> 次），之後只記最高分。</p>${curEvNow()&&curEvNow().id==='catch'?'':'<button type="button" class="btn" id="roomCatch" style="width:100%;margin:2px 0 12px;background:#e2711d;border-color:#b5541a;color:#fff">🦃 感恩節：接火雞・坐上長桌</button>'}${html}<div class="acts">${XS&&!window.GUEST?'<button type="button" class="btn" id="roomRank">🏆 本週排行榜</button>':''}<button type="button" class="btn ghost" id="roomX">離開</button></div>`;
     $('pop').hidden=false;$('roomX').focus();
     $('roomX').onclick=()=>{$('pop').hidden=true;res(null)};
     /* 2026-11-14 大熊：感恩節接火雞放遊樂島遊戲室；同一個分頁跳過去，LINE 身分（sessionStorage otto2-liff-tk）跟著帶，玩完能直接坐上長桌 */
-    $('roomCatch').onclick=()=>{$('pop').hidden=true;try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href='catch-demo.html?v='+PARK_VER};
+    if($('roomCatch'))$('roomCatch').onclick=()=>{$('pop').hidden=true;try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href='catch-demo.html?v='+PARK_VER};
     if($('roomRank'))$('roomRank').onclick=()=>{$('pop').hidden=true;res('__rank')};
     $('card').querySelectorAll('.rg').forEach(b=>b.onclick=()=>{$('pop').hidden=true;res(b.dataset.k)});
   });
@@ -5368,6 +5394,9 @@ if(NP){const t=$('plParkT');if(t)t.textContent='選品館'} /* 新版：扭蛋�
   if(shopQ){const so=()=>{if(!G||busy||!$('pop').hidden)return setTimeout(so,400);openShop();maybeTour._s=1;setTimeout(go,2600)};setTimeout(so,600)}
   else setTimeout(go,isl?600:2600)})();
 $('gpanel').addEventListener('click',()=>{if(!busy)Gacha.open()});
+['assetBtn','miAsset'].forEach(id=>{const b=$(id);if(b)b.addEventListener('click',()=>{if(window.GUEST&&window.GuestCTA){GuestCTA('end');return}Gacha.open()})});
+if(/[?&]assets=1/.test(location.search))setTimeout(()=>{try{Gacha.open()}catch(e){}},1800);   /* 作品小屋右上角「我的資産」跳過來直接打開 */
+$('gpanel').style.display='none';   /* 只留右上角那一顆 */
 $('tapme').addEventListener('click',()=>openCapsule());
 $('ph0').addEventListener('click',()=>{$('menu').hidden=true;toOct()});
 $('ph1').addEventListener('click',()=>{$('menu').hidden=true;openPark()});
@@ -5448,6 +5477,11 @@ var CSS = `
 @keyframes gcBump{40%{transform:scale(1.35);color:#E8836B}}
 .gc-bal span{font-size:11.5px;color:#6B7180}
 .gc-sec{margin:16px 14px 0}
+.gc-board{padding:6px!important;display:flex;flex-direction:column;gap:6px}
+.gc-bd{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:12px;background:#fff7e8;padding:10px 12px;font:inherit;text-align:left;cursor:pointer;color:#1E2B4F}
+.gc-bd-ic{font-size:22px;flex:none}.gc-bd-tx{flex:1;min-width:0;display:flex;flex-direction:column}.gc-bd-tx b{font-size:14.5px}.gc-bd-tx small{font-size:12px;color:#8a6a4a}.gc-bd-ar{font-size:22px;color:#b9a27a}
+.gc-vg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.gc-vgi{background:#fbf6ea;border-radius:10px;padding:4px;text-align:center}.gc-vgi img{width:100%;height:78px;object-fit:contain}
+.gc-vgi.no img{filter:brightness(0);opacity:.2}
 .gc-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .gc-sh h2{font-size:15px;font-weight:900;color:#1E2B4F;margin:0}
 .gc-sh small{font-size:12px;color:#6B7180}
@@ -5830,10 +5864,43 @@ function shell(inner){
   var t = (st && st.title) || "世界藝術日・畢卡索扭扭樂";
   if (BIMG() && /黑熊/.test(t)) t = "世界藝術日・畢卡索扭扭樂";
   return SYMBOLS + '<div class="gc-top"><button class="gc-x" id="gcX" aria-label="關閉">✕</button>' +
-    '<div class="gc-ttl">OTTO2 ARTCLUB · OCTOBER</div><h1>' + (st && st.halloween ? '🎃 萬聖節・' : '🎨 ') + esc(t) + '</h1>' +
-    '<p>每天轉一次，紅利、' + (BIMG() ? '畢卡索公仔' : '課程券') + '等你拿</p></div>' + inner;
+    /* 2026-11-16 大熊：我的資產當公佈欄，拿掉十月，標題照當天日期 */
+    '<div class="gc-ttl">OTTO2 ARTCLUB · ' + gcMonthEn() + '</div><h1>🎁 我的資產</h1>' +
+    '<p>' + gcMonthZh() + '・紅利、票券、公仔和現在的活動都在這裡</p></div>' + inner;
 }
 function bindShell(){ var x = $("gcX"); if (x) x.onclick = close }
+function gcTw(){ return new Date(Date.now() + 8 * 3600e3) }
+function gcMonthEn(){ return ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"][gcTw().getUTCMonth()] }
+function gcMonthZh(){ var d = gcTw(); return (d.getUTCMonth() + 1) + " 月 " + d.getUTCDate() + " 日" }
+/* 公佈欄：本期活動（CUR_EVS）＋店裡的活動公告（EV.list，例如 12/19 餐敘） */
+function boardHtml(){
+  var rows = [];
+  try { var ce = curEvNow(); if (ce) rows.push('<button class="gc-bd" data-ce="1"><span class="gc-bd-ic">' + ce.ic + '</span><span class="gc-bd-tx"><b>' + esc(ce.t) + '</b><small>本期活動・' + esc(ce.d) + '</small></span><span class="gc-bd-ar">›</span></button>') } catch(e){}
+  try { (EV.list || []).forEach(function(e, i){ rows.push('<button class="gc-bd" data-ev="' + i + '"><span class="gc-bd-ic">📣</span><span class="gc-bd-tx"><b>' + esc(evMd(e.date) + ' ' + e.title) + '</b><small>' + (function(n){ return n <= 0 ? '就是今天！' : n === 1 ? '明天' : '還有 ' + n + ' 天' })(evDays(e)) + '</small></span><span class="gc-bd-ar">›</span></button>') }) } catch(e){}
+  if (!rows.length) return "";
+  return '<div class="gc-sec"><div class="gc-sh"><h2>📌 現在進行中</h2><small>' + gcMonthZh() + '</small></div><div class="gc-card gc-board">' + rows.join("") + '</div></div>';
+}
+function bindBoard(){
+  document.querySelectorAll('.gc-bd[data-ce]').forEach(function(b){ b.onclick = function(){ close(); setTimeout(curEvOpen, 320) } });
+  document.querySelectorAll('.gc-bd[data-ev]').forEach(function(b){ b.onclick = function(){ var e = (EV.list || [])[+b.dataset.ev]; if (!e) return; close(); EV.sel = e; setTimeout(evOpen, 320) } });
+}
+/* 公仔收集冊：梵谷四款（讀 /catch/book），畢卡索是十月的收藏 */
+var VGB_IDS = ["v4","v5","v3","v6"];
+function vgBookHtml(){
+  return '<div class="gc-sec"><div class="gc-sh"><h2>📖 梵谷公仔收集冊</h2><small id="gcVgN">讀取中…</small></div><div class="gc-card"><div class="gc-vg" id="gcVg">' +
+    VGB_IDS.map(function(id){ return '<div class="gc-vgi no" data-v="' + id + '"><img alt="" src="catch-video/vg/' + id + '.webp?v=20261115b"></div>' }).join("") +
+    '</div><button class="gc-btn sec" id="gcVgOpen" style="margin-top:10px">打開收集冊・看怎麼拿</button></div></div>';
+}
+async function vgBookFill(){
+  var el = $("gcVgN"); if (!el) return;
+  $("gcVgOpen").onclick = function(){ close(); curEvGo("catch-demo.html?book=1") };
+  try {
+    var r = await fetch(NOTIFY_URL + "/catch/book", { method: "POST", body: JSON.stringify({ accessToken: token() }) }), j = await r.json();
+    if (!j.ok) throw new Error(j.error || "");
+    el.textContent = "已收集 " + j.n + "／4";
+    VGB_IDS.forEach(function(id){ var b = j.book[id], d = document.querySelector('.gc-vgi[data-v="' + id + '"]'); if (d && b && b.got) d.classList.remove("no") });
+  } catch(e) { el.textContent = "玩接火雞就能收集" }
+}
 
 async function load(extra){
   if (!token()) return renderNoLine();
@@ -5901,20 +5968,23 @@ function render(anim){
     '<div class="gc-bal"><div><b>' + me.points.toLocaleString() + '</b><span>儲值點數</span></div>' +
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
+    boardHtml() +
     myPrizes() +
-    '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' +
+    vgBookHtml() +
+    (gcTw().getUTCMonth() === 9 ? '<div class="gc-sec"><div class="gc-sh"><h2>十月集章</h2><small>已集 ' + st.days.length + ' 天</small></div>' + stamps(anim) + '</div>' : '') +
     '<div class="gc-sec"><div class="gc-sh"><h2>今天的扭蛋</h2><small id="gcChance"></small></div>' + banner + ticker + machine() +
     '<button class="gc-go" id="gcTo3D">🏡 去作品小屋蓋房子</button><button class="gc-go" id="gcGo">轉一下 🎨</button><div class="gc-hint" id="gcHint"></div></div>' +
-    bearsHtml() +
     '<details class="gc-sec gc-fold" open><summary><div class="gc-sh"><h2>本月獎品</h2><small>大獎限量，抽完就沒了</small></div></summary>' + pool() + '</details>' +
     '<ul class="gc-rules"><li>活動期間 ' + md(st.start) + '～' + md(st.end) + '，每天可以轉一次；當天有來上課、用線上預約系統約課、答對藝術小問答、翻牌配對過關，各多一次，一天最多 ' + (st.maxDaily || 5) + ' 次。</li>' +
     '<li>每天最多中 ' + (st.bonusDaily || 2) + ' 次紅利，中滿之後改送' + BU() + '，收進' + BT() + '。</li>' +
     '<li>每轉一次都會多送一隻' + BU() + '；抽到重複的湊滿 3 隻，會自動多送你 1 次扭蛋（每天最多 1 次）。</li>' +
     '<li>整個活動期間，扭蛋最多拿 ' + st.cap + ' 點紅利（你已經拿了 ' + me.gotBonus + ' 點），拿滿之後改送「月底大抽獎券」' + (me.lottery ? '，你目前有 <b>' + me.lottery + '</b> 張' : '') + '。集章保底送的紅利是額外的，不算在 ' + st.cap + ' 點裡。</li>' +
     '<li>抽到的票券請在 ' + md(st.expiry) + ' 前來店出示使用，一次上課限用一張。</li></ul>' +
+    bearsHtml() +
     '<div class="gc-cta"><button class="gc-btn pri" id="gcBook">📅 我要預約課程</button><button class="gc-btn sec" id="gcBack">回到島上</button></div>');
   ov.classList.toggle("hw", !!st.halloween);
   bindShell();
+  bindBoard(); vgBookFill();
   fillMachine();
   bindGames();
   document.querySelectorAll('.gc-dx.got[data-id]').forEach(function(el){ el.onclick = function(){ zoomBear(el.dataset.id) } });
@@ -6232,7 +6302,7 @@ function memoryGame(){
 function bearsHtml(){
   var b = st.bears; if (!b) return "";
   var have = b.have || {}, reg = b.list.filter(function(x){ return !x.hidden }), n = reg.filter(function(x){ return have[x.id] > 0 }).length;
-  return '<div class="gc-sec"><div class="gc-sh"><h2>' + BT() + '</h2><small>已收集 ' + n + '／' + reg.length + '</small></div>' +
+  return '<div class="gc-sec"><div class="gc-sh"><h2>' + (gcTw().getUTCMonth() === 9 ? BT() : '過去的收藏・' + BT()) + '</h2><small>已收集 ' + n + '／' + reg.length + '</small></div>' +
     '<div class="gc-card"><div class="gc-dex">' + b.list.map(function(x){
       var got = have[x.id] > 0;
       return '<div class="gc-dx' + (got ? " got" : "") + (x.rare ? " rare" : "") + '"' + (got ? ' data-id="' + esc(x.id) + '"' : '') + '>' + bearSvg(x.id, !got) +
