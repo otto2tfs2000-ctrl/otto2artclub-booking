@@ -165,6 +165,25 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .upChk{font-size:13px;color:#e6d3ac;display:flex;gap:8px;align-items:flex-start;line-height:1.5;text-align:left}
 .upChk input{width:20px;height:20px;flex:none;margin-top:1px}
 .upLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
+/* 2026-11-15 成績、全店合力、排行榜 */
+.ctg{width:100%;max-width:400px;background:#2b2418;border:1px solid #4a3c27;border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:4px;color:#f3e6c8}
+.ctgT{font-size:13px;color:#e8b84b}.ctgN{font-size:13px;color:#b9a27a;font-variant-numeric:tabular-nums}.ctgN b{font-size:20px;color:#fff}
+.ctgBar{height:9px;border-radius:99px;background:#ffffff1f;overflow:hidden}.ctgBar i{display:block;height:100%;background:linear-gradient(90deg,#e8b84b,#c2552d);transition:width .8s}
+/* 11/15 隱藏款跑馬燈 */
+.ctNews{width:100%;max-width:400px;overflow:hidden;white-space:nowrap;border-radius:10px;background:#3a2c14;border:1px solid #e8b84b;color:#ffe3a3;font-size:14px;font-weight:700;padding:6px 0;box-sizing:border-box}
+.ctNews span{display:inline-block;padding-left:100%;animation:ctNews 14s linear infinite}
+@keyframes ctNews{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.ctNews span{animation:none;padding-left:10px;white-space:normal}}
+#ctBox{width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.vgGot{margin:0;width:100%;max-width:400px;box-sizing:border-box;padding:10px 14px;border-radius:12px;background:#3a2c14;border:2px solid #e8b84b;color:#ffe3a3;font-size:15px;text-align:center}.vgGot b{color:#ffcf6b}
+.ctNote{font-size:13px;color:#b9a27a;text-align:center;margin:0}.ctNew{font-size:16px;color:#e8b84b;font-weight:700;margin:0}
+.ctTabs{display:flex;gap:6px}.ctTabs button{border:0;border-radius:99px;padding:3px 12px;font-size:13px;background:#3d3222;color:#b9a27a}.ctTabs button.on{background:#e8b84b;color:#2b2418;font-weight:700}
+.ctList{width:100%;display:flex;flex-direction:column;gap:5px;margin:0;padding:0;list-style:none}
+.ctList li{display:grid;grid-template-columns:22px 38px 1fr auto;gap:8px;align-items:center;background:#33281b;border-radius:10px;padding:4px 10px;font-size:14px;color:#f3e6c8}
+.ctList li.me{outline:2px solid #e8b84b}.ctList .no{color:#e8b84b;text-align:center;font-weight:700}
+.ctList .av{width:38px;height:38px;border-radius:8px;background:#efe6cc;display:grid;place-items:center;overflow:hidden;font-size:20px}.ctList .av img{max-width:100%;max-height:100%}
+.ctList em{font-style:normal;color:#e8b84b;font-variant-numeric:tabular-nums}
+#ctGoal{width:100%;display:flex;justify-content:center}
 </style>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
 
@@ -187,6 +206,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
   <section class="scr" id="scrDraw" hidden>
     <h1>畫你的角色</h1>
     <p>畫火雞、畫人、畫農夫都可以，盤子會自動加在頭上。</p>
+    <div id="ctGoal"></div>
     <div class="sheet">
       <canvas id="pad" aria-label="畫角色的畫布"></canvas>
       <div class="plate"><span>盤子在這</span></div>
@@ -224,6 +244,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <div><b id="eBest">0</b>最高疊（隻）</div>
     </div>
     <div id="endNote"></div>
+    <div id="ctBox"></div>
     <button id="btnBooth">📸 全村都來了！挑一位村民，換你入座</button>
     <div class="btns">
       <button class="redo" id="btnRedo">重畫角色</button>
@@ -254,6 +275,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 
   <section class="scr" id="scrShot" hidden>
     <img id="shotImg" alt="你的感恩節合照">
+    <p class="vgGot" id="vgGot" role="status" hidden></p>
     <p class="bHint">長按照片就可以存到手機</p>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
     <button class="bWide" id="shotUp">🍽 坐上作品島大樹旁的長桌</button>
@@ -424,7 +446,7 @@ window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
   G={t:0,cd:4,hp:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
-     served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
+     helps:[],nextHelp:rnd(14,20),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
   fit();G.cx=G.tx=W/2;for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
   cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop)}
 function loop(ts){if(!G||G.over)return;const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;update(dt);draw();raf=requestAnimationFrame(loop)}
@@ -479,8 +501,8 @@ function update(dt){
       G.items.splice(i,1);const k=Math.min(3,G.n);for(let j=0;j<k;j++){const q=pos(G.n-1);G.n--;G.fx.push({k:'tk',x:q.x,y:q.y,vx:rnd(-260,260),vy:-rnd(300,480),r:0})}
       G.fx.push({k:'boom',x:top.x,y:top.y,life:.4});hurt('砰！');G.lv+=rnd(-2,2);continue}
     if(it.bomb&&it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'boom',x:it.x,y:G.gy-10,life:.25});continue}
-    if(it.vy>0&&py+12<top.y&&it.y+12>=top.y&&Math.abs(it.x-top.x)<34){   // 接到
-      if(G.n)G.lv+=(it.x-top.x)/34*1.4;G.n++;if(G.n>G.best)G.best=G.n;G.items.splice(i,1);
+    if(it.vy>0&&py+12<top.y&&it.y+12>=top.y&&Math.abs(it.x-top.x)<(it.gold?42:34)){   // 接到（金火雞一次算 3 隻）
+      if(G.n)G.lv+=(it.x-top.x)/34*1.4;if(it.gold){G.n+=3;if(G.n>G.best)G.best=G.n;G.items.splice(i,1);txt('金火雞 +3！',top.x,top.y-30,'#ffe14d',true);beep(784,.1);setTimeout(()=>beep(1046,.18),90);continue}G.n++;if(G.n>G.best)G.best=G.n;G.items.splice(i,1);
       txt(G.n>=3?G.n+' 隻！':'接到',top.x,top.y-24,'#fff');beep(520+G.n*40,.09);continue}
     if(it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'run',x:it.x,y:G.gy-12,r:0})}}
 
@@ -491,6 +513,14 @@ function update(dt){
       G.total+=3;for(let j=0;j<3;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-1)*50,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
     if(c.x<-80)G.cages.splice(i,1)}
 
+  // 11/15 別人畫的角色來幫忙：從右邊走進來，走到畫面右邊三分之一就把金火雞往你這邊丟（一局最多 2 次）
+  if(HELP.length&&G.helpN<2&&G.t>=G.nextHelp){const h=HELP[(HSEQ++)%HELP.length];G.helpN++;G.nextHelp=G.t+rnd(26,36);
+    G.helps.push({x:W+50,img:h.img,n:h.n,t:0,tossed:false,hh:Math.max(70,G.ch*.95)});beep(600,.08,'triangle',.05);setTimeout(()=>beep(800,.1,'triangle',.05),110)}
+  for(let i=G.helps.length-1;i>=0;i--){const h=G.helps[i];h.t+=dt;
+    if(!h.tossed){h.x-=130*dt;if(h.x<=W*.7){h.tossed=true;G.total+=3;
+      G.items.push({x:h.x-10,y:G.gy-h.hh-14,vx:clamp((G.cx-h.x)*.75,-200,120),vy:-rnd(560,640),g:820,w:0,gold:true})}}
+    else h.x-=(G.speed*.5+40)*dt;
+    if(h.x<-90)G.helps.splice(i,1)}
   // 馬鈴薯一家的小屋：靠過去就把盤上的火雞全部帶進去（跳已拿掉）
   if(G.dist>G.nextTable){G.nextTable=G.dist+rnd(1700,2200);G.tables.push({x:W+90,got:0,pop:0})}
   for(let i=G.tables.length-1;i>=0;i--){const t=G.tables[i];t.x-=G.speed*dt;t.pop=Math.max(0,t.pop-dt);
@@ -528,6 +558,7 @@ function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
   else{$('#endStory').textContent='火雞一隻都沒帶回來，這一家人今晚還是只有馬鈴薯……';$('#endBig').textContent='再試一次？'}
   $('#endNote').textContent=(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
   $('#epNote').textContent='';
+  ctSend(N);
   scrPlay.hidden=true;playOutro(N)}
 /* 2026-11-13 大熊：結局先播火雞衝進來、一起吃飯的影片，最後「喀嚓」變成一張合照 */
 let outN=0;
@@ -656,7 +687,22 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   if(bChar.img){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
   if(bChar.mask&&bChar.mask.complete&&bChar.mask.naturalWidth){lx.globalCompositeOperation='destination-out';lx.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch)}else{lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
   const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();}
-  ctx.drawImage(L,0,0)}
+  ctx.drawImage(L,0,0);
+  boothExtras(ctx,W,H)}
+/* 2026-11-15 大熊：自拍升級 → ①玩家剛剛畫的角色站在左下角一起入鏡　②梵谷亂入（每局結束伺服器抽一次，重拍不重抽；拍到按完成就收進圖鑑冊） */
+let bVG=null,bVGt=0;
+function vgLoad(v){bVG=null;if(!v||!v.id)return;const im=new Image();im.onload=()=>{bVG={id:v.id,isNew:v.isNew,img:im}};
+  im.onerror=()=>{if(v.id!=='v1')vgLoad({id:'v1',isNew:v.isNew})};im.src='catch-video/vg/'+v.id+'.webp'}
+function boothExtras(ctx,W,H){
+  if(sprite&&sprite.width){const sh=H*.3,sw=Math.min(W*.34,sh*sprite.width/sprite.height),sh2=sw*sprite.height/sprite.width,x=W*.03,y=H-sh2-H*.02;
+    ctx.save();ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+sw/2,H-H*.022,sw*.42,H*.014,0,0,7);ctx.fill();
+    ctx.translate(x+sw/2,y+sh2);ctx.rotate(-.05);ctx.drawImage(sprite,-sw/2,-sh2,sw,sh2);ctx.restore()}
+  if(bVG&&(bSelf||(bStream&&bVid.videoWidth))){const im=bVG.img;if(!bVGt)bVGt=performance.now();
+    const k=Math.min(1,(performance.now()-bVGt)/650),e=1-Math.pow(1-k,3),wob=k<1?0:Math.sin(performance.now()/420)*.02;
+    const vh=H*.5,vw=vh*im.naturalWidth/im.naturalHeight,x=W-vw*.62*e+vw*(1-e)*.2,y=H-vh*.98;
+    ctx.save();ctx.translate(x+vw/2,y+vh);ctx.rotate(-.2+wob);ctx.drawImage(im,-vw/2,-vh,vw,vh);ctx.restore();
+    if(k<1&&!(bStream&&bVid.videoWidth))requestAnimationFrame(boothRender)}
+  else bVGt=0}
 function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),W=Math.round(r.width*dp),H=Math.round(r.height*dp);if(!W||!H||!bScene)return;
   if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
 const bVid=$('#bVid');let bStream=null,bRaf=0;
@@ -714,7 +760,26 @@ $('#bDone').onclick=()=>{if(bStream)bSnap();if(!bSelf){$('#bErr').textContent='�
   cx.font='800 26px '+FONT;cx.fillText('OTTO2 ARTCLUB',CW/2,CH-48);
   const url=c.toDataURL('image/jpeg',.9);$('#shotImg').src=url;
   try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
+  if(bVG)vgClaim(c);else $('#vgGot').hidden=true;
   $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
+/* 11/15 大熊：先坐上長桌，坐好之後才告訴他「梵谷跟你回家了，收進公仔收集冊」；沒坐長桌就在離開合照頁時告訴他 */
+let VGR=null,VGB=null;
+const VG_NM={v3:'大理石雕像梵谷',v4:'吃馬鈴薯的梵谷',v5:'頂著空盤想抓火雞的梵谷',v6:'感恩節慶祝梵谷'};
+const VG_ORDER=['v4','v5','v3','v6'];
+function vgNext(bk,gotNow){if(!bk)return'';const has=k=>(bk[k]&&bk[k].got)||k===gotNow;
+  if(!has('v5'))return'下一個：自己累積帶回 '+bk.v5.need+' 隻火雞（現在 '+bk.v5.sum+' 隻），不管玩幾局';
+  if(!has('v3'))return'下一個：去「畫框背後」聽完梵谷講座 '+bk.v3.need+' 集（現在 '+bk.v3.eps+' 集）';
+  if(!has('v6'))return'最後一個：全店一起帶回 '+Number(bk.v6.goal).toLocaleString()+' 隻火雞，達標後玩過的人都會拿到';
+  return'四款都收齊了！';}
+function vgCount(bk,gotNow){if(!bk)return 0;return VG_ORDER.filter(k=>(bk[k]&&bk[k].got)||k===gotNow).length}
+function vgReveal(){if(!VGR||VGR.shown)return;VGR.shown=true;const j=VGR;
+  const t=j.isNew?'🎁 還有一個小驚喜！<br><span style="font-size:15px;font-weight:600">剛剛亂入的「'+(VG_NM[j.id]||'梵谷')+'」偷偷跟你回家了，收進你的<b>梵谷公仔收集冊</b>（'+vgCount(VGB,j.id)+'/4）<br><span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>'
+    :'梵谷又來陪你拍照了<br><span style="font-size:15px;font-weight:600">收集冊 '+vgCount(VGB,j.id)+'/4　<span style="color:#8a6a4a">'+vgNext(VGB,j.id)+'</span></span>';
+  dnCard(t,false);if(j.isNew){beep(880,.08);setTimeout(()=>beep(1320,.14),90)}}
+async function vgClaim(shot){const b=$('#vgGot');b.hidden=true;VGR=null;try{const tok=await getTok();if(!tok)return;
+  let photo='';try{const k=360/shot.width,t=document.createElement('canvas');t.width=360;t.height=Math.round(shot.height*k);t.getContext('2d').drawImage(shot,0,0,t.width,t.height);photo=t.toDataURL('image/jpeg',.8)}catch(_){}   // 11/15 大熊選 C：這張合照之後放在圖鑑卡背面
+  const j=await (await fetch(NOTIFY_URL+'/catch/vg',{method:'POST',body:JSON.stringify({accessToken:tok,photo})})).json();if(!j.ok||!j.id)return;
+  VGR={id:j.id,isNew:j.isNew,shown:false}}catch(_){}}
 $('#shotShare').onclick=async()=>{try{await navigator.share({files:[new File([shotBlob],'otto2-thanksgiving.jpg',{type:'image/jpeg'})],text:'我和梵谷《吃馬鈴薯的人》一家過感恩節！'})}catch(_){}};
 /* ===== 2026-11-14 坐上長桌：把「村民＋你的臉」去背剪下來，傳到伺服器，自動放上作品島大樹旁的長桌（老師後台可以撤下） ===== */
 const NOTIFY_URL='https://otto2-notify-production.up.railway.app',LIFF_ID='2010906803-FMDYktUN';
@@ -724,6 +789,34 @@ let upTok='';try{upTok=sessionStorage.getItem('otto2-liff-tk')||''}catch(_){}
 const DN_PEND='otto2-dn-pending';let liffReady=null;
 function liffInit(){if(!liffReady)liffReady=(async()=>{try{if(!window.liff)return false;await Promise.race([liff.init({liffId:LIFF_ID}),new Promise((_,no)=>setTimeout(()=>no(),6000))]);return true}catch(_){return false}})();return liffReady}
 async function getTok(){if(upTok)return upTok;if(await liffInit()&&liff.isLoggedIn())upTok=liff.getAccessToken()||'';return upTok}
+/* 2026-11-15 大熊：遊戲資料先處理 → 每局成績送伺服器（/catch/end）、全店合力目標、排行榜（旁邊放玩家畫的角色）
+   沒從 LINE 打開（沒有 token）就不記錄，只顯示全店進度 */
+let ctLast=null,ctTab='best';
+const ctNum=n=>Number(n||0).toLocaleString();
+function ctThumb(){try{if(!sprite)return'';const h=96,w=Math.max(8,Math.round(sprite.width*h/sprite.height));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(sprite,0,0,w,h);return c.toDataURL('image/png')}catch(_){return''}}
+function ctNews(st){const a=(st&&st.news)||[];if(!a.length)return'';const t=a.map(x=>'🦃 '+ctEsc(x.n)+' 拍到了隱藏的「火雞裝梵谷」！').join('　　');return '<div class="ctNews"><span>'+t+'</span></div>'}
+function ctBar(st){const g=st.goal||3000,p=Math.min(100,(st.total||0)/g*100);return ctNews(st)+'<div class="ctg"><div class="ctgT">全店一起把火雞接回畫裡・目標 '+ctNum(g)+' 隻</div><div class="ctgN"><b>'+ctNum(st.total)+'</b> / '+ctNum(g)+' 隻'+(st.total>=g?'　🎉 達標了！':'')+'</div><div class="ctgBar"><i style="width:'+p+'%"></i></div></div>'}
+const ctEsc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function ctList(st){const L=st[ctTab]||{top:[],me:0};if(!L.top.length)return '<p class="ctNote">還沒有人上榜，你可以當第一個！</p>';
+  return '<ol class="ctList">'+L.top.map((x,i)=>'<li'+(x.me?' class="me"':'')+'><span class="no">'+(i+1)+'</span><span class="av">'+(x.ch?'<img src="'+ctEsc(x.ch)+'" alt="">':'🦃')+'</span><span>'+ctEsc(x.n)+(x.me?'（你）':'')+'</span><em>'+ctNum(x.s)+' 隻</em></li>').join('')+'</ol>'+(L.me>10?'<p class="ctNote">你目前第 '+L.me+' 名</p>':'')}
+function ctRender(j){const box=$('#ctBox');const m=j.mine;
+  box.innerHTML=(j.newBest?'<p class="ctNew">🎉 刷新你的紀錄！</p>':'')+ctBar(j)+
+   (m?'<p class="ctNote">你玩了 '+m.plays+' 局・累積帶回 '+ctNum(m.sum)+' 隻・單局最多 '+m.best+' 隻'+(j.staff?'（工作人員不算進全店總數）':'')+'</p>':'')+
+   (j.bad?'<p class="ctNote">這局成績怪怪的，沒有算進去</p>':'')+
+   '<div class="ctTabs"><button data-t="best"'+(ctTab==='best'?' class="on"':'')+'>單局最多</button><button data-t="sum"'+(ctTab==='sum'?' class="on"':'')+'>累積最多</button></div><div id="ctL">'+ctList(j)+'</div>';
+  box.querySelectorAll('.ctTabs button').forEach(b=>b.onclick=()=>{ctTab=b.dataset.t;box.querySelectorAll('.ctTabs button').forEach(x=>x.classList.toggle('on',x===b));$('#ctL').innerHTML=ctList(j)})}
+/* 11/15 別人畫的角色（伺服器每次隨機給最多 4 位），先載好圖，下一局拿來用 */
+let HELP=[],HSEQ=0;
+function helpLoad(a){if(!Array.isArray(a)||!a.length)return;const nx=[];let left=a.length;
+  a.forEach(h=>{if(!h||!/^https:\/\//.test(h.ch||'')){if(!--left&&nx.length)HELP=nx;return}const im=new Image();im.crossOrigin='anonymous';
+    im.onload=()=>{if(im.width&&im.height)nx.push({n:h.n||'',img:im});if(!--left&&nx.length)HELP=nx};im.onerror=()=>{if(!--left&&nx.length)HELP=nx};im.src=h.ch})}
+async function ctLoad(){try{const j=await (await fetch(NOTIFY_URL+'/catch/state')).json();if(j&&j.ok){ctLast=j;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j)}}catch(_){}}
+async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p class="ctNote">成績記錄中…</p>';
+  let tok='';try{tok=await getTok()}catch(_){}
+  if(!tok){box.innerHTML='<p class="ctNote">從 LINE 打開遊戲，才會記錄成績、上排行榜。</p>'+(ctLast?ctBar(ctLast):'');return}
+  try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:N?ctThumb():''})});
+    const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
+  catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
 function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
@@ -759,14 +852,15 @@ $('#upGo').onclick=async()=>{const e=$('#upErr');
       btn.textContent='先登入 LINE…';liff.login({redirectUri:location.href.split('#')[0]});return}
     const j=await dnSend(p);
     $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
-    beep(660,.1);setTimeout(()=>beep(880,.16),90)}
+    beep(660,.1);setTimeout(()=>beep(880,.16),90);setTimeout(vgReveal,1600)}
   catch(err){e.textContent=err.message}
   btn.disabled=false;btn.textContent='送出，坐上長桌'};
 $('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
-$('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false};
+$('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false;vgReveal()};
 window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
 $('#btnEp').onclick=()=>{$('#epNote').textContent='正式版會直接打開「畫框背後」梵谷 EP01《吃馬鈴薯的人》'};
 $('#btnAgain').onclick=()=>{beep(660,.12);startGame()};
+ctLoad();
 $('#btnRedo').onclick=()=>{G=null;scrEnd.hidden=true;scrPlay.hidden=true;scrDraw.hidden=false;sizePad()};
 
 /* ───────── 畫面 ───────── */
@@ -781,6 +875,26 @@ function turkey(cx,cy,s,rot,flap){x.save();x.translate(cx,cy);x.rotate(rot||0);x
   if(flap!=null){x.strokeStyle='#e67e22';x.lineWidth=2;x.beginPath();const k=Math.sin(flap)*4;
     x.moveTo(-3,12);x.lineTo(-3-k,18);x.moveTo(4,12);x.lineTo(4+k,18);x.stroke()}
   x.restore()}
+/* 金火雞：外圈發光＋金色羽毛 */
+function goldTurkey(cx,cy,s,rot){const tt=performance.now()/1000;x.save();x.translate(cx,cy);
+  x.globalAlpha=.35+.15*Math.sin(tt*8);ell(0,0,30*s,30*s,'#fff3a0');x.globalAlpha=1;
+  x.strokeStyle='#fffbe0';x.lineWidth=2.5;for(let k=0;k<4;k++){const a=tt*2+k*Math.PI/2,r=30*s;x.beginPath();x.moveTo(Math.cos(a)*r-5,Math.sin(a)*r);x.lineTo(Math.cos(a)*r+5,Math.sin(a)*r);x.moveTo(Math.cos(a)*r,Math.sin(a)*r-5);x.lineTo(Math.cos(a)*r,Math.sin(a)*r+5);x.stroke()}
+  x.rotate(rot||0);x.scale(s,s);
+  const fc=['#e0a800','#ffcf33','#fff07a','#ffcf33','#e0a800'];
+  for(let i=0;i<5;i++){const a=Math.PI*(1.05+i*.16);ell(Math.cos(a)*13-3,Math.sin(a)*13+2,6,6,fc[i])}
+  ell(0,3,13,10,'#d9a21b');ell(-2,5,7,5,'#f2c443');
+  ell(11,-6,6,6,'#d9a21b');ell(13,-7,2,2,'#fff');ell(13.6,-7,1,1,'#000');
+  x.fillStyle='#ff9f1a';x.beginPath();x.moveTo(16,-6);x.lineTo(22,-4);x.lineTo(16,-2);x.fill();
+  ell(15,0,2,3.5,'#d62828');x.restore()}
+/* 來幫忙的別人的角色：一邊走一邊上下跳，丟之前頭上舉著金火雞，頭上有名字泡泡 */
+function helper(h){const im=h.img,sc=h.hh/im.height,w=im.width*sc,by=G.gy,bob=-Math.abs(Math.sin(h.t*9))*6;
+  x.globalAlpha=.2;ell(h.x,by+6,w*.4,5,'#3b2416');x.globalAlpha=1;
+  x.save();x.translate(h.x,by+bob);x.rotate(Math.sin(h.t*9)*.06);x.drawImage(im,-w/2,-h.hh,w,h.hh);x.restore();
+  if(!h.tossed)goldTurkey(h.x,by-h.hh-16+bob,1.1,0);
+  if(h.t<3.6){const s=(h.n||'有人')+' 來幫忙了！';x.font='700 15px '+FONT;const tw=x.measureText(s).width+22,bx=clamp(h.x-tw/2,8,W-tw-8),byy=by-h.hh-66;
+    x.globalAlpha=clamp((3.6-h.t)*2,0,1);x.fillStyle='rgba(255,250,235,.95)';x.strokeStyle='#7e48a0';x.lineWidth=2.5;
+    x.beginPath();x.roundRect?x.roundRect(bx,byy,tw,30,15):x.rect(bx,byy,tw,30);x.fill();x.stroke();
+    x.fillStyle='#5a3278';x.textAlign='center';x.textBaseline='middle';x.fillText(s,bx+tw/2,byy+15);x.globalAlpha=1}}
 function crow(c){x.save();x.translate(c.x,c.y);x.scale(c.d,1);
   ell(0,0,16,9,'#1d1b22');ell(13,-5,7,6,'#1d1b22');ell(15,-6,1.8,1.8,'#fff');
   x.fillStyle='#f0a500';x.beginPath();x.moveTo(19,-5);x.lineTo(28,-2);x.lineTo(19,-1);x.fill();
@@ -850,8 +964,9 @@ function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.transl
   for(const l of G.leaves){x.save();x.translate(l.x,l.y);x.rotate(Math.sin(l.p));ell(0,0,5*l.s,2.5*l.s,'#c8521f');x.restore()}
   for(const c of G.cages)cage(c);
   for(const t of G.tables)cottage(t);
+  for(const h of G.helps)helper(h);
   // 掉下來的火雞＋地上的影子
-  for(const it of G.items){const k=clamp(it.y/G.gy,0,1);x.globalAlpha=.12+.2*k;ell(it.x,G.gy+6,6+10*k,3+3*k,'#3b2416');x.globalAlpha=1;if(it.bomb)bomb(it);else turkey(it.x,it.y,1,Math.sin(it.w)*.25,it.w)}
+  for(const it of G.items){const k=clamp(it.y/G.gy,0,1);x.globalAlpha=.12+.2*k;ell(it.x,G.gy+6,6+10*k,3+3*k,'#3b2416');x.globalAlpha=1;if(it.bomb)bomb(it);else if(it.gold)goldTurkey(it.x,it.y,1.25,Math.sin(it.w)*.25);else turkey(it.x,it.y,1,Math.sin(it.w)*.25,it.w)}
   // 角色
   const run=G.dist*.09,bob=(G.jy>0?0:Math.abs(Math.sin(run))*-5)-G.jy,tilt=clamp(G.vx/2600,-.22,.22)+Math.sin(run)*.05,PY=G.plateY-G.jy;
   x.globalAlpha=.22;ell(G.cx,G.gy+6,G.cw*.42,6,'#3b2416');x.globalAlpha=(G.inv>0&&Math.floor(G.inv*12)%2)?.4:1;
