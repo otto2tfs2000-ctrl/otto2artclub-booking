@@ -691,18 +691,19 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   ctx.drawImage(L,0,0);
   boothExtras(ctx,W,H)}
 /* 2026-11-15 大熊：自拍升級 → ①玩家剛剛畫的角色站在左下角一起入鏡　②梵谷亂入（每局結束伺服器抽一次，重拍不重抽；拍到按完成就收進圖鑑冊） */
-let bVG=null,bVGt=0;
+let bVG=null,bVGt=0,bFinal=false;
 function vgLoad(v){bVG=null;if(!v||!v.id)return;const im=new Image();im.onload=()=>{bVG={id:v.id,isNew:v.isNew,img:im}};
   im.onerror=()=>{if(v.id!=='v1')vgLoad({id:'v1',isNew:v.isNew})};im.src='catch-video/vg/'+v.id+'.webp'}
 function boothExtras(ctx,W,H){
   if(sprite&&sprite.width){const sh=H*.3,sw=Math.min(W*.34,sh*sprite.width/sprite.height),sh2=sw*sprite.height/sprite.width,x=W*.03,y=H-sh2-H*.02;
     ctx.save();ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+sw/2,H-H*.022,sw*.42,H*.014,0,0,7);ctx.fill();
     ctx.translate(x+sw/2,y+sh2);ctx.rotate(-.05);ctx.drawImage(sprite,-sw/2,-sh2,sw,sh2);ctx.restore()}
-  if(bVG&&(bSelf||(bStream&&bVid.videoWidth))){const im=bVG.img;if(!bVGt)bVGt=performance.now();
-    const k=Math.min(1,(performance.now()-bVGt)/650),e=1-Math.pow(1-k,3),wob=k<1?0:Math.sin(performance.now()/420)*.02;
+  /* 11/15 大熊：開相機時梵谷不要先站在那裡（像一開始就設定好的），按下「拍下來」那一刻才跳進來亂入 */
+  if(bVG&&bSelf&&!bStream){const im=bVG.img;if(!bVGt){bVGt=performance.now();if(!bFinal){beep(520,.06,'triangle',.05);setTimeout(()=>beep(780,.09,'triangle',.05),90);$('#bHint').textContent='咦？！拍照的瞬間，梵谷跑進來亂入了！'}}
+    const k=bFinal?1:Math.min(1,(performance.now()-bVGt)/650),e=1-Math.pow(1-k,3),wob=k<1?0:Math.sin(performance.now()/420)*.02;
     const vh=H*.5,vw=vh*im.naturalWidth/im.naturalHeight,x=W-vw*.62*e+vw*(1-e)*.2,y=H-vh*.98;
     ctx.save();ctx.translate(x+vw/2,y+vh);ctx.rotate(-.2+wob);ctx.drawImage(im,-vw/2,-vh,vw,vh);ctx.restore();
-    if(k<1&&!(bStream&&bVid.videoWidth))requestAnimationFrame(boothRender)}
+    if(k<1)requestAnimationFrame(boothRender)}
   else bVGt=0}
 function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),W=Math.round(r.width*dp),H=Math.round(r.height*dp);if(!W||!H||!bScene)return;
   if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
@@ -751,10 +752,11 @@ const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventL
 function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 let shotBlob=null;
 function bSnap(){const vw=bVid.videoWidth,vh=bVid.videoHeight;if(!vw)return;const c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);bSelf=paintify(matchSkin(c));bStop()}
-$('#bDone').onclick=()=>{if(bStream)bSnap();if(!bSelf){$('#bErr').textContent='還沒拍照喔，先按上面的「開相機」';return}$('#bErr').textContent='';
+$('#bDone').onclick=()=>{if(bStream){bSnap();if(bSelf&&bVG){boothRender();return}}   /* 還在相機畫面就按完成：先拍下來、讓他看到梵谷跳進來，再按一次完成 */
+  if(!bSelf){$('#bErr').textContent='還沒拍照喔，先按上面的「開相機」';return}$('#bErr').textContent='';
   const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
   const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
-  cx.fillStyle='#fbf6ea';cx.fillRect(0,0,CW,CH);cx.save();cx.translate(M,M);cx.beginPath();cx.rect(0,0,PW,PH);cx.clip();boothDraw(cx,PW,PH);cx.restore();   // 裁在照片框裡，自拍不會露到白框上
+  cx.fillStyle='#fbf6ea';cx.fillRect(0,0,CW,CH);cx.save();cx.translate(M,M);cx.beginPath();cx.rect(0,0,PW,PH);cx.clip();bFinal=true;try{boothDraw(cx,PW,PH)}finally{bFinal=false}cx.restore();   // 裁在照片框裡，自拍不會露到白框上
   cx.fillStyle='#3b2416';cx.font='900 54px '+FONT;cx.textAlign='center';cx.textBaseline='middle';
   const lines=wrapText(cx,'「'+msg+'」',PW-40).slice(0,2);lines.forEach((l,i)=>cx.fillText(l,CW/2,PH+M+80+i*70-(lines.length-1)*35));
   cx.fillStyle='#8a6a4a';cx.font='700 28px '+FONT;cx.fillText('2026 感恩節・梵谷村的長桌晚餐'+(bChar.img?'｜我是「'+bChar.n+'」':'')+(outN?'｜火雞客人 '+outN+' 位':''),CW/2,CH-90);
