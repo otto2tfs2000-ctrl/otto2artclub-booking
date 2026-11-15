@@ -1,6 +1,9 @@
 <meta charset="utf-8">
 <title>世界藝術日・畢卡索扭扭樂</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<script>/* 2026-11-15 大熊：鎖住整頁縮放。iPhone（含 LINE 內建瀏覽器）不理 user-scalable=no，要另外擋手勢 */
+(function(){const no=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,no,{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.scale!==undefined&&e.scale!==1)e.preventDefault()},{passive:false});})();   /* 連點兩下放大交給 CSS touch-action 擋，不擋 touchend（會吃掉快速連點的 click） */</script>
 <script src="guest.js?v=20261024q"></script>
 <script>(function(){var ok=false;try{var c=document.createElement("canvas");ok=!!(c.getContext("webgl")||c.getContext("experimental-webgl"))}catch(e){}if(!ok)location.replace("index.html?go=gacha2d");window.addEventListener("error",function(){if(!window.__parkReady&&!window.__fb){window.__fb=1;location.replace("index.html?go=gacha2d")}});
   setTimeout(function(){if(window.__parkReady)return;var l=document.getElementById("loading");if(!l)return;l.hidden=false;var b="font:inherit;font-size:15px;margin:10px 6px 0;padding:8px 14px;border-radius:12px;border:2px solid #333;background:#fff;color:#333";
@@ -15,6 +18,8 @@
   --round:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
 }
 html,body{height:100%}
+html,body{touch-action:pan-x pan-y}  /* 2026-11-15 大熊：滑動時整頁不要被縮小放大（雙指捏、連點兩下都鎖住），3D 畫面自己的放大不受影響 */
+
 body{-webkit-user-select:none; -webkit-touch-callout:none; margin:0; background:linear-gradient(180deg,#101d46 0%,#2a4688 55%,#6f8fcf 100%); color:var(--ink); font-family:var(--round); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none}
 #game{position:fixed; inset:0}
 #game canvas{display:block; width:100%; height:100%}
@@ -953,7 +958,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261115t';
+const PARK_VER='20261115u';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -3287,7 +3292,7 @@ const _zmY=new THREE.Vector3(0,1,0);
   const ang=()=>{const[a,b]=[...P.values()];return Math.atan2(b[1]-a[1],b[0]-a[0])};
   el.style.touchAction='none';
   ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
-  el.addEventListener('pointerdown',e=>{P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=ZM.z;g0=ang();zOn=!zmTurn();moved=true;ZM.pinchAt=Date.now()}});
+  el.addEventListener('pointerdown',e=>{if(e.isPrimary)P.clear(); /* 2026-11-15 第一根手指按下就清掉沒收到放開的舊手指，不然單指滑動會被當成兩指縮放 */P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=ZM.z;g0=ang();zOn=!zmTurn();moved=true;ZM.pinchAt=Date.now()}});
   el.addEventListener('pointermove',e=>{const q=P.get(e.pointerId);if(!q||!zoomable())return;
     if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d0>0){ZM.pinchAt=Date.now();
       if(zmTurn()){const g1=ang();let da=g1-g0;if(da>Math.PI)da-=2*Math.PI;if(da<-Math.PI)da+=2*Math.PI;ZM.yaw+=da;g0=g1;
@@ -3775,7 +3780,7 @@ const mzOn=()=>MI.state==='on'&&parkCam==='mascot'&&$('pop').hidden;
   const pan=(dx,dy)=>{if(MZ.follow){const f=new THREE.Vector3();MZ.follow.getWorldPosition(f);MZ.px=f.x-MI.c.x;MZ.pz=f.z-MI.c.z-.9;MZ.follow=null}
     const k=.013/MZ.z,cy=Math.cos(MZ.yaw),sy=Math.sin(MZ.yaw);MZ.px-=(dx*cy+dy*sy)*k;MZ.pz-=(-dx*sy+dy*cy)*k;
     const L=Math.hypot(MZ.px,MZ.pz),R=4.6;if(L>R){MZ.px*=R/L;MZ.pz*=R/L}};
-  el.addEventListener('pointerdown',e=>{if(!mzOn())return;P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=MZ.z;m0=mid();g0=ang();zOn=false;ZM.pinchAt=Date.now()}});
+  el.addEventListener('pointerdown',e=>{if(!mzOn())return;if(e.isPrimary)P.clear();P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size>=2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=MZ.z;m0=mid();g0=ang();zOn=false;ZM.pinchAt=Date.now()}});
   el.addEventListener('pointermove',e=>{const q=P.get(e.pointerId);if(!q||!mzOn())return;
     if(P.size>=2){P.set(e.pointerId,[e.clientX,e.clientY]);const[a,b]=[...P.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),m=mid();ZM.pinchAt=Date.now();
       /* 2026-10-14 兩指「扭轉」＝轉島（像地圖）；手指距離變化不到 12% 不算放大縮小，避免轉島時不小心被放大到整座島爆出畫面 */

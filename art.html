@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}/* 2026-10-05 介面跟遊樂島一致（照 park.html 的 .ohead／.ohb／.places／主按鈕） */
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}/* 2026-10-05 介面跟遊樂島一致（照 park.html 的 .ohead／.ohb／.places／主按鈕） */
 :root{--navy:#1d2a44; --gold2:#f2c14e; --terra:#c4553b; --terraD:#8e3826; --pline:#e4d9c6; --round:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
 .hud{font-family:var(--round); padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0}
 .ohead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none!important}
@@ -59,7 +59,10 @@
 .gpc i{width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.15); display:block}
 .gplove{margin:0 0 6px!important; font-size:14px; color:#e0607a!important}
 .gplove small{color:var(--ink2); font-size:12px}
-</style></head><body>
+</style><script>/* 2026-11-15 大熊：鎖住整頁縮放。iPhone（含 LINE 內建瀏覽器）不理 user-scalable=no，要另外擋手勢 */
+(function(){const no=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,no,{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.scale!==undefined&&e.scale!==1)e.preventDefault()},{passive:false});})();   /* 連點兩下放大交給 CSS touch-action 擋，不擋 touchend（會吃掉快速連點的 click） */</script>
+</head><body>
 <script src="guest.js?v=20261024q"></script>
 <title>OTTO2 作品小屋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,6 +74,8 @@
   --serif:"Noto Serif TC","Songti TC",serif; --sans:"Noto Sans TC","PingFang TC",system-ui,sans-serif; --it:"Cormorant Garamond",serif;
 }
 html,body{height:100%}
+html,body{touch-action:pan-x pan-y}  /* 2026-11-15 大熊：滑動時整頁不要被縮小放大（雙指捏、連點兩下都鎖住），3D 畫面自己的放大不受影響 */
+
 body{margin:0; color:var(--ink); font-family:var(--sans); overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none;
   background:linear-gradient(180deg,#5b9fcb 0%,#80b9dc 42%,#b3d5e7 78%,#d3e6ec 100%)}
 #stage{position:fixed; inset:0}
@@ -313,7 +318,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261105c"></script>
 <script>
-const ART_VER='20261114a';
+const ART_VER='20261115a';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2030,7 +2035,7 @@ function pick(e){const r=cvEl().getBoundingClientRect(),v=new THREE.Vector2((e.c
 function onDown(e){if(touring)return;if(e.isPrimary)pointers.clear(); /* 2026-10-05 第一根手指按下就清掉沒收到放開的舊手指，不然之後每一下都被當成兩指縮放、點不到小屋 */pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cvEl().setPointerCapture(e.pointerId)}catch(err){}idleT=0;
   if(pointers.size===1)down={x:e.clientX,y:e.clientY,yaw,pitch,fy:focus&&focus.yaw!==undefined?focus.yaw:yaw,fp:focus?(focus.pitch??.35):pitch,fh:focus?focus.h:0,moved:false};else if(pointers.size===2){const [a,b]=[...pointers.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),zoom,fd:focus?focus.d:0};if(down)down.moved=true}}
 function onMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});idleT=0;
-  if(pointers.size===2&&pinch0){const [a,b]=[...pointers.values()];const r=pinch0.d/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));if(focus&&pinch0.fd){focus.d=Math.max(pinch0.fd*.6,Math.min(pinch0.fd*1.6,pinch0.fd*r));return}zoom=Math.max(.5,Math.min(1.3,pinch0.zoom*r));return}
+  if(pointers.size===2&&pinch0){const [a,b]=[...pointers.values()];const r=pinch0.d/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));if(focus&&pinch0.fd){if(!focus.d0)focus.d0=pinch0.fd;focus.d=Math.max(focus.d0*.6,Math.min(focus.d0,pinch0.fd*r));return}zoom=Math.max(.5,Math.min(1,pinch0.zoom*r));return}   /* 2026-11-15 大熊：不要比原本的畫面更小（只能放大、縮回原本為止） */
   if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>10){down.moved=true;dragging=true;
     /* 2026-10-05 大熊：看小屋時一滑就跳回整座島、又點又放大，一直縮放很不舒服 → 看小屋時滑動改成繞著小屋轉，點空白處或按關閉才回整座島 */
     if(focus&&focus.hMax){focus.yaw=down.fy-dx*.006;focus.h=Math.max(focus.hMin,Math.min(focus.hMax,down.fh+dy*.012*(focus.d/8)));return}   // 看小屋：左右繞著轉、上下沿著小屋移
@@ -2822,7 +2827,7 @@ async function start(data){
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
   $('loading').hidden=true;$('hud').hidden=false;requestAnimationFrame(loop);window.__islandReady=true;if(/[?&]hall=1/.test(location.search))walkIntoHall(true);   /* art.html?hall=1：先停在萬神殿門口，再走進大廳（分享連結、其他島的第五格） */try{tripSpawn()}catch(e){console.warn('trip',e)}
   const c=cvEl();c.addEventListener('pointerdown',onDown);c.addEventListener('pointermove',onMove);c.addEventListener('pointerup',onUp);c.addEventListener('pointercancel',onUp);
-  c.addEventListener('wheel',e=>{zoom=Math.max(.5,Math.min(1.3,zoom+e.deltaY*.0008));idleT=0;e.preventDefault()},{passive:false});
+  c.addEventListener('wheel',e=>{zoom=Math.max(.5,Math.min(1,zoom+e.deltaY*.0008));idleT=0;e.preventDefault()},{passive:false});
   if(location.hash==='#album')setTimeout(openAlbum,800);
   window.claude?.hot?.snapshot?.(()=>G);
 }
