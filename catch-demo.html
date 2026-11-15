@@ -863,7 +863,7 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
 
 /* ══ 11/15 梵谷公仔收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
-const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 4 集',v6:'全店一起帶回 3,000 隻火雞，玩過的人都拿得到'};
+const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 3 集',v6:'全店一起帶回 3,000 隻火雞，玩過的人都拿得到'};
 const BOOK_LINK='https://liff.line.me/2010906803-FMDYktUN?go=book';
 async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=document.createElement('div');d.id='vgBk';document.body.appendChild(d)}
   d.hidden=false;d.innerHTML='<div class="in"><div class="top"><h2>梵谷公仔收集冊</h2><button class="x" type="button">關閉</button></div><p class="sub">讀取中…</p></div>';d.querySelector('.x').onclick=()=>d.hidden=true;
