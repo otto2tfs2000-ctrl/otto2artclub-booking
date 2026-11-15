@@ -958,7 +958,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261115v';
+const PARK_VER='20261115w';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1287,7 +1287,25 @@ function buildForest(){
   const greens=['#2f8f58','#35a062','#2a7f4f','#3d9a5c'],bc=['#ff5a4a','#ffd84a','#6ab8ff','#ffffff','#ff8fd0','#5ee08a'],c=new THREE.Color();
   for(let i=0;i<M;i++){['c1','c2','c3'].forEach(k=>FOREST.parts[k].setColorAt(i,c.set(greens[i%4])));for(let j=0;j<6;j++)FOREST.parts.bulb.setColorAt(i*6+j,c.set(bc[(i+j)%6]))}
   Object.values(FOREST.parts).forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=true});
+  buildDeco();
 }
+/* 2026-11-15 大熊：拿掉示範假樹後島很空 → 放一批固定的「裝飾松樹」當背景（不屬於任何人、點了沒反應、不能長大）。
+   位置借用種樹位置裡固定的一批；有人在那格種樹、或聖誕村房子蓋在旁邊，那棵裝飾樹就自動消失，不會擋到真的樹 */
+const DECO={n:80,spots:[],parts:null};
+function buildDeco(){const r=rng(23),n=FOREST.spots.length,used=new Set();
+  while(DECO.spots.length<Math.min(DECO.n,n)){const s=Math.floor(r()*n);if(used.has(s))continue;used.add(s);DECO.spots.push({s,k:.68+r()*.32,rot:r()*6.28})}
+  const cone=(rr,h,y)=>{const g=new THREE.ConeGeometry(rr,h,7);g.translate(0,y,0);return g};
+  const trunk=new THREE.CylinderGeometry(.05,.06,.16,6);trunk.translate(0,.08,0);
+  const M=DECO.spots.length,mk=(geo,mat)=>{const m=new THREE.InstancedMesh(geo,mat,M);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m};
+  DECO.parts={trunk:mk(trunk,toon('#6b4630')),c1:mk(cone(.3,.42,.34),toon('#ffffff')),c2:mk(cone(.23,.36,.57),toon('#ffffff')),c3:mk(cone(.15,.3,.78),toon('#ffffff')),snow:mk(cone(.085,.13,.9),toon('#f3f7fc'))};
+  const greens=['#1f6b45','#256f4a','#2b7a50','#1d5e3f'],c=new THREE.Color();
+  DECO.spots.forEach((d,i)=>['c1','c2','c3'].forEach(k=>DECO.parts[k].setColorAt(i,c.set(greens[i%4]))));
+  ['c1','c2','c3'].forEach(k=>DECO.parts[k].instanceColor.needsUpdate=true)}
+function renderDeco(){if(!DECO.parts)return;const P=DECO.parts,taken=new Set((G.forest||[]).map(t=>t.s));let vs=[];try{vs=villageList().map(h=>FOREST.spots[h.s]).filter(Boolean)}catch(e){}
+  DECO.spots.forEach((d,i)=>{const sp=FOREST.spots[d.s];const hide=!sp||taken.has(d.s)||vs.some(v=>Math.hypot(v.x-sp.x,v.z-sp.z)<.5)||(G.forest||[]).some(t=>{const q=FOREST.spots[t.s];return q&&Math.hypot(q.x-sp.x,q.z-sp.z)<.3});
+    if(hide){Object.values(P).forEach(m=>m.setMatrixAt(i,ZERO));return}
+    _qq.setFromAxisAngle(new THREE.Vector3(0,1,0),d.rot);_s.set(d.k,d.k,d.k);_m.compose(sp,_qq,_s);Object.values(P).forEach(m=>m.setMatrixAt(i,_m))});
+  Object.values(P).forEach(m=>m.instanceMatrix.needsUpdate=true)}
 const _m=new THREE.Matrix4(),_m2=new THREE.Matrix4(),_p=new THREE.Vector3(),_qq=new THREE.Quaternion(),_s=new THREE.Vector3(),ZERO=new THREE.Matrix4().makeScale(0,0,0);
 const BULB_AT=[[.26,.22],[-.22,.24],[.05,.3],[.19,.47],[-.17,.5],[.02,.68]];
 function setForestTree(i,t,k=1){ // k = grow animation factor
@@ -1301,7 +1319,7 @@ function renderForest(){
   const P=FOREST.parts;for(let i=0;i<FOREST.max;i++){const t=G.forest[i];if(t)setForestTree(i,t);else{['trunk','c1','c2','c3','cap','star'].forEach(k=>P[k].setMatrixAt(i,ZERO));for(let j=0;j<6;j++)P.bulb.setMatrixAt(i*6+j,ZERO)}}
   Object.values(P).forEach(m=>m.instanceMatrix.needsUpdate=true);
   if(FOREST.mine){scene.remove(FOREST.mine);FOREST.mine=null}
-  buildVillage();
+  buildVillage();renderDeco();
   const mi=G.forest.findIndex(t=>t.me);if(mi>=0){const t=G.forest[mi],sp=FOREST.spots[t.s];FOREST.mine=nameplate(`你的${LVN[t.lv]}`,true);FOREST.mine.scale.set(1,.26,1);FOREST.mine.position.set(sp.x,sp.y+LVS[t.lv]*1.05+.35,sp.z);scene.add(FOREST.mine)}
 }
 /* ── 2026-10-30 大熊：格子中間變成聖誕村，每個人一間房子（踩到空地就送，不用認領、不升級）──
