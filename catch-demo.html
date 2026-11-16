@@ -272,7 +272,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <figure class="photo" id="photo"><canvas id="endCv" aria-label="你的版本的吃馬鈴薯的人"></canvas><figcaption id="photoCap"></figcaption></figure>
     <div id="endStory"></div>
     <div id="endBig"></div>
-    <div class="seatInv"><b>🍽 還沒結束！參加感恩長桌，送你 1 點紅利</b><span>挑一位名畫裡的人物、自拍把臉放進去，你就會坐上作品小屋的感恩節長桌。</span>
+    <div class="seatInv"><b>🍽 還沒結束！參加感恩長桌，送你 1 點紅利</b><span>挑一位名畫裡的國王、皇后或貴族，自拍把臉放進去，你就會坐上作品小屋的感恩節長桌。</span>
     <button id="btnBooth">🍽 參加感恩長桌領紅利</button></div>
     <div class="estats">
       <div><b id="eTotal">0</b>飛出來（隻）</div>
@@ -291,12 +291,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
   </section>
   <section class="scr" id="scrBooth" hidden>
     <div id="bPickBox">
-      <div class="bStory">消息一下就傳遍了整個村子：<b>「馬鈴薯一家今晚請火雞吃飯！」</b><br>村民們都拿著麵包、杯子、向日葵跑來了，大樹下擺了一張好長好長的桌子。</div>
-      <div class="bTop"><b>挑一位村民，換你入座</b><span>選好角色，再把你的臉放進去</span></div>
+      <div class="bStory">消息一下就傳遍了全世界的美術館：<b>「馬鈴薯一家今晚請火雞吃飯！」</b><br>國王、皇后、貴族和名畫裡的人物都從畫框裡跑出來了，大樹下擺了一張好長好長的桌子。</div>
+      <div class="bTop"><b>挑一位名畫人物，換你入座</b><span>選好角色，再把你的臉放進去</span></div>
       <div id="bPick"></div>
     </div>
     <div id="bShoot" hidden>
-    <div class="bTop"><b id="bTitle">換你入座</b><span>自拍一張，把你的臉放進空的位置　<button type="button" id="bRepick">換一位村民</button></span></div>
+    <div class="bTop"><b id="bTitle">換你入座</b><span>自拍一張，把你的臉放進空的位置　<button type="button" id="bRepick">換一位人物</button></span></div>
     <div id="bWrap"><canvas id="bCv" aria-label="合照預覽"></canvas></div>
     <div class="bZoom" id="bZoomRow" hidden><span>小</span><input type="range" id="bZoom" min="0.3" max="3" step="0.01" value="1" aria-label="照片大小"><span>大</span></div>
     <p class="bHint" id="bHint">先按下面的按鈕自拍</p>
@@ -314,12 +314,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <p class="vgGot" id="vgGot" role="status" hidden></p>
     <p class="bHint">長按照片就可以存到手機</p>
     <div class="upInvite" id="upInv"><b>🍽 最後一步：坐上感恩長桌，領 1 點紅利</b>
-      <span>你剛剛變成的村民，會帶著你的臉，坐進作品小屋大樹下的感恩節長桌，跟其他玩家一起吃晚餐。大家打開作品小屋都看得到你！</span></div>
+      <span>你剛剛變成的名畫人物，會帶著你的臉，坐進作品小屋大樹下的感恩節長桌，跟其他玩家一起吃晚餐。大家打開作品小屋都看得到你！</span></div>
     <button class="bWide" id="shotUp">🍽 我要坐上長桌</button>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
     <div id="upBox" hidden>
-      <div class="upTitle">坐上長桌的會是這位（村民＋你的臉）</div>
-      <img id="upCut" alt="要坐上長桌的村民">
+      <div class="upTitle">坐上長桌的會是這位（名畫人物＋你的臉）</div>
+      <img id="upCut" alt="要坐上長桌的人物">
       <div id="upMsg" class="upQuote"></div>
       <div class="btns"><button class="redo" id="upNo">先不要</button><button class="again" id="upGo">送出，坐上長桌</button></div>
       <p class="bErr" id="upErr" role="status"></p>
@@ -715,17 +715,32 @@ function strokeTex(){if(_tex)return _tex;const c=document.createElement('canvas'
   for(let i=0;i<700;i++){const x=Math.random()*160,y=Math.random()*160,a=Math.random()*Math.PI,l=4+Math.random()*9,g=90+Math.random()*80|0;
     t.strokeStyle='rgb('+g+','+g+','+g+')';t.lineWidth=1.5+Math.random()*2;t.beginPath();t.moveTo(x,y);t.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);t.stroke()}
   return _tex=c}
-/* 2026-11-13 大熊：讓大家自己挑角色（15 位村民＋名畫裡的女生）。f=臉中心 x,y、臉寬高（都是佔角色圖的比例） */
+/* 2026-11-16 大熊：15 位梵谷村民不好看 → 換成名畫裡的國王、皇后、貴族（半身肖像，公有領域）。
+   檔案 catch-video/portrait/：fNN＝畫（臉挖透明）、mNN＝臉型洞（Mac 臉部特徵點描的輪廓＋額頭弧）、cNN＝人物輪廓（坐長桌時剪下來用）、tNN＝挑人小圖。
+   f=臉洞中心 x,y、寬高（佔畫的比例）；skin＝畫裡臉的平均色（自拍配膚色用）。整理的原圖在 04_活動與企劃/感恩節影片素材/名畫人物候選/ */
 const FOLK=[{n:'名畫裡的女兒',src:null},
-  {n:'端咖啡的農夫',f:[.536,.278,.385,.257]},{n:'拿叉子的婦人',f:[.511,.285,.409,.269]},{n:'抽菸斗的爺爺',f:[.503,.287,.388,.253]},{n:'端馬鈴薯的姑娘',f:[.497,.285,.416,.274]},{n:'大鬍子大叔',f:[.52,.30,.36,.25]},
-  {n:'抱麵包的師傅',f:[.489,.225,.275,.19]},{n:'抱火雞的大嬸',f:[.577,.203,.337,.216]},{n:'吃馬鈴薯的大叔',f:[.47,.25,.34,.24]},{n:'織毛線的奶奶',f:[.504,.281,.331,.223]},{n:'等開飯的紳士',f:[.461,.21,.32,.212]},
-  {n:'拿畫筆的畫家',f:[.561,.294,.395,.26]},{n:'拿調色盤的畫家',f:[.494,.309,.401,.264]},{n:'抱向日葵的女孩',f:[.51,.256,.387,.255]},{n:'提燈的少年',f:[.525,.279,.391,.26]},{n:'舉杯的工人',f:[.553,.261,.369,.244]}];
-/* 每位角色的膚色（從舊版完整臉的圖量的，新版的臉已經挖空量不到） */
-const FOLK_SKIN=[[105,76,29],[126,90,37],[112,79,31],[126,92,38],[109,77,30],[160,112,44],[174,125,42],[151,106,36],[152,107,31],[147,104,40],[154,113,38],[156,116,37],[173,130,52],[171,126,37],[161,115,41]];
-FOLK.forEach((c,i)=>{if(i){c.skin=FOLK_SKIN[i-1];const k=String(i).padStart(2,'0');c.img=new Image();c.img.src='catch-video/folk/f'+k+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+k+'.png'}});   // m＝照臉型做的洞（11/14 大熊：不要圓圈，要貼合臉的輪廓；有鬍子的留鬍子）
+  {n:'太陽王路易十四',k:1,f:[0.534,0.32,0.279,0.301],skin:[163,108,72]},
+  {n:'亨利八世',k:2,f:[0.499,0.32,0.294,0.306],skin:[186,156,138]},
+  {n:'微笑的騎士',k:3,f:[0.53,0.328,0.297,0.335],skin:[145,122,102]},
+  {n:'伊莉莎白一世',k:4,f:[0.454,0.299,0.27,0.293],skin:[231,199,187]},
+  {n:'西班牙國王卡洛斯二世',k:5,f:[0.472,0.319,0.261,0.31],skin:[163,141,116]},
+  {n:'醜陋的公爵夫人',k:6,f:[0.574,0.349,0.309,0.307],skin:[144,96,75]},
+  {n:'瑪麗・安東尼',k:7,f:[0.459,0.321,0.284,0.302],skin:[214,183,180]},
+  {n:'瑪格麗特公主',k:8,f:[0.536,0.32,0.27,0.292],skin:[183,149,104]},
+  {n:'粉紅女孩',k:9,f:[0.505,0.323,0.285,0.281],skin:[150,102,72]},
+  {n:'戴草帽的女子',k:10,f:[0.472,0.321,0.285,0.273],skin:[163,139,131]},
+  {n:'卡斯蒂廖內伯爵',k:11,f:[0.536,0.33,0.309,0.32],skin:[140,110,76]},
+  {n:'抱銀貂的女子',k:12,f:[0.487,0.31,0.294,0.321],skin:[139,110,87]},
+  {n:'戴珍珠耳環的少女',k:13,f:[0.496,0.414,0.345,0.375],skin:[153,132,124]},
+  {n:'蒙娜麗莎',k:14,f:[0.509,0.318,0.275,0.27],skin:[170,128,62]},
+  {n:'巧克力女孩',k:15,f:[0.425,0.293,0.305,0.385],skin:[187,167,153]},
+  {n:'杜勒',k:16,f:[0.499,0.307,0.299,0.36],skin:[108,75,45]}];
+FOLK.forEach(c=>{if(c.k)c.rect=true});
+function folkLoad(c){if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait/';
+  c.img=new Image();c.img.src=P+'f'+k+'.webp';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
-  const im=bChar.img,ch=H*.97,cw=ch*(im.naturalWidth||370)/(im.naturalHeight||560),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
+  const im=bChar.img,ch=bChar.rect?H:H*.97,cw=ch*(im.naturalWidth||(bChar.rect?640:370))/(im.naturalHeight||(bChar.rect?800:560)),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
   return{hx:x0+f[0]*cw,hy:y0+f[1]*ch,rx:f[2]*.44*cw,ry:f[3]*.56*ch,x0,y0,cw,ch}}
 function holeCenter(c){if(!c.mask)return null;if(c.hc)return c.hc;if(!c.mask.complete||!c.mask.naturalWidth)return null;try{
   const w=60,h=90,t=document.createElement('canvas');t.width=w;t.height=h;const tx=t.getContext('2d');tx.drawImage(c.mask,0,0,w,h);const d=tx.getImageData(0,0,w,h).data;
@@ -754,7 +769,7 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.imageSmoothingQuality='high';
   lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
-  if(bChar.img){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
+  if(bChar.img){if(!bChar.rect){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H)}lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
   if(bChar.mask&&bChar.mask.complete&&bChar.mask.naturalWidth){lx.globalCompositeOperation='destination-out';lx.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch)}else{lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
   const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();}
   ctx.drawImage(L,0,0);
@@ -793,12 +808,12 @@ $('#bLiveBtn').onclick=async()=>{
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();bShowPick()}
 function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=true;$('#bDone').hidden=true;$('#scrBooth').scrollTop=0}
 (function(){const box=$('#bPick');FOLK.forEach((c,i)=>{const b=document.createElement('button');b.type='button';
-  const im=document.createElement('img');im.alt=c.n;im.src=c.img?c.img.src:'';if(!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
+  const im=document.createElement('img');im.alt=c.n;im.loading='lazy';im.src=c.k?'catch-video/portrait/t'+String(c.k).padStart(2,'0')+'.jpg':(c.img?c.img.src:'');if(!c.k&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
     const tc=t.getContext('2d');const draw=()=>{tc.drawImage(peImg,.27*peImg.naturalWidth,.30*peImg.naturalHeight,.14*peImg.naturalWidth,.26*peImg.naturalHeight,0,0,150,200);im.src=t.toDataURL('image/jpeg',.8)};peImg.complete?draw():peImg.addEventListener('load',draw,{once:true})}
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
-  b.onclick=()=>{bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
+  b.onclick=()=>{folkLoad(c);bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
     $('#bTitle').textContent='你是「'+c.n+'」';$('#bPickBox').hidden=true;$('#bShoot').hidden=false;$('#bDone').hidden=false;$('#scrBooth').scrollTop=0;
-    const go=()=>requestAnimationFrame(boothRender);go();[c.img,c.mask].forEach(m=>{if(m&&!m.complete)m.addEventListener('load',go,{once:true})})};   // 圖或臉型遮罩晚到也會重畫
+    const go=()=>requestAnimationFrame(boothRender);go();[c.img,c.mask,c.cut].forEach(m=>{if(m&&!m.complete)m.addEventListener('load',go,{once:true})})};   // 圖或臉型遮罩晚到也會重畫
   box.appendChild(b)})})();
 $('#bRepick').onclick=bShowPick;
 $('#btnBooth').onclick=openBooth;
@@ -954,11 +969,12 @@ function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
   const dw=GM.rx*2*2.6*bZ,dh=dw*bSelf.height/bSelf.width;c2.drawImage(bSelf,GM.hx+bOX*W-dw/2,GM.hy+bOY*H-dh*.45,dw,dh);
   c2.save();c2.globalCompositeOperation='overlay';c2.globalAlpha=.25;c2.fillStyle=c2.createPattern(strokeTex(),'repeat');c2.fillRect(0,0,W,H);c2.restore();
   c2.globalCompositeOperation='destination-in';c2.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch);   // 自拍只留臉洞那塊
-  c2.globalCompositeOperation='source-over';c2.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch);        // 村民蓋在上面
+  c2.globalCompositeOperation='source-over';c2.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch);        // 人物蓋在上面
+  if(bChar.cut&&bChar.cut.naturalWidth){c2.globalCompositeOperation='destination-in';c2.drawImage(bChar.cut,GM.x0,GM.y0,GM.cw,GM.ch);c2.globalCompositeOperation='source-over'}   // 肖像畫：只留人物，背景去掉
   const oh=420,ow=Math.round(GM.cw*oh/GM.ch),o=document.createElement('canvas');o.width=ow;o.height=oh;o.getContext('2d').drawImage(S,GM.x0,GM.y0,GM.cw,GM.ch,0,0,ow,oh);return o}
 let upData='';
 $('#shotUp').onclick=()=>{$('#upErr').textContent='';$('#upDone').hidden=true;
-  if(!bChar.img){$('#upErr').textContent='';$('#upBox').hidden=false;$('#upCut').hidden=true;$('#upMsg').textContent='「名畫裡的女兒」不能坐上長桌，請回上一步換一位村民再拍一次';$('#upGo').hidden=true;return}
+  if(!bChar.img){$('#upErr').textContent='';$('#upBox').hidden=false;$('#upCut').hidden=true;$('#upMsg').textContent='「名畫裡的女兒」不能坐上長桌，請回上一步換一位人物再拍一次';$('#upGo').hidden=true;return}
   const c=makeCutout();if(!c){$('#upBox').hidden=false;$('#upMsg').textContent='還沒拍照喔';$('#upGo').hidden=true;return}
   upData=c.toDataURL('image/png');$('#upCut').src=upData;$('#upCut').hidden=false;$('#upGo').hidden=false;
   $('#upMsg').textContent='「'+(($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！')+'」';$('#upBox').hidden=false;
