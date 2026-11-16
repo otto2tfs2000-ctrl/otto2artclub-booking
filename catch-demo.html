@@ -550,7 +550,8 @@ function update(dt){
     if(it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'run',x:it.x,y:G.gy-12,r:0})}}
 
   // 籠子：靠過去就打開，火雞往上噴
-  if(G.dist>G.nextCage&&!G.boss){G.nextCage=G.dist+rnd(2300,3100);G.cages.push({x:W+60,open:false})}
+  if(G.dist>G.nextCage){G.nextCage=G.dist+(G.boss?rnd(420,620):rnd(2300,3100));   /* 11/16 大熊：大魔王時下面要一直有雞籠，才有火雞可以頂 */
+   G.cages.push({x:W+60,open:false})}
   for(let i=G.cages.length-1;i>=0;i--){const c=G.cages[i];c.x-=G.speed*dt;
     if(!c.open&&Math.abs(c.x-G.cx)<46){c.open=true;beep(300,.1,'square',.04);txt('籠子開了！',c.x,G.gy-90,'#fff3c4');
       G.total+=3;for(let j=0;j<3;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-1)*50,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
@@ -595,13 +596,13 @@ function update(dt){
 
 function bossStep(dt){
   if(!G.boss&&G.t>=BOSS_AT){const bw=Math.min(W*.62,300);
-    G.boss={x:W/2,y0:H*.04,y:-bw,w:bw,dir:1,cd:1.6,throwT:0,t:0};G.shake=.5;
+    G.boss={x:W/2,y0:H*.04,y:-bw,w:bw,dir:1,cd:1.6,throwT:0,t:0};G.nextCage=G.dist+150;G.shake=.5;
     txt('老公雞大魔王來了！',W/2,H*.36,'#ffd0c4',true);txt('頭上的火雞撐到最後算兩倍！',W/2,H*.36+40,'#fff');
     beep(110,.5,'sawtooth',.09);setTimeout(()=>beep(90,.6,'sawtooth',.09),260)}
   const b=G.boss;if(!b)return false;b.t+=dt;b.y+=(b.y0-b.y)*Math.min(1,dt*3);b.throwT=Math.max(0,b.throwT-dt);
   if(b.t>1.2){b.x+=b.dir*(70+40*Math.sin(b.t*1.3))*dt;if(b.x>W-b.w*.32)b.dir=-1;if(b.x<b.w*.32)b.dir=1;
-    b.cd-=dt;if(b.cd<=0){const left=GAME_T-G.t;b.cd=left<5?rnd(.32,.5):rnd(.45,.75);b.throwT=.3;
-      const k=Math.random()<(left<6?.45:.25)?3:1;
+    b.cd-=dt;if(b.cd<=0){const left=GAME_T-G.t;b.cd=left<5?rnd(.75,1.05):rnd(1,1.4);b.throwT=.3;   /* 11/16 大熊：炸彈太多頂不住 → 一次一顆、慢一點 */
+      const k=1;
       for(let j=0;j<k;j++){const bx=b.x-b.w*.22,by=b.y+b.w*.28,tx=j===0&&Math.random()<.6?G.cx+rnd(-60,60):rnd(30,W-30),
         vy=rnd(40,140),g=620,d=G.gy-by,tt=(-vy+Math.sqrt(vy*vy+2*g*d))/g;
         G.items.push({x:bx,y:by,vx:(tx-bx)/tt,vy,g,w:rnd(0,6),bomb:true})}
