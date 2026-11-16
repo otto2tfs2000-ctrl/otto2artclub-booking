@@ -437,7 +437,7 @@ function stSkipNow(){try{stVid.muted=true;const pr=stVid.play();if(pr)pr.then(()
 $('#stSkip').onclick=()=>{const wasPlay=!stVid.paused&&!stVid.ended;try{stVid.pause()}catch(_){}
   const d=document.createElement('div');d.id='skipAsk';d.innerHTML='<div class="sk"><small>你真的要跳過嗎？</small><b>超荒誕劇情，不聽一下嗎？</b><i>（大熊老師在流淚 😢）</i><div class="skB"><button type="button" class="y">好啦，我聽</button><button type="button" class="n">還是跳過</button></div></div>';
   document.body.appendChild(d);
-  d.querySelector('.y').onclick=()=>{d.remove();if(wasPlay)stVid.play().catch(()=>{})};
+  d.querySelector('.y').onclick=()=>{d.remove();if(!$('#stGo').hidden)$('#stGo').click();else stVid.play().catch(()=>{})};   /* 還沒開始看就直接幫他按「點我開聲音」開始播 */
   d.querySelector('.n').onclick=()=>{d.remove();stSkipNow()}};stShow();
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, rnd=(a,b)=>a+Math.random()*(b-a);
 
