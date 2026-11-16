@@ -32,17 +32,7 @@ h1{margin:0;font-size:20px;color:var(--gold);letter-spacing:.05em}
 /* 11/16 大熊：進長桌前先播「有人開門」的動畫；影片還沒放上去（載不到）就直接跳過 */
 #door{position:fixed;inset:0;z-index:9;background:#000;display:flex;align-items:center;justify-content:center}
 #door{transition:opacity .7s}#door.out{opacity:0;pointer-events:none}#door[hidden]{display:none}
-/* 影片還沒好之前的開門動畫：兩扇木門往內打開，裡面暖光透出來 */
-#dcss{position:absolute;inset:0;perspective:900px;background:radial-gradient(ellipse at 50% 55%,#fff1c2 0%,#ffcf6b 30%,#c9792a 62%,#2a1608 100%);overflow:hidden}
-#dcss[hidden]{display:none}
-#dcss .dd{position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(90deg,#6b4220 0 34px,#5a361a 34px 37px,#74482a 37px 70px,#4e2f16 70px 73px);box-shadow:inset 0 0 40px rgba(0,0,0,.55);transition:transform 1.5s cubic-bezier(.5,0,.2,1)}
-#dcss .dd::before{content:"";position:absolute;left:10%;right:10%;top:18%;height:5%;background:#3a230f;border-radius:3px;box-shadow:0 52vh 0 #3a230f}
-#dcss .l{left:0;transform-origin:left center}#dcss .r{right:0;transform-origin:right center}
-#dcss .l::after,#dcss .r::after{content:"";position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#d8a640;box-shadow:0 0 0 4px #7a5420}
-#dcss .l::after{right:16px}#dcss .r::after{left:16px}
-#dcss.open .l{transform:rotateY(-100deg)}#dcss.open .r{transform:rotateY(100deg)}
-#dcss b{position:absolute;left:0;right:0;top:44%;text-align:center;color:#3b2416;font-size:clamp(20px,6vw,30px);font-weight:900;opacity:0;transition:opacity .8s .9s;text-shadow:0 1px 0 #fff3c4}
-#dcss.open b{opacity:1}#door video{width:100%;height:100%;object-fit:cover}
+#door video{width:100%;height:100%;object-fit:cover}
 #door button{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0px));border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.4);color:#fff;border-radius:16px;padding:6px 14px;font:inherit;font-size:14px}
 footer{flex:none;padding:6px 16px calc(10px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--soft);text-align:center}
 </style>
@@ -52,7 +42,7 @@ footer{flex:none;padding:6px 16px calc(10px + env(safe-area-inset-bottom,0px));f
 <div id="wrap"><canvas id="cv" aria-label="長桌晚餐"></canvas><div id="empty" hidden>還沒有人入座<br>玩「感恩節接火雞」拍完合照，就能當第一位客人！</div></div>
 <div id="pop" hidden><img id="pImg" alt=""><div><div class="q" id="pQ"></div><div class="w" id="pW"></div></div><button type="button" id="pX" aria-label="關閉">×</button></div>
 <nav id="nav"><a class="g" href="catch-demo.html">🦃 回接火雞遊戲</a><a class="p" href="park.html">🎡 回遊樂島</a></nav>
-<div id="door" hidden><video id="doorV" playsinline webkit-playsinline muted preload="auto"></video><div id="dcss" hidden><b>歡迎來到梵谷村的長桌晚餐</b><i class="dd l"></i><i class="dd r"></i></div><button type="button" id="doorX">略過 ›</button></div>
+<div id="door"><video id="doorV" playsinline webkit-playsinline muted autoplay preload="auto" poster="catch-video/dinner/door.jpg"></video><button type="button" id="doorX">略過 ›</button></div>
 <footer>OTTO2 ARTCLUB・2026 感恩節　梵谷村的長桌晚餐</footer>
 <script>
 (()=>{
@@ -62,7 +52,7 @@ const DEMO=/[?&]demo=1/.test(location.search);
 const SEG_W=2000,SEG_H=667,FORE_TOP=207;
 /* 11/16 大熊：不要一桌一桌開，要一張連續的長桌，一開始就有 40 個位子，人多了往右一直接長。
    做法：原圖左端 0～400、右端 1600～2000 保留，中間 400～1600 那段一直複製接起來（接縫淡入淡出 OV px）。 */
-const SEAT_BOTTOM=462,PERSON_H=232,L_END=400,R_END=1600,TW=R_END-L_END,OV=110,GAP=165,MIN_SEATS=40;
+const SEAT_BOTTOM=505,PERSON_H=275,L_END=400,R_END=1600,TW=R_END-L_END,OV=110,GAP=190,MIN_SEATS=40;
 function tableW(n){return L_END+n*TW+(SEG_W-R_END)}
 function seatsFor(n){const W=tableW(n),out=[],flowers=[];for(let k=0;k<n;k++)flowers.push(L_END+k*TW+(900-L_END));   // 每段中間的向日葵前面不坐人
   for(let x=175;x<=W-175;x+=GAP)if(flowers.every(f=>Math.abs(f-x)>105))out.push(x);return out}
@@ -74,10 +64,13 @@ function drawLong(ctx,img,n,y0,h){if(!img)return;const left=piece(img,0,L_END,h,
 const $=s=>document.querySelector(s),cv=$('#cv'),ctx=cv.getContext('2d');
 const load=(src,cors)=>new Promise(ok=>{const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src});
 let people=[],hits=[];
-/* 上傳的人比較暗，調亮一點、偏暖，才搭這張明亮的桌子 */
+/* 11/16 大熊：人物太亮、像貼上去的 → 改成稍微壓暗、降一點彩度、蓋一層燭光暖色，跟牆面融在一起 */
 function warm(im){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
-  const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){p[i]=Math.min(255,p[i]*1.3*.87+255*.13);p[i+1]=Math.min(255,p[i+1]*1.3*.87+205*.13);p[i+2]=Math.min(255,p[i+2]*1.3*.87+150*.13)}
+  const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const r=p[i],g=p[i+1],b=p[i+2],l=(r*.3+g*.59+b*.11);
+    p[i]=Math.min(255,(r*.85+l*.15)*.9+235*.1);p[i+1]=Math.min(255,(g*.85+l*.15)*.9+170*.1);p[i+2]=Math.min(255,(b*.85+l*.15)*.9+100*.1)}
   x.putImageData(d,0,0);return c}catch(e){return im}}
+/* 有高有低：每個位子的身高比例（循環），腳都藏在桌巾後面 */
+const HEIGHTS=[1,.9,1.12,.94,1.05,.88,1.15,.92,.98,.9,1.08,.95];
 async function main(){
   let list=[];
   if(DEMO){list=Array.from({length:13},(_,i)=>({id:'demo'+i,n:['林○○','陳○○','王○○','張○○','李○○'][i%5],ch:'村民',msg:['感恩有你們一起吃飯！','謝謝老師陪我畫完第一幅畫','今年最開心的一天','謝謝家人一直支持我','感恩每一堂課'][i%5],cut:'catch-video/dinner/demo/p'+String(i%15+1).padStart(2,'0')+'.webp'}))}
@@ -89,8 +82,9 @@ async function main(){
   const SEATS=seatsFor(n);cv.width=tableW(n);cv.height=SEG_H;
   drawLong(ctx,bg,n,0,SEG_H);
   hits=[];
-  people.slice(0,SEATS.length).forEach((p,i)=>{const x=SEATS[i],h=PERSON_H*(0.97+((i*37)%7)/100),w=h*p.img.naturalWidth/p.img.naturalHeight;
-    const src=warm(p.img);ctx.drawImage(src,x-w/2,SEAT_BOTTOM-h,w,h);hits.push({x0:x-w/2,x1:x+w/2,y0:SEAT_BOTTOM-h,y1:SEAT_BOTTOM,p})});
+  people.slice(0,SEATS.length).forEach((p,i)=>{const x=SEATS[i]+((i*53)%21-10),h=PERSON_H*HEIGHTS[i%HEIGHTS.length],w=h*p.img.naturalWidth/p.img.naturalHeight,y=SEAT_BOTTOM-h;
+    const src=warm(p.img);ctx.save();ctx.shadowColor='rgba(70,35,10,.45)';ctx.shadowBlur=22;ctx.shadowOffsetX=6;ctx.shadowOffsetY=4;ctx.drawImage(src,x-w/2,y,w,h);ctx.restore();   // 牆上淡淡的影子
+    hits.push({x0:x-w/2,x1:x+w/2,y0:y,y1:Math.min(SEAT_BOTTOM,450),p})});
   if(fore){const fc=document.createElement('canvas');fc.width=SEG_W;fc.height=SEG_H-FORE_TOP;fc.getContext('2d').drawImage(fore,0,0,SEG_W,SEG_H-FORE_TOP);drawLong(ctx,fc,n,FORE_TOP,SEG_H-FORE_TOP)}   // 桌上的食物和桌巾蓋在人前面
   $('#cnt').textContent=people.length?('目前 '+people.length+' 位客人入座・長桌還有 '+Math.max(0,SEATS.length-people.length)+' 個空位'+(DEMO?'（示範）':'')):'';
   $('#empty').hidden=!!people.length;
@@ -100,14 +94,16 @@ cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),k=cv.width/r.
   $('#pImg').src=h.p.img.src;$('#pQ').textContent='「'+(h.p.msg||'感恩有你們一起吃飯！')+'」';$('#pW').textContent=(h.p.n||'客人')+(h.p.ch?'・'+h.p.ch:'');$('#pop').hidden=false});
 $('#pX').onclick=()=>{$('#pop').hidden=true};
 main();
-/* 開門動畫：每次從遊戲或作品島進來都播一次（?nodoor=1 不播） */
-(()=>{if(/[?&]nodoor=1/.test(location.search))return;const d=$('#door'),v=$('#doorV');let done=false,mode='';   // mode：'vid' 播影片／'css' 播程式畫的門，只會選一種
-  const end=()=>{if(done)return;done=true;if(d.hidden)return;d.classList.add('out');setTimeout(()=>{d.hidden=true;try{v.pause()}catch(e){}},700)};
-  /* 開門影片（door.mp4，另一個工作階段 7429523 接上的）優先；影片壞掉或 2.5 秒還沒載好，才改播程式畫的門 */
-  const css=()=>{if(done||mode)return;mode='css';v.hidden=true;d.hidden=false;$('#dcss').hidden=false;setTimeout(()=>$('#dcss').classList.add('open'),400);setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(end,500)},2700)};
-  v.onended=end;v.onerror=css;$('#doorX').onclick=end;
-  v.oncanplay=()=>{if(done||mode)return;mode='vid';d.hidden=false;v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(end)})};
-  v.src='catch-video/dinner/door.mp4?v=2';setTimeout(()=>{if(!mode)css()},2500)})();
+/* 開門動畫：每次從遊戲或作品島進來都播一次（?nodoor=1 不播）
+   11/16 大熊：只要奶奶開門的影片，不要程式畫的木門和文字。LINE 裡面影片不會自己先載，所以一進來就直接 play()（先蓋門口第一格當底圖），
+   真的播不了或 8 秒都沒開始才直接進長桌。 */
+(()=>{const d=$('#door'),v=$('#doorV');if(/[?&]nodoor=1/.test(location.search)){d.hidden=true;return}let done=false,started=false;
+  const end=()=>{if(done)return;done=true;d.classList.add('out');setTimeout(()=>{d.hidden=true;try{v.pause()}catch(e){}},700)};
+  v.onended=end;v.onerror=end;$('#doorX').onclick=end;v.onplaying=()=>{started=true};
+  v.src='catch-video/dinner/door.mp4?v=2';
+  const go=()=>{v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})};go();
+  document.addEventListener('touchstart',()=>{if(!started&&!done)go()},{once:true,passive:true});   // 真的被擋：手指一碰就播
+  setTimeout(()=>{if(!started)end()},8000)})();
 })();
 </script>
 </body>

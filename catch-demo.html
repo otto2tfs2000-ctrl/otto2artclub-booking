@@ -171,6 +171,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #bVid{position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0}
 .bAlt{position:relative;font-size:13px;color:#c9b38a;text-decoration:underline;cursor:pointer;flex:none}
 .bAlt input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.bRe{background:none;border:0;font:inherit;font-size:14px;padding:4px 8px}.bRe[hidden]{display:none}
+
 .bCam.shoot{background:#e5383b;box-shadow:0 4px 0 #8f1f22}
 .bZoom input[type=range]{touch-action:pan-x;height:28px}
 #scrEnd,#scrBooth,#scrShot{touch-action:pan-y}
@@ -272,8 +274,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <figure class="photo" id="photo"><canvas id="endCv" aria-label="你的版本的吃馬鈴薯的人"></canvas><figcaption id="photoCap"></figcaption></figure>
     <div id="endStory"></div>
     <div id="endBig"></div>
-    <div class="seatInv"><b>🍽 還沒結束！參加感恩長桌，送你 1 點紅利</b><span>挑一位名畫裡的國王、皇后或貴族，自拍把臉放進去，你就會坐上作品小屋的感恩節長桌。紅利每個帳號送一次。</span>
-    <button id="btnBooth">🍽 參加感恩長桌領紅利</button></div>
+    <div class="seatInv"><b>💌 梵谷邀請你今晚去他家吃飯！</b><span>要盛裝出席喔——挑一位名畫裡的國王、皇后、貴族或梵谷村的村民，自拍把臉放進去，今天你要變成誰去梵谷家？入座送你 1 點紅利（每個帳號一次）。</span>
+    <button id="btnBooth">🍽 去梵谷家吃飯（領紅利）</button></div>
     <div class="estats">
       <div><b id="eTotal">0</b>飛出來（隻）</div>
       <div><b id="eServed">0</b>帶回小屋（隻）</div>
@@ -291,8 +293,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
   </section>
   <section class="scr" id="scrBooth" hidden>
     <div id="bPickBox">
-      <div class="bStory">消息一下就傳遍了全世界的美術館：<b>「馬鈴薯一家今晚請火雞吃飯！」</b><br>國王、皇后、貴族和名畫裡的人物都從畫框裡跑出來了，大樹下擺了一張好長好長的桌子。</div>
-      <div class="bTop"><b>挑一位名畫人物，換你入座</b><span>選好角色，再把你的臉放進去</span></div>
+      <div class="bStory">梵谷寄來一張邀請卡：<b>「今晚來我家吃感恩節晚餐吧！」</b><br>國王、皇后、名畫裡的人物和梵谷村的村民都盛裝打扮好了，長桌已經擺滿了食物。</div>
+      <div class="bTop"><b>今天你要變成誰，去梵谷家吃飯？</b><span>挑一套「盛裝」，再把你的臉放進去</span></div>
       <div id="bPick"></div>
     </div>
     <div id="bShoot" hidden>
@@ -301,21 +303,23 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <div class="bZoom" id="bZoomRow" hidden><span>小</span><input type="range" id="bZoom" min="0.3" max="3" step="0.01" value="1" aria-label="照片大小"><span>大</span></div>
     <p class="bHint" id="bHint">先按下面的按鈕自拍</p>
     <button class="bCam" id="bLiveBtn" type="button">📷 開相機，把臉對進洞裡</button>
+    <button class="bAlt bRe" id="bRetake" type="button" hidden>📷 不滿意？重新開相機</button>
     <label class="bAlt" id="bCamBtn"><input type="file" accept="image/*" capture="user" id="bFile">相機打不開？改用手機相機拍／選照片</label>
     <video id="bVid" playsinline webkit-playsinline muted autoplay></video>
     <input id="bMsg" maxlength="30" placeholder="寫一句感恩的話（最多 30 字）" autocomplete="off">
     <p class="bErr" id="bErr" role="status"></p>
     </div>
-    <div class="btns"><button class="redo" id="bBack">回上一頁</button><button class="again" id="bDone">完成合照</button></div>
+    <div class="btns"><button class="redo" id="bBack">回上一頁</button><button class="again" id="bDone" hidden>完成合照</button></div>
   </section>
 
   <section class="scr" id="scrShot" hidden>
     <img id="shotImg" alt="你的感恩節合照">
     <p class="vgGot" id="vgGot" role="status" hidden></p>
     <p class="bHint">長按照片就可以存到手機</p>
-    <div class="upInvite" id="upInv"><b>🍽 最後一步：坐上感恩長桌，領 1 點紅利</b>
-      <span>你剛剛變成的名畫人物，會帶著你的臉，坐進作品小屋大樹下的感恩節長桌，跟其他玩家一起吃晚餐。大家打開作品小屋都看得到你！</span></div>
-    <button class="bWide" id="shotUp">🍽 我要坐上長桌</button>
+    <div class="upInvite" id="upInv"><b id="upInvT">🍽 正在出發去梵谷家…</b>
+      <span id="upInvS">你剛剛盛裝打扮的樣子，正坐上梵谷家的感恩節長桌。</span></div>
+    <p class="bErr" id="upErr2" role="status"></p>
+    <button class="bWide" id="shotUp" hidden>🍽 再試一次，去梵谷家</button>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
     <div id="upBox" hidden>
       <div class="upTitle">坐上長桌的會是這位（名畫人物＋你的臉）</div>
@@ -325,9 +329,9 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
       <p class="bErr" id="upErr" role="status"></p>
     </div>
     <div id="upDone" hidden>
-      <div class="upTitle">坐好了！🍽</div>
+      <div class="upTitle">梵谷家幫你留好位子了！🍽</div>
       <p class="bHint" id="upLeft"></p>
-      <a class="bWide upLink" href="dinner.html" id="upSee">去看大家的長桌</a>
+      <a class="bWide upLink" href="dinner.html" id="upSee">🏠 點我，去梵谷家吃飯</a>
     </div>
     <div class="btns"><button class="redo" id="shotRe">重拍一張</button><button class="again" id="shotBack">回到成績</button></div>
   </section>
@@ -735,7 +739,13 @@ const FOLK=[{n:'名畫裡的女兒',src:null},
   {n:'抱銀貂的女子',k:12,f:[0.514,0.33,0.198,0.242],skin:[147,110,82]},
   {n:'戴珍珠耳環的少女',k:13,f:[0.481,0.42,0.315,0.301],skin:[150,122,94]},
   {n:'蒙娜麗莎',k:14,f:[0.472,0.332,0.256,0.236],skin:[181,126,63]},
-  {n:'抱麵包的師傅',old:'06',f:[.489,.225,.275,.19],skin:[160,112,44]}];
+  {n:'抱麵包的師傅',old:'06',f:[.489,.225,.275,.19],skin:[160,112,44]},
+  /* 11/16 大熊：梵谷村 15 位村民也拿回來，讓大家多一些選擇（catch-video/folk/fNN、mNN） */
+  {n:'端咖啡的農夫',old:'01',f:[.536,.278,.385,.257],skin:[105,76,29]},{n:'拿叉子的婦人',old:'02',f:[.511,.285,.409,.269],skin:[126,90,37]},{n:'抽菸斗的爺爺',old:'03',f:[.503,.287,.388,.253],skin:[112,79,31]},
+  {n:'端馬鈴薯的姑娘',old:'04',f:[.497,.285,.416,.274],skin:[126,92,38]},{n:'大鬍子大叔',old:'05',f:[.52,.30,.36,.25],skin:[109,77,30]},{n:'抱火雞的大嬸',old:'07',f:[.577,.203,.337,.216],skin:[174,125,42]},
+  {n:'吃馬鈴薯的大叔',old:'08',f:[.47,.25,.34,.24],skin:[151,106,36]},{n:'織毛線的奶奶',old:'09',f:[.504,.281,.331,.223],skin:[152,107,31]},{n:'等開飯的紳士',old:'10',f:[.461,.21,.32,.212],skin:[147,104,40]},
+  {n:'拿畫筆的畫家',old:'11',f:[.561,.294,.395,.26],skin:[154,113,38]},{n:'拿調色盤的畫家',old:'12',f:[.494,.309,.401,.264],skin:[156,116,37]},{n:'抱向日葵的女孩',old:'13',f:[.51,.256,.387,.255],skin:[173,130,52]},
+  {n:'提燈的少年',old:'14',f:[.525,.279,.391,.26],skin:[171,126,37]},{n:'舉杯的工人',old:'15',f:[.553,.261,.369,.244],skin:[161,115,41]}];
 function folkLoad(c){if(c.old&&!c.img){c.img=new Image();c.img.src='catch-video/folk/f'+c.old+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+c.old+'.png';return}if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait2/';
   c.img=new Image();c.img.src=P+'f'+k+'.webp';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
 let bChar=FOLK[0];
@@ -793,26 +803,32 @@ function boothRender(){const r=bCv.getBoundingClientRect(),dp=Math.min(2,window.
   if(bCv.width!==W||bCv.height!==H){bCv.width=W;bCv.height=H}boothDraw(bx,W,H)}
 const bVid=$('#bVid');let bStream=null,bRaf=0;
 function bLoop(){if(!bStream||$('#scrBooth').hidden){bRaf=0;return}boothRender();bRaf=requestAnimationFrame(bLoop)}
-function bStop(){if(bStream){bStream.getTracks().forEach(t=>t.stop());bStream=null}try{bVid.srcObject=null}catch(_){}$('#bLiveBtn').classList.remove('shoot');$('#bLiveBtn').textContent=bSelf?'📷 重新開相機':'📷 開相機，把臉對進洞裡'}
-$('#bLiveBtn').onclick=async()=>{
-  if(bStream){   // 拍下來：把現在這一格（鏡像）存起來
-    const vw=bVid.videoWidth,vh=bVid.videoHeight,c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);
-    bSelf=paintify(matchSkin(c));bStop();boothRender();$('#bHint').textContent='拍好了！還可以拖曳、調大小對準；不滿意就重新開相機';beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);return}
+function bStop(){if(bStream){bStream.getTracks().forEach(t=>t.stop());bStream=null}try{bVid.srcObject=null}catch(_){}bBtn()}
+/* 11/16 大熊：拍好之後，大按鈕直接變「去梵谷家吃飯」（按了就做合照＋坐上長桌），重新開相機改成下面的小字 */
+function bBtn(){const b=$('#bLiveBtn');b.classList.toggle('shoot',!!bStream);b.classList.toggle('go',!bStream&&!!bSelf);
+  b.textContent=bStream?'📸 拍下來':bSelf?'🍽 好了！去梵谷家吃飯':'📷 開相機，把臉對進洞裡';$('#bRetake').hidden=!(bSelf&&!bStream)}
+async function bCamOpen(){
+  if(bStream)return;
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$('#bFile').click();return}
   $('#bHint').textContent='正在打開相機…（第一次會問你能不能用相機，請按允許）';
   try{bStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:1280}},audio:false});
     bVid.srcObject=bStream;await bVid.play().catch(()=>{});bOX=0;bOY=0;$('#bZoomRow').hidden=false;
-    $('#bLiveBtn').classList.add('shoot');$('#bLiveBtn').textContent='📸 拍下來';$('#bHint').textContent='手機拿遠一點、近一點，讓臉剛好在洞裡，再按「拍下來」';
+    bBtn();$('#bHint').textContent='手機拿遠一點、近一點，讓臉剛好在洞裡，再按「拍下來」';
     if(!bRaf)bRaf=requestAnimationFrame(bLoop)}
   catch(e){bStream=null;$('#bHint').textContent='相機打不開（可能沒有允許，或在 LINE 裡面被擋）。請按下面「改用手機相機拍／選照片」'}};
+function bShoot(){   // 拍下來：把現在這一格（鏡像）存起來
+    const vw=bVid.videoWidth,vh=bVid.videoHeight,c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);
+    bSelf=paintify(matchSkin(c));bStop();boothRender();$('#bHint').textContent='拍好了！還可以拖曳、調大小對準，好了就按「去梵谷家吃飯」';beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);}
+$('#bLiveBtn').onclick=()=>{if(bStream)bShoot();else if(bSelf)bFinish();else bCamOpen()};
+$('#bRetake').onclick=()=>bCamOpen();
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();bShowPick()}
 function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=true;$('#bDone').hidden=true;$('#scrBooth').scrollTop=0}
-(function(){const box=$('#bPick');FOLK.forEach((c,i)=>{const b=document.createElement('button');b.type='button';
+(function(){const box=$('#bPick');FOLK.forEach((c,i)=>{if(!c.k&&!c.old)return;   /* 11/16 名畫裡的女兒坐不上長桌，不放 */const b=document.createElement('button');b.type='button';
   const im=document.createElement('img');im.alt=c.n;im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':c.old?'catch-video/folk/f'+c.old+'.png':(c.img?c.img.src:'');if(!c.k&&!c.old&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
     const tc=t.getContext('2d');const draw=()=>{tc.drawImage(peImg,.27*peImg.naturalWidth,.30*peImg.naturalHeight,.14*peImg.naturalWidth,.26*peImg.naturalHeight,0,0,150,200);im.src=t.toDataURL('image/jpeg',.8)};peImg.complete?draw():peImg.addEventListener('load',draw,{once:true})}
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
   b.onclick=()=>{folkLoad(c);bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
-    $('#bTitle').textContent='你是「'+c.n+'」';$('#bPickBox').hidden=true;$('#bShoot').hidden=false;$('#bDone').hidden=false;$('#scrBooth').scrollTop=0;
+    $('#bTitle').textContent='你是「'+c.n+'」';$('#bPickBox').hidden=true;$('#bShoot').hidden=false;bBtn();$('#scrBooth').scrollTop=0;
     const go=()=>requestAnimationFrame(boothRender);go();[c.img,c.mask,c.cut].forEach(m=>{if(m&&!m.complete)m.addEventListener('load',go,{once:true})})};   // 圖或臉型遮罩晚到也會重畫
   box.appendChild(b)})})();
 $('#bRepick').onclick=bShowPick;
@@ -821,7 +837,7 @@ $('#bBack').onclick=()=>{bStop();$('#scrBooth').hidden=true;scrEnd.hidden=false}
 $('#bFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),im=new Image();
   im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);bStop();bSelf=paintify(matchSkin(c));bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=false;
-    $('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡';boothRender()};
+    bBtn();$('#bHint').textContent='用手指拖曳照片、拉下面的拉桿調大小，讓臉剛好在洞裡，好了就按「去梵谷家吃飯」';boothRender()};
   im.onerror=()=>{$('#bHint').textContent='這張照片讀不出來，請再拍一次'};im.src=url;e.target.value=''});
 $('#bZoom').addEventListener('input',e=>{bZ=+e.target.value;boothRender()});
 bCv.addEventListener('pointerdown',e=>{if(!bSelf)return;e.preventDefault();try{bCv.setPointerCapture(e.pointerId)}catch(_){}bPtr.set(e.pointerId,[e.clientX,e.clientY]);
@@ -836,7 +852,7 @@ const bUp=e=>{bPtr.delete(e.pointerId);if(bPtr.size<2)bPinch=null};bCv.addEventL
 function wrapText(ctx,t,maxW){const out=[];let line='';for(const ch of t){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 let shotBlob=null;
 function bSnap(){const vw=bVid.videoWidth,vh=bVid.videoHeight;if(!vw)return;const c=document.createElement('canvas');c.width=vw;c.height=vh;const x2=c.getContext('2d');x2.translate(vw,0);x2.scale(-1,1);x2.drawImage(bVid,0,0,vw,vh);bSelf=paintify(matchSkin(c));bStop()}
-$('#bDone').onclick=()=>{if(bStream){bSnap();if(bSelf&&bVG){boothRender();return}}   /* 還在相機畫面就按完成：先拍下來、讓他看到梵谷跳進來，再按一次完成 */
+function bFinish(){if(bStream){bSnap();if(bSelf&&bVG){boothRender();return}}   /* 還在相機畫面就按完成：先拍下來、讓他看到梵谷跳進來，再按一次完成 */
   if(!bSelf){$('#bErr').textContent='還沒拍照喔，先按上面的「開相機」';return}$('#bErr').textContent='';
   const msg=($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！';
   const PW=1000,PH=1250,M=40,CW=PW+M*2,CH=PH+M+300,c=document.createElement('canvas');c.width=CW;c.height=CH;const cx=c.getContext('2d');
@@ -848,7 +864,8 @@ $('#bDone').onclick=()=>{if(bStream){bSnap();if(bSelf&&bVG){boothRender();return
   const url=c.toDataURL('image/jpeg',.9);$('#shotImg').src=url;
   try{c.toBlob(b=>{shotBlob=b;const f=b&&new File([b],'otto2-thanksgiving.jpg',{type:'image/jpeg'});$('#shotShare').hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}))},'image/jpeg',.9)}catch(_){}
   if(bVG)vgClaim(c);else $('#vgGot').hidden=true;
-  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=$('#upInv').hidden=false;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60)};
+  $('#scrBooth').hidden=true;$('#scrShot').hidden=false;$('#scrShot').scrollTop=0;$('#upBox').hidden=true;$('#upDone').hidden=true;beep(1800,.04,'square',.05);setTimeout(()=>beep(900,.08,'square',.04),60);dnAuto()}
+$('#bDone').onclick=bFinish;
 /* 11/15 大熊：先坐上長桌，坐好之後才告訴他「梵谷跟你回家了，收進圖鑑收集冊」；沒坐長桌就在離開合照頁時告訴他 */
 let VGR=null,VGB=null;
 const VG_NM={v3:'大理石雕像梵谷',v4:'吃馬鈴薯的梵谷',v5:'頂著空盤想抓火雞的梵谷',v6:'感恩節慶祝梵谷'};
@@ -956,13 +973,13 @@ function dnBonusTxt(j){return j&&j.bonus?'🎁 紅利 +'+j.bonus+' 點已經存�
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
 function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
-  d.innerHTML='<div style="font-size:18px;margin-bottom:8px">'+t+'</div>'+(ok?'<a href="dinner.html" style="display:block;background:#e2711d;color:#fff;border-radius:22px;padding:10px;text-decoration:none;margin-bottom:8px">去看大家的長桌</a>':'')+'<button type="button" style="border:2px solid #c9a46a;background:none;border-radius:22px;padding:8px 18px;font:inherit;color:#3b2416">關閉</button>';
+  d.innerHTML='<div style="font-size:18px;margin-bottom:8px">'+t+'</div>'+(ok?'<a href="dinner.html" style="display:block;background:#e2711d;color:#fff;border-radius:22px;padding:10px;text-decoration:none;margin-bottom:8px">🏠 點我，去梵谷家吃飯</a>':'')+'<button type="button" style="border:2px solid #c9a46a;background:none;border-radius:22px;padding:8px 18px;font:inherit;color:#3b2416">關閉</button>';
   d.querySelector('button').onclick=()=>d.remove()}
 (async()=>{let p=null;try{p=JSON.parse(localStorage.getItem(DN_PEND)||'null')}catch(_){}
   if(!upTok&&!p){liffInit().then(ok=>{try{if(ok&&liff.isLoggedIn())upTok=liff.getAccessToken()||''}catch(_){}});return}
   if(!p)return;if(!(await getTok()))return;   // 登入回來了：把剛剛那張自動送出去
   try{localStorage.removeItem(DN_PEND)}catch(_){}
-  try{const j=await dnSend(p);dnCard('坐好了！🍽<br><span style="font-size:14px;font-weight:600">'+dnBonusTxt(j)+'你已經坐上作品島大樹旁的長桌'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'')+'</span>',true)}
+  try{const j=await dnSend(p);dnCard('梵谷家幫你留好位子了！🍽<br><span style="font-size:14px;font-weight:600">'+dnBonusTxt(j)+'</span>',true)}
   catch(err){dnCard('沒坐上長桌<br><span style="font-size:14px;font-weight:600">'+err.message+'</span>',false)}})();
 function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
   const W=480,H=600,GM=bGeom(W,H),S=document.createElement('canvas');S.width=W;S.height=H;const c2=S.getContext('2d');
@@ -973,26 +990,25 @@ function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
   if(bChar.cut&&bChar.cut.naturalWidth){c2.globalCompositeOperation='destination-in';c2.drawImage(bChar.cut,GM.x0,GM.y0,GM.cw,GM.ch);c2.globalCompositeOperation='source-over'}   // 肖像畫：只留人物，背景去掉
   const oh=420,ow=Math.round(GM.cw*oh/GM.ch),o=document.createElement('canvas');o.width=ow;o.height=oh;o.getContext('2d').drawImage(S,GM.x0,GM.y0,GM.cw,GM.ch,0,0,ow,oh);return o}
 let upData='';
-$('#shotUp').onclick=()=>{$('#upErr').textContent='';$('#upDone').hidden=true;
-  if(!bChar.img){$('#upErr').textContent='';$('#upBox').hidden=false;$('#upCut').hidden=true;$('#upMsg').textContent='「名畫裡的女兒」不能坐上長桌，請回上一步換一位人物再拍一次';$('#upGo').hidden=true;return}
-  const c=makeCutout();if(!c){$('#upBox').hidden=false;$('#upMsg').textContent='還沒拍照喔';$('#upGo').hidden=true;return}
-  upData=c.toDataURL('image/png');$('#upCut').src=upData;$('#upCut').hidden=false;$('#upGo').hidden=false;
-  $('#upMsg').textContent='「'+(($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！')+'」';$('#upBox').hidden=false;
-  setTimeout(()=>$('#upBox').scrollIntoView({behavior:'smooth',block:'center'}),50)};
-$('#upNo').onclick=()=>{$('#upBox').hidden=true};
-$('#upGo').onclick=async()=>{const e=$('#upErr');
-  const btn=$('#upGo');btn.disabled=true;btn.textContent='送出中…';e.textContent='';
+/* 11/16 大熊：按「去梵谷家吃飯」就直接坐上長桌，不要再跳確認 */
+let dnBusy=false;
+async function dnAuto(){if(dnBusy)return;const T=$('#upInvT'),S=$('#upInvS'),E=$('#upErr2'),R=$('#shotUp');
+  E.textContent='';R.hidden=true;$('#upInv').hidden=false;$('#upDone').hidden=true;T.textContent='🍽 正在出發去梵谷家…';S.textContent='你剛剛盛裝打扮的樣子，正坐上梵谷家的感恩節長桌。';
+  const c=makeCutout();if(!c){T.textContent='還沒拍好照片';S.textContent='請按「重拍一張」再拍一次';return}
+  upData=c.toDataURL('image/png');
   const p={cut:upData,ch:bChar.n,msg:($('#bMsg').value||'').trim()||'感恩有你們一起吃飯！'};
+  dnBusy=true;
   try{if(!(await getTok())){   // 沒有 LINE 身分：先存起來，去登入 LINE，回來自動送
       if(!(await liffInit()))throw new Error('LINE 登入暫時打不開，請稍後再試');
       try{localStorage.setItem(DN_PEND,JSON.stringify(p))}catch(_){throw new Error('手機空間不夠，存不了照片，請用 LINE 打開遊戲再試')}
-      btn.textContent='先登入 LINE…';liff.login({redirectUri:location.href.split('#')[0]});return}
+      T.textContent='先登入 LINE，馬上幫你入座…';liff.login({redirectUri:location.href.split('#')[0]});return}
     const j=await dnSend(p);
-    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=$('#upInv').hidden=true;$('#upLeft').textContent=dnBonusTxt(j)+'你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
-    beep(660,.1);setTimeout(()=>beep(880,.16),90);setTimeout(vgReveal,1600)}
-  catch(err){e.textContent=err.message}
-  btn.disabled=false;btn.textContent='送出，坐上長桌'};
-$('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=$('#upInv').hidden=false;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
+    $('#upInv').hidden=true;$('#upDone').hidden=false;$('#upLeft').textContent=dnBonusTxt(j)+(j.left>0?'（還可以再去 '+j.left+' 次）':'');
+    beep(660,.1);setTimeout(()=>beep(880,.16),90);setTimeout(()=>$('#upDone').scrollIntoView({behavior:'smooth',block:'center'}),300);setTimeout(vgReveal,1600)}
+  catch(err){T.textContent='沒能坐上長桌';S.textContent='';E.textContent=err.message;R.hidden=false}
+  finally{dnBusy=false}}
+$('#shotUp').onclick=dnAuto;
+$('#shotRe').onclick=()=>{$('#upBox').hidden=true;$('#upDone').hidden=true;$('#shotUp').hidden=true;$('#scrShot').hidden=true;$('#scrBooth').hidden=false;boothRender()};
 $('#shotBack').onclick=()=>{$('#scrShot').hidden=true;scrEnd.hidden=false;vgReveal()};
 window.addEventListener('resize',()=>{if(!$('#scrBooth').hidden)boothRender()});
 $('#btnEp').onclick=()=>{location.href='art.html?hall=1&hroom=vangogh'};   /* 2026-11-15 接上真的「畫框背後」：走進大廳 → 直接打開梵谷展間（聽完的集數會算進雕像梵谷） */
