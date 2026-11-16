@@ -62,6 +62,13 @@
 .gpc i{width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.15); display:block}
 .gplove{margin:0 0 6px!important; font-size:14px; color:#e0607a!important}
 .gplove small{color:var(--ink2); font-size:12px}
+
+/* 2026-11-16 大熊：我的資產全部改回右下角（分頁列右上方、各島同位置） */
+.bottom,#miUI .mibot{position:relative}
+.assfab{position:absolute; right:14px; bottom:calc(100% + 30px); z-index:5; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:0; padding:0; font:inherit; font-size:11px; font-weight:800; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.65); cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent}
+.assfab i{width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(180deg,#ffe08a,#f2b43c); color:#5a3a00; border:2px solid #fff; box-shadow:0 3px 10px rgba(60,40,10,.35)}
+.assfab svg{width:24px; height:24px}
+.assfab:active i{transform:scale(.94)}
 </style><script>/* 2026-11-15 大熊：鎖住整頁縮放。iPhone（含 LINE 內建瀏覽器）不理 user-scalable=no，要另外擋手勢 */
 (function(){const no=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,no,{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.scale!==undefined&&e.scale!==1)e.preventDefault()},{passive:false});})();   /* 連點兩下放大交給 CSS touch-action 擋，不擋 touchend（會吃掉快速連點的 click） */</script>
@@ -282,9 +289,10 @@ body.tour .pcTag{display:none!important}
   <!-- 2026-10-05 大熊要跟遊樂島（扭蛋/走格子）介面一致：左上大標題、右上圓形小按鈕、下方三島切換＋一排主按鈕 -->
   <div class="top ohead">
     <div class="oh-l"><div class="oh-logo">OTTO2</div><i class="oh-bar"></i><div class="oh-k">15 週年・大家的作品</div><h1 class="oh-t">作品小屋</h1><p class="oh-s"><span id="nHouses">0</span> 間小屋・<span id="nWorks">0</span> 件作品</p></div>
-    <div class="oh-r"><button class="ohb" id="assetBtn" type="button" aria-label="我的資產"><i class="assi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8" fill="currentColor" fill-opacity=".15"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.6-3.8-6.2-4.2-6.2-1.6C5.8 9 9 9 12 9zM12 9c1.6-3.8 6.2-4.2 6.2-1.6C18.2 9 15 9 12 9z"/></svg></i>我的資產</button><button class="ohb" id="findBtn" type="button" aria-label="找小屋"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></i>找小屋</button><button class="ohb" id="tourBtn" type="button" aria-label="導覽"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg></i>導覽</button><button class="ohb" id="bgmBtn" type="button" aria-label="音樂"></button></div>
+    <div class="oh-r"><button class="ohb" id="findBtn" type="button" aria-label="找小屋"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></i>找小屋</button><button class="ohb" id="tourBtn" type="button" aria-label="導覽"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg></i>導覽</button><button class="ohb" id="bgmBtn" type="button" aria-label="音樂"></button></div>
   </div>
   <div class="bottom">
+    <button class="assfab" id="assetBtn" type="button" aria-label="我的資產"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8" fill="currentColor" fill-opacity=".15"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.6-3.8-6.2-4.2-6.2-1.6C5.8 9 9 9 12 9zM12 9c1.6-3.8 6.2-4.2 6.2-1.6C18.2 9 15 9 12 9z"/></svg></i>我的資產</button>
     <div class="hint" id="hint" hidden></div>
     <div class="places" id="places"><button type="button" id="plWalk"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><circle cx="11.5" cy="11.5" r="2" fill="#2f8f58"/><circle cx="20.5" cy="11.5" r="2" fill="#b8473c"/><circle cx="16" cy="16" r="2" fill="#2f8f58"/><circle cx="11.5" cy="20.5" r="2" fill="#b8473c"/><circle cx="20.5" cy="20.5" r="2" fill="#2f8f58"/></svg>走格子島</button><button type="button" id="plPark"><svg class="pi" viewBox="0 0 32 32"><rect x="6" y="13" width="20" height="15" rx="1.5" fill="#fffaf2" stroke="#1d2a44" stroke-width="1.6"/><rect x="13" y="18.5" width="6" height="9.5" fill="#2f5d9a" stroke="#1d2a44" stroke-width="1.4"/><path d="M4 8.5h24l-1.6 5.5H5.6z" fill="#c4553b" stroke="#1d2a44" stroke-width="1.6" stroke-linejoin="round"/><path d="M10.3 8.5l-.9 5.5M16 8.5v5.5M21.7 8.5l.9 5.5" stroke="#fffaf2" stroke-width="2"/><rect x="8.5" y="3.5" width="15" height="5" rx="1.2" fill="#1e2b4f" stroke="#1d2a44" stroke-width="1.2"/></svg>選品館</button><button type="button" id="plMascot"><svg class="pi" viewBox="0 0 32 32"><path d="M16 3l7 9h-4l6 8h-5l6 6H6l6-6H7l6-8H9z" fill="#2f6b55" stroke="#1d2a44" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 26v4" stroke="#1d2a44" stroke-width="2.4"/></svg>吉祥物島</button><button type="button" id="plArt" class="on" aria-current="page"><svg class="pi" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="1.5" fill="#c4553b" stroke="#1d2a44" stroke-width="1.5"/><rect x="8.5" y="6.5" width="15" height="19" fill="#fbf3e2" stroke="#1d2a44" stroke-width="1.2"/><path d="M10 23l4-7 3 4 2-3 3 6z" fill="#e2b24a"/><circle cx="19" cy="11" r="2" fill="#e08a6a"/></svg>作品小屋</button><button type="button" id="plHall"><svg class="pi" viewBox="0 0 32 32"><path d="M16 4l12 7H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.4" stroke-linejoin="round"/><path d="M5 12h22" stroke="#f4e4b8" stroke-width="1.4"/><path d="M8 13v10M13 13v10M19 13v10M24 13v10" stroke="#f4e4b8" stroke-width="2.4"/><path d="M4 25h24v3H4z" fill="#c9a24f" stroke="#f4e4b8" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="hn">畫框背後<small>大師開講</small></span></button></div>
     <div class="btns">
@@ -321,7 +329,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261116c"></script>
 <script>
-const ART_VER='20261116f';
+const ART_VER='20261116g';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2879,4 +2887,8 @@ function safeStart(d){return start(d).catch(err=>{console.error(err);$('loading'
 window.claude?.hot?.ready?window.claude.hot.ready(safeStart):safeStart(window.claude?.hot?.data??{});
 </script>
 
+<script>/* 2026-11-16 我的資產右下角：各島都對齊在分頁列上方同樣高度 */
+(function(){function pos(){document.querySelectorAll('.assfab').forEach(function(b){var c=b.parentElement,p=c&&c.querySelector('.places');if(!p||!p.offsetParent)return;var d=c.getBoundingClientRect().bottom-p.getBoundingClientRect().top;b.style.bottom=Math.round(d+56)+'px'})}
+window.assPos=pos;addEventListener('resize',pos);addEventListener('load',pos);setInterval(pos,1200);
+try{var ro=new ResizeObserver(pos);document.querySelectorAll('.assfab').forEach(function(b){ro.observe(b.parentElement)})}catch(e){}pos()})();</script>
 </body></html>
