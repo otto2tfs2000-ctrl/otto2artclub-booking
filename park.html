@@ -988,7 +988,7 @@ body.oct .mainbtns #assetBtn:active{transform:translateY(3px); box-shadow:0 1px 
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261116k';
+const PARK_VER='20261116l';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1687,7 +1687,7 @@ window.cvIs = window.cvIs || function(nm){ return /畫布/.test(String(nm || '')
 window.cpTip = window.cpTip || function(kind){
   if (kind !== 'cash') return '';
   return '<div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#EEF4FA;color:#2F5573;font-size:12.5px;line-height:1.65;text-align:left">' +
-    '💡 <b>折抵券使用規則</b><br>・只能折抵<b>原價</b>課程，已經有優惠的課程（例如當月優惠價）不適用<br>・也可以折抵加購的材料（例如加大畫布）<br>・要有消費才能折抵，不可折現、不可兌換其他商品<br>・一次限用一張，最多兩個月內使用</div>';
+    '💡 <b>折抵券使用規則</b><br>・限<b>原價</b>課程使用；或單次消費累積滿 <b>$1,800</b> 可用 $50、滿 <b>$2,600</b> 可用 $100<br>・也可以折抵加購的材料（例如加大畫布）<br>・要有消費才能折抵，不可折現、不可兌換其他商品<br>・一次限用一張，最多兩個月內使用</div>';
 };
 /* exp＝這張券的期限（2026-12-31 這種寫法），十月發的到 11/30、聖誕季發的到 12/31 */
 window.cvMd = window.cvMd || function(d){ d = String(d || '').replace(/\//g, '-'); return /^\d{4}-\d{2}-\d{2}$/.test(d) ? (+d.slice(5, 7)) + '/' + (+d.slice(8)) : '' };
@@ -6109,7 +6109,7 @@ function myPrizes(){
   var t = st.me && st.me.tickets; if (!t) return "";
   var ok = t.filter(function(x){ return x.status === "ok" }).length;
   var row = function(x){
-    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配課程、不可折現，快來預約" : x.kind === "cash" ? "・原價課程才能折抵、不可折現" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
+    var sub = x.status === "ok" ? (x.expiry ? md(x.expiry) + " 前來店出示使用" : "來店出示使用") + (cvIs(x.nm) ? "・需搭配課程、不可折現，快來預約" : x.kind === "cash" ? "・限原價課程，或單次消費滿 $1,800 可用 $50、滿 $2,600 可用 $100，不可折現" : /升級券/.test(x.nm) ? "・需預約繪畫課程才可使用" : "") : x.status === "used" ? "已使用" : "已過期" + (x.expiry ? "（" + md(x.expiry) + "）" : "");
     return '<div class="gc-pr' + (x.status === "ok" ? "" : " dim") + '"><span class="ic">' + (x.kind === "goods" ? "🎁" : "🎟️") + '</span><span class="nm">' + esc(x.nm) +
       (x.qty > 1 ? ' ×' + x.qty : '') + '<small>' + esc(sub) + '</small></span>' + (x.status === "ok" ? "" : '<span class="st">' + (x.status === "used" ? "已使用" : "已過期") + '</span>') + '</div>';
   };
