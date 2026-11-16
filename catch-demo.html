@@ -535,9 +535,11 @@ function update(dt){
   G.t+=dt;const p=Math.min(1.6,G.t/70);G.speed=150+170*p;G.dist+=G.speed*dt;
   if(G.hp<=0){endGame();return}
   if(BOSS&&bossStep(dt))return;
+  const calm=BOSS&&!G.boss&&G.t>=BOSS_AT-4;   /* 11/16 大熊：魔王來前 4 秒不要飛碟、烏鴉、炸彈，讓大家先累積火雞 */
+  if(calm){for(const u of G.ufos)u.t=Math.max(u.t,UFO_OUT+.01);G.crows=G.crows.filter(c=>c.warn<=0)}
 
   // 天上掉火雞
-  G.nextDrop-=dt;if(G.nextDrop<=0&&!G.boss){G.nextDrop=rnd(.75,1.15)-.4*p;const bm=G.t>8&&Math.random()<.1+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
+  G.nextDrop-=dt;if(G.nextDrop<=0&&!G.boss){G.nextDrop=(calm?.55:1)*(rnd(.75,1.15)-.4*p);const bm=!calm&&G.t>8&&Math.random()<.1+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
   for(let i=G.items.length-1;i>=0;i--){const it=G.items[i],py=it.y;it.vy+=it.g*dt;it.x+=it.vx*dt;it.y+=it.vy*dt;it.w+=dt*9;
     it.x=clamp(it.x,16,W-16);
     const top=pos(G.n);
@@ -551,11 +553,11 @@ function update(dt){
     if(it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'run',x:it.x,y:G.gy-12,r:0})}}
 
   // 籠子：靠過去就打開，火雞往上噴
-  if(G.dist>G.nextCage){G.nextCage=G.dist+(G.boss?rnd(420,620):rnd(2300,3100));   /* 11/16 大熊：大魔王時下面要一直有雞籠，才有火雞可以頂 */
+  if(G.dist>G.nextCage){G.nextCage=G.dist+(G.boss?rnd(260,380):rnd(2300,3100));   /* 11/16 大熊：大魔王時下面要一直有雞籠，才有火雞可以頂 */
    G.cages.push({x:W+60,open:false})}
   for(let i=G.cages.length-1;i>=0;i--){const c=G.cages[i];c.x-=G.speed*dt;
     if(!c.open&&Math.abs(c.x-G.cx)<46){c.open=true;beep(300,.1,'square',.04);txt('籠子開了！',c.x,G.gy-90,'#fff3c4');
-      G.total+=3;for(let j=0;j<3;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-1)*50,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
+      const cn=G.boss?5:3;G.total+=cn;for(let j=0;j<cn;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-(cn-1)/2)*40,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
     if(c.x<-80)G.cages.splice(i,1)}
 
   // 11/15 別人畫的角色來幫忙：從右邊走進來，走到畫面右邊三分之一就把金火雞往你這邊丟（一局最多 2 次）
@@ -576,7 +578,7 @@ function update(dt){
       beep(660,.1);setTimeout(()=>beep(880,.16),90)}
     if(t.x<-120)G.tables.splice(i,1)}
   // 幽浮：慢慢跟著你，光束照到火雞塔就把最上面那隻吸走
-  G.nextUfo-=dt;if(G.nextUfo<=0&&!G.boss){G.nextUfo=rnd(15,22)-4*Math.min(1,p);G.ufos.push({x:G.cx<W/2?W-50:50,y:-40,t:0,suck:0});beep(700,.25,'sine',.04);setTimeout(()=>beep(900,.25,'sine',.04),200)}
+  G.nextUfo-=dt;if(G.nextUfo<=0&&!G.boss&&!calm){G.nextUfo=rnd(15,22)-4*Math.min(1,p);G.ufos.push({x:G.cx<W/2?W-50:50,y:-40,t:0,suck:0});beep(700,.25,'sine',.04);setTimeout(()=>beep(900,.25,'sine',.04),200)}
   for(let i=G.ufos.length-1;i>=0;i--){const u=G.ufos[i];u.t+=dt;const out=u.t>UFO_OUT;   /* 11/16 大熊：照太久躲不掉 → 照 2 秒就走、照的時候不跟人 */
     u.y+=((out?-80:118)-u.y)*Math.min(1,dt*3);if(!out&&u.t<1.3)u.x+=clamp(G.cx-u.x,-1,1)*(48+20*p)*dt;
     u.on=u.t>1.3&&!out;u.suck-=dt;
@@ -585,7 +587,7 @@ function update(dt){
     if(out&&u.y<-60)G.ufos.splice(i,1)}
 
   // 烏鴉：朝你現在的位置俯衝，塔越高越容易被叼
-  G.nextCrow-=dt;if(G.nextCrow<=0&&!G.boss){G.nextCrow=rnd(4.5,7)-2.2*p;const d=Math.random()<.5?1:-1;
+  G.nextCrow-=dt;if(G.nextCrow<=0&&!G.boss&&!calm){G.nextCrow=rnd(4.5,7)-2.2*p;const d=Math.random()<.5?1:-1;
     G.crows.push({d,x:d>0?-60:W+60,tx:G.cx,warn:.8,has:false,f:0});beep(240,.12,'sawtooth',.04);setTimeout(()=>beep(200,.14,'sawtooth',.04),150)}
   for(let i=G.crows.length-1;i>=0;i--){const c=G.crows[i];c.f+=dt*14;
     if(c.warn>0){c.warn-=dt;continue}
