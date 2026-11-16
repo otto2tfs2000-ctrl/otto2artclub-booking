@@ -101,13 +101,13 @@ cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),k=cv.width/r.
 $('#pX').onclick=()=>{$('#pop').hidden=true};
 main();
 /* 開門動畫：每次從遊戲或作品島進來都播一次（?nodoor=1 不播） */
-(()=>{if(/[?&]nodoor=1/.test(location.search))return;const d=$('#door'),v=$('#doorV');let done=false;
+(()=>{if(/[?&]nodoor=1/.test(location.search))return;const d=$('#door'),v=$('#doorV');let done=false,mode='';   // mode：'vid' 播影片／'css' 播程式畫的門，只會選一種
   const end=()=>{if(done)return;done=true;if(d.hidden)return;d.classList.add('out');setTimeout(()=>{d.hidden=true;try{v.pause()}catch(e){}},700)};
-  /* 影片沒有就換成程式畫的門：0.4 秒後打開，2.6 秒後淡出 */
-  const css=()=>{if(done||!d.hidden&&!$('#dcss').hidden)return;v.hidden=true;d.hidden=false;$('#dcss').hidden=false;setTimeout(()=>$('#dcss').classList.add('open'),400);setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(end,500)},2700)};
+  /* 開門影片（door.mp4，另一個工作階段 7429523 接上的）優先；影片壞掉或 2.5 秒還沒載好，才改播程式畫的門 */
+  const css=()=>{if(done||mode)return;mode='css';v.hidden=true;d.hidden=false;$('#dcss').hidden=false;setTimeout(()=>$('#dcss').classList.add('open'),400);setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(end,500)},2700)};
   v.onended=end;v.onerror=css;$('#doorX').onclick=end;
-  v.oncanplay=()=>{if(done)return;d.hidden=false;v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(end)})};
-  v.src='catch-video/dinner/door.mp4?v=2';setTimeout(()=>{if(d.hidden)css()},1500)})();   // 1.5 秒還沒載到影片就用程式畫的門   // 2.5 秒還沒載好就不等了
+  v.oncanplay=()=>{if(done||mode)return;mode='vid';d.hidden=false;v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(end)})};
+  v.src='catch-video/dinner/door.mp4?v=2';setTimeout(()=>{if(!mode)css()},2500)})();
 })();
 </script>
 </body>
