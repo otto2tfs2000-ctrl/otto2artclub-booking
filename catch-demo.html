@@ -272,7 +272,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <figure class="photo" id="photo"><canvas id="endCv" aria-label="你的版本的吃馬鈴薯的人"></canvas><figcaption id="photoCap"></figcaption></figure>
     <div id="endStory"></div>
     <div id="endBig"></div>
-    <div class="seatInv"><b>🍽 還沒結束！參加感恩長桌，送你 1 點紅利</b><span>挑一位名畫裡的國王、皇后或貴族，自拍把臉放進去，你就會坐上作品小屋的感恩節長桌。</span>
+    <div class="seatInv"><b>🍽 還沒結束！參加感恩長桌，送你 1 點紅利</b><span>挑一位名畫裡的國王、皇后或貴族，自拍把臉放進去，你就會坐上作品小屋的感恩節長桌。紅利每個帳號送一次。</span>
     <button id="btnBooth">🍽 參加感恩長桌領紅利</button></div>
     <div class="estats">
       <div><b id="eTotal">0</b>飛出來（隻）</div>
@@ -952,7 +952,7 @@ const CT_PEND='otto2-ct-pending';
     dnCard('登入好了！🦃<br><span style="font-size:14px;font-weight:600">剛剛那局帶回 '+ctNum(j.served)+' 隻，已經算進全店總數（現在 '+ctNum(j.total)+' 隻）。<br>接下來每一局都會記錄。</span>',false)}
   catch(e){dnCard('剛剛那局沒記錄到<br><span style="font-size:14px;font-weight:600">'+ctEsc(e.message||'網路不穩')+'，下一局會照常記錄。</span>',false)}})();
 /* 11/16 大熊：拍照入座送紅利 1 點（每人一次，伺服器判斷） */
-function dnBonusTxt(j){return j&&j.bonus?'🎁 紅利 +'+j.bonus+' 點已經存進你的帳戶！':j&&j.bonusWhy==='nophone'?'（紅利要先在預約頁綁定電話才領得到）':''}
+function dnBonusTxt(j){return j&&j.bonus?'🎁 紅利 +'+j.bonus+' 點已經存進你的帳戶！':j&&j.bonusWhy==='nophone'?'（紅利要先在預約頁綁定電話才領得到）':j&&j.bonusWhy==='got'?'（入座紅利每個帳號只送一次，你已經領過囉）':''}
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
 function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
