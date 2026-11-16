@@ -988,7 +988,7 @@ body.oct .mainbtns #assetBtn:active{transform:translateY(3px); box-shadow:0 1px 
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261116l';
+const PARK_VER='20261117a';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2370,6 +2370,8 @@ async function shopAsk(id){const p=SHOP.products.find(x=>x.id===id);if(!p)return
   const me=SHOP.me;
   if(!me){await spModal('<h3>請先登入</h3><p>請從 LINE 打開預約頁，才能用紅利兌換。</p>',[{t:'知道了',cls:'pri',v:1}]);return}
   if(me.needPhone){hideShopPage(()=>{toast('先輸入手機號碼，才能查到你的紅利');setTimeout(()=>{try{Gacha.open()}catch(e){}},400)});return}
+  /* 2026-11-17 大熊：紅利限會員兌換 */
+  if(me.member===false){await spModal(`<h3>紅利限會員兌換</h3><p>你目前有 <b>${me.bonus.toLocaleString()}</b> 點紅利。<br>購買方案成為會員，就能用紅利換好禮 🎁</p>`,[{t:'知道了',cls:'pri',v:1}]);return}
   const enough=me.bonus>=p.price,img=p.img?`<div class="sp-mimg" style="background-image:url('${esc(p.img)}')"></div>`:'';
   const ok=await spModal(`${img}<h3>${esc(p.nm)}</h3><p>${enough?`要用 <b>${p.price}</b> 點紅利兌換嗎？<br>你目前有 ${me.bonus.toLocaleString()} 點，兌換後剩 ${(me.bonus-p.price).toLocaleString()} 點。<br><small>兌換後會產生一張兌換券，來店出示就能領取。</small>${cvTip(p.nm)}`:`紅利還不夠喔：需要 <b>${p.price}</b> 點，<br>你目前有 ${me.bonus.toLocaleString()} 點。`}</p>`,
     enough?[{t:'確定兌換',cls:'pri',v:1},{t:'再想想',cls:'ghost',v:0}]:[{t:'好的',cls:'pri',v:0}]);
@@ -5054,7 +5056,7 @@ async function l2Prompt(tries=0){const l2=XS&&XS.p&&XS.p.l2;if(!l2||G.phase==='o
   if(busy||!$('pop').hidden||GGBUSY){if(tries<40)setTimeout(()=>l2Prompt(tries+1),1500);return}
   const k='otto2-l2-'+twToday()+'-'+l2.dates.join(',');if(_l2Shown===k)return;_l2Shown=k;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){}
   const md=d=>`${+d.slice(5,7)}/${+d.slice(8,10)}`,ds=l2.dates.map(md).join('、');
-  const go=await popup('giftbig','你獲得第二層的遊戲資格！',`因為你有預約 ${ds} 的課，第二層開放到 ${md(l2.until)}。\n\n這次可以在第二層擲 ${l2.rolls} 次骰子，集金色天使貼紙、走完一圈開預約大禮盒${l2.silver?'；一進去還送你 1 次銀色扭蛋':''}！`,[{t:'去第二層',v:1,cls:'red'},{t:'晚點再去',v:0,cls:'ghost'}]);
+  const go=await popup('giftbig','你獲得第二層的遊戲資格！',`因為你有預約 ${ds} 的課，第二層開放到 ${md(l2.until)}。\n\n這次可以在第二層擲 ${l2.rolls} 次骰子，集金色天使貼紙${l2.silver?'；一進去還送你 1 次銀色扭蛋':''}！`,[{t:'去第二層',v:1,cls:'red'},{t:'晚點再去',v:0,cls:'ghost'}]);
   if(go&&G.cur!==1)pickLevel(1)}
 async function l2Enter(){if(!XS||!XS.p||!XS.p.l2||!XS.p.l2.silver||XS.sim)return;
   try{const j=await xcall('/xmas/l2enter',{});hud();const n=j.l2Res&&j.l2Res.silver;if(!n)return;await silverRefresh();
@@ -5073,15 +5075,17 @@ async function landAngel(){
 }
 async function openBox(){
   const BX='走完第二層一圈，打開預約大禮盒！';confetti(50);
+  /* 2026-11-17 大熊：預約大禮盒拿掉，繞完一圈只解鎖工作坊小屋 */
   if(XS){try{const j=await xcall('/xmas/box',{});const r=j.boxRes;hud();
+      if(r.gone)return r.first?popup('giftbig','走完第二層一圈！','解鎖了第 6 間小屋「聖誕老公公工作坊」，去空地蓋蓋看！'):toast('走完第二層一圈！');
       const unlock=r.first?'\n\n也解鎖了第 6 間小屋「聖誕老公公工作坊」，去空地蓋蓋看！':'';
       if(r.none)return popup('giftbig','預約大禮盒','這筆預約的大禮盒已經開過了，下次預約再來開！'+unlock);
       const d=r.date?r.date.slice(5):'';
       if(r.pend)return popup('giftbig',BX,`抽到「${r.nm}」！${d?`${d} 那堂課`:'這堂課'}上完、老師核銷後就會自動入帳。${j.sim?'（示範模式，不入帳）':''}`+unlock);
       return popup('giftbig',BX,`拿到 ${r.n} 個禮物！每一筆預約都可以開一次大禮盒。`+unlock)}
     catch(e){toast(e.message||'連線不穩，稍後再試');return}}
-  const first=!G.lap2;G.lap2=true;addGifts(5);
-  await popup('giftbig',BX,'示範版先送 5 個禮物。正式版每一筆預約開一次，有機會抽到紅利、選品店小禮物或折價券（上完課才入帳）。'+(first?'\n\n也解鎖了第 6 間小屋「聖誕老公公工作坊」！':''));
+  const first=!G.lap2;G.lap2=true;
+  if(first)await popup('giftbig','走完第二層一圈！','解鎖了第 6 間小屋「聖誕老公公工作坊」！');else toast('走完第二層一圈！');
 }
 async function walk(n){
   const N=LEVELS[G.cur].path.length,dir=Math.sign(n);
@@ -5267,7 +5271,7 @@ async function doRoll(){
 }
 async function pickLevel(lv){
   if(busy||G.cur===lv||G.phase==='oct')return;
-  if(lv===1&&!G.booked){await popup('santa','第二層還鎖著','預約上課，上課當天起三天就能進第二層！每筆預約可以擲 3 次，一進去送你 1 次銀色扭蛋；第二層有金色天使貼紙（集滿 3 張換畫布升級券（選圖繪畫換大一號畫布）），走完一圈開預約大禮盒。');return}
+  if(lv===1&&!G.booked){await popup('santa','第二層還鎖著','預約上課，上課當天起三天就能進第二層！每筆預約可以擲 3 次，一進去送你 1 次銀色扭蛋；第二層有金色天使貼紙（集滿 3 張換畫布升級券（選圖繪畫換大一號畫布）。');return}
   busy=true;hud();await flyTo(lv);busy=false;hud();
   if(lv===1)await l2Enter();
 }
@@ -5970,7 +5974,7 @@ function renderPhone(guess, err, sent){
 function left(){ return st ? Math.max(0, st.chances.total - st.chances.used) : 0 }
 /* 2026-11-16 大熊：非會員紅利保存期限說明（我的資產）。不寫每月上限（感覺給不起）、不寫「工作室贈送」 */
 function gbNoteHtml(st){if(!st||!st.me||st.me.member||st.sim||window.GUEST)return'';const g=st.gbM||{keep:3,cls:1};
-  return '<div class="gc-gbnote">🎁 <b>紅利點數小提醒</b><br>紅利點數也有保存期限，保留 '+g.keep+' 個月；期間有來上課，從上課那天起再延長 '+g.cls+' 個月。到期沒用完會自動收回。</div>'}
+  return '<div class="gc-gbnote">🎁 <b>紅利點數小提醒</b><br>紅利點數也有保存期限，保留 '+g.keep+' 個月；期間有來上課，從上課那天起再延長 '+g.cls+' 個月。到期沒用完會自動收回。<br>紅利點數限會員兌換使用。</div>'}
 function render(anim){
   var me = st.me, s = st.status;
   var banner = "";
