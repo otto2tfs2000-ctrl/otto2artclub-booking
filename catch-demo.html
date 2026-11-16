@@ -765,7 +765,7 @@ const FOLK=[{n:'名畫裡的女兒',src:null},
   {n:'拿畫筆的畫家',old:'11',f:[.561,.294,.395,.26],skin:[154,113,38]},{n:'拿調色盤的畫家',old:'12',f:[.494,.309,.401,.264],skin:[156,116,37]},{n:'抱向日葵的女孩',old:'13',f:[.51,.256,.387,.255],skin:[173,130,52]},
   {n:'提燈的少年',old:'14',f:[.525,.279,.391,.26],skin:[171,126,37]},{n:'舉杯的工人',old:'15',f:[.553,.261,.369,.244],skin:[161,115,41]}];
 function folkLoad(c){if(c.old&&!c.img){c.img=new Image();c.img.src='catch-video/folk/f'+c.old+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+c.old+'.png';return}if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait2/';
-  c.img=new Image();c.img.src=P+'f'+k+'.webp';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
+  c.img=new Image();c.img.src=P+'f'+k+'.webp?v=2';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
   const im=bChar.img,ch=bChar.rect?H:H*.97,cw=ch*(im.naturalWidth||(bChar.k?640:370))/(im.naturalHeight||(bChar.k?800:560)),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
