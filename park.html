@@ -988,7 +988,7 @@ body.oct .mainbtns #assetBtn:active{transform:translateY(3px); box-shadow:0 1px 
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261116h';
+const PARK_VER='20261116i';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1569,7 +1569,9 @@ async function showDaily(d){if(!d)return;
   if(!(d.orn>=0)&&!d.pts)toast(`今天第一擲 +${d.gift+d.extraGift} 個禮物・連續 ${d.streak} 天（${hint}）`);hud()}
 /* 拿到紅利時跳一張小卡：這次 +N、現在有幾點、再幾點換什麼、這次活動還能拿幾點（不擋遊戲，5 秒自己收） */
 function ptsTip(add,p){const T=(XS&&XS.shopTiers)||[],b=p.bonus,nx=b!=null?T.find(t=>t[0]>b):null,left=p.pointCap!=null?Math.max(0,p.pointCap-p.pts):null;
-  const el=$('ptsTip');el.innerHTML=`<b>🎁 紅利 +${add} 點</b>${b!=null?`<span>你現在有 ${b} 點${nx?`，再 ${nx[0]-b} 點可以換「${esc(nx[1])}」`:'，可以去選品館換好禮了'}</span>`:''}${left!=null?`<span>${left?`這次活動還能再拿 ${left} 點`:'這次活動的紅利都拿到了，之後改送禮物'}</span>`:''}`;
+  /* 2026-11-16 非會員：每月遊戲紅利最多 5 點、保留 3 個月 */
+  const gm=p.gbM&&p.gbM.mem===false?p.gbM:null,ml=gm?Math.max(0,gm.max-gm.n):null;
+  const el=$('ptsTip');el.innerHTML=`<b>🎁 紅利 +${add} 點</b>${b!=null?`<span>你現在有 ${b} 點${nx?`，再 ${nx[0]-b} 點可以換「${esc(nx[1])}」`:'，可以去選品館換好禮了'}</span>`:''}${gm?`<span>${ml?`這個月還能再拿 ${ml} 點`:'這個月的紅利拿滿了，之後改送禮物'}（非會員每月最多 ${gm.max} 點，保留 ${gm.keep} 個月）</span>`:left!=null?`<span>${left?`這次活動還能再拿 ${left} 點`:'這次活動的紅利都拿到了，之後改送禮物'}</span>`:''}`;
   el.hidden=false;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.hidden=true,300)},5500)}
 function applyX(j){const p=j.p;if(p.pts!=null){if(applyX._pts!=null&&p.pts>applyX._pts)ptsTip(p.pts-applyX._pts,p);applyX._pts=p.pts}G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
   if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}
@@ -5487,6 +5489,8 @@ var CSS = `
 .gc-x{position:absolute;right:10px;top:10px;z-index:2;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:18px;cursor:pointer}
 .gc-me{margin:-38px 14px 0;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 4px 14px rgba(30,43,79,.10);position:relative;z-index:2}
 .gc-me-row{display:flex;justify-content:space-between;align-items:center}
+/* 2026-11-16 非會員遊戲紅利規則說明 */
+.gc-gbnote{margin:10px 14px 0;background:#FFF7E6;border:1px solid #F0D9A8;border-radius:12px;padding:9px 12px;font-size:12px;line-height:1.6;color:#5a4320}.gc-gbnote b{color:#B5651D}
 .gc-name{font-weight:700;font-size:15px}
 .gc-tag{font-size:11.5px;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:6px;background:#E7ECF7;color:#1E2B4F}
 .gc-tag.mem{background:#E3B34C}
@@ -5964,6 +5968,9 @@ function renderPhone(guess, err, sent){
 
 /* ── 主畫面 ── */
 function left(){ return st ? Math.max(0, st.chances.total - st.chances.used) : 0 }
+/* 2026-11-16 大熊：非會員遊戲紅利說明（我的資產）。紅利是工作室贈送的，有權收回 */
+function gbNoteHtml(st){if(!st||!st.me||st.me.member||st.sim||window.GUEST)return'';const g=st.gbM||{max:5,keep:3,cls:1,n:0};
+  return '<div class="gc-gbnote">🎁 <b>遊戲紅利小提醒（非會員）</b><br>・每個月最多拿 '+g.max+' 點，這個月已經拿了 <b>'+Math.min(g.n,g.max)+'</b> 點，拿滿之後改送禮物。<br>・紅利是工作室贈送的，保留 '+g.keep+' 個月；期間有來上課，從上課那天起再延長 '+g.cls+' 個月。<br>・到期沒用完會自動收回。成為會員（有點數或堂數）就沒有這些限制。</div>'}
 function render(anim){
   var me = st.me, s = st.status;
   var banner = "";
@@ -5988,6 +5995,7 @@ function render(anim){
     '<div class="gc-bal"><div><b>' + me.points.toLocaleString() + '</b><span>儲值點數</span></div>' +
     '<div><b>' + me.sessions + '</b><span>剩餘堂數</span></div>' +
     '<div class="hl"><b id="gcBB">' + me.bonus + '</b><span>紅利</span></div></div></div>' +
+    gbNoteHtml(st) +
     boardHtml() +
     myPrizes() +
     vgBookHtml() +
