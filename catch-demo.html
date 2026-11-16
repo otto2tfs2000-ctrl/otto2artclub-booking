@@ -503,7 +503,7 @@ function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700
   if(G){G.gy=H*.72;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（.64 太大 → .76 → 再高一點 .72） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8;G.spr=bake(sprite,G.ch*DP);BOSS_C=null}}
 window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
-function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
+function startGame(){preloadEnding();scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
   G={t:0,cd:4,hp:BOSS?HP_MAX:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
      helps:[],nextHelp:rnd(6,10),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
   fit();G.cx=G.tx=W/2;if(BOSS){const bw=Math.min(W*.62,300);BOSS_C=BIMG.map(im=>im.naturalWidth?bake(im,bw*DP*im.naturalHeight/im.naturalWidth):null)}for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
@@ -644,14 +644,18 @@ function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
   else{$('#endStory').textContent='火雞一隻都沒帶回來，這一家人今晚還是只有馬鈴薯……';$('#endBig').textContent='再試一次？'}
   $('#endNote').textContent=BOSS&&G.hp<=0?(G.boss?'被大魔王炸倒了！帶回小屋的火雞還是算數。':'5 滴血用完了，沒撐到大魔王……下次閃開炸彈試試看！'):BOSS?(G.bonus?'最後頂著 '+(G.bonus/2)+' 隻撐過大魔王，算兩倍 +'+G.bonus+' 位！':'大魔王把頭上的火雞都炸光了，下次撐住試試看！'):(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
   $('#epNote').textContent='';
-  ctSend(N);
+  if(N&&vidOK)setTimeout(()=>ctSend(N),1500);else ctSend(N);   /* 11/16 大熊：結尾影片開頭會卡 → 送成績晚 1.5 秒，讓影片先順順播 */
   scrPlay.hidden=true;playOutro(N)}
 /* 2026-11-13 大熊：結局先播火雞衝進來、一起吃飯的影片，最後「喀嚓」變成一張合照 */
 let outN=0;
+/* 11/16 大熊：火雞衝進來那段會停頓 → 開局就在背景先把結尾影片（2.5MB）和合照要用的圖下載、解碼好 */
+let END_URL='',endFetch=false;
+function preloadEnding(){if(!endFetch){endFetch=true;fetch('catch-video/ending.mp4?v=voice3').then(r=>r.ok?r.blob():null).then(b=>{if(b&&b.size>100000)END_URL=URL.createObjectURL(b)}).catch(()=>{endFetch=false})}
+  [...TIMG,peImg].forEach(m=>{try{m.decode&&m.decode().catch(()=>{})}catch(_){}})}
 function playOutro(N){outN=N;if(!N||!vidOK){showPhoto();return}
   $('#outBox').appendChild(stVid);stVid.hidden=false;stVid.style.transform='';stVid.style.filter='none';stVid.loop=false;stVid.removeAttribute('poster');
   stVid.onended=showPhoto;stVid.onerror=showPhoto;stVid.style.objectPosition='50% 50%';panOn=false;
-  stVid.onloadedmetadata=()=>{const b=$('#outBox').getBoundingClientRect();panOn=stVid.videoWidth/stVid.videoHeight>b.width/b.height*1.15;$('#outPan').hidden=!panOn;if(panOn){panT0=performance.now();panRaf=panRaf||requestAnimationFrame(panLoop)}};stVid.src='catch-video/ending.mp4?v=voice3';stVid.muted=false;$('#scrOutro').hidden=false;
+  stVid.onloadedmetadata=()=>{const b=$('#outBox').getBoundingClientRect();panOn=stVid.videoWidth/stVid.videoHeight>b.width/b.height*1.15;$('#outPan').hidden=!panOn;if(panOn){panT0=performance.now();panRaf=panRaf||requestAnimationFrame(panLoop)}};stVid.src=END_URL||'catch-video/ending.mp4?v=voice3';stVid.muted=false;$('#scrOutro').hidden=false;
   const pr=stVid.play();if(pr&&pr.catch)pr.catch(()=>{stVid.muted=true;stVid.play().catch(()=>showPhoto())})}
 function showPhoto(){if(!scrEnd.hidden)return;panOn=false;$('#outPan').hidden=true;stVid.onended=null;stVid.onerror=null;try{stVid.pause()}catch(_){}$('#scrOutro').hidden=true;
   scrEnd.hidden=false;scrEnd.scrollTop=0;
