@@ -321,7 +321,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261116c"></script>
 <script>
-const ART_VER='20261116d';
+const ART_VER='20261116e';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -579,7 +579,7 @@ function buildBigTree(){
 const DINNER_POS=[6.3,0,4.6];
 /* 11/16 大熊：點大樹要看得到長桌入口（相簿最上面的按鈕），活動期間到 12/31 */
 function dinnerBtnOn(){return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)<='2026-12-31'}
-function dinnerOn(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return d>='2026-11-26'||/[?&]dinner=1/.test(location.search)}
+function dinnerOn(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return d>='2026-11-16'||/[?&]dinner=1/.test(location.search)}   /* 11/16 大熊：長桌木牆提早開 */
 function buildDinnerWall(){if(!dinnerOn())return;
   const g=new THREE.Group(),W=6.6,H=W/3;g.position.set(DINNER_POS[0],1.38+DINNER_POS[1],DINNER_POS[2]);g.rotation.y=Math.atan2(DINNER_POS[0],DINNER_POS[2])+.1;scene.add(g);
   const wood=toon('#7a5434'),wd=toon('#5e3f25');
