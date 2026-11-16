@@ -152,6 +152,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #vgBk .share{background:#06c755;color:#fff}#vgBk .book{background:#ffcf6b;color:#211a12;box-shadow:0 4px 0 #a8742a}
 #vgBk .note{color:#c9b38a;font-size:12px;text-align:center;margin-top:10px;line-height:1.6}
 #vgPh{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px}#vgPh img{max-width:100%;max-height:86vh;border-radius:8px}
+.seatInv{width:100%;max-width:400px;box-sizing:border-box;background:#3a2a1b;border:2px solid #ffcf6b;border-radius:18px;padding:12px 14px 14px;color:#f3e6c8;font-size:14px;line-height:1.6;text-align:left;flex:none}
+.seatInv b{display:block;color:#ffcf6b;font-size:16.5px;margin-bottom:3px}.seatInv span{display:block;margin-bottom:10px}
 #btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
 #scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
 .bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:18px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
@@ -277,7 +279,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     </div>
     <div id="endNote"></div>
     <div id="ctBox"></div>
-    <button id="btnBooth">📸 全村都來了！挑一位村民，換你入座</button>
+    <div class="seatInv"><b>🍽 梵谷村今晚擺了一張好長的桌子</b><span>你也想成為其中一份子，一起入座吃晚餐嗎？挑一位村民、把你的臉放進去，就能坐上作品小屋大樹下的長桌。</span>
+    <button id="btnBooth">🙋 我也要入座！</button></div>
     <div class="btns">
       <button class="redo" id="btnRedo">重畫角色</button>
       <button class="again" id="btnAgain">再玩一次</button>
@@ -567,10 +570,10 @@ function update(dt){
     if(t.x<-120)G.tables.splice(i,1)}
   // 幽浮：慢慢跟著你，光束照到火雞塔就把最上面那隻吸走
   G.nextUfo-=dt;if(G.nextUfo<=0){G.nextUfo=rnd(15,22)-4*Math.min(1,p);G.ufos.push({x:G.cx<W/2?W-50:50,y:-40,t:0,suck:0});beep(700,.25,'sine',.04);setTimeout(()=>beep(900,.25,'sine',.04),200)}
-  for(let i=G.ufos.length-1;i>=0;i--){const u=G.ufos[i];u.t+=dt;const out=u.t>6;
-    u.y+=((out?-80:118)-u.y)*Math.min(1,dt*3);if(!out)u.x+=clamp(G.cx-u.x,-1,1)*(48+20*p)*dt;
+  for(let i=G.ufos.length-1;i>=0;i--){const u=G.ufos[i];u.t+=dt;const out=u.t>UFO_OUT;   /* 11/16 大熊：照太久躲不掉 → 照 2 秒就走、照的時候不跟人 */
+    u.y+=((out?-80:118)-u.y)*Math.min(1,dt*3);if(!out&&u.t<1.3)u.x+=clamp(G.cx-u.x,-1,1)*(48+20*p)*dt;
     u.on=u.t>1.3&&!out;u.suck-=dt;
-    if(u.on&&G.n&&u.suck<=0){for(let j=0;j<G.n;j++){if(Math.abs(pos(j).x-u.x)<32){const q=pos(G.n-1);G.n--;G.stolen++;u.suck=.5;
+    if(u.on&&G.n&&u.suck<=0){for(let j=0;j<G.n;j++){if(Math.abs(pos(j).x-u.x)<32){const q=pos(G.n-1);G.n--;G.stolen++;u.suck=.8;
       G.fx.push({k:'up',x:q.x,y:q.y,u,life:0});txt('被吸走了！',q.x,q.y-24,'#c8ffd8');beep(900,.15,'sine',.05);break}}}
     if(out&&u.y<-60)G.ufos.splice(i,1)}
 
@@ -1017,7 +1020,8 @@ function bomb(it){x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.w)*.2);
   ell(0,2,14,13,'#22222a');ell(-5,-3,4,3,'#55556a');x.strokeStyle='#8a6a3a';x.lineWidth=3;x.beginPath();x.moveTo(6,-10);x.quadraticCurveTo(14,-20,10,-24);x.stroke();
   ell(10,-25,Math.floor(it.w)%2?5:3,Math.floor(it.w)%2?5:3,'#ffb000');ell(4,0,2.2,2.2,'#fff');ell(-4,0,2.2,2.2,'#fff');
   x.strokeStyle='#fff';x.lineWidth=1.5;x.beginPath();x.arc(0,9,4,1.15*Math.PI,1.85*Math.PI);x.stroke();x.restore()}
-function ufo(u){if(u.t<=6){x.globalAlpha=u.on?.32:(Math.floor(u.t*8)%2?.14:.05);x.fillStyle='#7dffb0';x.beginPath();x.moveTo(u.x-14,u.y+8);x.lineTo(u.x+14,u.y+8);x.lineTo(u.x+34,G.gy);x.lineTo(u.x-34,G.gy);x.fill();x.globalAlpha=1}
+const UFO_OUT=3.3;
+function ufo(u){if(u.t<=UFO_OUT){x.globalAlpha=u.on?.32:(Math.floor(u.t*8)%2?.14:.05);x.fillStyle='#7dffb0';x.beginPath();x.moveTo(u.x-14,u.y+8);x.lineTo(u.x+14,u.y+8);x.lineTo(u.x+34,G.gy);x.lineTo(u.x-34,G.gy);x.fill();x.globalAlpha=1}
   ell(u.x,u.y-8,16,13,'#9be8c0');ell(u.x,u.y,36,11,'#8d93a6');ell(u.x,u.y-3,36,8,'#b9bfd0');
   for(let i=-2;i<=2;i++)ell(u.x+i*13,u.y+2,2.5,2.5,Math.floor(u.t*6+i)%2?'#ffe14d':'#d62828')}
 const FONT='"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif';
