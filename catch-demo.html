@@ -179,8 +179,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #bPickBox{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:460px}
 .bStory{font-size:14px;line-height:1.65;color:#e6d3ac;text-align:center;background:#2b2116;border-radius:12px;padding:12px 14px}
 .bStory b{color:#ffcf6b}
-#bPick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
-#bPick button{border:2px solid #6b5432;border-radius:10px;background:#2b2116;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:#e6d3ac;font-size:11px;font-weight:700;line-height:1.2}
+#bPick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
+#bPick button{min-width:0;overflow:hidden;border:2px solid #6b5432;border-radius:10px;background:#2b2116;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:#e6d3ac;font-size:11px;font-weight:700;line-height:1.2}
 #bPick button img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top;border-radius:6px;background:#3a2e20}
 #bShoot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 #bShoot[hidden]{display:none!important}
@@ -734,8 +734,9 @@ const FOLK=[{n:'名畫裡的女兒',src:null},
   {n:'卡斯蒂廖內伯爵',k:11,f:[0.504,0.331,0.227,0.262],skin:[139,110,71]},
   {n:'抱銀貂的女子',k:12,f:[0.514,0.33,0.198,0.242],skin:[147,110,82]},
   {n:'戴珍珠耳環的少女',k:13,f:[0.481,0.42,0.315,0.301],skin:[150,122,94]},
-  {n:'蒙娜麗莎',k:14,f:[0.472,0.332,0.256,0.236],skin:[181,126,63]}];
-function folkLoad(c){if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait2/';
+  {n:'蒙娜麗莎',k:14,f:[0.472,0.332,0.256,0.236],skin:[181,126,63]},
+  {n:'抱麵包的師傅',old:'06',f:[.489,.225,.275,.19],skin:[160,112,44]}];
+function folkLoad(c){if(c.old&&!c.img){c.img=new Image();c.img.src='catch-video/folk/f'+c.old+'.png';c.mask=new Image();c.mask.src='catch-video/folk/m'+c.old+'.png';return}if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait2/';
   c.img=new Image();c.img.src=P+'f'+k+'.webp';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
@@ -807,7 +808,7 @@ $('#bLiveBtn').onclick=async()=>{
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();bShowPick()}
 function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=true;$('#bDone').hidden=true;$('#scrBooth').scrollTop=0}
 (function(){const box=$('#bPick');FOLK.forEach((c,i)=>{const b=document.createElement('button');b.type='button';
-  const im=document.createElement('img');im.alt=c.n;im.loading='lazy';im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':(c.img?c.img.src:'');if(!c.k&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
+  const im=document.createElement('img');im.alt=c.n;im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':c.old?'catch-video/folk/f'+c.old+'.png':(c.img?c.img.src:'');if(!c.k&&!c.old&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
     const tc=t.getContext('2d');const draw=()=>{tc.drawImage(peImg,.27*peImg.naturalWidth,.30*peImg.naturalHeight,.14*peImg.naturalWidth,.26*peImg.naturalHeight,0,0,150,200);im.src=t.toDataURL('image/jpeg',.8)};peImg.complete?draw():peImg.addEventListener('load',draw,{once:true})}
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
   b.onclick=()=>{folkLoad(c);bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
