@@ -988,7 +988,7 @@ body.oct .mainbtns #assetBtn:active{transform:translateY(3px); box-shadow:0 1px 
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261116i';
+const PARK_VER='20261116j';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -1573,7 +1573,7 @@ function ptsTip(add,p){const T=(XS&&XS.shopTiers)||[],b=p.bonus,nx=b!=null?T.fin
   const gm=p.gbM&&p.gbM.mem===false?p.gbM:null,ml=gm?Math.max(0,gm.max-gm.n):null;
   const el=$('ptsTip');el.innerHTML=`<b>🎁 紅利 +${add} 點</b>${b!=null?`<span>你現在有 ${b} 點${nx?`，再 ${nx[0]-b} 點可以換「${esc(nx[1])}」`:'，可以去選品館換好禮了'}</span>`:''}${gm?`<span>${ml?`這個月還能再拿 ${ml} 點`:'這個月的紅利拿滿了，之後改送禮物'}（非會員每月最多 ${gm.max} 點，保留 ${gm.keep} 個月）</span>`:left!=null?`<span>${left?`這次活動還能再拿 ${left} 點`:'這次活動的紅利都拿到了，之後改送禮物'}</span>`:''}`;
   el.hidden=false;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.hidden=true,300)},5500)}
-function applyX(j){const p=j.p;if(p.pts!=null){if(applyX._pts!=null&&p.pts>applyX._pts)ptsTip(p.pts-applyX._pts,p);applyX._pts=p.pts}G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
+function applyX(j){const p=j.p;if(p.pts!=null){/* 2026-11-16 大熊：不用顯示紅利小卡（ptsTip 不再呼叫） */applyX._pts=p.pts}G.gifts=p.gifts;if(p.lights!=null)G.myLights=p.lights;G.orn=p.orn.slice();G.lv[0].pos=p.pos[0];G.lv[1].pos=p.pos[1];G.lv[0].left=p.left[0];G.lv[1].left=p.left[1];
   if(!j.sim)G.booked=!!j.booked;G.test=!!j.sim;if(p.arc&&p.arc.best){G.arc.best=Object.assign({},p.arc.best,G.arc.best)}
   if(p.wear){const k=JSON.stringify(p.wear.bear||{});if(k!==applyX._w){applyX._w=k;try{applyAvatar()}catch(e){}}}}
 /* 全體共用的樹／森林／小屋：用伺服器的資料蓋掉本機示範資料 */
@@ -1598,7 +1598,7 @@ async function xmasPull(){if(!window.PROD||!token())return;
     setTimeout(xmasClaimPrompt,1200);setTimeout(l2Prompt,2200)}catch(e){XS=null}}
 /* 來上課的獎勵（伺服器發好了，這裡只講）：11 月銀色扭蛋、12 月聖誕吊飾 */
 async function xmasKlassShow(r,tries=0){if(busy||!$('pop').hidden){if(tries<60)setTimeout(()=>xmasKlassShow(r,tries+1),1000);return}
-  if(r.box&&r.box.length){await popup('giftbig','上完課了！大禮盒入帳',r.box.map(b=>b.ticket?`「${b.nm}」已經放進你的票券`:b.pts?`「${b.nm}」已經加進紅利點數${b.gift?`（紅利拿滿了，另外改送 ${b.gift} 個禮物）`:''}`:`紅利拿滿了，「${b.nm}」改送 ${b.gift} 個禮物`).join('\n'));if(!r.silver&&!r.orn&&!r.gift){hud();return}}
+  if(r.box&&r.box.length){await popup('giftbig','上完課了！大禮盒入帳',r.box.map(b=>b.ticket?`「${b.nm}」已經放進你的票券`:b.pts?`「${b.nm}」已經加進紅利點數${b.gift?`（另外送你 ${b.gift} 個禮物）`:''}`:`紅利拿滿了，「${b.nm}」改送 ${b.gift} 個禮物`).join('\n'));if(!r.silver&&!r.orn&&!r.gift){hud();return}}
   if(r.silver){const go=await popup('giftbig','謝謝你來上課！',`送你 ${r.silver} 顆銀色扭蛋 🥈，一個月內要轉喔。`,[{t:'現在去轉',v:1,cls:'red'},{t:'等一下',v:0,cls:'ghost'}]);if(go)silverOpen();return}
   if(r.orn){await popup('giftbig','謝謝你來上課！',`送你 ${r.orn} 個聖誕吊飾 🔔，已經掛上去了。`)}
   else if(r.gift){await popup('giftbig','謝謝你來上課！',`吊飾已經集滿了，改送你 ${r.gift} 個聖誕禮物，可以拿去幫聖誕樹點燈。`)}
@@ -4493,7 +4493,7 @@ async function gJump(){
   const sc=r.sc,sec=Math.floor(r.sec);let bMsg='';
   if(window.PROD&&XS&&!window.GUEST&&token()){
     try{const j=await xcall('/xmas/jumpmini',{gift:sc,bonus:r.b,sec:r.sec}),q=j.jmRes||{};hud();
-      bMsg=q.addB?`另外送你紅利 ${q.addB} 點！`:q.swap?`紅利已經到上限，改送你 ${q.swap} 個禮物。`:r.b?`今天雪地跳跳的紅利已經拿過了（每天最多 ${JM_BCAP} 點，算最好的一局）。`:''}
+      bMsg=q.addB?`另外送你紅利 ${q.addB} 點！`:q.swap?`送你 ${q.swap} 個禮物。`:r.b?`今天雪地跳跳的紅利已經拿過了（每天最多 ${JM_BCAP} 點，算最好的一局）。`:''}
     catch(e){if(r.b)bMsg='連線不穩，這局的紅利沒送出去。'}}
   else if(r.b)bMsg='體驗版不送紅利。';
   Jump12.close();
@@ -5970,7 +5970,7 @@ function renderPhone(guess, err, sent){
 function left(){ return st ? Math.max(0, st.chances.total - st.chances.used) : 0 }
 /* 2026-11-16 大熊：非會員遊戲紅利說明（我的資產）。紅利是工作室贈送的，有權收回 */
 function gbNoteHtml(st){if(!st||!st.me||st.me.member||st.sim||window.GUEST)return'';const g=st.gbM||{max:5,keep:3,cls:1,n:0};
-  return '<div class="gc-gbnote">🎁 <b>遊戲紅利小提醒（非會員）</b><br>・每個月最多拿 '+g.max+' 點，這個月已經拿了 <b>'+Math.min(g.n,g.max)+'</b> 點，拿滿之後改送禮物。<br>・紅利是工作室贈送的，保留 '+g.keep+' 個月；期間有來上課，從上課那天起再延長 '+g.cls+' 個月。<br>・到期沒用完會自動收回。成為會員（有點數或堂數）就沒有這些限制。</div>'}
+  return '<div class="gc-gbnote">🎁 <b>遊戲紅利小提醒（非會員）</b><br>・每個月最多拿 '+g.max+' 點，這個月已經拿了 <b>'+Math.min(g.n,g.max)+'</b> 點。<br>・紅利是工作室贈送的，保留 '+g.keep+' 個月；期間有來上課，從上課那天起再延長 '+g.cls+' 個月。<br>・到期沒用完會自動收回。成為會員（有點數或堂數）就沒有這些限制。</div>'}
 function render(anim){
   var me = st.me, s = st.status;
   var banner = "";
