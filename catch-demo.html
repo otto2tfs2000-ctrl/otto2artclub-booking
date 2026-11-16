@@ -478,7 +478,8 @@ const cv=$('#cv');let x=cv.getContext('2d');
 let W=375,H=700,DP=1,G=null,raf=0,last=0;
 const TH=20;                       // 疊起來每隻的高度
 /* 2026-11-16 大熊試玩：一局 60 秒，最後 15 秒老公雞大魔王狂丟爆炸蛋，小屋關門、頭上的火雞時間到算兩倍（網址加 ?boss=1 才有） */
-const BOSS=/[?&]boss=1/.test(location.search),GAME_T=60,BOSS_AT=45;
+const BOSS=!/[?&]boss=0/.test(location.search),   /* 11/16 大熊試玩後說直接上架：大家都是這個玩法；?boss=0 回舊版（三顆愛心） */
+      GAME_T=60,BOSS_AT=45;
 const BIMG=['b1','b2','b3'].map(n=>{const im=new Image();if(BOSS)im.src='catch-video/boss/'+n+'.webp?v=1';return im});
 function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700;DP=Math.min(2,window.devicePixelRatio||1);
   cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0);
