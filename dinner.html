@@ -55,7 +55,9 @@ const SEG_W=2000,SEG_H=667,FORE_TOP=207;
 const SEAT_BOTTOM=505,PERSON_H=275,L_END=400,R_END=1600,TW=R_END-L_END,OV=110,GAP=190,MIN_SEATS=40;
 function tableW(n){return L_END+n*TW+(SEG_W-R_END)}
 function seatsFor(n){const W=tableW(n),out=[],flowers=[];for(let k=0;k<n;k++)flowers.push(L_END+k*TW+(900-L_END));   // 每段中間的向日葵前面不坐人
-  for(let x=175;x<=W-175;x+=GAP)if(flowers.every(f=>Math.abs(f-x)>105))out.push(x);return out}
+  let k=0;for(let x=175;x<=W-175;x+=GAPS[k++%GAPS.length])if(flowers.every(f=>Math.abs(f-x)>105))out.push(x);return out}
+/* 11/16 大熊：大大小小、有些人可以靠很近 → 間距不固定 */
+const GAPS=[150,105,215,165,115,235,150,120,195];
 function piece(img,sx,sw,h,feather){const c=document.createElement('canvas');c.width=sw;c.height=h;const x=c.getContext('2d');x.drawImage(img,sx,0,sw,h,0,0,sw,h);
   if(feather){const m=document.createElement('canvas');m.width=sw;m.height=h;const mx=m.getContext('2d');const g=mx.createLinearGradient(0,0,OV,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'#000');mx.fillStyle=g;mx.fillRect(0,0,OV,h);mx.fillStyle='#000';mx.fillRect(OV,0,sw-OV,h);
     x.globalCompositeOperation='destination-in';x.drawImage(m,0,0)}return c}   // 遮罩要一次蓋上去，分兩次 fillRect 會把另一邊清掉
@@ -64,19 +66,19 @@ function drawLong(ctx,img,n,y0,h){if(!img)return;const left=piece(img,0,L_END,h,
 const $=s=>document.querySelector(s),cv=$('#cv'),ctx=cv.getContext('2d');
 const load=(src,cors)=>new Promise(ok=>{const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src=src});
 let people=[],hits=[];
-/* 11/16 大熊：人物太亮、像貼上去的 → 改成稍微壓暗、降一點彩度、蓋一層燭光暖色，跟牆面融在一起 */
+/* 11/16 大熊：人物太亮、像貼上去的 → 稍微壓暗＋蓋一層燭光暖色。改用圖層混色（不再一個一個像素算，進梵谷家才不會卡） */
 function warm(im){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
-  const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const r=p[i],g=p[i+1],b=p[i+2],l=(r*.3+g*.59+b*.11);
-    p[i]=Math.min(255,(r*.85+l*.15)*.9+235*.1);p[i+1]=Math.min(255,(g*.85+l*.15)*.9+170*.1);p[i+2]=Math.min(255,(b*.85+l*.15)*.9+100*.1)}
-  x.putImageData(d,0,0);return c}catch(e){return im}}
+  x.globalCompositeOperation='source-atop';x.fillStyle='rgba(120,70,25,.16)';x.fillRect(0,0,c.width,c.height);   // 暖色、壓暗一點
+  x.fillStyle='rgba(255,190,110,.08)';x.fillRect(0,0,c.width,c.height);return c}catch(e){return im}}
 /* 有高有低：每個位子的身高比例（循環），腳都藏在桌巾後面 */
 const HEIGHTS=[1,.9,1.12,.94,1.05,.88,1.15,.92,.98,.9,1.08,.95];
 async function main(){
   let list=[];
   if(DEMO){list=Array.from({length:13},(_,i)=>({id:'demo'+i,n:['林○○','陳○○','王○○','張○○','李○○'][i%5],ch:'村民',msg:['感恩有你們一起吃飯！','謝謝老師陪我畫完第一幅畫','今年最開心的一天','謝謝家人一直支持我','感恩每一堂課'][i%5],cut:'catch-video/dinner/demo/p'+String(i%15+1).padStart(2,'0')+'.webp'}))}
   else{try{const r=await fetch(NOTIFY_URL+'/dinner/list');const j=await r.json();if(j.ok)list=j.list||[]}catch(e){$('#cnt').textContent='讀不到名單，請稍後再試'}}
-  const [bg,fore]=await Promise.all([load('catch-video/dinner/table.jpg'),load('catch-video/dinner/fore.webp?v=2')]);
+  const [bg,fore]=await Promise.all([load('catch-video/dinner/table.jpg'),load('catch-video/dinner/fore.webp?v=3')]);
   const imgs=await Promise.all(list.map(x=>load(x.cut,!DEMO)));
+  await doorDone;   // 11/16 開門影片播的時候不要畫（手機會卡），影片結束才排座位
   people=list.map((x,i)=>({...x,img:imgs[i]})).filter(x=>x.img);
   let n=1;while(n<12&&seatsFor(n).length<Math.max(MIN_SEATS,people.length))n++;
   const SEATS=seatsFor(n);cv.width=tableW(n);cv.height=SEG_H;
@@ -93,12 +95,13 @@ cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),k=cv.width/r.
   const h=hits.slice().reverse().find(h=>x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);if(!h){$('#pop').hidden=true;return}
   $('#pImg').src=h.p.img.src;$('#pQ').textContent='「'+(h.p.msg||'感恩有你們一起吃飯！')+'」';$('#pW').textContent=(h.p.n||'客人')+(h.p.ch?'・'+h.p.ch:'');$('#pop').hidden=false});
 $('#pX').onclick=()=>{$('#pop').hidden=true};
+let doorEnd;const doorDone=new Promise(ok=>{doorEnd=ok});
 main();
 /* 開門動畫：每次從遊戲或作品島進來都播一次（?nodoor=1 不播）
    11/16 大熊：只要奶奶開門的影片，不要程式畫的木門和文字。LINE 裡面影片不會自己先載，所以一進來就直接 play()（先蓋門口第一格當底圖），
    真的播不了或 8 秒都沒開始才直接進長桌。 */
-(()=>{const d=$('#door'),v=$('#doorV');if(/[?&]nodoor=1/.test(location.search)){d.hidden=true;return}let done=false,started=false;
-  const end=()=>{if(done)return;done=true;d.classList.add('out');setTimeout(()=>{d.hidden=true;try{v.pause()}catch(e){}},700)};
+(()=>{const d=$('#door'),v=$('#doorV');if(/[?&]nodoor=1/.test(location.search)){d.hidden=true;doorEnd();return}let done=false,started=false;
+  const end=()=>{if(done)return;done=true;doorEnd();d.classList.add('out');setTimeout(()=>{d.hidden=true;try{v.pause()}catch(e){}},700)};
   v.onended=end;v.onerror=end;$('#doorX').onclick=end;v.onplaying=()=>{started=true};
   v.src='catch-video/dinner/door.mp4?v=2';
   const go=()=>{v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})};go();

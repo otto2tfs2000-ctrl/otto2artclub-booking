@@ -75,6 +75,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #stDots{display:flex;gap:6px}#stDots i{width:8px;height:8px;border-radius:50%;background:#5a4630}#stDots i.on{background:#e8c27a}
 .stBtns{display:flex;gap:10px;width:100%;max-width:360px}
 .stBtns button{flex:1;height:48px;border-radius:24px;font-size:16px;font-weight:700}
+#skipAsk{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#skipAsk .sk{background:#fbf6ea;color:#3b2416;border-radius:18px;padding:20px 18px 16px;width:min(86vw,340px);box-sizing:border-box;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.55)}
+#skipAsk small{display:block;font-size:14px;color:#8a6a4a;font-weight:700}#skipAsk b{display:block;font-size:21px;font-weight:900;margin:6px 0 4px;line-height:1.4}
+#skipAsk i{display:block;font-style:normal;font-size:13px;color:#8a6a4a}
+#skipAsk .skB{display:flex;gap:10px;margin-top:16px}#skipAsk button{flex:1;border-radius:22px;padding:11px 0;font:inherit;font-size:15px;font-weight:800}
+#skipAsk .y{border:0;background:#e2711d;color:#fff;box-shadow:0 3px 0 #9c4510}#skipAsk .n{border:2px solid #c9a46a;background:none;color:#8a6a4a}
 #stSkip{background:transparent;border:2px solid #6b5432;color:#d9b77a}
 #stNext{border:0;background:var(--pumpkin);color:#fff;box-shadow:0 4px 0 var(--leaf)}
 .voice{font-size:12px;color:#9c8460}
@@ -426,7 +432,13 @@ function stDraw(t){if(!peImg.complete||!peImg.naturalWidth)return;const keep=x;x
     x.restore()}
   x=keep}
 function stDone(){clearInterval(fbTimer);try{stVid.pause()}catch(_){}audioInit();bgmStart();scrStory.hidden=true;scrDraw.hidden=false;sizePad()}
-$('#stSkip').onclick=()=>{try{stVid.muted=true;const pr=stVid.play();if(pr)pr.then(()=>stVid.pause()).catch(()=>{})}catch(_){}stDone()};stShow();
+/* 11/16 大熊：按略過先問一下「你真的要跳過嗎？」 */
+function stSkipNow(){try{stVid.muted=true;const pr=stVid.play();if(pr)pr.then(()=>stVid.pause()).catch(()=>{})}catch(_){}stDone()}
+$('#stSkip').onclick=()=>{const wasPlay=!stVid.paused&&!stVid.ended;try{stVid.pause()}catch(_){}
+  const d=document.createElement('div');d.id='skipAsk';d.innerHTML='<div class="sk"><small>你真的要跳過嗎？</small><b>超荒誕劇情，不聽一下嗎？</b><i>（大熊老師在流淚 😢）</i><div class="skB"><button type="button" class="y">好啦，我聽</button><button type="button" class="n">還是跳過</button></div></div>';
+  document.body.appendChild(d);
+  d.querySelector('.y').onclick=()=>{d.remove();if(wasPlay)stVid.play().catch(()=>{})};
+  d.querySelector('.n').onclick=()=>{d.remove();stSkipNow()}};stShow();
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, rnd=(a,b)=>a+Math.random()*(b-a);
 
 /* ───────── 聲音（很小聲的嗶，開不了就算了） ───────── */
@@ -488,13 +500,13 @@ const BOSS=!/[?&]boss=0/.test(location.search),   /* 11/16 大熊試玩後說直
 const BIMG=['b1','b2','b3'].map(n=>{const im=new Image();if(BOSS)im.src='catch-video/boss/'+n+'.webp?v=1';return im});
 function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700;DP=Math.min(2,window.devicePixelRatio||1);
   cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0);
-  if(G){G.gy=H*.72;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（.64 太大 → .76 → 再高一點 .72） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8}}
+  if(G){G.gy=H*.72;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（.64 太大 → .76 → 再高一點 .72） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8;G.spr=bake(sprite,G.ch*DP);BOSS_C=null}}
 window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
   G={t:0,cd:4,hp:BOSS?HP_MAX:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
      helps:[],nextHelp:rnd(6,10),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
-  fit();G.cx=G.tx=W/2;for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
+  fit();G.cx=G.tx=W/2;if(BOSS){const bw=Math.min(W*.62,300);BOSS_C=BIMG.map(im=>im.naturalWidth?bake(im,bw*DP*im.naturalHeight/im.naturalWidth):null)}for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
   cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop)}
 function loop(ts){if(!G||G.over)return;const dt=last?Math.min(.05,(ts-last)/1000):.016;last=ts;update(dt);draw();raf=requestAnimationFrame(loop)}
 
@@ -619,8 +631,10 @@ function bossStep(dt){
     G.items=G.items.filter(it=>!it.bomb);b.lose=true;G.bye=2.2;
     txt(k?'撐住了！頭上 '+k+' 隻 ×2 = '+G.bonus+' 位':'時間到！',W/2,H*.4,'#ffe14d',true);beep(660,.12);setTimeout(()=>beep(990,.25),120);return true}
   return false}
-function drawBoss(){const b=G.boss;if(!b)return;const im=BIMG[b.lose?2:b.throwT>0?1:0];if(!im.naturalWidth)return;
-  const w=b.w,h=w*im.naturalHeight/im.naturalWidth,wob=b.lose?0:Math.sin(b.t*6)*.04;
+let BOSS_C=null;
+function drawBoss(){const b=G.boss;if(!b)return;const k=b.lose?2:b.throwT>0?1:0,im0=BIMG[k];if(!im0.naturalWidth)return;
+  if(!BOSS_C)BOSS_C=[];if(!BOSS_C[k])BOSS_C[k]=bake(im0,b.w*DP*im0.naturalHeight/im0.naturalWidth);const im=BOSS_C[k];
+  const w=b.w,h=w*im.height/im.width,wob=b.lose?0:Math.sin(b.t*6)*.04;
   x.save();x.translate(b.x,b.y+h/2);x.rotate(wob);x.drawImage(im,-w/2,-h/2,w,h);x.restore()}
 function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
   const N=G.served,T=Math.max(G.total,N);
@@ -778,8 +792,9 @@ function boothDraw(ctx,W,H){   // 畫在 (0,0,W,H) 這塊
     if(!bChar.mask){ctx.fillStyle='#7a5a41';ctx.font='800 '+Math.round(W*.04)+'px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('你的臉',tx,ty)}}   // 臉型洞形狀各不同，不放字，米色就是要放臉的地方
   const L=document.createElement('canvas');L.width=W;L.height=H;const lx=L.getContext('2d');
   lx.imageSmoothingQuality='high';
-  lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);
-  if(bChar.img){if(!bChar.rect){lx.fillStyle='rgba(20,15,8,.55)';lx.fillRect(0,0,W,H)}lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}   // 村民站在暗暗的名畫前面
+  /* 11/16 大熊：人物後面不要吃馬鈴薯的人那張畫 → 純色深咖啡底，跟挑人小圖一樣 */
+  if(bChar.img){lx.fillStyle='#3a2a1b';lx.fillRect(0,0,W,H);lx.drawImage(bChar.img,GM.x0,GM.y0,GM.cw,GM.ch)}
+  else lx.drawImage(bScene,BCROP[0]*1400,BCROP[1]*990,BCROP[2]*1400,BCROP[3]*990,0,0,W,H);   // 村民站在暗暗的名畫前面
   if(bChar.mask&&bChar.mask.complete&&bChar.mask.naturalWidth){lx.globalCompositeOperation='destination-out';lx.drawImage(bChar.mask,GM.x0,GM.y0,GM.cw,GM.ch)}else{lx.globalCompositeOperation='destination-out';lx.save();lx.translate(hx,hy);lx.scale(rx,ry);
   const g=lx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.86,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(0,0,1,0,7);lx.fill();lx.restore();}
   ctx.drawImage(L,0,0);
@@ -824,7 +839,7 @@ $('#bRetake').onclick=()=>bCamOpen();
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();bShowPick()}
 function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=true;$('#bDone').hidden=true;$('#scrBooth').scrollTop=0}
 (function(){const box=$('#bPick');FOLK.forEach((c,i)=>{if(!c.k&&!c.old)return;   /* 11/16 名畫裡的女兒坐不上長桌，不放 */const b=document.createElement('button');b.type='button';
-  const im=document.createElement('img');im.alt=c.n;im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':c.old?'catch-video/folk/f'+c.old+'.png':(c.img?c.img.src:'');if(!c.k&&!c.old&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
+  const im=document.createElement('img');im.alt=c.n;im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':c.old?'catch-video/folk/t'+c.old+'.jpg':(c.img?c.img.src:'');if(!c.k&&!c.old&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
     const tc=t.getContext('2d');const draw=()=>{tc.drawImage(peImg,.27*peImg.naturalWidth,.30*peImg.naturalHeight,.14*peImg.naturalWidth,.26*peImg.naturalHeight,0,0,150,200);im.src=t.toDataURL('image/jpeg',.8)};peImg.complete?draw():peImg.addEventListener('load',draw,{once:true})}
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
   b.onclick=()=>{folkLoad(c);bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
@@ -916,7 +931,7 @@ function ctRender(j){const box=$('#ctBox');const m=j.mine;
 let HELP=[],HSEQ=0;
 function helpLoad(a){if(!Array.isArray(a)||!a.length)return;const nx=[];let left=a.length;
   a.forEach(h=>{if(!h||!/^https:\/\//.test(h.ch||'')){if(!--left&&nx.length)HELP=nx;return}const im=new Image();im.crossOrigin='anonymous';
-    im.onload=()=>{if(im.width&&im.height)nx.push({n:h.n||'',img:im});if(!--left&&nx.length)HELP=nx};im.onerror=()=>{if(!--left&&nx.length)HELP=nx};im.src=h.ch})}
+    im.onload=()=>{if(im.width&&im.height)nx.push({n:h.n||'',img:bake(im,Math.min(240,im.height))});if(!--left&&nx.length)HELP=nx};im.onerror=()=>{if(!--left&&nx.length)HELP=nx};im.src=h.ch})}
 async function ctLoad(){try{const j=await (await fetch(NOTIFY_URL+'/catch/state')).json();if(j&&j.ok){ctLast=j;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j)}}catch(_){}}
 async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p class="ctNote">成績記錄中…</p>';
   let tok='';try{tok=await getTok()}catch(_){}
@@ -1018,16 +1033,22 @@ $('#btnRedo').onclick=()=>{G=null;scrEnd.hidden=true;scrPlay.hidden=true;scrDraw
 
 /* ───────── 畫面 ───────── */
 function ell(cx,cy,rx,ry,c){x.fillStyle=c;x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fill()}
-function turkey(cx,cy,s,rot,flap){x.save();x.translate(cx,cy);x.rotate(rot||0);x.scale(s,s);
+/* 11/16 大熊玩的時候會停頓 → 火雞身體先畫成一張小圖（每隻原本要畫 15 個形狀，疊 30 隻就 450 個），之後每一格只貼圖 */
+let TK_BMP=null,TK_DP=0;
+function tkBmp(){if(TK_BMP&&TK_DP===DP)return TK_BMP;const S=2*DP,c=document.createElement('canvas');c.width=Math.ceil(52*S);c.height=Math.ceil(40*S);
+  const o=x;x=c.getContext('2d');x.scale(S,S);x.translate(26,20);
   const fc=['#c0392b','#e67e22','#f1c40f','#e67e22','#c0392b'];
   for(let i=0;i<5;i++){const a=Math.PI*(1.05+i*.16);ell(Math.cos(a)*13-3,Math.sin(a)*13+2,6,6,fc[i])}
   ell(0,3,13,10,'#8a4b22');ell(-2,5,7,5,'#a9632f');
   ell(11,-6,6,6,'#8a4b22');ell(13,-7,2,2,'#fff');ell(13.6,-7,1,1,'#000');
   x.fillStyle='#f1c40f';x.beginPath();x.moveTo(16,-6);x.lineTo(22,-4);x.lineTo(16,-2);x.fill();
-  ell(15,0,2,3.5,'#d62828');
+  ell(15,0,2,3.5,'#d62828');x=o;TK_DP=DP;return TK_BMP=c}
+function turkey(cx,cy,s,rot,flap){const b=tkBmp();x.save();x.translate(cx,cy);if(rot)x.rotate(rot);x.scale(s,s);x.drawImage(b,-26,-20,52,40);
   if(flap!=null){x.strokeStyle='#e67e22';x.lineWidth=2;x.beginPath();const k=Math.sin(flap)*4;
     x.moveTo(-3,12);x.lineTo(-3-k,18);x.moveTo(4,12);x.lineTo(4+k,18);x.stroke()}
   x.restore()}
+/* 圖片先縮成要畫的大小（大圖每一格縮放、第一次解碼都會卡） */
+function bake(im,h){try{const w=Math.max(1,Math.round(im.width*h/im.height)),c=document.createElement('canvas');c.width=w;c.height=Math.round(h);c.getContext('2d').drawImage(im,0,0,w,c.height);return c}catch(e){return im}}
 /* 金火雞：外圈發光＋金色羽毛 */
 function goldTurkey(cx,cy,s,rot){const tt=performance.now()/1000;x.save();x.translate(cx,cy);
   x.globalAlpha=.35+.15*Math.sin(tt*8);ell(0,0,30*s,30*s,'#fff3a0');x.globalAlpha=1;
@@ -1124,7 +1145,7 @@ function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.transl
   // 角色
   const run=G.dist*.09,bob=(G.jy>0?0:Math.abs(Math.sin(run))*-5)-G.jy,tilt=clamp(G.vx/2600,-.22,.22)+Math.sin(run)*.05,PY=G.plateY-G.jy;
   x.globalAlpha=.22;ell(G.cx,G.gy+6,G.cw*.42,6,'#3b2416');x.globalAlpha=(G.inv>0&&Math.floor(G.inv*12)%2)?.4:1;
-  x.save();x.translate(G.cx,G.gy+bob);x.rotate(tilt);x.drawImage(sprite,-G.cw/2,-G.ch,G.cw,G.ch);x.restore();x.globalAlpha=1;
+  x.save();x.translate(G.cx,G.gy+bob);x.rotate(tilt);x.drawImage(G.spr||sprite,-G.cw/2,-G.ch,G.cw,G.ch);x.restore();x.globalAlpha=1;
   // 盤子
   x.strokeStyle='#8a7a66';x.lineWidth=3;x.beginPath();x.moveTo(G.cx,PY+16);x.lineTo(G.cx,PY+2);x.stroke();
   ell(G.cx,PY,38,7,'#b9a98f');ell(G.cx,PY-2,38,7,'#fff');
