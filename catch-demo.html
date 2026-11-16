@@ -477,6 +477,9 @@ $('#btnGo').onclick=()=>{const s=makeSprite();if(!s){say('先畫幾筆再出發'
 const cv=$('#cv');let x=cv.getContext('2d');
 let W=375,H=700,DP=1,G=null,raf=0,last=0;
 const TH=20;                       // 疊起來每隻的高度
+/* 2026-11-16 大熊試玩：一局 60 秒，最後 15 秒老公雞大魔王狂丟爆炸蛋，小屋關門、頭上的火雞時間到算兩倍（網址加 ?boss=1 才有） */
+const BOSS=/[?&]boss=1/.test(location.search),GAME_T=60,BOSS_AT=45;
+const BIMG=['b1','b2','b3'].map(n=>{const im=new Image();if(BOSS)im.src='catch-video/boss/'+n+'.webp?v=1';return im});
 function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700;DP=Math.min(2,window.devicePixelRatio||1);
   cv.width=W*DP;cv.height=H*DP;x.setTransform(DP,0,0,DP,0,0);
   if(G){G.gy=H*.72;   /* 2026-11-13 大熊：手指會蓋住角色 → 角色站高一點，下面留一塊空地給手指滑（.64 太大 → .76 → 再高一點 .72） */const s=Math.min(H*.14/sprite.width,H*.16/sprite.height);G.cw=sprite.width*s;G.ch=sprite.height*s;G.plateY=G.gy-G.ch-8}}
@@ -504,7 +507,7 @@ window.addEventListener('keydown',e=>{if(!G||scrPlay.hidden)return;if(e.key==='A
 
 /* 疊在盤子上第 i 隻的位置（i=n 就是下一隻要落的地方） */
 function pos(i){return{x:G.cx+G.lean*Math.pow(i+1,1.3)*6,y:G.plateY-G.jy-14-i*TH}}
-function hurt(msg){if(G.inv>0)return false;G.hp--;G.inv=1.2;G.shake=.35;txt(msg,G.cx,G.plateY-G.jy-60,'#ffd0c4',true);beep(120,.3,'sawtooth',.08);return true}
+function hurt(msg){if(G.inv>0)return false;if(!BOSS)G.hp--;G.inv=1.2;G.shake=.35;txt(msg,G.cx,G.plateY-G.jy-60,'#ffd0c4',true);beep(120,.3,'sawtooth',.08);return true}
 function txt(s,px_,py,c,big){G.fx.push({k:'txt',s,x:px_,y:py,life:1.1,c:c||'#fff',big})}
 
 function update(dt){
@@ -527,16 +530,18 @@ function update(dt){
     else if(f.k==='up'){f.life+=dt*2.2;if(f.life>=1)G.fx.splice(i,1)}}
   if(G.cd>0){G.cd-=dt;G.speed=150;G.dist+=G.speed*dt;return}
 
+  if(G.bye>0){G.bye-=dt;if(G.boss)G.boss.y+=(G.boss.y0+20-G.boss.y)*Math.min(1,dt*4);if(G.bye<=0)endGame();return}   // 時間到：魔王坐地上，停一下再結算
   G.t+=dt;const p=Math.min(1.6,G.t/70);G.speed=150+170*p;G.dist+=G.speed*dt;
   if(G.hp<=0){endGame();return}
+  if(BOSS&&bossStep(dt))return;
 
   // 天上掉火雞
-  G.nextDrop-=dt;if(G.nextDrop<=0){G.nextDrop=rnd(.75,1.15)-.4*p;const bm=G.t>8&&Math.random()<.1+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
+  G.nextDrop-=dt;if(G.nextDrop<=0&&!G.boss){G.nextDrop=rnd(.75,1.15)-.4*p;const bm=G.t>8&&Math.random()<.1+.2*p;if(!bm)G.total++;G.items.push({x:rnd(30,W-30),y:-20,vx:0,vy:170+130*p,g:0,w:rnd(0,6),bomb:bm})}
   for(let i=G.items.length-1;i>=0;i--){const it=G.items[i],py=it.y;it.vy+=it.g*dt;it.x+=it.vx*dt;it.y+=it.vy*dt;it.w+=dt*9;
     it.x=clamp(it.x,16,W-16);
     const top=pos(G.n);
     if(it.bomb&&it.vy>0&&py+12<top.y&&it.y+12>=top.y&&Math.abs(it.x-top.x)<34){   // 接到炸彈
-      G.items.splice(i,1);const k=Math.min(3,G.n);for(let j=0;j<k;j++){const q=pos(G.n-1);G.n--;G.fx.push({k:'tk',x:q.x,y:q.y,vx:rnd(-260,260),vy:-rnd(300,480),r:0})}
+      G.items.splice(i,1);const k=G.boss?Math.ceil(G.n/2):Math.min(3,G.n);for(let j=0;j<k;j++){const q=pos(G.n-1);G.n--;G.fx.push({k:'tk',x:q.x,y:q.y,vx:rnd(-260,260),vy:-rnd(300,480),r:0})}
       G.fx.push({k:'boom',x:top.x,y:top.y,life:.4});hurt('砰！');G.lv+=rnd(-2,2);continue}
     if(it.bomb&&it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'boom',x:it.x,y:G.gy-10,life:.25});continue}
     if(it.vy>0&&py+12<top.y&&it.y+12>=top.y&&Math.abs(it.x-top.x)<(it.gold?42:34)){   // 接到（金火雞一次算 3 隻）
@@ -545,14 +550,14 @@ function update(dt){
     if(it.y>G.gy-12){G.items.splice(i,1);G.fx.push({k:'run',x:it.x,y:G.gy-12,r:0})}}
 
   // 籠子：靠過去就打開，火雞往上噴
-  if(G.dist>G.nextCage){G.nextCage=G.dist+rnd(2300,3100);G.cages.push({x:W+60,open:false})}
+  if(G.dist>G.nextCage&&!G.boss){G.nextCage=G.dist+rnd(2300,3100);G.cages.push({x:W+60,open:false})}
   for(let i=G.cages.length-1;i>=0;i--){const c=G.cages[i];c.x-=G.speed*dt;
     if(!c.open&&Math.abs(c.x-G.cx)<46){c.open=true;beep(300,.1,'square',.04);txt('籠子開了！',c.x,G.gy-90,'#fff3c4');
       G.total+=3;for(let j=0;j<3;j++)G.items.push({x:c.x,y:G.gy-40,vx:rnd(-90,90)+(j-1)*50,vy:-rnd(600,720),g:820,w:rnd(0,6)})}
     if(c.x<-80)G.cages.splice(i,1)}
 
   // 11/15 別人畫的角色來幫忙：從右邊走進來，走到畫面右邊三分之一就把金火雞往你這邊丟（一局最多 2 次）
-  if(HELP.length&&G.helpN<Math.min(4,Math.max(2,HELP.length))&&G.t>=G.nextHelp){const h=HELP[(HSEQ++)%HELP.length];G.helpN++;G.nextHelp=G.t+rnd(12,18);   /* 11/15 大熊：每局最多 4 位、6～10 秒來第一位、之後每 12～18 秒 */
+  if(!G.boss&&HELP.length&&G.helpN<Math.min(4,Math.max(2,HELP.length))&&G.t>=G.nextHelp){const h=HELP[(HSEQ++)%HELP.length];G.helpN++;G.nextHelp=G.t+rnd(12,18);   /* 11/15 大熊：每局最多 4 位、6～10 秒來第一位、之後每 12～18 秒 */
     G.helps.push({x:W+50,img:h.img,n:h.n,t:0,tossed:false,hh:Math.max(70,G.ch*.95)});beep(600,.08,'triangle',.05);setTimeout(()=>beep(800,.1,'triangle',.05),110)}
   for(let i=G.helps.length-1;i>=0;i--){const h=G.helps[i];h.t+=dt;
     if(!h.tossed){h.x-=130*dt;if(h.x<=W*.7){h.tossed=true;G.total+=3;
@@ -560,16 +565,16 @@ function update(dt){
     else h.x-=(G.speed*.5+40)*dt;
     if(h.x<-90)G.helps.splice(i,1)}
   // 馬鈴薯一家的小屋：靠過去就把盤上的火雞全部帶進去（跳已拿掉）
-  if(G.dist>G.nextTable){G.nextTable=G.dist+rnd(1700,2200);G.tables.push({x:W+90,got:0,pop:0})}
+  if(G.dist>G.nextTable&&!G.boss){G.nextTable=G.dist+rnd(1700,2200);G.tables.push({x:W+90,got:0,pop:0})}
   for(let i=G.tables.length-1;i>=0;i--){const t=G.tables[i];t.x-=G.speed*dt;t.pop=Math.max(0,t.pop-dt);
-    if(G.n&&G.jy<14&&Math.abs(t.x-G.cx)<50){const k=G.n;
+    if(G.n&&G.jy<14&&Math.abs(t.x-G.cx)<50&&!G.boss){const k=G.n;
       for(let j=0;j<k;j++){const q=pos(j);G.fx.push({k:'fly',x:q.x,y:q.y,t,life:-j*.1})}
       G.n=0;G.lean=G.lv=0;G.served+=k;t.got+=k;t.pop=.5;
       txt('+'+k+' 位客人',G.cx,G.plateY-40,'#ffe14d',true);txt(k>=5?'哇，一次 '+k+' 隻！':'歡迎歡迎！',t.x,G.gy-150,'#fff');
       beep(660,.1);setTimeout(()=>beep(880,.16),90)}
     if(t.x<-120)G.tables.splice(i,1)}
   // 幽浮：慢慢跟著你，光束照到火雞塔就把最上面那隻吸走
-  G.nextUfo-=dt;if(G.nextUfo<=0){G.nextUfo=rnd(15,22)-4*Math.min(1,p);G.ufos.push({x:G.cx<W/2?W-50:50,y:-40,t:0,suck:0});beep(700,.25,'sine',.04);setTimeout(()=>beep(900,.25,'sine',.04),200)}
+  G.nextUfo-=dt;if(G.nextUfo<=0&&!G.boss){G.nextUfo=rnd(15,22)-4*Math.min(1,p);G.ufos.push({x:G.cx<W/2?W-50:50,y:-40,t:0,suck:0});beep(700,.25,'sine',.04);setTimeout(()=>beep(900,.25,'sine',.04),200)}
   for(let i=G.ufos.length-1;i>=0;i--){const u=G.ufos[i];u.t+=dt;const out=u.t>UFO_OUT;   /* 11/16 大熊：照太久躲不掉 → 照 2 秒就走、照的時候不跟人 */
     u.y+=((out?-80:118)-u.y)*Math.min(1,dt*3);if(!out&&u.t<1.3)u.x+=clamp(G.cx-u.x,-1,1)*(48+20*p)*dt;
     u.on=u.t>1.3&&!out;u.suck-=dt;
@@ -578,7 +583,7 @@ function update(dt){
     if(out&&u.y<-60)G.ufos.splice(i,1)}
 
   // 烏鴉：朝你現在的位置俯衝，塔越高越容易被叼
-  G.nextCrow-=dt;if(G.nextCrow<=0){G.nextCrow=rnd(4.5,7)-2.2*p;const d=Math.random()<.5?1:-1;
+  G.nextCrow-=dt;if(G.nextCrow<=0&&!G.boss){G.nextCrow=rnd(4.5,7)-2.2*p;const d=Math.random()<.5?1:-1;
     G.crows.push({d,x:d>0?-60:W+60,tx:G.cx,warn:.8,has:false,f:0});beep(240,.12,'sawtooth',.04);setTimeout(()=>beep(200,.14,'sawtooth',.04),150)}
   for(let i=G.crows.length-1;i>=0;i--){const c=G.crows[i];c.f+=dt*14;
     if(c.warn>0){c.warn-=dt;continue}
@@ -588,13 +593,33 @@ function update(dt){
     if(c.x<-80||c.x>W+80)G.crows.splice(i,1)}
 }
 
+function bossStep(dt){
+  if(!G.boss&&G.t>=BOSS_AT){const bw=Math.min(W*.62,300);
+    G.boss={x:W/2,y0:H*.04,y:-bw,w:bw,dir:1,cd:1.6,throwT:0,t:0};G.shake=.5;
+    txt('老公雞大魔王來了！',W/2,H*.36,'#ffd0c4',true);txt('頭上的火雞撐到最後算兩倍！',W/2,H*.36+40,'#fff');
+    beep(110,.5,'sawtooth',.09);setTimeout(()=>beep(90,.6,'sawtooth',.09),260)}
+  const b=G.boss;if(!b)return false;b.t+=dt;b.y+=(b.y0-b.y)*Math.min(1,dt*3);b.throwT=Math.max(0,b.throwT-dt);
+  if(b.t>1.2){b.x+=b.dir*(70+40*Math.sin(b.t*1.3))*dt;if(b.x>W-b.w*.32)b.dir=-1;if(b.x<b.w*.32)b.dir=1;
+    b.cd-=dt;if(b.cd<=0){const left=GAME_T-G.t;b.cd=left<5?rnd(.32,.5):rnd(.45,.75);b.throwT=.3;
+      const k=Math.random()<(left<6?.45:.25)?3:1;
+      for(let j=0;j<k;j++){const bx=b.x-b.w*.22,by=b.y+b.w*.28,tx=j===0&&Math.random()<.6?G.cx+rnd(-60,60):rnd(30,W-30),
+        vy=rnd(40,140),g=620,d=G.gy-by,tt=(-vy+Math.sqrt(vy*vy+2*g*d))/g;
+        G.items.push({x:bx,y:by,vx:(tx-bx)/tt,vy,g,w:rnd(0,6),bomb:true})}
+      beep(260,.08,'square',.05)}}
+  if(G.t>=GAME_T){const k=G.n;G.bonus=k*2;G.served+=G.bonus;G.total+=k;   // 頭上的算兩倍（多的那一份算進「飛出來」，伺服器才不會判定作弊）
+    G.items=G.items.filter(it=>!it.bomb);b.lose=true;G.bye=2.2;
+    txt(k?'撐住了！頭上 '+k+' 隻 ×2 = '+G.bonus+' 位':'時間到！',W/2,H*.4,'#ffe14d',true);beep(660,.12);setTimeout(()=>beep(990,.25),120);return true}
+  return false}
+function drawBoss(){const b=G.boss;if(!b)return;const im=BIMG[b.lose?2:b.throwT>0?1:0];if(!im.naturalWidth)return;
+  const w=b.w,h=w*im.naturalHeight/im.naturalWidth,wob=b.lose?0:Math.sin(b.t*6)*.04;
+  x.save();x.translate(b.x,b.y+h/2);x.rotate(wob);x.drawImage(im,-w/2,-h/2,w,h);x.restore()}
 function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
   const N=G.served,T=Math.max(G.total,N);
   $('#eTotal').textContent=T;$('#eServed').textContent=N;$('#eBest').textContent=G.best;
   if(N){$('#endStory').textContent='看著你帶回來的火雞，這一家人……捨不得吃了。「坐下吧，今晚是感恩節，一起吃馬鈴薯！」';
     $('#endBig').innerHTML='今晚多了 <b>'+N+'</b> 位客人'}
   else{$('#endStory').textContent='火雞一隻都沒帶回來，這一家人今晚還是只有馬鈴薯……';$('#endBig').textContent='再試一次？'}
-  $('#endNote').textContent=(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
+  $('#endNote').textContent=BOSS?(G.bonus?'最後頂著 '+(G.bonus/2)+' 隻撐過大魔王，算兩倍 +'+G.bonus+' 位！':'大魔王把頭上的火雞都炸光了，下次撐住試試看！'):(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
   $('#epNote').textContent='';
   ctSend(N);
   scrPlay.hidden=true;playOutro(N)}
@@ -1066,11 +1091,13 @@ function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.transl
   ell(G.cx,PY,38,7,'#b9a98f');ell(G.cx,PY-2,38,7,'#fff');
   for(let i=0;i<G.n;i++){const q=pos(i);turkey(q.x,q.y,1,G.lean*.12*(i+1)/Math.max(1,G.n)*3)}
   for(const u of G.ufos)ufo(u);
+  if(G.boss){x.fillStyle='rgba(180,20,10,'+(G.bye>0?0:.12+.06*Math.sin(G.t*8))+')';x.fillRect(0,0,W,H);drawBoss()}
   // 烏鴉
   for(const c of G.crows){
     if(c.warn>0){if(Math.floor(c.warn*10)%2){const wx=c.d>0?24:W-24;ell(wx,H*.3,16,16,'#d62828');x.fillStyle='#fff';x.font='800 22px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText('!',wx,H*.3+1)}
       x.globalAlpha=.35;ell(c.tx,G.gy+6,22,6,'#1d1b22');x.globalAlpha=1}
     else crow(c)}
+  if(G.boss)for(const it of G.items)if(it.bomb)bomb(it);
   // 特效
   for(const f of G.fx){
     if(f.k==='tk')turkey(f.x,f.y,1,f.r);
@@ -1085,7 +1112,7 @@ function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.transl
 function hud(){
   x.textBaseline='top';x.fillStyle='#3b2416';x.textAlign='left';x.font='800 24px '+FONT;x.fillText('客人 '+G.served+' 位',16,14);
   x.font='600 13px '+FONT;x.fillText('飛出來 '+G.total+' 隻',16,46);
-  x.textAlign='right';x.font='800 24px '+FONT;for(let i=0;i<3;i++){x.fillStyle=i<G.hp?'#d62828':'rgba(59,36,22,.25)';x.fillText('♥',W-16-i*26,14)}
+  x.textAlign='right';x.font='800 24px '+FONT;if(BOSS){const left=Math.max(0,Math.ceil(GAME_T-G.t));x.fillStyle=G.boss?'#d62828':'#3b2416';x.fillText(left+' 秒',W-16,14)}else for(let i=0;i<3;i++){x.fillStyle=i<G.hp?'#d62828':'rgba(59,36,22,.25)';x.fillText('♥',W-16-i*26,14)}
   x.fillStyle='#3b2416';x.font='600 13px '+FONT;x.fillText('盤子上 '+G.n+' 隻',W-16,46);
   if(G.cd>0){x.fillStyle='rgba(59,36,22,.5)';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
     x.font='800 96px '+FONT;x.fillText(Math.ceil(G.cd),W/2,H*.3);
@@ -1093,7 +1120,7 @@ function hud(){
     x.fillStyle='#fff';x.font='600 14px '+FONT;
     x.fillText('經過小屋會自動把盤子上的火雞送進去',W/2,H*.46+38);
     x.fillText('老公雞的爆炸蛋不要接，幽浮綠光和烏鴉要閃開',W/2,H*.46+62);
-    x.fillText('沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+86)}}
+    x.fillText(BOSS?'一局 60 秒，最後 15 秒大魔王會出現！':'沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+86)}}
 
 /* 測試用：手動推進時間 */
 window.__catch={get G(){return G},step(dt){update(dt)},draw,pos,pad,px,jump};
