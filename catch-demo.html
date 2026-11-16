@@ -868,7 +868,7 @@ let ctLast=null,ctTab='best';
 const ctNum=n=>Number(n||0).toLocaleString();
 function ctThumb(){try{if(!sprite)return'';const h=160,w=Math.max(8,Math.round(sprite.width*h/sprite.height));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(sprite,0,0,w,h);return c.toDataURL('image/png')}catch(_){return''}}
 function ctNews(st){const a=(st&&st.news)||[];if(!a.length)return'';const t=a.map(x=>'🦃 '+ctEsc(x.n)+' 拍到了隱藏的「火雞裝梵谷」！').join('　　');return '<div class="ctNews"><span>'+t+'</span></div>'}
-function ctBar(st){const g=st.goal||3000,p=Math.min(100,(st.total||0)/g*100);return ctNews(st)+'<div class="ctg"><div class="ctgT">全店一起把火雞接回畫裡・目標 '+ctNum(g)+' 隻</div><div class="ctgN"><b>'+ctNum(st.total)+'</b> / '+ctNum(g)+' 隻'+(st.total>=g?'　🎉 達標了！':'')+'</div><div class="ctgBar"><i style="width:'+p+'%"></i></div></div>'}
+function ctBar(st){const g=st.goal||6666,p=Math.min(100,(st.total||0)/g*100);return ctNews(st)+'<div class="ctg"><div class="ctgT">全店一起把火雞接回畫裡・目標 '+ctNum(g)+' 隻</div><div class="ctgN"><b>'+ctNum(st.total)+'</b> / '+ctNum(g)+' 隻'+(st.total>=g?'　🎉 達標了！':'')+'</div><div class="ctgBar"><i style="width:'+p+'%"></i></div></div>'}
 const ctEsc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function ctList(st){const L=st[ctTab]||{top:[],me:0};if(!L.top.length)return '<p class="ctNote">還沒有人上榜，你可以當第一個！</p>';
   return '<ol class="ctList">'+L.top.map((x,i)=>'<li'+(x.me?' class="me"':'')+'><span class="no">'+(i+1)+'</span><span class="av">'+(x.ch?'<img src="'+ctEsc(x.ch)+'" alt="">':'🦃')+'</span><span>'+ctEsc(x.n)+(x.me?'（你）':'')+'</span><em>'+ctNum(x.s)+' 隻</em></li>').join('')+'</ol>'+(L.me>10?'<p class="ctNote">你目前第 '+L.me+' 名</p>':'')}
@@ -899,7 +899,7 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
   catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
 
 /* ══ 11/15 梵谷圖鑑收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
-const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 3 集',v6:'全店一起帶回 3,000 隻火雞，玩過的人都拿得到'};
+const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 3 集',v6:'全店一起帶回 6,666 隻火雞，玩過的人都拿得到'};
 const BOOK_LINK='https://liff.line.me/2010906803-FMDYktUN?go=book';
 async function vgBookOpen(){let d=document.getElementById('vgBk');if(!d){d=document.createElement('div');d.id='vgBk';document.body.appendChild(d)}
   d.hidden=false;d.innerHTML='<div class="in"><div class="top"><h2>梵谷圖鑑收集冊</h2><button class="x" type="button">關閉</button></div><p class="sub">讀取中…</p></div>';d.querySelector('.x').onclick=()=>d.hidden=true;

@@ -1529,7 +1529,7 @@ function tgSameHeight(){ const t=document.getElementById("hmTg"),g=document.quer
   const h=Math.max(t.offsetHeight,g.offsetHeight); t.style.minHeight=h+"px"; g.style.minHeight=h+"px" }
 async function tgFill(){
   try{ const j=await (await fetch(NOTIFY_URL+"/catch/state")).json(); if(j&&j.ok){ const n=document.getElementById("tgNum"),b=document.getElementById("tgBar");
-    if(n)n.innerHTML="11/30 前・全店已帶回 <b>"+Number(j.total||0).toLocaleString()+"</b> / "+Number(j.goal||3000).toLocaleString()+" 隻"; if(b)b.style.width=Math.min(100,(j.total||0)/(j.goal||3000)*100)+"%" } }catch(e){}
+    if(n)n.innerHTML="11/30 前・全店已帶回 <b>"+Number(j.total||0).toLocaleString()+"</b> / "+Number(j.goal||6666).toLocaleString()+" 隻"; if(b)b.style.width=Math.min(100,(j.total||0)/(j.goal||3000)*100)+"%" } }catch(e){}
   try{ let tk=""; try{ tk=window.liff&&liff.isLoggedIn&&liff.isLoggedIn()?liff.getAccessToken():"" }catch(e){} if(!tk)return;
     const j=await (await fetch(NOTIFY_URL+"/catch/book",{method:"POST",body:JSON.stringify({accessToken:tk})})).json(); const m=document.getElementById("tgMe");
     if(j&&j.ok&&m)m.innerHTML="我的梵谷收藏 <b>"+j.n+"</b> / 4 款" }catch(e){}
@@ -1546,7 +1546,7 @@ function renderHome(){
       ${myHold?`<button class="hm-hold" id="hmHold">💰 你有一筆 <b>NT$${myHold.amount.toLocaleString()}</b> 訂金還沒排課（${esc(myHold.date)} 付款）<br><b>點這裡選時間 ›</b> 約好後訂金自動扣抵，不用再付。</button>`:''}
       ${tgOn()?`<div class="tgc" id="hmTg"><div class="bg"></div><img class="vg" src="catch-video/vg/v4.webp?v=20261115b" alt="">
         <div class="in"><b class="tt">幫梵谷接火雞<span class="tag">前 5 名有禮</span></b>
-        <span class="tgbar"><i id="tgBar"></i></span><small id="tgNum">11/30 前・全店一起帶回 3,000 隻</small><small id="tgMe">我的梵谷收藏 0 / 4 款</small>
+        <span class="tgbar"><i id="tgBar"></i></span><small id="tgNum">11/30 前・全店一起帶回 6,666 隻</small><small id="tgMe">我的梵谷收藏 0 / 4 款</small>
         <div class="row"><span class="go" id="tgGo">🦃 去接火雞</span><span class="bk" id="tgBook">📖 圖鑑收集冊</span></div></div></div>`:''}
       <div class="gcbox${hmGame.hw?' hw':hmGame.jp?' jp':''}">
       <button class="hm-card gc" id="hmGacha">
