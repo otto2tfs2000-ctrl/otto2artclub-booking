@@ -718,29 +718,28 @@ function strokeTex(){if(_tex)return _tex;const c=document.createElement('canvas'
 /* 2026-11-16 大熊：15 位梵谷村民不好看 → 換成名畫裡的國王、皇后、貴族（半身肖像，公有領域）。
    檔案 catch-video/portrait/：fNN＝畫（臉挖透明）、mNN＝臉型洞（Mac 臉部特徵點描的輪廓＋額頭弧）、cNN＝人物輪廓（坐長桌時剪下來用）、tNN＝挑人小圖。
    f=臉洞中心 x,y、寬高（佔畫的比例）；skin＝畫裡臉的平均色（自拍配膚色用）。整理的原圖在 04_活動與企劃/感恩節影片素材/名畫人物候選/ */
+/* 11/16 晚：大熊自己用生圖挖臉（綠色＝臉洞，有的只挖嘴、留鼻子／嘴唇／鬍子），白底去背 → catch-video/portrait2/。杜勒沒生成、巧克力女孩側臉，不放。
+   f＝臉的中心和大小（只挖嘴的用 Mac 臉部辨識抓整張臉，自拍才會對準嘴巴） */
 const FOLK=[{n:'名畫裡的女兒',src:null},
-  {n:'太陽王路易十四',k:1,f:[0.534,0.32,0.279,0.301],skin:[163,108,72]},
-  {n:'亨利八世',k:2,f:[0.499,0.32,0.294,0.306],skin:[186,156,138]},
-  {n:'微笑的騎士',k:3,f:[0.53,0.328,0.297,0.335],skin:[145,122,102]},
-  {n:'伊莉莎白一世',k:4,f:[0.454,0.299,0.27,0.293],skin:[231,199,187]},
-  {n:'西班牙國王卡洛斯二世',k:5,f:[0.472,0.319,0.261,0.31],skin:[163,141,116]},
-  {n:'醜陋的公爵夫人',k:6,f:[0.574,0.349,0.309,0.307],skin:[144,96,75]},
-  {n:'瑪麗・安東尼',k:7,f:[0.459,0.321,0.284,0.302],skin:[214,183,180]},
-  {n:'瑪格麗特公主',k:8,f:[0.536,0.32,0.27,0.292],skin:[183,149,104]},
-  {n:'粉紅女孩',k:9,f:[0.505,0.323,0.285,0.281],skin:[150,102,72]},
-  {n:'戴草帽的女子',k:10,f:[0.472,0.321,0.285,0.273],skin:[163,139,131]},
-  {n:'卡斯蒂廖內伯爵',k:11,f:[0.536,0.33,0.309,0.32],skin:[140,110,76]},
-  {n:'抱銀貂的女子',k:12,f:[0.487,0.31,0.294,0.321],skin:[139,110,87]},
-  {n:'戴珍珠耳環的少女',k:13,f:[0.496,0.414,0.345,0.375],skin:[153,132,124]},
-  {n:'蒙娜麗莎',k:14,f:[0.509,0.318,0.275,0.27],skin:[170,128,62]},
-  {n:'巧克力女孩',k:15,f:[0.425,0.293,0.305,0.385],skin:[187,167,153]},
-  {n:'杜勒',k:16,f:[0.499,0.307,0.299,0.36],skin:[108,75,45]}];
-FOLK.forEach(c=>{if(c.k)c.rect=true});
-function folkLoad(c){if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait/';
+  {n:'太陽王路易十四',k:1,f:[0.512,0.341,0.209,0.319],skin:[190,150,120]},
+  {n:'亨利八世',k:2,f:[0.506,0.318,0.245,0.225],skin:[198,157,131]},
+  {n:'微笑的騎士',k:3,f:[0.544,0.344,0.301,0.334],skin:[142,111,63]},
+  {n:'伊莉莎白一世',k:4,f:[0.498,0.314,0.265,0.244],skin:[219,178,163]},
+  {n:'西班牙國王卡洛斯二世',k:5,f:[0.508,0.318,0.267,0.245],skin:[179,145,116]},
+  {n:'醜陋的公爵夫人',k:6,f:[0.534,0.381,0.35,0.385],skin:[168,115,85]},
+  {n:'瑪麗・安東尼',k:7,f:[0.464,0.329,0.224,0.296],skin:[176,137,116]},
+  {n:'瑪格麗特公主',k:8,f:[0.498,0.337,0.238,0.219],skin:[160,122,74]},
+  {n:'粉紅女孩',k:9,f:[0.496,0.342,0.286,0.263],skin:[169,107,73]},
+  {n:'戴草帽的女子',k:10,f:[0.459,0.322,0.228,0.242],skin:[184,150,129]},
+  {n:'卡斯蒂廖內伯爵',k:11,f:[0.504,0.331,0.227,0.262],skin:[139,110,71]},
+  {n:'抱銀貂的女子',k:12,f:[0.514,0.33,0.198,0.242],skin:[147,110,82]},
+  {n:'戴珍珠耳環的少女',k:13,f:[0.481,0.42,0.315,0.301],skin:[150,122,94]},
+  {n:'蒙娜麗莎',k:14,f:[0.472,0.332,0.256,0.236],skin:[181,126,63]}];
+function folkLoad(c){if(!c.k||c.img)return;const k=String(c.k).padStart(2,'0'),P='catch-video/portrait2/';
   c.img=new Image();c.img.src=P+'f'+k+'.webp';c.mask=new Image();c.mask.src=P+'m'+k+'.png';c.cut=new Image();c.cut.src=P+'c'+k+'.webp'}
 let bChar=FOLK[0];
 function bGeom(W,H){if(!bChar.img)return{hx:BHOLE.x*W,hy:BHOLE.y*H,rx:BHOLE.rx*W,ry:BHOLE.ry*H};
-  const im=bChar.img,ch=bChar.rect?H:H*.97,cw=ch*(im.naturalWidth||(bChar.rect?640:370))/(im.naturalHeight||(bChar.rect?800:560)),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
+  const im=bChar.img,ch=bChar.rect?H:H*.97,cw=ch*(im.naturalWidth||(bChar.k?640:370))/(im.naturalHeight||(bChar.k?800:560)),x0=(W-cw)/2,y0=H-ch,f=bChar.f;
   return{hx:x0+f[0]*cw,hy:y0+f[1]*ch,rx:f[2]*.44*cw,ry:f[3]*.56*ch,x0,y0,cw,ch}}
 function holeCenter(c){if(!c.mask)return null;if(c.hc)return c.hc;if(!c.mask.complete||!c.mask.naturalWidth)return null;try{
   const w=60,h=90,t=document.createElement('canvas');t.width=w;t.height=h;const tx=t.getContext('2d');tx.drawImage(c.mask,0,0,w,h);const d=tx.getImageData(0,0,w,h).data;
@@ -808,7 +807,7 @@ $('#bLiveBtn').onclick=async()=>{
 function openBooth(){scrEnd.hidden=true;$('#scrBooth').hidden=false;$('#scrBooth').scrollTop=0;bMakeScene();bShowPick()}
 function bShowPick(){bStop();$('#bPickBox').hidden=false;$('#bShoot').hidden=true;$('#bDone').hidden=true;$('#scrBooth').scrollTop=0}
 (function(){const box=$('#bPick');FOLK.forEach((c,i)=>{const b=document.createElement('button');b.type='button';
-  const im=document.createElement('img');im.alt=c.n;im.loading='lazy';im.src=c.k?'catch-video/portrait/t'+String(c.k).padStart(2,'0')+'.jpg':(c.img?c.img.src:'');if(!c.k&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
+  const im=document.createElement('img');im.alt=c.n;im.loading='lazy';im.src=c.k?'catch-video/portrait2/t'+String(c.k).padStart(2,'0')+'.jpg':(c.img?c.img.src:'');if(!c.k&&!c.img){const t=document.createElement('canvas');t.width=150;t.height=200;
     const tc=t.getContext('2d');const draw=()=>{tc.drawImage(peImg,.27*peImg.naturalWidth,.30*peImg.naturalHeight,.14*peImg.naturalWidth,.26*peImg.naturalHeight,0,0,150,200);im.src=t.toDataURL('image/jpeg',.8)};peImg.complete?draw():peImg.addEventListener('load',draw,{once:true})}
   b.appendChild(im);b.appendChild(document.createTextNode(c.n));
   b.onclick=()=>{folkLoad(c);bChar=c;bSelf=null;bOX=0;bOY=0;bZ=1;$('#bZoom').value=1;$('#bZoomRow').hidden=true;$('#bHint').textContent='按下面的按鈕開相機，把臉對進洞裡';$('#bErr').textContent='';
