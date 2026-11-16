@@ -329,7 +329,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261116c"></script>
 <script>
-const ART_VER='20261116g';
+const ART_VER='20261116h';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -610,7 +610,7 @@ function buildDinnerWall(){if(!dinnerOn())return;
     ims.forEach((im,i)=>{if(!im)return;const h=232*k,w=h*im.naturalWidth/im.naturalHeight,x=SEATS[i]*k;cx.drawImage(im,x-w/2,462*k-h,w,h)});
     if(fore)cx.drawImage(fore,0,207*k,1200,(667-207)*k);
     cx.fillStyle='rgba(42,29,18,.78)';cx.fillRect(0,360,1200,40);cx.fillStyle='#ffcf6b';cx.font='700 22px "PingFang TC","Noto Sans TC",sans-serif';cx.textAlign='center';cx.textBaseline='middle';
-    cx.fillText(list.length?'目前 '+list.length+' 位客人入座・點畫看全部':'玩感恩節接火雞，拍合照坐上長桌！・點畫看看',600,381);tex.needsUpdate=true})();
+    cx.fillText(list.length?'梵谷家已經有 '+list.length+' 位客人・點畫去梵谷家':'梵谷邀請你來家裡吃飯！・點畫去梵谷家',600,381);tex.needsUpdate=true})();
 }
 /* 聖誕：大樹掛彩燈、樹冠頂端積雪、最上面一顆星星（燈和雪都用 InstancedMesh，一種只畫一次） */
 function xmasTree(spots,topEnd){const r=rng(123),mt=new THREE.Matrix4(),q=new THREE.Quaternion(),s=new THREE.Vector3(),p=new THREE.Vector3();
@@ -2405,7 +2405,7 @@ function houseWall(m){
 }
 function openAlbum(){
   focusOn(bigTree,11,4.2);const list=G.album;
-  modal(`<h2>大樹相簿</h2><div class="meta">上課的點點滴滴・老師上傳</div>${dinnerBtnOn()?'<button type="button" id="alDinner" style="display:block;width:100%;margin:6px 0 12px;padding:12px 14px;border:2px solid #e2a54a;border-radius:16px;background:linear-gradient(90deg,#3a2414,#5a3418);color:#ffe6b0;font:inherit;font-size:15.5px;font-weight:900;text-align:left;cursor:pointer">🍽 感恩節長桌：大家的晚餐<span style="display:block;font-size:12.5px;font-weight:600;color:#f3d9a8;margin-top:2px">玩接火雞拍了合照的人都坐在這張桌子 ›</span></button>':''}<div class="wall">${list.length?'':'<div class="empty">老師還沒放上課照片</div>'}${groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join('')}</div>
+  modal(`<h2>大樹相簿</h2><div class="meta">上課的點點滴滴・老師上傳</div>${dinnerBtnOn()?'<button type="button" id="alDinner" style="display:block;width:100%;margin:6px 0 12px;padding:12px 14px;border:2px solid #e2a54a;border-radius:16px;background:linear-gradient(90deg,#3a2414,#5a3418);color:#ffe6b0;font:inherit;font-size:15.5px;font-weight:900;text-align:left;cursor:pointer">🏠 去梵谷家吃飯<span style="display:block;font-size:12.5px;font-weight:600;color:#f3d9a8;margin-top:2px">梵谷邀請大家來吃感恩節晚餐，看看誰盛裝出席了 ›</span></button>':''}<div class="wall">${list.length?'':'<div class="empty">老師還沒放上課照片</div>'}${groupByMonth(list).map(([k,ids])=>`<h3>${esc(k)}</h3>${thumbs(list,ids)}`).join('')}</div>
     <div class="acts"><button class="pill main" type="button" id="alShare">複製分享連結</button>${ME.staff||(DEMO&&!window.GUEST)?'<button class="pill" type="button" id="alUp">老師上傳</button>':''}<button class="pill" type="button" id="alX">關閉</button></div>`);
   $('panel').querySelectorAll('.grid button').forEach(b=>b.onclick=()=>openList(list,+b.dataset.i,w=>w.title||'上課花絮',ME.staff&&!DEMO?{album:true}:null));
   if($('alDinner'))$('alDinner').onclick=()=>{location.href='dinner.html?v='+Date.now()};

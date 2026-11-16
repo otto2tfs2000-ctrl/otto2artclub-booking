@@ -979,7 +979,7 @@ body:not(.oct) #evPill{display:none}
 <script src="xmas-houses3d.js?v=20261029b"></script>
 <script>
 const RM=false; /* 大熊決定（跟扭蛋 gacha.js 一樣）：不管手機有沒有開「減少動態效果」，遊戲動畫照常播。之前 RM 會把轉扭蛋、滾出來、走格子動畫縮成 0.08 秒，看起來像「點了沒反應」 */
-const PARK_VER='20261116f';
+const PARK_VER='20261116g';
 /* 手機把 WebGL 收回去（iPhone 的 LINE 記憶體不夠、或切到別的 App 再回來）時，3D 畫面會整個消失，只剩背景和按鈕＝「空空的」。
    three 會自己還原；3 秒沒回來就自動重新整理（30 秒內最多一次），並記下這支手機，之後 1 天改用省記憶體模式（影子圖和解析度縮小；2026-10-10 大熊嫌糊，7 天→1 天） */
 const LOWMEM=(()=>{try{return Date.now()-(+localStorage.getItem('otto2-gl-lost')||0)<864e5}catch(e){return false}})();
@@ -2149,7 +2149,7 @@ function evBloom(e){let b=+e.bloomDays||0;if(e.bloomFrom)b=Math.max(1,Math.round
 const CUR_EVS=[
   {id:'catch',from:'2026-11-14',to:'2026-11-30',ic:'🦃',tag:'接火雞',t:'感恩節・梵谷村的長桌晚餐',d:'11/16～11/30',
    body:'幫梵谷《吃馬鈴薯的人》一家把火雞接回家，畫自己的角色、自拍坐上作品小屋大樹下的長桌，還能收集 4 款梵谷公仔。',
-   acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷圖鑑收集冊',u:'catch-demo.html?book=1'},{t:'🍽 看大家的長桌',u:'dinner.html'},{t:'🎧 梵谷講座・聽 3 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
+   acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷圖鑑收集冊',u:'catch-demo.html?book=1'},{t:'🏠 去梵谷家吃飯',u:'dinner.html'},{t:'🎧 梵谷講座・聽 3 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
 function curEvNow(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return CUR_EVS.find(e=>d>=e.from&&d<=e.to)||null}
 function curEvGo(u){try{if(!ssTok()&&window.liff&&liff.isLoggedIn&&liff.isLoggedIn())sessionStorage.setItem('otto2-liff-tk',liff.getAccessToken()||'')}catch(e){}location.href=u+(u.includes('?')?'&':'?')+'v='+PARK_VER}
 function curEvRender(){const e=curEvNow(),el=$('curEv');if(!el)return;if(!e){el.hidden=true;return}$('ceIc').textContent=e.ic;$('ceT').textContent=e.tag;el.hidden=false}
