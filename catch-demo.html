@@ -153,7 +153,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #vgBk .note{color:#c9b38a;font-size:12px;text-align:center;margin-top:10px;line-height:1.6}
 #vgPh{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px}#vgPh img{max-width:100%;max-height:86vh;border-radius:8px}
 .seatInv{width:100%;max-width:400px;box-sizing:border-box;background:#3a2a1b;border:2px solid #ffcf6b;border-radius:18px;padding:12px 14px 14px;color:#f3e6c8;font-size:14px;line-height:1.6;text-align:left;flex:none}
-.seatInv b{display:block;color:#ffcf6b;font-size:16.5px;margin-bottom:3px}.seatInv span{display:block;margin-bottom:10px}
+.seatInv b{display:block;color:#ffcf6b;font-size:17px;margin-bottom:3px}.seatInv{animation:seatPulse 1.6s ease-in-out infinite}@keyframes seatPulse{50%{box-shadow:0 0 0 6px rgba(255,207,107,.25)}}.seatInv span{display:block;margin-bottom:10px}
 #btnBooth{width:100%;max-width:400px;height:52px;border-radius:26px;border:0;background:#ffcf6b;color:#211a12;font-size:17px;font-weight:900;box-shadow:0 4px 0 #a8742a;flex:none}
 #scrBooth,#scrShot{justify-content:flex-start;overflow-y:auto;background:#211a12;color:#f3e6c8;gap:10px;padding-block:14px}
 .bTop{display:flex;flex-direction:column;align-items:center;gap:2px}.bTop b{font-size:18px;color:#ffcf6b}.bTop span{font-size:13px;color:#c9b38a}
@@ -272,6 +272,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <figure class="photo" id="photo"><canvas id="endCv" aria-label="你的版本的吃馬鈴薯的人"></canvas><figcaption id="photoCap"></figcaption></figure>
     <div id="endStory"></div>
     <div id="endBig"></div>
+    <div class="seatInv"><b>📸 還沒結束！拍一張照，送你 1 點紅利</b><span>挑一位名畫裡的村民，把你的臉放進去，你就會出現在作品小屋的感恩節長桌上。</span>
+    <button id="btnBooth">📸 去拍照領紅利</button></div>
     <div class="estats">
       <div><b id="eTotal">0</b>飛出來（隻）</div>
       <div><b id="eServed">0</b>帶回小屋（隻）</div>
@@ -279,8 +281,6 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     </div>
     <div id="endNote"></div>
     <div id="ctBox"></div>
-    <div class="seatInv"><b>🍽 梵谷村今晚擺了一張好長的桌子</b><span>你也想成為其中一份子，一起入座吃晚餐嗎？挑一位村民、把你的臉放進去，就能坐上作品小屋大樹下的長桌。</span>
-    <button id="btnBooth">🙋 我也要入座！</button></div>
     <div class="btns">
       <button class="redo" id="btnRedo">重畫角色</button>
       <button class="again" id="btnAgain">再玩一次</button>
@@ -313,7 +313,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
     <img id="shotImg" alt="你的感恩節合照">
     <p class="vgGot" id="vgGot" role="status" hidden></p>
     <p class="bHint">長按照片就可以存到手機</p>
-    <div class="upInvite" id="upInv"><b>🍽 最後一步：坐上大家的長桌</b>
+    <div class="upInvite" id="upInv"><b>🍽 最後一步：送出照片，領 1 點紅利</b>
       <span>你剛剛變成的村民，會帶著你的臉，坐進作品小屋大樹下的感恩節長桌，跟其他玩家一起吃晚餐。大家打開作品小屋都看得到你！</span></div>
     <button class="bWide" id="shotUp">🍽 我要坐上長桌</button>
     <button class="bWide" id="shotShare" hidden>分享給朋友</button>
@@ -478,6 +478,7 @@ const cv=$('#cv');let x=cv.getContext('2d');
 let W=375,H=700,DP=1,G=null,raf=0,last=0;
 const TH=20;                       // 疊起來每隻的高度
 /* 2026-11-16 大熊試玩：一局 60 秒，最後 15 秒老公雞大魔王狂丟爆炸蛋，小屋關門、頭上的火雞時間到算兩倍（網址加 ?boss=1 才有） */
+const HP_MAX=5;   /* 11/16 大熊：沒有血量被炸也沒差 → 5 滴血，被炸扣 1，魔王來之前用完就結束（打不到魔王） */
 const BOSS=!/[?&]boss=0/.test(location.search),   /* 11/16 大熊試玩後說直接上架：大家都是這個玩法；?boss=0 回舊版（三顆愛心） */
       GAME_T=60,BOSS_AT=45;
 const BIMG=['b1','b2','b3'].map(n=>{const im=new Image();if(BOSS)im.src='catch-video/boss/'+n+'.webp?v=1';return im});
@@ -487,7 +488,7 @@ function fit(){const r=cv.getBoundingClientRect();W=r.width||375;H=r.height||700
 window.addEventListener('resize',()=>{if(!scrPlay.hidden)fit()});
 
 function startGame(){scrDraw.hidden=true;scrEnd.hidden=true;scrPlay.hidden=false;audioInit();bgmStart();
-  G={t:0,cd:4,hp:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
+  G={t:0,cd:4,hp:BOSS?HP_MAX:3,inv:0,jy:0,jv:0,shake:0,total:0,ufos:[],nextUfo:16,cx:0,tx:0,vx:0,lean:0,lv:0,n:0,fallCd:0,items:[],crows:[],tables:[],cages:[],fx:[],leaves:[],
      helps:[],nextHelp:rnd(6,10),helpN:0,served:0,best:0,dist:0,nextDrop:.4,nextCrow:7,nextTable:1100,nextCage:1900,stolen:0,over:false,gy:0,cw:0,ch:0,plateY:0};
   fit();G.cx=G.tx=W/2;for(let i=0;i<7;i++)G.leaves.push({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(.6,1.2),p:rnd(0,6)});
   cancelAnimationFrame(raf);last=0;raf=requestAnimationFrame(loop)}
@@ -508,7 +509,7 @@ window.addEventListener('keydown',e=>{if(!G||scrPlay.hidden)return;if(e.key==='A
 
 /* 疊在盤子上第 i 隻的位置（i=n 就是下一隻要落的地方） */
 function pos(i){return{x:G.cx+G.lean*Math.pow(i+1,1.3)*6,y:G.plateY-G.jy-14-i*TH}}
-function hurt(msg){if(G.inv>0)return false;if(!BOSS)G.hp--;G.inv=1.2;G.shake=.35;txt(msg,G.cx,G.plateY-G.jy-60,'#ffd0c4',true);beep(120,.3,'sawtooth',.08);return true}
+function hurt(msg){if(G.inv>0)return false;G.hp--;G.inv=1.2;G.shake=.35;txt(msg,G.cx,G.plateY-G.jy-60,'#ffd0c4',true);beep(120,.3,'sawtooth',.08);return true}
 function txt(s,px_,py,c,big){G.fx.push({k:'txt',s,x:px_,y:py,life:1.1,c:c||'#fff',big})}
 
 function update(dt){
@@ -623,7 +624,7 @@ function endGame(){G.over=true;cancelAnimationFrame(raf);draw();bgmStop(2.5);
   if(N){$('#endStory').textContent='看著你帶回來的火雞，這一家人……捨不得吃了。「坐下吧，今晚是感恩節，一起吃馬鈴薯！」';
     $('#endBig').innerHTML='今晚多了 <b>'+N+'</b> 位客人'}
   else{$('#endStory').textContent='火雞一隻都沒帶回來，這一家人今晚還是只有馬鈴薯……';$('#endBig').textContent='再試一次？'}
-  $('#endNote').textContent=BOSS?(G.bonus?'最後頂著 '+(G.bonus/2)+' 隻撐過大魔王，算兩倍 +'+G.bonus+' 位！':'大魔王把頭上的火雞都炸光了，下次撐住試試看！'):(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
+  $('#endNote').textContent=BOSS&&G.hp<=0?(G.boss?'被大魔王炸倒了！帶回小屋的火雞還是算數。':'5 滴血用完了，沒撐到大魔王……下次閃開炸彈試試看！'):BOSS?(G.bonus?'最後頂著 '+(G.bonus/2)+' 隻撐過大魔王，算兩倍 +'+G.bonus+' 位！':'大魔王把頭上的火雞都炸光了，下次撐住試試看！'):(T-N>0?'其他 '+(T-N)+' 隻火雞跑回農場睡覺了。':'')+'撐了 '+Math.floor(G.t)+' 秒';
   $('#epNote').textContent='';
   ctSend(N);
   scrPlay.hidden=true;playOutro(N)}
@@ -935,6 +936,8 @@ const CT_PEND='otto2-ct-pending';
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j);
     dnCard('登入好了！🦃<br><span style="font-size:14px;font-weight:600">剛剛那局帶回 '+ctNum(j.served)+' 隻，已經算進全店總數（現在 '+ctNum(j.total)+' 隻）。<br>接下來每一局都會記錄。</span>',false)}
   catch(e){dnCard('剛剛那局沒記錄到<br><span style="font-size:14px;font-weight:600">'+ctEsc(e.message||'網路不穩')+'，下一局會照常記錄。</span>',false)}})();
+/* 11/16 大熊：拍照入座送紅利 1 點（每人一次，伺服器判斷） */
+function dnBonusTxt(j){return j&&j.bonus?'🎁 紅利 +'+j.bonus+' 點已經存進你的帳戶！':j&&j.bonusWhy==='nophone'?'（紅利要先在預約頁綁定電話才領得到）':''}
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.error||'送出失敗，請再試一次');return j}
 function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.createElement('div');d.id='dnCard';d.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:#fbf6ea;color:#3b2416;border-radius:16px;padding:18px 20px;width:min(84vw,340px);box-sizing:border-box;box-shadow:0 12px 30px rgba(0,0,0,.55);text-align:center;font-weight:700;line-height:1.6';document.body.appendChild(d)}
@@ -944,7 +947,7 @@ function dnCard(t,ok){let d=document.getElementById('dnCard');if(!d){d=document.
   if(!upTok&&!p){liffInit().then(ok=>{try{if(ok&&liff.isLoggedIn())upTok=liff.getAccessToken()||''}catch(_){}});return}
   if(!p)return;if(!(await getTok()))return;   // 登入回來了：把剛剛那張自動送出去
   try{localStorage.removeItem(DN_PEND)}catch(_){}
-  try{const j=await dnSend(p);dnCard('坐好了！🍽<br><span style="font-size:14px;font-weight:600">你已經坐上作品島大樹旁的長桌'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'')+'</span>',true)}
+  try{const j=await dnSend(p);dnCard('坐好了！🍽<br><span style="font-size:14px;font-weight:600">'+dnBonusTxt(j)+'你已經坐上作品島大樹旁的長桌'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'')+'</span>',true)}
   catch(err){dnCard('沒坐上長桌<br><span style="font-size:14px;font-weight:600">'+err.message+'</span>',false)}})();
 function makeCutout(){if(!bChar.img||!bChar.mask||!bSelf)return null;
   const W=480,H=600,GM=bGeom(W,H),S=document.createElement('canvas');S.width=W;S.height=H;const c2=S.getContext('2d');
@@ -969,7 +972,7 @@ $('#upGo').onclick=async()=>{const e=$('#upErr');
       try{localStorage.setItem(DN_PEND,JSON.stringify(p))}catch(_){throw new Error('手機空間不夠，存不了照片，請用 LINE 打開遊戲再試')}
       btn.textContent='先登入 LINE…';liff.login({redirectUri:location.href.split('#')[0]});return}
     const j=await dnSend(p);
-    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=$('#upInv').hidden=true;$('#upLeft').textContent='你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
+    $('#upBox').hidden=true;$('#upDone').hidden=false;$('#shotUp').hidden=$('#upInv').hidden=true;$('#upLeft').textContent=dnBonusTxt(j)+'你已經坐上作品島大樹旁的長桌了'+(j.left>0?'（還可以再坐 '+j.left+' 個位子）':'');
     beep(660,.1);setTimeout(()=>beep(880,.16),90);setTimeout(vgReveal,1600)}
   catch(err){e.textContent=err.message}
   btn.disabled=false;btn.textContent='送出，坐上長桌'};
@@ -1116,7 +1119,7 @@ function draw(){if(!G)return;x.clearRect(0,0,W,H);x.save();if(G.shake>0)x.transl
 function hud(){
   x.textBaseline='top';x.fillStyle='#3b2416';x.textAlign='left';x.font='800 24px '+FONT;x.fillText('客人 '+G.served+' 位',16,14);
   x.font='600 13px '+FONT;x.fillText('飛出來 '+G.total+' 隻',16,46);
-  x.textAlign='right';x.font='800 24px '+FONT;if(BOSS){const left=Math.max(0,Math.ceil(GAME_T-G.t));x.fillStyle=G.boss?'#d62828':'#3b2416';x.fillText(left+' 秒',W-16,14)}else for(let i=0;i<3;i++){x.fillStyle=i<G.hp?'#d62828':'rgba(59,36,22,.25)';x.fillText('♥',W-16-i*26,14)}
+  x.textAlign='right';x.font='800 24px '+FONT;if(BOSS){const left=Math.max(0,Math.ceil(GAME_T-G.t));x.fillStyle=G.boss?'#d62828':'#3b2416';x.fillText(left+' 秒',W-16,14);x.font='800 17px '+FONT;for(let i=0;i<HP_MAX;i++){x.fillStyle=i<G.hp?'#d62828':'rgba(59,36,22,.25)';x.fillText('♥',W-16-i*19,66)}}else for(let i=0;i<3;i++){x.fillStyle=i<G.hp?'#d62828':'rgba(59,36,22,.25)';x.fillText('♥',W-16-i*26,14)}
   x.fillStyle='#3b2416';x.font='600 13px '+FONT;x.fillText('盤子上 '+G.n+' 隻',W-16,46);
   if(G.cd>0){x.fillStyle='rgba(59,36,22,.5)';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
     x.font='800 96px '+FONT;x.fillText(Math.ceil(G.cd),W/2,H*.3);
@@ -1124,7 +1127,7 @@ function hud(){
     x.fillStyle='#fff';x.font='600 14px '+FONT;
     x.fillText('經過小屋會自動把盤子上的火雞送進去',W/2,H*.46+38);
     x.fillText('老公雞的爆炸蛋不要接，幽浮綠光和烏鴉要閃開',W/2,H*.46+62);
-    x.fillText(BOSS?'一局 60 秒，最後 15 秒大魔王會出現！':'沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+86)}}
+    x.fillText(BOSS?'5 滴血、一局 60 秒，撐到最後 15 秒打大魔王！':'沒有時間限制，接到爆炸蛋扣一顆心，三顆用完結束',W/2,H*.46+86)}}
 
 /* 測試用：手動推進時間 */
 window.__catch={get G(){return G},step(dt){update(dt)},draw,pos,pad,px,jump};
