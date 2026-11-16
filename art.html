@@ -321,7 +321,7 @@ body.tour .pcTag{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="hall3d.js?v=20261116c"></script>
 <script>
-const ART_VER='20261116e';
+const ART_VER='20261116f';
 /* 2026-10-31 大熊手機一直看到舊版（LINE 的瀏覽器留著舊的 art.html）→ 跟遊樂島一樣：開頁時偷偷抓一次最新的 art.html，ART_VER 不同就換成最新版（每個版本只換一次） */
 (function(){try{fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/const ART_VER='([0-9a-z]+)'/.exec(t);
   if(m&&m[1]!==ART_VER&&!sessionStorage.getItem('otto2-art-upd-'+m[1])){sessionStorage.setItem('otto2-art-upd-'+m[1],'1');const u=new URLSearchParams(location.search);u.set('v',m[1]);location.replace(location.pathname+'?'+u.toString())}}).catch(()=>{})}catch(e){}})();
@@ -2573,11 +2573,18 @@ function gpBack(b){if(!b||!(b.days||b.was==='storm'))return;const w=b.was==='tri
 /* 摸摸、餵食回傳 back＝剛從離家回來：重抓島上資料讓牠回家，再演回家 */
 async function gpCameBack(b){if(!b)return;try{await reload();rebuildGP()}catch(e){}gpBack(b)}
 /* 颱風（2026-10-24）：自己的寵物被吹走了 → 打開就問要不要去找牠，按了算「有來」，牠就回家 */
-function gpStormAsk(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me);if(!m||!m.away||m.away.s!=='storm')return;
-  const nm=['pet','frog'].map(k=>m[k]&&m[k].n).filter(Boolean).join('和')||'牠',kind=m.pet?'pet':'frog';
-  modal(`<h2>🌀 ${esc(nm)}被颱風吹走了！</h2><p>昨天的颱風把島上的小動物吹得四處跑，你家門口空蕩蕩的。快去找牠回家吧！</p><div class="acts"><button class="pill" type="button" id="stX">等一下</button><button class="pill main" type="button" id="stGo">去找牠</button></div>`);
+/* 2026-11-16 大熊：寵物離家（餓了／作客／旅行／颱風）時，打開作品小屋直接問要不要帶牠回家，不用自己找碗 */
+function gpStormAsk(){if(DEMO||!G||!G.me)return;const m=G.members.find(x=>x.id===G.me);if(!m||!m.away)return;
+  const a=m.away,nm=['pet','frog'].map(k=>m[k]&&m[k].n).filter(Boolean).join('和')||'牠',kind=m.pet?'pet':'frog';
+  const host=a.s==='visit'?G.members.find(x=>x.id===a.at):null;
+  const T={storm:['🌀 '+nm+'被颱風吹走了！','颱風把島上的小動物吹得四處跑，你家門口空蕩蕩的。快去找牠回家吧！','去找牠'],
+    hungry:['🥕 '+nm+'肚子餓了！',`你 ${a.d} 天沒來，牠一直餓著肚子在門口等你。餵牠吃點心，牠就不會跑掉了。`,'餵牠'],
+    visit:['🏡 '+nm+'跑去別人家了！',`你 ${a.d} 天沒來，牠等不到你，跑去${host?esc(host.name)+'家':'別人家'}作客了。去接牠回來吧！`,'帶牠回家'],
+    trip:['🧳 '+nm+'去旅行了！',`你 ${a.d} 天沒來，牠自己出門旅行了。按一下就能把牠叫回家，牠還會帶伴手禮給你。`,'帶牠回家']}[a.s]||null;
+  if(!T)return;
+  modal(`<h2>${esc(T[0])}</h2><p>${T[1]}</p><p style="font-size:12px;opacity:.7">之後來上課、轉扭蛋、走格子擲骰子，牠也會自己回家。</p><div class="acts"><button class="pill" type="button" id="stX">等一下</button><button class="pill main" type="button" id="stGo">${T[2]}</button></div>`);
   $('stX').onclick=closeModal;$('stGo').onclick=async()=>{$('stGo').disabled=true;$('stGo').textContent='找牠中…';
-    try{const r=await api('/island/pet/love',{why:'pet',kind});closeModal();if(r.back)gpCameBack(r.back);else{await reload();rebuildGP()}}catch(e){closeModal();toast(e.message)}}}
+    try{const r=await api('/island/pet/love',{why:a.s==='hungry'?'feed':'pet',kind});closeModal();if(r.back)gpCameBack(r.back);else{await reload();rebuildGP()}}catch(e){closeModal();toast(e.message)}}}
 /* 打開作品小屋：有寵物來自己家作客，提醒一次（一天一次） */
 function gpGuests(){if(DEMO||!G||!G.me)return;const g=G.members.filter(x=>x.away&&x.away.s==='visit'&&x.away.at===G.me);if(!g.length)return;
   const k='otto2-gp-guest-'+new Date(Date.now()+8*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}
@@ -2829,7 +2836,7 @@ async function start(data){
     if(!G){try{G=JSON.parse(localStorage.getItem('otto2-island-v5'))}catch(e){}}
     if(!G||!G.members||!G.album)G=demoData();ME={ok:true,staff:true}}
   else{let err;for(let k=0;k<3&&!G;k++){try{await reload()}catch(e){err=e;await sleep(1200)}}
-    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');(whoP=whoAmI()).then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else{const mm=G.members.find(x=>x.id===G.me);setTimeout(mm&&mm.away&&mm.away.s==='storm'?gpStormAsk:gpAsk,1500)}setTimeout(gpGuests,2600)})}
+    if(!G)throw new Error('連不上作品小屋，請稍後重新打開');(whoP=whoAmI()).then(()=>{gpRemember();if(ME.back)setTimeout(()=>gpCameBack(ME.back),1800);else{const mm=G.members.find(x=>x.id===G.me);setTimeout(mm&&mm.away?gpStormAsk:gpAsk,1500)}setTimeout(gpGuests,2600)})}
   try{await Promise.race([document.fonts.load('20px "Noto Serif TC"'),sleep(2500)])}catch(e){}
   build();rebuildHouses();try{balMgr()&&BM.set(Anniv26.def26(),{today:''})}catch(e){}balLoad();setInterval(()=>{if(!document.hidden)balLoad()},600000);
   const g=camGoal();camPos.copy(g.pos);look.copy(g.at);
