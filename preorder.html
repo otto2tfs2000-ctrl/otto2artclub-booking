@@ -258,7 +258,8 @@ function done(j){
     <div class="row"><span>數量</span><span>${F.qty} 盒</span></div>
     ${j.gift?'<div class="row gift"><span>🎁 加贈</span><span>'+esc(j.gift)+'</span></div>':''}
     <div class="row"><span>${esc(w.name||'')}</span><span style="text-align:right;max-width:60%">${esc(F.store||F.address||'')}</span></div>
-    ${C.price?'<div class="row tot"><span>合計</span><span>'+money(j.total)+'</span></div>':''}</div></div>
+    ${C.price?'<div class="row tot"><span>合計</span><span>'+money(j.total)+'</span></div>':''}</div>
+    ${j.oc?'<div class="hint" style="margin-top:12px;background:#fff6df;border:1.5px solid #c99a3c;border-radius:12px;padding:10px 12px;color:#5a3d0c">🎬 <b>線上教學影片已經開通！</b><br>打開 Otto2 官方 LINE 選單的預約頁 →「🎬 在家自己做系列」，輸入這支電話 <b>'+esc(F.phone)+'</b> 就能看。<br>要送人的話，請對方用他的 LINE 輸入這支電話（一支電話只能綁一個 LINE）。</div>':''}</div>
     <div style="text-align:center;margin-top:16px"><button class="copy" onclick="location.reload()">再填一筆</button></div>`;
 }
 load();

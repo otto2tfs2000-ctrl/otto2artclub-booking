@@ -349,6 +349,24 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .hm-card.hall .hm-ar{color:#e9cf8c;font-weight:700}
 .hall-tag{display:inline-block;margin-left:7px;font-size:11px;font-weight:700;color:#3a2a10;background:#e9cf8c;padding:1px 7px;border-radius:9px;vertical-align:2px;letter-spacing:1px}
 
+.hm-card.oc{background:linear-gradient(135deg,#fff6df,#fbecc4);border-color:#c99a3c;box-shadow:0 6px 16px rgba(120,80,20,.14)}
+.hm-card.oc .hm-ic{background:#fff}
+.hm-card.oc .hm-tx b{color:#5a3d0c}.hm-card.oc .hm-tx small{color:#8a6a30}.hm-card.oc .hm-ar{color:#c99a3c;font-weight:700}
+/* 11/24 大熊：首頁大家都一樣、多一張「在家自己做系列」，一頁看完不用滑 → 上面三張（火雞／聖誕／畫框背後）縮小一點 */
+.tgc .in{padding:6px 92px 6px 14px!important}
+.tgc .vg{max-height:112px}
+.tgc .tt{font-size:15.5px!important}
+.tgc small{font-size:11.5px!important;line-height:1.35}
+.tgc .tgbar{margin:3px 0 2px!important}
+.tgc .row{margin-top:4px!important}
+.tgc .row span{font-size:12.5px!important;padding:5px 11px!important}
+.tgc .bk{padding:3.5px 11px!important}
+.gcbox .gc-go button{padding:6px 0!important}
+.hm>.hm-card.hall,.hm>.hm-card.oc{min-height:62px;padding:9px 16px!important;margin-bottom:10px!important}
+.hm>.hm-card.hall .hm-ic,.hm>.hm-card.oc .hm-ic{width:38px!important;height:38px!important;font-size:19px}
+.hm>.hm-card.hall .hm-tx b,.hm>.hm-card.oc .hm-tx b{font-size:15.5px!important}
+.hm>.hm-card{min-height:72px}
+.oc-tag{display:inline-block;margin-left:7px;font-size:11px;font-weight:800;color:#fff;background:#c99a3c;letter-spacing:1px;padding:1px 7px;border-radius:9px;vertical-align:2px}
 /* ══ 分岔畫面 / 我的點數 ══ */
 .hm{padding:22px 18px 96px}   /* 底下留位置給右下角「問 AI 小幫手」，不蓋到最後一行字 */
 .hm-hi{font-size:21px;font-weight:900;color:var(--navy);margin:4px 0 6px}
@@ -441,7 +459,7 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.85</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.87</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
@@ -1534,6 +1552,7 @@ async function tgFill(){
     const j=await (await fetch(NOTIFY_URL+"/catch/book",{method:"POST",body:JSON.stringify({accessToken:tk})})).json(); const m=document.getElementById("tgMe");
     if(j&&j.ok&&m)m.innerHTML="我的梵谷收藏 <b>"+j.n+"</b> / 4 款" }catch(e){}
   tgSameHeight() }
+/* 2026-11-24 🎬 我的線上課程：有上架的課程才出現這張卡，開通過的發光（course.html） */
 function renderHome(){
   const hmGame=hmGameCard();
   const hi = myMember&&myMember.name ? myMember.name+"，你好" :
@@ -1566,6 +1585,11 @@ function renderHome(){
         <span class="hm-tx"><b>畫框背後<span class="hall-tag">大師開講</span></b><small>梵谷展間開放中・語音導覽</small></span>
         <span class="hm-ar">›</span>
       </button>
+      <button class="hm-card oc" id="hmOc">
+        <span class="hm-ic">🎬</span>
+        <span class="hm-tx"><b>在家自己做系列<span class="oc-tag">線上課程</span></b><small>材料包＋影片教學，在家跟著做</small></span>
+        <span class="hm-ar">›</span>
+      </button>
       <button class="hm-card" id="hmMine">
         <span class="hm-ic">💎</span>
         <span class="hm-tx"><b>查詢我的預約／點數</b><small>看預約、可取消，查點數紅利</small></span>
@@ -1596,6 +1620,7 @@ function renderHome(){
   if(myMember&&myMember.bonus>0)loadHmShop();
   if(myHold)document.getElementById("hmHold").onclick=()=>setStep(1);
   document.getElementById("hmMine").onclick=()=>setStep(9);
+  const ho=document.getElementById("hmOc"); if(ho)ho.onclick=()=>{ parkToken(); location.href="course.html?v="+Date.now() };
   document.getElementById("hmBook").onclick=()=>setStep(1);
 }
 
