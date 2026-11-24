@@ -21,10 +21,14 @@ html,body{margin:0;background:#f3ead9;color:var(--ink);font-family:var(--font);-
 .box{background:var(--cream);margin:12px;border-radius:16px;padding:16px;box-shadow:0 1px 0 var(--line)}
 .box h2{margin:0 0 6px;font-size:16px}
 .muted{color:var(--soft);font-size:13px;line-height:1.6}
-input[type=tel]{width:100%;font:inherit;font-size:17px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;margin:10px 0 8px}
+input[type=tel],input.in{width:100%;font:inherit;font-size:17px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;margin:10px 0 8px}
 input:focus{outline:none;border-color:var(--gold)}
 .btn{display:block;width:100%;font:inherit;font-size:16px;font-weight:800;border:0;border-radius:12px;padding:13px;background:var(--gold);color:#2b2410;cursor:pointer}
 .btn:disabled{opacity:.6}
+.more{display:none}.more.on{display:block}
+.more input{margin:4px 0 6px!important}
+.cdlink{display:block;margin:6px auto 0;background:none;border:0;color:var(--soft);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
+.okmsg{color:var(--green);font-size:13.5px;margin:8px 12px 0;text-align:center;line-height:1.5}
 .err{color:#b23a3a;font-size:13.5px;margin-top:8px;min-height:1em;line-height:1.5}
 .course{margin:12px;border-radius:18px;overflow:hidden;background:#fff;border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(201,154,60,.18),0 8px 22px rgba(120,80,20,.16)}
 .course .hd{padding:14px 16px;background:linear-gradient(135deg,#fff6df,#fbecc4)}
@@ -47,7 +51,7 @@ input:focus{outline:none;border-color:var(--gold)}
 .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .vbox{position:relative;width:100%;aspect-ratio:16/9;max-height:100%}
 .vbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.wm{position:absolute;z-index:2;pointer-events:none;color:rgba(255,255,255,.42);font-size:15px;font-weight:700;text-shadow:0 0 3px rgba(0,0,0,.6);white-space:nowrap;transition:top 1.2s,left 1.2s}
+.wm{position:absolute;z-index:2;pointer-events:none;color:rgba(255,255,255,.2);font-size:14px;font-weight:600;text-shadow:0 0 3px rgba(0,0,0,.25);white-space:nowrap;transition:top 1.2s,left 1.2s}
 .pl.land .stage{padding:0}
 .hint{color:#aaa;font-size:12.5px;text-align:center;padding:8px 12px calc(12px + env(safe-area-inset-bottom,0px))}
 .load{padding:40px 16px;text-align:center;color:var(--soft)}
@@ -98,9 +102,8 @@ function render(){
   const m=$('main'),d=DATA;let h='';
   if(!d.bound){
     h+=`<div class="box"><h2>第一次使用，先開通</h2>
-      <div class="muted">請輸入購買材料包時留的手機號碼。開通後這個 LINE 就認得你，下次打開直接看。</div>
-      <input id="ph" type="tel" inputmode="numeric" maxlength="12" placeholder="09xxxxxxxx">
-      <button class="btn" id="phGo">開通我的課程</button><div class="err" id="phErr"></div></div>`;
+      <div class="muted">輸入<b>購買時的手機</b>，或<b>卡片上的開通碼</b>（XMAS- 開頭）。開通後這個 LINE 就認得你，下次打開直接看。</div>
+      ${claimHtml(false)}</div>`;
   }
   const cs=d.courses||[];
   if(!cs.length)h+=`<div class="box"><div class="muted">線上課程準備中，敬請期待。</div></div>`;
@@ -110,17 +113,40 @@ function render(){
       c.eps.map(e=>`<button class="ep" data-c="${esc(c.id)}" data-e="${e.n}"${c.owned?'':' disabled'}><span class="n">${e.n}</span><span class="t">${esc(e.title)}</span>${sn[c.id+'/'+e.n]?'<span class="seen">看過 ✓</span>':''}${c.owned?'<span>▶</span>':''}</button>`).join('')+
       (c.owned?'':`<div class="lock">🔒 購買材料包就能看。想買請私訊官方 LINE 小編。</div>`)+`</div>`;
   });
-  if(d.bound)h+=`<div class="me">已用電話末三碼 ${esc(d.phoneTail)} 開通</div>`;
+  if(d.bound)h+=`<div class="me">已用電話末三碼 ${esc(d.phoneTail)} 開通</div>
+    <button class="cdlink" id="cdOpen">收到另一盒材料包？輸入開通碼</button><div class="box" id="cdBox" style="display:none">${claimHtml(true)}</div>`;
+  if(OKMSG){h=`<div class="okmsg">${esc(OKMSG)}</div>`+h;OKMSG=''}
   m.innerHTML=h;
   m.querySelectorAll('.ep:not([disabled])').forEach(b=>b.onclick=()=>play(b.dataset.c,+b.dataset.e));
+  if($('cdOpen'))$('cdOpen').onclick=()=>{$('cdOpen').style.display='none';$('cdBox').style.display='block';$('ph').focus()};
   if($('phGo')){
-    const go=async()=>{const e=$('phErr'),b=$('phGo');e.textContent='';b.disabled=true;b.textContent='開通中…';
-      const j=await api('/oc/claim',{phone:$('ph').value});
+    const isCode=v=>/[a-z]/i.test(v);
+    /* 開通碼：自動轉大寫、去空白，打 XMAS 後面 5 碼就自動補「-」 */
+    const fix=()=>{const el=$('ph');let v=el.value;
+      if(isCode(v)){const r=v.toUpperCase().replace(/[^A-Z0-9]/g,'');v=('XMAS'.startsWith(r)?r:'XMAS-'+(r.startsWith('XMAS')?r.slice(4):r)).slice(0,10);if(v!==el.value)el.value=v}
+      $('more').classList.toggle('on',isCode(v)&&!DATA.bound)};
+    $('ph').addEventListener('input',fix);
+    const go=async()=>{const e=$('phErr'),b=$('phGo'),v=$('ph').value.trim();e.textContent='';
+      if(!v){e.textContent='請輸入手機或開通碼';return}
+      const body=isCode(v)?{code:v,name:$('nm').value.trim(),phone:$('ph2').value.trim()}:{phone:v};
+      if(isCode(v)&&!DATA.bound&&(!body.name||!body.phone)){e.textContent='用開通碼的話，請一起填你的名字和手機（影片上會顯示，防止外流）';return}
+      b.disabled=true;b.textContent='開通中…';
+      const j=await api('/oc/claim',body);
       b.disabled=false;b.textContent='開通我的課程';
-      if(!j.ok){e.textContent=j.error||'開通沒有成功，請再試一次';return}
+      if(!j.ok){e.textContent=j.error||'開通沒有成功，請再試一次';if(j.need){$('more').classList.add('on')}return}
+      if(j.kept)OKMSG='你這支電話本來就有這套課，這組開通碼沒有用掉，可以留著送人 🎁';
+      else if(isCode(v))OKMSG='開通成功！🎉';
       DATA={bound:true,phoneTail:j.phoneTail,courses:j.courses};render()};
     $('phGo').onclick=go;$('ph').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
   }
+}
+let OKMSG='';
+function claimHtml(bound){
+  return `<input id="ph" class="in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="${bound?'XMAS-XXXXX':'09xxxxxxxx 或 XMAS-XXXXX'}">
+      <div class="more" id="more"><div class="muted">用開通碼的話，請填<b>你自己的</b>名字和手機（影片上會顯示）</div>
+        <input id="nm" class="in" type="text" maxlength="20" placeholder="你的名字">
+        <input id="ph2" class="in" type="tel" inputmode="numeric" maxlength="12" placeholder="你的手機 09xxxxxxxx"></div>
+      <button class="btn" id="phGo">開通我的課程</button><div class="err" id="phErr"></div>`;
 }
 async function play(cid,ep){
   const c=(DATA.courses||[]).find(x=>x.id===cid);

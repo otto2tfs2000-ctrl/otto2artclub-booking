@@ -114,6 +114,7 @@ function draw(){
   <form id="fm" autocomplete="on">
   <div class="sec"><h2><span class="n">1</span>要幾盒？</h2><div class="qty">${q}</div>${C.maxQty>n?'<div class="hint">要更多盒請私訊小編</div>':''}</div>
   <div class="sec"><h2><span class="n">2</span>收件人</h2>
+    <div class="hint" style="margin:-2px 0 10px">🎁 送禮的話，可以直接填收禮人的姓名和手機寄給對方；寄給自己再轉送也沒問題，每盒都附一張專屬開通卡。</div>
     <label class="f">姓名</label><input type="text" name="name" autocomplete="name" placeholder="收件人姓名（要跟證件一樣才領得到）" value="${esc(F.name||'')}">
     <label class="f">手機</label><input type="tel" name="phone" autocomplete="tel" inputmode="numeric" placeholder="09xxxxxxxx" value="${esc(F.phone||'')}">
   </div>
@@ -259,7 +260,7 @@ function done(j){
     ${j.gift?'<div class="row gift"><span>🎁 加贈</span><span>'+esc(j.gift)+'</span></div>':''}
     <div class="row"><span>${esc(w.name||'')}</span><span style="text-align:right;max-width:60%">${esc(F.store||F.address||'')}</span></div>
     ${C.price?'<div class="row tot"><span>合計</span><span>'+money(j.total)+'</span></div>':''}</div>
-    ${j.oc?'<div class="hint" style="margin-top:12px;background:#fff6df;border:1.5px solid #c99a3c;border-radius:12px;padding:10px 12px;color:#5a3d0c">🎬 <b>線上教學影片已經開通！</b><br>打開 Otto2 官方 LINE 選單的預約頁 →「🎬 在家自己做系列」，輸入這支電話 <b>'+esc(F.phone)+'</b> 就能看。<br>要送人的話，請對方用他的 LINE 輸入這支電話（一支電話只能綁一個 LINE）。</div>':''}</div>
+    ${j.oc?'<div class="hint" style="margin-top:12px;background:#fff6df;border:1.5px solid #c99a3c;border-radius:12px;padding:10px 12px;color:#5a3d0c">🎬 <b>線上教學影片已經開通！</b><br>打開 Otto2 官方 LINE 選單的預約頁 →「🎬 在家自己做系列」，輸入這支電話 <b>'+esc(F.phone)+'</b> 就能看。<br>要送人的話，每盒都附一張專屬開通卡，對方輸入卡片上的開通碼就能看。</div>':''}</div>
     <div style="text-align:center;margin-top:16px"><button class="copy" onclick="location.reload()">再填一筆</button></div>`;
 }
 load();
