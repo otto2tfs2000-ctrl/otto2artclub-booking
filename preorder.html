@@ -63,6 +63,16 @@ textarea{min-height:70px;resize:vertical}
 .done .no{display:inline-block;background:#fff;border:1.5px dashed var(--gold);border-radius:10px;padding:6px 16px;font-size:18px;font-weight:800;letter-spacing:.06em;margin:10px 0}
 .done .sum{text-align:left;margin-top:12px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.find711{font:inherit;font-size:14px;font-weight:700;border:1.5px solid var(--green);color:var(--green);background:#fff;border-radius:20px;padding:7px 14px;margin-top:8px;cursor:pointer}
+.sheet{position:fixed;inset:0;background:rgba(40,20,10,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet .in{background:var(--cream);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h3{margin:0 0 10px;color:var(--red2);font-size:18px}
+.sheet ol{margin:0 0 14px;padding-left:22px;line-height:1.9;font-size:15px}
+.sheet .go711{display:block;text-align:center;text-decoration:none;background:#008a5e;color:#fff;font-weight:800;border-radius:12px;padding:13px 0;font-size:16px}
+.sheet .cancel{display:block;width:100%;margin-top:8px;font:inherit;font-size:15px;border:0;background:none;color:var(--soft);padding:8px}
+.back{background:#e6f4ec;color:var(--green);border-radius:10px;padding:9px 12px;margin-top:10px;font-size:14px;font-weight:700}
+.flash{animation:fl 1.2s ease 2}@keyframes fl{50%{box-shadow:0 0 0 4px rgba(31,90,74,.35)}}
 footer{text-align:center;font-size:12px;color:var(--soft);padding:18px}
 </style>
 </head>
@@ -81,7 +91,7 @@ async function load(){
   try{
     const j=await (await fetch(NOTIFY_URL+'/preorder/info?p='+encodeURIComponent(P))).json();
     if(!j.ok)throw new Error(j.error||'讀不到商品');
-    C=j; document.title=C.title+'｜預購'; draw();
+    C=j; document.title=C.title+'｜預購'; loadDraft(); if(F.qty>(C.maxQty||5))F.qty=1; if(F.way&&!C.ways[F.way])F.way=''; draw();
   }catch(e){$('#app').innerHTML='<div class="msg">讀不到預購資訊😢<br><small>'+esc(e.message)+'</small><br>請稍後再試，或直接私訊小編</div>'}
 }
 function calc(){
@@ -132,7 +142,8 @@ const md=(d)=>(+d.slice(5,7))+'/'+(+d.slice(8,10));
 function giftText(){ return C.promo?esc(C.promo.text)+' ×'+(C.promo.per==='box'?F.qty:1):'' }
 function wayBox(){
   if(F.way==='seven')return `<label class="f" style="margin-top:12px">7-11 取件門市</label><input type="text" name="store" placeholder="例如：南屯門市（店號 123456）" value="${esc(F.store||'')}">
-    <div class="hint">不知道門市名稱？<a href="https://emap.pcsc.com.tw/" target="_blank" rel="noopener">點這裡查 7-11 門市</a>，填店名或店號都可以</div>`;
+    <div class="hint">填店名或店號都可以。不知道門市名稱？</div><button type="button" class="find711" id="f711">🔍 查 7-11 門市</button>
+    ${F.back711?'<div class="back">👋 回來了！把剛剛查到的門市名稱或店號填在上面這格</div>':''}`;
   if(F.way==='post')return `<label class="f" style="margin-top:12px">郵寄地址</label><input type="text" name="address" autocomplete="street-address" placeholder="縣市＋區＋路名門牌（可含郵遞區號）" value="${esc(F.address||'')}">`;
   if(F.way==='pickup')return '<div class="hint" style="margin-top:10px">到貨後小編會通知你來工作室拿 🎄</div>';
   return '';
@@ -155,15 +166,47 @@ function sumHtml(){
     ${C.promo?'<div class="row gift"><span>🎁 加贈 '+giftText()+'</span><span>免費</span></div>':''}
     <div class="row tot"><span>合計</span><span>${money(c.total)}</span></div>`;
 }
-function keep(){ const fm=$('#fm'); if(!fm)return; ['name','phone','store','address','last5','note'].forEach(k=>{ if(fm[k])F[k]=fm[k].value }) }
+function keep(){ const fm=$('#fm'); if(!fm)return; ['name','phone','store','address','last5','note'].forEach(k=>{ if(fm[k])F[k]=fm[k].value }); saveDraft() }
+/* 2026-11-24 大熊：客人跑去 7-11 網站查門市，回來找不到原本的頁面、或頁面被重開，填的東西就不見了。
+   填的內容（截圖除外，太大）隨時存在手機裡，7 天內重開這個連結會自動帶回來；送出成功就清掉。 */
+const DKEY='po_draft_'+P, DKEEP=['qty','way','payWay','name','phone','store','address','last5','note'];
+function saveDraft(){ try{ const d={t:Date.now()}; DKEEP.forEach(k=>{ if(F[k]!=null&&F[k]!=='')d[k]=F[k] }); localStorage.setItem(DKEY,JSON.stringify(d)) }catch(e){} }
+function loadDraft(){ try{ const d=JSON.parse(localStorage.getItem(DKEY)||'null'); if(d&&Date.now()-d.t<7*864e5)DKEEP.forEach(k=>{ if(d[k]!=null)F[k]=d[k] }) }catch(e){} }
+/* 查門市：7-11 網站不能放進我們頁面裡，也沒辦法在它上面加「回去」按鈕，
+   所以出發前先講清楚怎麼回來；回到這頁時自動捲到門市那格、提醒填上 */
+function open711(){
+  keep();
+  let sh=$('#sh711');
+  if(!sh){ sh=document.createElement('div'); sh.id='sh711'; sh.className='sheet';
+    sh.innerHTML=`<div class="in"><h3>查 7-11 門市</h3><ol><li>在 7-11 地圖找到你要取貨的門市</li><li>記下<b>店名</b>或<b>店號</b>（也可以截圖）</li><li>按左上角 <b>✕</b> 或手機的<b>返回</b>，就會回到這頁<br><small style="color:var(--soft)">你填好的資料都會留著，不用重填</small></li></ol>
+      <a class="go711" href="https://emap.pcsc.com.tw/" target="_blank" rel="noopener">打開 7-11 門市查詢</a><button type="button" class="cancel">先不用</button></div>`;
+    document.body.appendChild(sh);
+    sh.querySelector('.go711').onclick=()=>{ F.away711=true; saveDraft(); setTimeout(()=>{sh.hidden=true},300) };
+    sh.querySelector('.cancel').onclick=()=>{ sh.hidden=true };
+    sh.onclick=(e)=>{ if(e.target===sh)sh.hidden=true };
+  }
+  sh.hidden=false;
+}
+function back711(){
+  if(!F.away711||document.visibilityState!=='visible')return;
+  F.away711=false; F.back711=true;
+  if(F.way!=='seven'||!$('#wayBox'))return;
+  refresh();
+  const i=$('#fm')&&$('#fm').store; if(!i)return;
+  i.scrollIntoView({block:'center',behavior:'smooth'}); i.classList.add('flash'); setTimeout(()=>i.focus({preventScroll:true}),400);
+}
+document.addEventListener('visibilitychange',back711);
+window.addEventListener('pageshow',(e)=>{ if(e.persisted)back711() });
 function refresh(){ keep(); $('#wayBox').innerHTML=wayBox(); $('#payBox').innerHTML=payBox(); $('#sum').innerHTML=sumHtml(); $('#tot').textContent=C.price?money(calc().total):'—'; bindPay() }
 function bind(){
   document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{F.qty=+b.dataset.q;document.querySelectorAll('[data-q]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
   document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{F.way=b.dataset.w;document.querySelectorAll('[data-w]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
   document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{F.payWay=b.dataset.p;document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
   $('#go').onclick=submit; bindPay();
+  $('#fm').addEventListener('input',keep);
 }
 function bindPay(){
+  const f7=$('#f711'); if(f7)f7.onclick=open711;
   const c=$('#cpy'); if(c)c.onclick=()=>{ const m=String(C.bank).match(/[\d-]{8,}/); const t=m?m[0]:C.bank;
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent='已複製 '+t},()=>{prompt('長按複製帳號',t)}) };
   const f=$('#pf'); if(f)f.onchange=async()=>{ const file=f.files&&f.files[0]; if(!file)return;
@@ -194,6 +237,7 @@ async function submit(){
   }catch(err){ e.textContent=err.message==='Failed to fetch'?'網路不太穩，請再按一次送出':err.message; go.disabled=false; go.textContent='送出預購' }
 }
 function done(j){
+  try{ localStorage.removeItem(DKEY) }catch(e){}
   window.scrollTo(0,0);
   const w=C.ways[F.way]||{};
   $('#app').innerHTML=hero()+`<div class="sec done"><div class="ok">🎄</div><h2>預購完成！</h2><div>你的預購單號</div><div class="no">${esc(j.oid)}</div>
