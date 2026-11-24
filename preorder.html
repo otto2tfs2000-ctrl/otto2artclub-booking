@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>商品預購｜Otto2 ARTCLUB</title>
+<meta property="og:title" content="微光聖誕樹 DIY 材料包｜預購">
+<meta property="og:description" content="選盒數、填收件資料、付款，一頁完成。">
+<style>
+/* 2026-11-24 商品預購頁：preorder.html?p=商品代號（第一檔 xmas-mini 微光聖誕樹）。
+   商品名稱、價格、運費、匯款帳號都從伺服器 /preorder/info 讀，後台「🛍️ 預購」改了這裡就跟著變。 */
+:root{--red:#a8262b;--red2:#7f1a1e;--green:#1f5a4a;--cream:#fbf5ea;--ink:#3a2418;--soft:#8a6a52;--line:#e6d6bd;--gold:#c99a3c;
+  --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;background:#f1e7d6;color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
+.wrap{max-width:520px;margin:0 auto;padding:0 0 calc(110px + env(safe-area-inset-bottom,0px))}
+.hero{background:var(--red);color:#fff;padding:18px 18px 16px}
+.hero img{display:block;width:100%;border-radius:14px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.hero h1{margin:0 0 6px;font-size:22px;letter-spacing:.03em;line-height:1.35}
+.hero .d{font-size:14px;opacity:.9;line-height:1.6}
+.hero .pr{margin-top:10px;font-size:15px}.hero .pr b{font-size:24px;color:#ffe3a6}
+.promo{margin-top:12px;background:#fff3d6;color:var(--red2);border-radius:10px;padding:9px 12px;font-size:14.5px;font-weight:700}
+.promo b{color:var(--green)}
+.sum .gift{color:var(--green);font-weight:700}
+.sec{background:var(--cream);margin:12px 12px 0;border-radius:16px;padding:16px;box-shadow:0 1px 0 var(--line)}
+.sec h2{margin:0 0 12px;font-size:16px;color:var(--red2);display:flex;align-items:center;gap:8px}
+.sec h2 .n{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.qty{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.qty button,.opt{font:inherit;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;cursor:pointer}
+.qty button{padding:12px 0;font-size:17px;font-weight:800}
+.qty button small{display:block;font-size:12px;font-weight:400;color:var(--soft);margin-top:2px}
+.qty button.on,.opt.on{border-color:var(--red);background:#fff1ef;color:var(--red2)}
+label.f{display:block;font-size:13px;color:var(--soft);margin:12px 0 5px}
+label.f:first-of-type{margin-top:0}
+input[type=text],input[type=tel],textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,textarea:focus{outline:none;border-color:var(--red)}
+textarea{min-height:70px;resize:vertical}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:12px 14px;text-align:left;font-size:15px;font-weight:700}
+.opt .fee{margin-left:auto;font-weight:400;font-size:13px;color:var(--soft)}
+.opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:none}
+.opt.on .dot{border:6px solid var(--red)}
+.hint{font-size:12.5px;color:var(--soft);line-height:1.7;margin-top:6px}
+.hint a{color:var(--green);font-weight:700}
+.box{background:#fff;border:1.5px dashed var(--gold);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14.5px;line-height:1.8;white-space:pre-line}
+.copy{font:inherit;font-size:13px;border:1px solid var(--green);color:var(--green);background:#fff;border-radius:16px;padding:4px 12px;margin-top:8px;cursor:pointer}
+.lp{display:block;text-align:center;text-decoration:none;background:#06c755;color:#fff;font-weight:800;border-radius:12px;padding:13px 0;margin-top:10px;font-size:16px}
+.up{display:flex;align-items:center;gap:12px;margin-top:6px}
+.up label{font-size:14px;border:1.5px solid var(--green);color:var(--green);border-radius:20px;padding:8px 16px;cursor:pointer;background:#fff;font-weight:700}
+.up img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.sum{font-size:14.5px;line-height:1.9}
+.sum .row{display:flex;justify-content:space-between}
+.sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:6px;font-weight:800;font-size:17px;color:var(--red2)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;z-index:5}
+.bar .t{flex:1;font-size:13px;color:var(--soft);line-height:1.4}.bar .t b{display:block;font-size:19px;color:var(--red2)}
+.bar button{font:inherit;font-size:17px;font-weight:800;border:0;border-radius:24px;background:var(--red);color:#fff;padding:12px 26px;cursor:pointer;box-shadow:0 3px 0 var(--red2)}
+.bar button:disabled{opacity:.55}
+.err{color:#c0392b;font-size:13.5px;margin-top:8px;font-weight:700}
+.msg{text-align:center;padding:60px 24px;font-size:16px;line-height:1.8}
+.done{text-align:center;padding:28px 18px}
+.done .ok{font-size:48px}.done h2{color:var(--red2);margin:6px 0 4px}
+.done .no{display:inline-block;background:#fff;border:1.5px dashed var(--gold);border-radius:10px;padding:6px 16px;font-size:18px;font-weight:800;letter-spacing:.06em;margin:10px 0}
+.done .sum{text-align:left;margin-top:12px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+footer{text-align:center;font-size:12px;color:var(--soft);padding:18px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="msg">載入中…</div></div>
+<script>
+const NOTIFY_URL='https://otto2-notify-production.up.railway.app';
+const P=new URLSearchParams(location.search).get('p')||'xmas-mini';
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=(n)=>'NT$'+Number(n||0).toLocaleString('en-US');
+let C=null;                                   /* 商品設定 */
+const F={qty:1,way:'',payWay:'',proof:''};    /* 客人填的 */
+
+async function load(){
+  try{
+    const j=await (await fetch(NOTIFY_URL+'/preorder/info?p='+encodeURIComponent(P))).json();
+    if(!j.ok)throw new Error(j.error||'讀不到商品');
+    C=j; document.title=C.title+'｜預購'; draw();
+  }catch(e){$('#app').innerHTML='<div class="msg">讀不到預購資訊😢<br><small>'+esc(e.message)+'</small><br>請稍後再試，或直接私訊小編</div>'}
+}
+function calc(){
+  const fee=F.way&&C.ways[F.way]?C.ways[F.way].fee:0, goods=(C.price||0)*F.qty;
+  return {goods,fee,total:goods+fee};
+}
+function draw(){
+  if(C.closed){$('#app').innerHTML=hero()+'<div class="msg">這個商品的預購已經結束囉<br>有問題歡迎私訊小編 🙏</div>';return}
+  const ways=Object.keys(C.ways);
+  if(ways.length===1&&!F.way)F.way=ways[0];
+  const n=Math.min(C.maxQty||5,10);
+  let q='';for(let i=1;i<=n;i++)q+=`<button type="button" data-q="${i}" class="${F.qty===i?'on':''}">${i} 盒${C.price?'<small>'+money(C.price*i)+'</small>':''}</button>`;
+  const wayBtns=ways.map(k=>`<button type="button" class="opt ${F.way===k?'on':''}" data-w="${k}"><span class="dot"></span>${esc(C.ways[k].name)}<span class="fee">${C.ways[k].fee?'運費 '+money(C.ways[k].fee):'免運費'}</span></button>`).join('');
+  const pays=[];
+  if(C.linePayUrl||C.linePay)pays.push(['linepay','LINE Pay']);
+  if(C.bank)pays.push(['bank','銀行匯款／轉帳']);
+  if(pays.length===1&&!F.payWay)F.payWay=pays[0][0];
+  const payBtns=pays.map(([k,t])=>`<button type="button" class="opt ${F.payWay===k?'on':''}" data-p="${k}"><span class="dot"></span>${t}</button>`).join('');
+  $('#app').innerHTML=hero()+`
+  <form id="fm" autocomplete="on">
+  <div class="sec"><h2><span class="n">1</span>要幾盒？</h2><div class="qty">${q}</div>${C.maxQty>n?'<div class="hint">要更多盒請私訊小編</div>':''}</div>
+  <div class="sec"><h2><span class="n">2</span>收件人</h2>
+    <label class="f">姓名</label><input type="text" name="name" autocomplete="name" placeholder="收件人姓名（要跟證件一樣才領得到）" value="${esc(F.name||'')}">
+    <label class="f">手機</label><input type="tel" name="phone" autocomplete="tel" inputmode="numeric" placeholder="09xxxxxxxx" value="${esc(F.phone||'')}">
+  </div>
+  <div class="sec"><h2><span class="n">3</span>寄到哪裡？</h2><div class="opts">${wayBtns}</div>
+    <div id="wayBox">${wayBox()}</div></div>
+  <div class="sec"><h2><span class="n">4</span>付款</h2>
+    <div class="sum" id="sum">${sumHtml()}</div>
+    <div class="opts" style="margin-top:12px">${payBtns||'<div class="hint">付款方式請私訊小編</div>'}</div>
+    <div id="payBox">${payBox()}</div></div>
+  <div class="sec"><h2><span class="n">5</span>備註（選填）</h2><textarea name="note" placeholder="例如：送禮用、希望幾號前收到">${esc(F.note||'')}</textarea>
+    ${C.note?'<div class="hint">'+esc(C.note).replace(/\n/g,'<br>')+'</div>':''}</div>
+  <input class="hp" name="hp" tabindex="-1" autocomplete="off">
+  <div id="err" class="err" style="margin:10px 16px"></div>
+  </form>
+  <footer>Otto2 ARTCLUB 藝術工作室</footer>
+  <div class="bar"><div class="t">合計<b id="tot">${C.price?money(calc().total):'—'}</b></div><button id="go" type="button">送出預購</button></div>`;
+  bind();
+}
+function hero(){
+  return `<div class="hero">${C.img?'<img src="'+esc(C.img)+'" alt="">':''}<h1>${esc(C.title)}</h1>${C.desc?'<div class="d">'+esc(C.desc)+'</div>':''}
+  <div class="pr">${C.price?'每盒 <b>'+money(C.price)+'</b>':'價格請洽小編'}${C.deadline?'<span style="margin-left:10px;font-size:13px;opacity:.85">預購到 '+(+C.deadline.slice(5,7))+'/'+(+C.deadline.slice(8))+'</span>':''}</div>
+  ${C.promo?'<div class="promo">🎁 '+md(C.promo.until)+' 前預購，'+(C.promo.per==='box'?'每盒':'')+'加贈<b>'+esc(C.promo.text)+'</b></div>':''}</div>`;
+}
+const md=(d)=>(+d.slice(5,7))+'/'+(+d.slice(8,10));
+/* 加贈幾份：每筆送 1 份，或每盒送 1 份（後台設定） */
+function giftText(){ return C.promo?esc(C.promo.text)+' ×'+(C.promo.per==='box'?F.qty:1):'' }
+function wayBox(){
+  if(F.way==='seven')return `<label class="f" style="margin-top:12px">7-11 取件門市</label><input type="text" name="store" placeholder="例如：南屯門市（店號 123456）" value="${esc(F.store||'')}">
+    <div class="hint">不知道門市名稱？<a href="https://emap.pcsc.com.tw/" target="_blank" rel="noopener">點這裡查 7-11 門市</a>，填店名或店號都可以</div>`;
+  if(F.way==='post')return `<label class="f" style="margin-top:12px">郵寄地址</label><input type="text" name="address" autocomplete="street-address" placeholder="縣市＋區＋路名門牌（可含郵遞區號）" value="${esc(F.address||'')}">`;
+  if(F.way==='pickup')return '<div class="hint" style="margin-top:10px">到貨後小編會通知你來工作室拿 🎄</div>';
+  return '';
+}
+function payBox(){
+  const amt=C.price?'<b>'+money(calc().total)+'</b>':'（金額請洽小編）';
+  let h='';
+  if(F.payWay==='linepay')h=`<div class="box">請付款 ${amt}${C.linePay?'\n'+esc(C.linePay):''}</div>${C.linePayUrl?'<a class="lp" href="'+esc(C.linePayUrl)+'" target="_blank" rel="noopener">前往 LINE Pay 付款</a>':''}`;
+  if(F.payWay==='bank')h=`<div class="box">請匯款 ${amt}\n${esc(C.bank)}</div><button type="button" class="copy" id="cpy">複製帳號</button>
+    <label class="f">匯款帳號末五碼</label><input type="tel" name="last5" inputmode="numeric" maxlength="5" placeholder="5 位數字" value="${esc(F.last5||'')}">`;
+  if(!F.payWay)return '';
+  return h+`<label class="f">付款截圖${F.payWay==='bank'?'（有末五碼可不傳）':''}</label>
+    <div class="up"><label>📷 上傳截圖<input type="file" accept="image/*" id="pf" hidden></label>${F.proof?'<img src="'+F.proof+'" alt="">':'<span class="hint" style="margin:0">付完款截圖這裡傳上來，對帳最快</span>'}</div>`;
+}
+function sumHtml(){
+  const c=calc();
+  if(!C.price)return '<div class="hint" style="margin:0">價格小編會再跟你確認</div>';
+  return `<div class="row"><span>${esc(C.title)} × ${F.qty} 盒</span><span>${money(c.goods)}</span></div>
+    <div class="row"><span>運費${F.way?'（'+esc(C.ways[F.way].name)+'）':''}</span><span>${F.way?money(c.fee):'選了寄送方式再算'}</span></div>
+    ${C.promo?'<div class="row gift"><span>🎁 加贈 '+giftText()+'</span><span>免費</span></div>':''}
+    <div class="row tot"><span>合計</span><span>${money(c.total)}</span></div>`;
+}
+function keep(){ const fm=$('#fm'); if(!fm)return; ['name','phone','store','address','last5','note'].forEach(k=>{ if(fm[k])F[k]=fm[k].value }) }
+function refresh(){ keep(); $('#wayBox').innerHTML=wayBox(); $('#payBox').innerHTML=payBox(); $('#sum').innerHTML=sumHtml(); $('#tot').textContent=C.price?money(calc().total):'—'; bindPay() }
+function bind(){
+  document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{F.qty=+b.dataset.q;document.querySelectorAll('[data-q]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
+  document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{F.way=b.dataset.w;document.querySelectorAll('[data-w]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
+  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{F.payWay=b.dataset.p;document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on',x===b));refresh()});
+  $('#go').onclick=submit; bindPay();
+}
+function bindPay(){
+  const c=$('#cpy'); if(c)c.onclick=()=>{ const m=String(C.bank).match(/[\d-]{8,}/); const t=m?m[0]:C.bank;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent='已複製 '+t},()=>{prompt('長按複製帳號',t)}) };
+  const f=$('#pf'); if(f)f.onchange=async()=>{ const file=f.files&&f.files[0]; if(!file)return;
+    try{ keep(); F.proof=await shrink(file,1400); $('#payBox').innerHTML=payBox(); bindPay() }catch(e){ alert('這張圖讀不到，請換一張') } };
+}
+/* 截圖縮到長邊 1400、JPEG，約 100～300KB，手機流量也傳得動 */
+function shrink(file,max){
+  return new Promise((ok,bad)=>{ const u=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>{ const s=Math.min(1,max/Math.max(im.width,im.height)), cv=document.createElement('canvas');
+      cv.width=Math.round(im.width*s); cv.height=Math.round(im.height*s); cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+      URL.revokeObjectURL(u); ok(cv.toDataURL('image/jpeg',.8)) };
+    im.onerror=()=>{URL.revokeObjectURL(u);bad()}; im.src=u });
+}
+async function submit(){
+  keep(); const e=$('#err'), go=$('#go'); e.textContent='';
+  const phone=String(F.phone||'').replace(/\D/g,'');
+  const need=!String(F.name||'').trim()?'請填收件人姓名':!/^09\d{8}$/.test(phone)?'手機要 09 開頭 10 碼':!F.way?'請選寄送方式':
+    F.way==='seven'&&!String(F.store||'').trim()?'請填 7-11 取件門市':F.way==='post'&&String(F.address||'').trim().length<6?'請填完整的郵寄地址':
+    !F.payWay&&(C.bank||C.linePayUrl)?'請選付款方式':F.payWay==='bank'&&F.last5&&!/^\d{5}$/.test(F.last5)?'末五碼要 5 位數字':'';
+  if(need){e.textContent=need;e.scrollIntoView({block:'center',behavior:'smooth'});return}
+  if(F.payWay&&!F.proof&&!(F.payWay==='bank'&&F.last5)&&!confirm('還沒上傳付款截圖'+(F.payWay==='bank'?'或末五碼':'')+'，確定先送出嗎？\n（之後再私訊小編截圖也可以）'))return;
+  go.disabled=true; go.textContent='送出中…';
+  try{
+    const body={p:P,qty:F.qty,name:F.name,phone,way:F.way,store:F.store,address:F.address,payWay:F.payWay,last5:F.last5,note:F.note,proof:F.proof,hp:$('#fm').hp.value};
+    const j=await (await fetch(NOTIFY_URL+'/preorder/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(!j.ok)throw new Error(j.error||'送出失敗');
+    done(j);
+  }catch(err){ e.textContent=err.message==='Failed to fetch'?'網路不太穩，請再按一次送出':err.message; go.disabled=false; go.textContent='送出預購' }
+}
+function done(j){
+  window.scrollTo(0,0);
+  const w=C.ways[F.way]||{};
+  $('#app').innerHTML=hero()+`<div class="sec done"><div class="ok">🎄</div><h2>預購完成！</h2><div>你的預購單號</div><div class="no">${esc(j.oid)}</div>
+    <div class="hint">建議截圖這個畫面。小編確認付款後會依序寄出，有問題請私訊 LINE 小編並附上單號。</div>
+    <div class="sum"><div class="row"><span>收件人</span><span>${esc(F.name)}・${esc(F.phone)}</span></div>
+    <div class="row"><span>數量</span><span>${F.qty} 盒</span></div>
+    ${j.gift?'<div class="row gift"><span>🎁 加贈</span><span>'+esc(j.gift)+'</span></div>':''}
+    <div class="row"><span>${esc(w.name||'')}</span><span style="text-align:right;max-width:60%">${esc(F.store||F.address||'')}</span></div>
+    ${C.price?'<div class="row tot"><span>合計</span><span>'+money(j.total)+'</span></div>':''}</div></div>
+    <div style="text-align:center;margin-top:16px"><button class="copy" onclick="location.reload()">再填一筆</button></div>`;
+}
+load();
+</script>
+</body>
+</html>
