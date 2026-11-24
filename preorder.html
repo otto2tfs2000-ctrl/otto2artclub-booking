@@ -125,7 +125,6 @@ function draw(){
     <div id="payBox">${payBox()}</div></div>
   <div class="sec"><h2><span class="n">5</span>備註（選填）</h2><textarea name="note" placeholder="例如：送禮用、希望幾號前收到">${esc(F.note||'')}</textarea>
     ${C.note?'<div class="hint">'+esc(C.note).replace(/\n/g,'<br>')+'</div>':''}</div>
-  <input class="hp" name="hp" tabindex="-1" autocomplete="off">
   <div id="err" class="err" style="margin:10px 16px"></div>
   </form>
   <footer>Otto2 ARTCLUB 藝術工作室</footer>
@@ -208,9 +207,9 @@ function bind(){
 function bindPay(){
   const f7=$('#f711'); if(f7)f7.onclick=open711;
   const c=$('#cpy'); if(c)c.onclick=()=>{ const m=String(C.bank).match(/[\d-]{8,}/); const t=m?m[0]:C.bank;
-    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent='已複製 '+t},()=>{prompt('長按複製帳號',t)}) };
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent='已複製 '+t},()=>{c.textContent='帳號：'+t+'（請長按複製）';c.style.userSelect='text'}) };
   const f=$('#pf'); if(f)f.onchange=async()=>{ const file=f.files&&f.files[0]; if(!file)return;
-    try{ keep(); F.proof=await shrink(file,1400); $('#payBox').innerHTML=payBox(); bindPay() }catch(e){ alert('這張圖讀不到，請換一張') } };
+    try{ keep(); F.proof=await shrink(file,1400); $('#payBox').innerHTML=payBox(); bindPay() }catch(e){ $('#err').textContent='這張圖讀不到，請換一張' } };
 }
 /* 截圖縮到長邊 1400、JPEG，約 100～300KB，手機流量也傳得動 */
 function shrink(file,max){
@@ -220,17 +219,30 @@ function shrink(file,max){
       URL.revokeObjectURL(u); ok(cv.toDataURL('image/jpeg',.8)) };
     im.onerror=()=>{URL.revokeObjectURL(u);bad()}; im.src=u });
 }
-async function submit(){
+/* LINE 內建瀏覽器常常把 confirm()／alert() 擋掉，客人按送出會完全沒反應，所以一律用頁面內的框 */
+function askNoProof(){
+  let sh=$('#shNP');
+  if(!sh){ sh=document.createElement('div'); sh.id='shNP'; sh.className='sheet'; document.body.appendChild(sh);
+    sh.onclick=(e)=>{ if(e.target===sh)sh.hidden=true } }
+  sh.innerHTML=`<div class="in"><h3>還沒上傳付款截圖${F.payWay==='bank'?'或末五碼':''}</h3>
+    <div style="font-size:15px;line-height:1.8;margin-bottom:14px">可以先送出，付完款再私訊小編截圖也可以。</div>
+    <a class="go711" href="javascript:void 0" id="npGo">先送出預購</a><button type="button" class="cancel" id="npBack">回去上傳截圖</button></div>`;
+  sh.hidden=false;
+  $('#npGo').onclick=()=>{ sh.hidden=true; submit(true) };
+  $('#npBack').onclick=()=>{ sh.hidden=true; const b=$('#payBox'); if(b)b.scrollIntoView({block:'center',behavior:'smooth'}) };
+}
+async function submit(force){
+  if(force!==true)force=false;
   keep(); const e=$('#err'), go=$('#go'); e.textContent='';
   const phone=String(F.phone||'').replace(/\D/g,'');
   const need=!String(F.name||'').trim()?'請填收件人姓名':!/^09\d{8}$/.test(phone)?'手機要 09 開頭 10 碼':!F.way?'請選寄送方式':
     F.way==='seven'&&!String(F.store||'').trim()?'請填 7-11 取件門市':F.way==='post'&&String(F.address||'').trim().length<6?'請填完整的郵寄地址':
     !F.payWay&&(C.bank||C.linePayUrl)?'請選付款方式':F.payWay==='bank'&&F.last5&&!/^\d{5}$/.test(F.last5)?'末五碼要 5 位數字':'';
   if(need){e.textContent=need;e.scrollIntoView({block:'center',behavior:'smooth'});return}
-  if(F.payWay&&!F.proof&&!(F.payWay==='bank'&&F.last5)&&!confirm('還沒上傳付款截圖'+(F.payWay==='bank'?'或末五碼':'')+'，確定先送出嗎？\n（之後再私訊小編截圖也可以）'))return;
+  if(F.payWay&&!F.proof&&!(F.payWay==='bank'&&F.last5)&&!force){ askNoProof(); return }
   go.disabled=true; go.textContent='送出中…';
   try{
-    const body={p:P,qty:F.qty,name:F.name,phone,way:F.way,store:F.store,address:F.address,payWay:F.payWay,last5:F.last5,note:F.note,proof:F.proof,hp:$('#fm').hp.value};
+    const body={p:P,qty:F.qty,name:F.name,phone,way:F.way,store:F.store,address:F.address,payWay:F.payWay,last5:F.last5,note:F.note,proof:F.proof};
     const j=await (await fetch(NOTIFY_URL+'/preorder/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
     if(!j.ok)throw new Error(j.error||'送出失敗');
     done(j);
