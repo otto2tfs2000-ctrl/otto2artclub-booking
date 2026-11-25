@@ -464,6 +464,10 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .hs-btns{display:flex;gap:10px}
 .hs-btns button{flex:1;padding:9px 0;border:1.5px solid var(--navy);border-radius:10px;background:#fff;color:var(--navy);font:inherit;font-size:14px;font-weight:800;cursor:pointer}
 .hs-btns button.on{background:var(--navy);color:#fff}
+.hs-next.off{cursor:default;color:#8A90A0}
+.hs-book{display:flex;align-items:center;gap:10px;width:100%;margin-top:10px;padding:13px 16px;border:0;border-radius:12px;background:linear-gradient(135deg,#243869,var(--navy) 60%);color:#fff;font:inherit;cursor:pointer;box-shadow:0 6px 14px rgba(30,43,79,.22)}
+.hs-book span{font-size:20px}.hs-book b{flex:1;text-align:left;font-size:17px;font-weight:900}.hs-book i{font-style:normal;color:var(--gold);font-size:20px;font-weight:700}
+.hs-book:active{transform:scale(.985)}
 .hs-none{display:flex;flex-direction:column;gap:4px;text-align:left;font:inherit;cursor:pointer}
 .hs-none b{font-size:16px;color:var(--navy)}
 .hs-none small{font-size:13px;color:#8A90A0}
@@ -505,17 +509,11 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
   <div class="brand"><span class="star">★</span><h1>Otto2 ARTCLUB 線上預約</h1></div>
   <div class="steps" id="steps"><i id="st1" class="on"></i><i id="st2"></i><i id="st3"></i><i id="st4"></i></div>
   <div class="stepname" id="stepname">步驟 1／4：上課人數</div>
-  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.89</div>
+  <div style="position:absolute;top:6px;right:10px;font-size:10px;opacity:.4">v4.90</div>
 </header>
 
 <div id="balBar" style="display:none"></div>
 <div id="view"></div>
-<nav id="hmNav" class="hm-nav" style="display:none">
-  <button type="button" id="nvHome" onclick="setStep(0)"><i>🏠</i>首頁</button>
-  <button type="button" onclick="setStep(1)"><i>🗓</i>預約</button>
-  <button type="button" id="nvLg" onclick="goLedger()"><i>📋</i>明細</button>
-  <button type="button" onclick="setStep(8)"><i>💬</i>AI 小幫手</button>
-</nav>
 <button id="aiFab" class="ai-fab" title="問 AI 小幫手" onclick="setStep(8)">
   <span class="ai-fab-pulse"></span>
   <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1436,9 +1434,8 @@ function syncChrome(n){
   /* AI 小幫手浮標：選人數／選課程／選時段這幾步都在，讓客人隨時能求救，
      不用先退回首頁才找得到；填聯絡資料（步驟4）跟其他頁面就不用再冒出來了。 */
   /* 2026-11-25 首頁、我的點數頁改用底部按鈕列（裡面有 AI 小幫手），浮動鈕只在預約步驟 1～3 出現 */
-  document.getElementById("aiFab").style.display=(n>=1&&n<=3)?"flex":"none";
-  const nav=document.getElementById("hmNav"); if(nav){ nav.style.display=(n===0||n===9)?"flex":"none";
-    document.getElementById("nvHome").classList.toggle("on",n===0); document.getElementById("nvLg").classList.toggle("on",n===9) }
+  /* 2026-11-25 晚 大熊：底部按鈕列跟上面重複、而且點進別頁就不見，拿掉；AI 小幫手浮動鈕回到首頁 */
+  document.getElementById("aiFab").style.display=(n>=0&&n<=3)?"flex":"none";
   document.getElementById("aiFab").classList.toggle("home",n===0);
 }
 /* 扭蛋活動的程式很大，點首頁的扭蛋卡片才去載，平常開預約頁不用多等 */
@@ -1625,8 +1622,8 @@ async function hmNextFill(){
   if(list===null){ el.style.display="none"; return }
   const b=list.find(x=>x.status!=="cancelled");
   el.innerHTML=b?`📅 下次上課　<b>${esc(b.dateLabel)} ${esc(b.slot)}</b>${b.items&&b.items.length?"　"+esc(b.items[0]):""}`
-                :`📅 目前沒有預約　<b>去預約 ›</b>`;
-  el.onclick=b?()=>setStep(9):()=>setStep(1);
+                :`📅 目前沒有排定的課`;
+  el.onclick=b?()=>setStep(9):null; el.classList.toggle("off",!b);
 }
 function goLedger(){
   setStep(9);
@@ -1643,7 +1640,8 @@ function hmStatusHtml(){
       </div>
       ${gift>0?`<div class="hs-gift">🎁 另有贈送金 $${gift.toLocaleString()}，上課可折抵</div>`:""}
       <button type="button" class="hs-next" id="hmNext">📅 查詢下次上課…</button>
-      <div class="hs-btns"><button type="button" id="hsBk">我的預約</button><button type="button" class="on" id="hsLg">📋 上課明細</button></div>
+      <div class="hs-btns"><button type="button" id="hsBk">📅 我的課表</button><button type="button" id="hsLg">📋 上課明細</button></div>
+      <button type="button" class="hs-book" id="hmBook"><span>🎨</span><b>我要預約課程</b><i>›</i></button>
     </div>`;
 }
 function hmTilesHtml(g){
@@ -1665,11 +1663,11 @@ function renderHome(){
       ${hmStatusHtml()}
       ${goldBanner("hmGold")}
       ${myHold?`<button class="hm-hold" id="hmHold">💰 你有一筆 <b>NT$${myHold.amount.toLocaleString()}</b> 訂金還沒排課（${esc(myHold.date)} 付款）<br><b>點這裡選時間 ›</b> 約好後訂金自動扣抵，不用再付。</button>`:''}
-      <button class="hm-card main" id="hmBook">
+      ${myMember?"":`<button class="hm-card main" id="hmBook">
         <span class="hm-ic">🎨</span>
         <span class="hm-tx"><b>我要預約課程</b><small>選人數、課程、日期，線上完成預約</small></span>
         <span class="hm-ar">›</span>
-      </button>
+      </button>`}
       ${hmTilesHtml(hmGame)}
       <div class="hm-note">當日課程無法線上預約，想確認今天有沒有位置請私訊小編。</div>
     </div>`;
