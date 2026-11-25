@@ -108,6 +108,7 @@ function draw(){
   const pays=[];
   if(C.linePayUrl||C.linePay)pays.push(['linepay','LINE Pay']);
   if(C.bank)pays.push(['bank','銀行匯款／轉帳']);
+  pays.push(['points','用儲值點數扣（會員）']);
   if(pays.length===1&&!F.payWay)F.payWay=pays[0][0];
   const payBtns=pays.map(([k,t])=>`<button type="button" class="opt ${F.payWay===k?'on':''}" data-p="${k}"><span class="dot"></span>${t}</button>`).join('');
   $('#app').innerHTML=hero()+`
@@ -155,6 +156,8 @@ function payBox(){
   if(F.payWay==='bank')h=`<div class="box">請匯款 ${amt}\n${esc(C.bank)}</div><button type="button" class="copy" id="cpy">複製帳號</button>
     <label class="f">匯款帳號末五碼</label><input type="tel" name="last5" inputmode="numeric" maxlength="5" placeholder="5 位數字" value="${esc(F.last5||'')}">`;
   if(!F.payWay)return '';
+  /* 2026-11-25 儲值點數：客人只是登記要用點數，小編確認後才從訂購人電話的儲值點數扣，不用付款也不用截圖 */
+  if(F.payWay==='points')return `<div class="box">不用另外付款 👍\n小編確認後，會從<b>訂購人手機</b>的儲值點數扣 ${C.price?'<b>'+calc().total.toLocaleString('en-US')+' 點</b>':'這筆金額'}（1 點＝1 元）。\n點數不夠或要用家人的點數，小編會再跟你聯絡。</div>`;
   return h+`<label class="f">付款截圖${F.payWay==='bank'?'（有末五碼可不傳）':''}</label>
     <div class="up"><label>📷 上傳截圖<input type="file" accept="image/*" id="pf" hidden></label>${F.proof?'<img src="'+F.proof+'" alt="">':'<span class="hint" style="margin:0">付完款截圖這裡傳上來，對帳最快</span>'}</div>`;
 }
@@ -240,7 +243,7 @@ async function submit(force){
     F.way==='seven'&&!String(F.store||'').trim()?'請填 7-11 取件門市':F.way==='post'&&String(F.address||'').trim().length<6?'請填完整的郵寄地址':
     !F.payWay&&(C.bank||C.linePayUrl)?'請選付款方式':F.payWay==='bank'&&F.last5&&!/^\d{5}$/.test(F.last5)?'末五碼要 5 位數字':'';
   if(need){e.textContent=need;e.scrollIntoView({block:'center',behavior:'smooth'});return}
-  if(F.payWay&&!F.proof&&!(F.payWay==='bank'&&F.last5)&&!force){ askNoProof(); return }
+  if(F.payWay&&F.payWay!=='points'&&!F.proof&&!(F.payWay==='bank'&&F.last5)&&!force){ askNoProof(); return }
   go.disabled=true; go.textContent='送出中…';
   try{
     const body={p:P,qty:F.qty,name:F.name,phone,way:F.way,store:F.store,address:F.address,payWay:F.payWay,last5:F.last5,note:F.note,proof:F.proof};
