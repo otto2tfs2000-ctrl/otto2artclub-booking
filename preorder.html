@@ -146,7 +146,7 @@ function wayBox(){
     <div class="hint">填店名或店號都可以。不知道門市名稱？</div><button type="button" class="find711" id="f711">🔍 查 7-11 門市</button>
     ${F.back711?'<div class="back">👋 回來了！把剛剛查到的門市名稱或店號填在上面這格</div>':''}`;
   if(F.way==='post')return `<label class="f" style="margin-top:12px">郵寄地址</label><input type="text" name="address" autocomplete="street-address" placeholder="縣市＋區＋路名門牌（可含郵遞區號）" value="${esc(F.address||'')}">`;
-  if(F.way==='pickup')return '<div class="hint" style="margin-top:10px">到貨後小編會通知你來工作室拿 🎄</div>';
+  if(F.way==='pickup')return '<div class="box">🏠 到工作室自取，不用運費\n'+(C.pickupAddr?'📍 '+esc(C.pickupAddr)+'\n':'')+'到貨後小編會通知你來拿 🎄</div>';
   return '';
 }
 function payBox(){
