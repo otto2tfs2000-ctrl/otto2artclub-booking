@@ -1614,7 +1614,7 @@ function hmGameCard(){
   return{t:"Otto2 遊樂島",s:"走格子・轉扭蛋・賺紅利換好禮",tag:"小遊戲"};
 }
 /* 2026-11-16 感恩節接火雞首頁卡（11/30 前）：全店進度讀 /catch/state，自己的梵谷收藏讀 /catch/book */
-function tgOn(){ return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)<="2026-11-30" }
+function tgOn(){ return new Date(Date.now()+8*3600e3).toISOString().slice(0,10)<="2026-11-27" }   /* 2026-11-27 大熊：提前在 11/27 晚上 12 點下架（原本 11/30） */
 let tgLast="達標率 …";   /* 首頁會重畫好幾次（認到人、選品館清單回來），上次查到的先顯示，不要每次閃回「…」 */
 async function tgFill(){
   try{ const j=await (await fetch(NOTIFY_URL+"/catch/state")).json(); if(j&&j.ok){ const n=document.getElementById("tgPct");

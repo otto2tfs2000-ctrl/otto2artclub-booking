@@ -928,7 +928,7 @@ function ctRender(j){const box=$('#ctBox');const m=j.mine;
   box.innerHTML=(j.newBest?'<p class="ctNew">🎉 刷新你的紀錄！</p>':'')+ctBar(j)+
    (m?'<p class="ctNote">你玩了 '+m.plays+' 局・累積帶回 '+ctNum(m.sum)+' 隻・單局最多 '+m.best+' 隻'+'</p>':'')+
    (j.bad?'<p class="ctNote">這局成績怪怪的，沒有算進去</p>':'')+
-   '<p class="ctPrize">🏆 11/30 結算：<b>單局最多</b>前 5 名送小禮物</p>'+   /* 2026-11-16 大熊：前五名送小禮物 */
+   '<p class="ctPrize">🏆 11/27 晚上 12 點結算：<b>單局最多</b>前 5 名送小禮物</p>'+   /* 2026-11-16 大熊：前五名送小禮物 */
    '<div class="ctTabs"><button data-t="best"'+(ctTab==='best'?' class="on"':'')+'>單局最多</button><button data-t="sum"'+(ctTab==='sum'?' class="on"':'')+'>累積最多</button></div><div id="ctL">'+ctList(j)+'</div>';
   box.querySelectorAll('.ctTabs button').forEach(b=>b.onclick=()=>{ctTab=b.dataset.t;box.querySelectorAll('.ctTabs button').forEach(x=>x.classList.toggle('on',x===b));$('#ctL').innerHTML=ctList(j)})}
 /* 11/15 別人畫的角色（伺服器每次隨機給最多 4 位），先載好圖，下一局拿來用 */
@@ -948,7 +948,7 @@ async function ctSend(N){vgLoad(null);const box=$('#ctBox');box.innerHTML='<p cl
     return}
   try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:tok,served:N,total:G.total,hi:G.best,sec:Math.floor(G.t),char:ctThumb()})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;vgLoad(j.vg);helpLoad(j.helpers);ctRender(j);$('#ctGoal').innerHTML=ctBar(j)}
-  catch(e){box.innerHTML='<p class="ctNote">成績沒存成功（'+ctEsc(e.message||'網路不穩')+'），下一局會照常記錄。</p>'}}
+  catch(e){const m=e.message||'網路不穩';box.innerHTML='<p class="ctNote">'+(/11\/27 結束/.test(m)?ctEsc(m):'成績沒存成功（'+ctEsc(m)+'），下一局會照常記錄。')+'</p>'}}
 
 /* ══ 11/15 梵谷圖鑑收集冊：四格（拿到＝彩色＋收到日期＋可看合照；沒拿到＝剪影＋怎麼拿＋進度），下面分享、預約 ══ */
 const VG_HOW={v4:'第一次玩完，自拍就拿到',v5:'自己累積帶回 30 隻火雞（不管玩幾局）',v3:'到「畫框背後」聽完梵谷講座 3 集',v6:'全店一起帶回 6,666 隻火雞，玩過的人都拿得到'};
@@ -986,7 +986,7 @@ const CT_PEND='otto2-ct-pending';
   try{const r=await fetch(NOTIFY_URL+'/catch/end',{method:'POST',body:JSON.stringify({accessToken:upTok,served:p.served,total:p.total,hi:p.hi,sec:p.sec,char:p.char})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||('連線失敗 '+r.status));ctLast=j;VGB=j.vg&&j.vg.book||VGB;helpLoad(j.helpers);$('#ctGoal').innerHTML=ctBar(j);
     dnCard('登入好了！🦃<br><span style="font-size:14px;font-weight:600">剛剛那局帶回 '+ctNum(j.served)+' 隻，已經算進全店總數（現在 '+ctNum(j.total)+' 隻）。<br>接下來每一局都會記錄。</span>',false)}
-  catch(e){dnCard('剛剛那局沒記錄到<br><span style="font-size:14px;font-weight:600">'+ctEsc(e.message||'網路不穩')+'，下一局會照常記錄。</span>',false)}})();
+  catch(e){const m=e.message||'網路不穩';dnCard('剛剛那局沒記錄到<br><span style="font-size:14px;font-weight:600">'+ctEsc(m)+(/11\/27 結束/.test(m)?'':'，下一局會照常記錄。')+'</span>',false)}})();
 /* 11/16 大熊：拍照入座送紅利 1 點（每人一次，伺服器判斷） */
 function dnBonusTxt(j){return j&&j.bonus?'🎁 紅利 +'+j.bonus+' 點已經存進你的帳戶！':j&&j.bonusWhy==='nophone'?'（紅利要先在預約頁綁定電話才領得到）':j&&j.bonusWhy==='got'?'（入座紅利每個帳號只送一次，你已經領過囉）':''}
 async function dnSend(p){const r=await fetch(NOTIFY_URL+'/dinner/up',{method:'POST',body:JSON.stringify({accessToken:upTok,cut:p.cut,ch:p.ch,msg:p.msg})});

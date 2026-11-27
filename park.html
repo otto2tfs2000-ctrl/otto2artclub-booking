@@ -2159,7 +2159,7 @@ function evBloom(e){let b=+e.bloomDays||0;if(e.bloomFrom)b=Math.max(1,Math.round
 /* ══ 本期活動（2026-11-16 大熊）：週期性的活動（接火雞…）不塞在遊戲室，活動期間放「本期活動」；結束後自動回遊戲室 ══
    要換下一檔就在 CUR_EVS 加一筆（from／to 是台灣日期，含當天） */
 const CUR_EVS=[
-  {id:'catch',from:'2026-11-14',to:'2026-11-30',ic:'🦃',tag:'接火雞',t:'感恩節・梵谷村的長桌晚餐',d:'11/16～11/30',
+  {id:'catch',from:'2026-11-14',to:'2026-11-27',ic:'🦃',tag:'接火雞',t:'感恩節・梵谷村的長桌晚餐',d:'11/16～11/27',   /* 2026-11-27 大熊：提前到 11/27 結束 */
    body:'幫梵谷《吃馬鈴薯的人》一家把火雞接回家，畫自己的角色、自拍坐上作品小屋大樹下的長桌，還能收集 4 款梵谷公仔。',
    acts:[{t:'🦃 開始玩接火雞',u:'catch-demo.html',main:1},{t:'📖 我的梵谷圖鑑收集冊',u:'catch-demo.html?book=1'},{t:'🏠 去梵谷家吃飯',u:'dinner.html'},{t:'🎧 梵谷講座・聽 3 集拿雕像',u:'art.html?hall=1&hroom=vangogh'}]}];
 function curEvNow(){const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);return CUR_EVS.find(e=>d>=e.from&&d<=e.to)||null}
