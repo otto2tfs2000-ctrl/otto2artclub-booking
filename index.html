@@ -497,13 +497,13 @@ body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--paper);col
 .ht-hl::before{content:"";position:absolute;inset:0;background:url(hall/vangogh/card/starry-night.jpg) center/cover;opacity:.28;z-index:0}
 .ht-hl .ht-p{background:#e8d9a8;color:#2f4a44}
 .ht-hl img{height:100px}
-/* 2026-11-28 聖誕點燈格子：沒開之前灰掉、上鎖，點了只會搖一下 */
-.ht-xl{background:radial-gradient(ellipse at 75% 85%,#2a3d6b,#0b1326 70%);color:#f5f1e8;border-color:#f2c86b}
+/* 2026-11-28 聖誕小遊戲格子（庫斯馬斯小鎮・蛙蛙叫聖誕）：沒開之前灰掉、上鎖，點了只會搖一下 */
+.ht-xl{background:#0d1230 url(xmas-town/cover.jpg) 70% 60%/cover;color:#f3ead9;border-color:#e7a956}
+.ht-xl::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0b1030f0 30%,#0b103040);z-index:0}
 .ht-xl .ht-p{background:#f2c86b;color:#0b1326}
 .ht-xl .ht-go{background:#fff;color:#0b1326}
-.ht-xl .tree{position:absolute;right:8px;bottom:6px;font-size:62px;line-height:1;z-index:1;filter:drop-shadow(0 0 10px rgba(242,200,107,.6))}
 .ht-xl.lock{cursor:default}
-.ht-xl.lock .tree{filter:grayscale(1) brightness(.55)}
+.ht-xl.lock{filter:grayscale(.85)}
 .ht-xl.lock .ht-p{background:#5b6478;color:#e6e9f0}
 .ht-xl.lock .ht-go{background:rgba(255,255,255,.18);color:#e6e9f0}
 .ht-xl.lock::after{content:"🔒";position:absolute;right:30px;bottom:34px;font-size:26px;z-index:3}
@@ -1684,7 +1684,7 @@ function hmStatusHtml(){
       <button type="button" class="hs-book" id="hmBook"><span>🎨</span><b>我要預約課程</b><i>›</i></button>
     </div>`;
 }
-/* 2026-11-28 大熊：首頁多一格「聖誕點燈」(xmas-light.html)，先鎖住不能玩。
+/* 2026-11-28 大熊：首頁多一格聖誕小遊戲「庫斯馬斯小鎮」(xmas-town/，就是蛙蛙叫聖誕)，先鎖住不能玩。
    ★ 要開放的時候：把下面 XL_OPEN 改成 true 再上傳，格子就會解鎖。
    預覽解鎖後的樣子：網址加 ?xl=1 */
 const XL_OPEN=false;
@@ -1695,8 +1695,8 @@ function hmTilesHtml(g){
   T.push(`<button type="button" class="ht ht-gm" id="hmGacha"><b class="ht-t">${esc(g.t)}</b><span class="ht-p">${bonus?"紅利累積 "+bonus+" 點":esc(g.tag)}</span><small>${bonus?esc(hmBonusTip()):g.jp||g.hw?esc(g.s):"走格子・轉扭蛋<br>賺紅利換好禮"}</small><span class="ht-go">${g.hw?"🎃 點南瓜":g.jp?"🐻 去跳跳":"🎄 去玩"}</span><img src="mascot-elf-still.webp" alt=""></button>`);
   T.push(`<button type="button" class="ht ht-hl" id="hmHall"><b class="ht-t">畫框背後</b><span class="ht-p">大師開講</span><small>梵谷展間<br>語音導覽</small><img src="hall/statue/vangogh.webp" alt=""></button>`);
   T.push(xlOpen()
-    ? `<button type="button" class="ht ht-xl" id="hmXl"><b class="ht-t">聖誕點燈</b><span class="ht-p">聖誕限定</span><small>一起點亮<br>聖誕樹</small><span class="ht-go">✨ 去點燈</span><span class="tree">🎄</span></button>`
-    : `<button type="button" class="ht ht-xl lock" id="hmXl"><b class="ht-t">聖誕點燈</b><span class="ht-p">12 月開放</span><small>敬請期待</small><span class="ht-go">🔒 還沒開放</span><span class="tree">🎄</span></button>`);
+    ? `<button type="button" class="ht ht-xl" id="hmXl"><b class="ht-t">庫斯馬斯小鎮</b><span class="ht-p">聖誕限定</span><small>跑屋頂<br>丟禮物</small><span class="ht-go">🎁 去玩</span></button>`
+    : `<button type="button" class="ht ht-xl lock" id="hmXl"><b class="ht-t">庫斯馬斯小鎮</b><span class="ht-p">12 月開放</span><small>敬請期待</small><span class="ht-go">🔒 還沒開放</span></button>`);
   T.push(`<button type="button" class="ht ht-oc" id="hmOc"><b class="ht-t">在家自己做</b><span class="ht-p">線上課程</span><small>材料包<br>＋影片教學</small><span class="clap">🎬</span></button>`);
   if(T.length%2)T[0]=T[0].replace('class="ht ','class="ht wide ');
   return `<div class="ht-g">${T.join("")}</div>`;
@@ -1729,7 +1729,7 @@ function renderHome(){
   document.getElementById("hmOc").onclick=()=>{ parkToken(); location.href="course.html?v="+Date.now() };
   const hx=document.getElementById("hmXl");
   hx.onclick=xlOpen()
-    ? ()=>{ location.href="xmas-light.html?v="+Date.now()+"&who="+(myMember?"member":"guest") }
+    ? ()=>{ location.href="xmas-town/?v="+Date.now() }
     : ()=>{ hx.classList.remove("shake"); void hx.offsetWidth; hx.classList.add("shake") };
   const hg=document.getElementById("hmGold"); if(hg)hg.onclick=openGold;
   if(myMember&&myMember.bonus>0)loadHmShop();
