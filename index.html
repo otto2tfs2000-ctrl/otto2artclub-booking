@@ -1693,10 +1693,10 @@ function hmTilesHtml(g){
   const T=[], bonus=myMember&&myMember.bonus>0&&!g.jp?myMember.bonus:0;
   if(tgOn())T.push(`<button type="button" class="ht ht-tg" id="hmTg"><b class="ht-t">幫梵谷接火雞</b><span class="ht-p" id="tgPct">${tgLast}</span><small id="tgMe">收藏 0 / 4 款</small><span class="ht-go">🦃 去接火雞</span><img src="catch-video/vg/v4.webp?v=20261115b" alt=""></button>`);
   T.push(`<button type="button" class="ht ht-gm" id="hmGacha"><b class="ht-t">${esc(g.t)}</b><span class="ht-p">${bonus?"紅利累積 "+bonus+" 點":esc(g.tag)}</span><small>${bonus?esc(hmBonusTip()):g.jp||g.hw?esc(g.s):"走格子・轉扭蛋<br>賺紅利換好禮"}</small><span class="ht-go">${g.hw?"🎃 點南瓜":g.jp?"🐻 去跳跳":"🎄 去玩"}</span><img src="mascot-elf-still.webp" alt=""></button>`);
-  T.push(`<button type="button" class="ht ht-hl" id="hmHall"><b class="ht-t">畫框背後</b><span class="ht-p">大師開講</span><small>梵谷展間<br>語音導覽</small><img src="hall/statue/vangogh.webp" alt=""></button>`);
   T.push(xlOpen()
     ? `<button type="button" class="ht ht-xl" id="hmXl"><b class="ht-t">庫斯馬斯小鎮</b><span class="ht-p">聖誕限定</span><small>跑屋頂<br>丟禮物</small><span class="ht-go">🎁 去玩</span></button>`
     : `<button type="button" class="ht ht-xl lock" id="hmXl"><b class="ht-t">庫斯馬斯小鎮</b><span class="ht-p">12 月開放</span><small>敬請期待</small><span class="ht-go">🔒 還沒開放</span></button>`);
+  T.push(`<button type="button" class="ht ht-hl" id="hmHall"><b class="ht-t">畫框背後</b><span class="ht-p">大師開講</span><small>梵谷展間<br>語音導覽</small><img src="hall/statue/vangogh.webp" alt=""></button>`);
   T.push(`<button type="button" class="ht ht-oc" id="hmOc"><b class="ht-t">在家自己做</b><span class="ht-p">線上課程</span><small>材料包<br>＋影片教學</small><span class="clap">🎬</span></button>`);
   if(T.length%2)T[0]=T[0].replace('class="ht ','class="ht wide ');
   return `<div class="ht-g">${T.join("")}</div>`;
